@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/AdminPanel/">
+    <Project Path="AdminPanel/ECommerce.AdminPanel/ECommerce.AdminPanel.csproj" />
+  </Folder>
+  <Folder Name="/RestApi/">
+    <Project Path="RestApi/ECommerce.RestApi/ECommerce.RestApi.csproj" />
+  </Folder>
+  <Folder Name="/shared/">
+    <Project Path="shared/ECommerce.Application/ECommerce.Application.csproj" />
+    <Project Path="shared/ECommerce.Domain/ECommerce.Domain.csproj" />
+    <Project Path="shared/ECommerce.Infrastructure/ECommerce.Infrastructure.csproj" />
+  </Folder>
+</Solution>
