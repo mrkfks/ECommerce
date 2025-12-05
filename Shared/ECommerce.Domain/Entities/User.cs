@@ -7,8 +7,7 @@ namespace ECommerce.Domain.Entities
         public required string Email { get; set; }
         public required string PasswordHash { get; set; }
 
-        public required ICollection<UserRole> UserRoles { get; set; }
-        public Customer? CustomerProfile { get; set; }
-
+        public virtual Customer? CustomerProfile { get; set; }
+        public virtual required ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
     }
 }

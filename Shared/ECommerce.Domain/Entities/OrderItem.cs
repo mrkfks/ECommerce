@@ -11,6 +11,6 @@ namespace ECommerce.Domain.Entities
         public decimal UnitPrice {get; set;}
 
         public int OrderId {get; set;}
-        public required Order Order {get; set;}
+        public virtual required Order Order {get; set;}
     }
 }

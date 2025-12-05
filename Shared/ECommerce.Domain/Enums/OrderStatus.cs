@@ -6,6 +6,7 @@ namespace ECommerce.Domain.Enums
         Processing,
         Shipped,
         Delivered,
-        Cancelled
+        Cancelled,
+        Received
     }
 }
