@@ -2,52 +2,42 @@ using ECommerce.Domain.Entities;
 using ECommerce.Domain.Interfaces;
 using ECommerce.Infrastructure.Data;
 
-namespace ECommerce.Infrastructure.UnitsOfWork
+namespace ECommerce.Infrastructure.Repositories
 {
     public class UnitOfWork : IUnitOfWork
     {
         private readonly AppDbContext _context;
 
-        public UnitOfWork(        
-            AppDbContext context,
-            IProductRepository products,
-            IOrderRepository orders,
-            ICustomerRepository customers,
-            IRewiewRepository reviews,
-            IBrandRepository brands,
-            ICategoryRepository categories,
-            IUserRepository users,
-            IRoleRepository roles,
-            IAdressRepository adress,
-            IBannerRepository banners)
+        public UnitOfWork(AppDbContext context)
         {
             _context = context;
-
-            Products = products;
-            Orders = orders;
-            Customers = customers;
-            Reviews = reviews;
-            Brands = brands;
-            Categories = categories;
-            Users = users;
-            Roles = roles;
-            Address = adress;
-            Banners = banners;
+            Products = new ProductRepository(_context);
+            Orders = new OrderRepository(_context);
+            Customers = new CustomerRepository(_context);
+            Categories = new GenericRepository<Category>(_context);
+            Brands = new GenericRepository<Brand>(_context);
+            Reviews = new GenericRepository<Review>(_context);
+            Users = new GenericRepository<User>(_context);
+            Roles = new GenericRepository<Role>(_context);
         }
 
         public IProductRepository Products { get; }
         public IOrderRepository Orders { get; }
         public ICustomerRepository Customers { get; }
-        public IRewiewRepository Reviews { get; }
-        public IBrandRepository Brands { get; }
-        public ICategoryRepository Categories { get; }
-        public IUserRepository Users { get; }
-        public IRoleRepository Roles { get; }
-        public IAdressRepository Address { get; }
-        public IBannerRepository Banners { get; }
+        public IGenericRepository<Category> Categories { get; }
+        public IGenericRepository<Brand> Brands { get; }
+        public IGenericRepository<Review> Reviews { get; }
+        public IGenericRepository<User> Users { get; }
+        public IGenericRepository<Role> Roles { get; }
 
-        public async Task<int> CompleteAsync() => await _context.SaveChangesAsync();
-        public void Dispose() => _context.Dispose();
-        
+        public async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+
+        public void Dispose()
+        {
+            _context.Dispose();
+        }
     }
 }

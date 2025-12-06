@@ -4,7 +4,7 @@ using ECommerce.Infrastructure.Data;
 using ECommerce.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
-namespace ECommerce.Domain.Infrastructure.Repositories
+namespace ECommerce.Infrastructure.Repositories
 {
     public class ProductRepository : GenericRepository<Product>, IProductRepository
     {

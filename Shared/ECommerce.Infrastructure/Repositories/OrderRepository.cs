@@ -1,5 +1,8 @@
 using ECommerce.Domain.Entities;
 using ECommerce.Domain.Enums;
+using ECommerce.Domain.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using ECommerce.Infrastructure.Data;
 
 namespace ECommerce.Infrastructure.Repositories
 {
