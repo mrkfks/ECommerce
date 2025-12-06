@@ -1,4 +1,5 @@
 using ECommerce.Domain.Entities;
+using ECommerce.Domain.Enums;
 
 namespace ECommerce.Domain.Interfaces
 {
@@ -6,6 +7,6 @@ namespace ECommerce.Domain.Interfaces
     {
         Task<IReadOnlyList<Order>> GetOrdersByCustomerAsync(int customerId, int page, int pageSize);
         Task<decimal> GetCustomerTotalSpentAsync(int customerId);
-        Task<bool> UpdateStatusAsync(int orderId, string newStatus);
+        Task<bool> UpdateStatusAsync(int orderId, OrderStatus newStatus);
     }
 }

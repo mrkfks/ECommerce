@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using ECommerce.Domain.Interfaces;
+using ECommerce.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Infrastructure.Repositories
@@ -33,6 +34,10 @@ namespace ECommerce.Infrastructure.Repositories
         public async Task AddRangeAsync(IEnumerable<T> entities)
         {
             await _dbSet.AddRangeAsync(entities);
+        }
+        public void Update(T entity)
+        {
+            _dbSet.Update(entity);
         }
         public void Remove(T entity)
         {
