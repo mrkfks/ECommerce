@@ -8,7 +8,7 @@ namespace ECommerce.Application.DTOs
         public List<string> Roles { get; set; } = new();
         public int? CustomerId { get; set; }
         public string? CustomerName { get; set; }
-        public int? CompanyId { get; set; }
+        public int CompanyId { get; set; }
         public string? CompanyName { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }

@@ -6,5 +6,6 @@ namespace ECommerce.Domain.Entities
         public int RoleId {get; set;}
         public virtual required User User {get; set;}
         public virtual required Role Role {get; set;}
+        public string RoleName {get; set;} = string.Empty;
     }
 }

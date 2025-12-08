@@ -12,6 +12,11 @@ namespace ECommerce.Application.Mappings
             CreateMap<User, UserDto>().ReverseMap();
             CreateMap<User, UserCreateDto>().ReverseMap();
             CreateMap<User, UserUpdateDto>().ReverseMap();
+            CreateMap<User, UserDto>()
+                .ForMember(d => d.CompanyName, opt => opt.MapFrom(s => s.Company.Name))
+                .ForMember(d => d.Roles, opt => opt.MapFrom(s => s.UserRoles.Select(r => r.RoleName).ToList()));
+            CreateMap<UserCreateDto, User>();
+            CreateMap<UserUpdateDto, User>();
 
             // Customer ↔ CustomerDto
             CreateMap<Customer, CustomerDto>().ReverseMap();
@@ -46,6 +51,11 @@ namespace ECommerce.Application.Mappings
             CreateMap<Review, ReviewDto>().ReverseMap();
             CreateMap<Review, ReviewCreateDto>().ReverseMap();
             CreateMap<Review, ReviewUpdateDto>().ReverseMap();
+
+            // Company ↔ CompanyDto
+            CreateMap<Company, CompanyDto>().ReverseMap();
+            CreateMap<Company, CompanyCreateDto>().ReverseMap();
+            CreateMap<Company, CompanyUpdateDto>().ReverseMap();
         }
     }
 }
