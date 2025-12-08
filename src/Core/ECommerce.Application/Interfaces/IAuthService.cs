@@ -1,0 +1,18 @@
+using ECommerce.Application.DTOs;
+
+namespace ECommerce.Application.Interfaces
+{
+    public interface IAuthService
+    {
+        Task<AuthResponseDto> LoginAsync(LoginDto loginDto);
+
+        Task<AuthResponseDto> RegisterAsync(RegisterDto registerDto);
+
+        Task<AuthResponseDto> RefreshTokenAsync(string refreshToken);
+
+        Task LogoutAsync(int userId);
+
+        Task<bool> ValidateTokenAsync(string token);
+    }
+}
+
