@@ -17,11 +17,15 @@ namespace ECommerce.Infrastructure.Repositories
         public async Task<IReadOnlyList<Order>> GetOrdersByCustomerAsync(int customerId, int page, int pageSize)
         {
             return await _context.Orders
-            .Where(o => o.CustomerId == customerId)
-            .Include(o => o.Items)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+                .Where(o => o.CustomerId == customerId)
+                .Include(o => o.Items)
+                    .ThenInclude(oi => oi.Product)
+                .Include(o => o.Address)
+                .Include(o => o.Customer)
+                .OrderByDescending(o => o.OrderDate)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
         }
         
         public async Task<decimal> GetCustomerTotalSpentAsync(int customerId)
@@ -42,6 +46,18 @@ namespace ECommerce.Infrastructure.Repositories
             _context.Orders.Update(order);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<List<Order>> GetByCustomerIdAsync(int customerId)
+        {
+            return await _context.Orders
+                .Where(o => o.CustomerId == customerId)
+                .Include(o => o.Items)
+                    .ThenInclude(oi => oi.Product)
+                .Include(o => o.Address)
+                .Include(o => o.Customer)
+                .OrderByDescending(o => o.OrderDate)
+                .ToListAsync();
         }
     }
 }

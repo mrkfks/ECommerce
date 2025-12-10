@@ -1,3 +1,5 @@
+using ECommerce.Application.DTOs;
+
 namespace ECommerce.Application.Interfaces
 {
     public interface ICompanyService
@@ -7,7 +9,6 @@ namespace ECommerce.Application.Interfaces
         Task<CompanyDto> CreateAsync(CompanyCreateDto dto);
         Task UpdateAsync(CompanyUpdateDto dto);
         Task DeleteAsync(int id);
-
         Task<IReadOnlyList<UserDto>> GetUsersAsync(int companyId);
         Task<IReadOnlyList<CustomerDto>> GetCustomersAsync(int companyId);
     }

@@ -1,5 +1,6 @@
 using ECommerce.Domain.Entities;
 using ECommerce.Domain.Interfaces;
+using ECommerce.Application.Interfaces;
 using ECommerce.Infrastructure.Data;
 
 namespace ECommerce.Infrastructure.Repositories
@@ -14,6 +15,8 @@ namespace ECommerce.Infrastructure.Repositories
             Products = new ProductRepository(_context);
             Orders = new OrderRepository(_context);
             Customers = new CustomerRepository(_context);
+            Addresses = new AddressRepository(_context);
+            Companies = new CompanyRepository(_context);
             Categories = new GenericRepository<Category>(_context);
             Brands = new GenericRepository<Brand>(_context);
             Reviews = new GenericRepository<Review>(_context);
@@ -24,6 +27,8 @@ namespace ECommerce.Infrastructure.Repositories
         public IProductRepository Products { get; }
         public IOrderRepository Orders { get; }
         public ICustomerRepository Customers { get; }
+        public IAddressRepository Addresses { get; }
+        public ICompanyRepository Companies { get; }
         public IGenericRepository<Category> Categories { get; }
         public IGenericRepository<Brand> Brands { get; }
         public IGenericRepository<Review> Reviews { get; }

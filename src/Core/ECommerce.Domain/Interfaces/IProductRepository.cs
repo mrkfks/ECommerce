@@ -6,5 +6,7 @@ namespace ECommerce.Domain.Interfaces
     {
         Task<IReadOnlyList<Product>> GetPageAsync(int page, int pageSize, int? categoryId, int? brandId, string? search);
         Task<bool> IsStockAvailableAsync(int productId, int quantity);
+        Task<List<Product>> GetByCategoryAsync(int categoryId);
+        Task<List<Product>> SearchAsync(string searchTerm);
     }
 }

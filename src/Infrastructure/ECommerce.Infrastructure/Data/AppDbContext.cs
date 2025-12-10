@@ -80,13 +80,50 @@ namespace ECommerce.Infrastructure.Data
             // Product ilişkileri
             modelBuilder.Entity<Product>()
                 .HasOne(p => p.Category)
-                .WithMany()
-                .HasForeignKey(p => p.CategoryId);
+                .WithMany(c => c.Products)
+                .HasForeignKey(p => p.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Product>()
                 .HasOne(p => p.Brand)
-                .WithMany()
-                .HasForeignKey(p => p.BrandId);
+                .WithMany(b => b.Products)
+                .HasForeignKey(p => p.BrandId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Company)
+                .WithMany(c => c.Products)
+                .HasForeignKey(p => p.CompanyId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            // Decimal precision ayarları
+            modelBuilder.Entity<Product>()
+                .Property(p => p.Price)
+                .HasPrecision(18, 2);
+                
+            modelBuilder.Entity<Order>()
+                .Property(o => o.TotalAmount)
+                .HasPrecision(18, 2);
+                
+            modelBuilder.Entity<OrderItem>()
+                .Property(oi => oi.UnitPrice)
+                .HasPrecision(18, 2);
+                
+            // Indexes
+            modelBuilder.Entity<Product>()
+                .HasIndex(p => p.Name);
+                
+            modelBuilder.Entity<Customer>()
+                .HasIndex(c => c.Email)
+                .IsUnique();
+                
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+                
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username)
+                .IsUnique();
 
             // Address ilişkileri
             modelBuilder.Entity<Address>()
@@ -117,7 +154,7 @@ namespace ECommerce.Infrastructure.Data
 
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.Company)
-                .WithMany()
+                .WithMany(c => c.Orders)
                 .HasForeignKey(o => o.CompanyId)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -129,7 +166,7 @@ namespace ECommerce.Infrastructure.Data
 
             modelBuilder.Entity<Review>()
                 .HasOne(r => r.Company)
-                .WithMany()
+                .WithMany(c => c.Reviews)
                 .HasForeignKey(r => r.CompanyId)
                 .OnDelete(DeleteBehavior.Restrict);
 

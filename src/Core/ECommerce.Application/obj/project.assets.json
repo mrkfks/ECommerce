@@ -20,6 +20,19 @@
           }
         }
       },
+      "AutoMapper.Extensions.Microsoft.DependencyInjection/12.0.1": {
+        "type": "package",
+        "dependencies": {
+          "AutoMapper": "[12.0.1]",
+          "Microsoft.Extensions.Options": "6.0.0"
+        },
+        "compile": {
+          "lib/netstandard2.1/AutoMapper.Extensions.Microsoft.DependencyInjection.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.1/AutoMapper.Extensions.Microsoft.DependencyInjection.dll": {}
+        }
+      },
       "BCrypt.Net-Next/4.0.3": {
         "type": "package",
         "compile": {
@@ -59,6 +72,38 @@
         },
         "runtime": {
           "lib/net8.0/FluentValidation.DependencyInjectionExtensions.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "MediatR/14.0.0": {
+        "type": "package",
+        "dependencies": {
+          "MediatR.Contracts": "[2.0.1, 3.0.0)",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.0",
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.0",
+          "Microsoft.IdentityModel.JsonWebTokens": "8.14.0"
+        },
+        "compile": {
+          "lib/net10.0/MediatR.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/MediatR.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "MediatR.Contracts/2.0.1": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/MediatR.Contracts.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/MediatR.Contracts.dll": {
             "related": ".xml"
           }
         }
@@ -250,6 +295,20 @@
         "lib/netstandard2.0/AutoMapper.xml"
       ]
     },
+    "AutoMapper.Extensions.Microsoft.DependencyInjection/12.0.1": {
+      "sha512": "+g/K+Vpe3gGMKGzjslMOdqNlkikScDjWfVvmWTayrDHaG/n2pPmFBMa+jKX1r/h6BDGFdkyRjAuhFE3ykW+r1g==",
+      "type": "package",
+      "path": "automapper.extensions.microsoft.dependencyinjection/12.0.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",
+        "automapper.extensions.microsoft.dependencyinjection.nuspec",
+        "icon.png",
+        "lib/netstandard2.1/AutoMapper.Extensions.Microsoft.DependencyInjection.dll"
+      ]
+    },
     "BCrypt.Net-Next/4.0.3": {
       "sha512": "W+U9WvmZQgi5cX6FS5GDtDoPzUCV4LkBLkywq/kRZhuDwcbavOzcDAr3LXJFqHUi952Yj3LEYoWW0jbEUQChsA==",
       "type": "package",
@@ -309,6 +368,44 @@
         "fluentvalidation.dependencyinjectionextensions.nuspec",
         "lib/net8.0/FluentValidation.DependencyInjectionExtensions.dll",
         "lib/net8.0/FluentValidation.DependencyInjectionExtensions.xml"
+      ]
+    },
+    "MediatR/14.0.0": {
+      "sha512": "r5fwUO6NBvOFKaiMRx/gRrD1MEHHOio5yEdzSLs2OMeD2e9ZKnZaBQM6A6vVBEWJF4VY41vplXmDMOY1YvpqNA==",
+      "type": "package",
+      "path": "mediatr/14.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.md",
+        "README.md",
+        "gradient_128x128.png",
+        "lib/net10.0/MediatR.dll",
+        "lib/net10.0/MediatR.xml",
+        "lib/net462/MediatR.dll",
+        "lib/net462/MediatR.xml",
+        "lib/net8.0/MediatR.dll",
+        "lib/net8.0/MediatR.xml",
+        "lib/net9.0/MediatR.dll",
+        "lib/net9.0/MediatR.xml",
+        "lib/netstandard2.0/MediatR.dll",
+        "lib/netstandard2.0/MediatR.xml",
+        "mediatr.14.0.0.nupkg.sha512",
+        "mediatr.nuspec"
+      ]
+    },
+    "MediatR.Contracts/2.0.1": {
+      "sha512": "FYv95bNT4UwcNA+G/J1oX5OpRiSUxteXaUt2BJbRSdRNiIUNbggJF69wy6mnk2wYToaanpdXZdCwVylt96MpwQ==",
+      "type": "package",
+      "path": "mediatr.contracts/2.0.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "gradient_128x128.png",
+        "lib/netstandard2.0/MediatR.Contracts.dll",
+        "lib/netstandard2.0/MediatR.Contracts.xml",
+        "mediatr.contracts.2.0.1.nupkg.sha512",
+        "mediatr.contracts.nuspec"
       ]
     },
     "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.0": {
@@ -628,30 +725,33 @@
   "projectFileDependencyGroups": {
     "net10.0": [
       "AutoMapper >= 16.0.0",
+      "AutoMapper.Extensions.Microsoft.DependencyInjection >= 12.0.1",
       "BCrypt.Net-Next >= 4.0.3",
       "ECommerce.Domain >= 1.0.0",
+      "FluentValidation >= 12.1.1",
       "FluentValidation.DependencyInjectionExtensions >= 12.1.1",
+      "MediatR >= 14.0.0",
       "System.IdentityModel.Tokens.Jwt >= 8.15.0"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\mrkfks\\.nuget\\packages\\": {},
+    "C:\\Users\\mrkfk\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Core\\ECommerce.Application\\ECommerce.Application.csproj",
+      "projectUniqueName": "C:\\Users\\mrkfk\\OneDrive\\Desktop\\Projelerim\\ECommerce\\src\\Core\\ECommerce.Application\\ECommerce.Application.csproj",
       "projectName": "ECommerce.Application",
-      "projectPath": "D:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Core\\ECommerce.Application\\ECommerce.Application.csproj",
-      "packagesPath": "C:\\Users\\mrkfks\\.nuget\\packages\\",
-      "outputPath": "D:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Core\\ECommerce.Application\\obj\\",
+      "projectPath": "C:\\Users\\mrkfk\\OneDrive\\Desktop\\Projelerim\\ECommerce\\src\\Core\\ECommerce.Application\\ECommerce.Application.csproj",
+      "packagesPath": "C:\\Users\\mrkfk\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\mrkfk\\OneDrive\\Desktop\\Projelerim\\ECommerce\\src\\Core\\ECommerce.Application\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\mrkfks\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\mrkfk\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -667,8 +767,8 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "projectReferences": {
-            "D:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Core\\ECommerce.Domain\\ECommerce.Domain.csproj": {
-              "projectPath": "D:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Core\\ECommerce.Domain\\ECommerce.Domain.csproj"
+            "C:\\Users\\mrkfk\\OneDrive\\Desktop\\Projelerim\\ECommerce\\src\\Core\\ECommerce.Domain\\ECommerce.Domain.csproj": {
+              "projectPath": "C:\\Users\\mrkfk\\OneDrive\\Desktop\\Projelerim\\ECommerce\\src\\Core\\ECommerce.Domain\\ECommerce.Domain.csproj"
             }
           }
         }
@@ -693,13 +793,25 @@
             "target": "Package",
             "version": "[16.0.0, )"
           },
+          "AutoMapper.Extensions.Microsoft.DependencyInjection": {
+            "target": "Package",
+            "version": "[12.0.1, )"
+          },
           "BCrypt.Net-Next": {
             "target": "Package",
             "version": "[4.0.3, )"
           },
+          "FluentValidation": {
+            "target": "Package",
+            "version": "[12.1.1, )"
+          },
           "FluentValidation.DependencyInjectionExtensions": {
             "target": "Package",
             "version": "[12.1.1, )"
+          },
+          "MediatR": {
+            "target": "Package",
+            "version": "[14.0.0, )"
           },
           "System.IdentityModel.Tokens.Jwt": {
             "target": "Package",
@@ -999,5 +1111,17 @@
         }
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1608",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Bağımlılık kısıtlaması dışında algılanan paket sürümü: AutoMapper.Extensions.Microsoft.DependencyInjection 12.0.1, AutoMapper (= 12.0.1) gerektiriyor ancak sürüm AutoMapper 16.0.0 çözümlenmiş.",
+      "libraryId": "AutoMapper",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    }
+  ]
 }

@@ -16,7 +16,11 @@ namespace ECommerce.Infrastructure.Repositories
         
         public async Task<IReadOnlyList<Product>> GetPageAsync(int page, int pageSize, int? categoryId, int? BrandId, string? search)
         {
-            var query = _context.Products.AsQueryable();
+            var query = _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Brand)
+                .Include(p => p.Company)
+                .AsQueryable();
 
             if (categoryId.HasValue)
             {
@@ -34,6 +38,8 @@ namespace ECommerce.Infrastructure.Repositories
             }
             
             return await query
+                .Where(p => p.IsActive)
+                .OrderByDescending(p => p.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -42,7 +48,7 @@ namespace ECommerce.Infrastructure.Repositories
         public async Task<bool> IsStockAvailableAsync(int productId, int quantity)
         {
             var product = await _context.Products.FindAsync(productId);
-            return product != null && product.StockQuantity >= quantity;
+            return product != null && product.IsActive && product.StockQuantity >= quantity;
         }
         
         public async Task<bool> IsProductNameUniqueAsync(string name, int? excludeId = null)
@@ -55,6 +61,28 @@ namespace ECommerce.Infrastructure.Repositories
             }
             
             return !await query.AnyAsync();
+        }
+
+        public async Task<List<Product>> GetByCategoryAsync(int categoryId)
+        {
+            return await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Brand)
+                .Include(p => p.Company)
+                .Where(p => p.CategoryId == categoryId && p.IsActive)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<List<Product>> SearchAsync(string searchTerm)
+        {
+            return await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Brand)
+                .Include(p => p.Company)
+                .Where(p => (p.Name.Contains(searchTerm) || p.Description.Contains(searchTerm)) && p.IsActive)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
         }
     }
 }

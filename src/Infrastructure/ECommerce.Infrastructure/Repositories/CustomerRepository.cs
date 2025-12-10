@@ -15,15 +15,21 @@ namespace ECommerce.Infrastructure.Repositories
         public async Task<Customer?> GetByEmailAsync(string email)
         {
             return await _context.Customers
-            .Include(c => c.Orders)
-            .FirstOrDefaultAsync(c => c.Email == email);
+                .Include(c => c.Orders)
+                .Include(c => c.Addresses)
+                .Include(c => c.User)
+                .Include(c => c.Company)
+                .FirstOrDefaultAsync(c => c.Email == email);
         }
         
         public async Task<IReadOnlyList<Customer>> GetWithOrdersAsync()
         {
             return await _context.Customers
-            .Include(c => c.Orders)
-            .ToListAsync();
+                .Include(c => c.Orders)
+                .Include(c => c.User)
+                .Include(c => c.Company)
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
         }
     }
 }

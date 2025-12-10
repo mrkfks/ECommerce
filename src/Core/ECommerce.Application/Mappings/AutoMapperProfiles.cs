@@ -8,54 +8,171 @@ namespace ECommerce.Application.Mappings
     {
         public MappingProfile()
         {
-            // User ↔ UserDto
-            CreateMap<User, UserDto>().ReverseMap();
-            CreateMap<User, UserCreateDto>().ReverseMap();
-            CreateMap<User, UserUpdateDto>().ReverseMap();
+            // User mappings
             CreateMap<User, UserDto>()
-                .ForMember(d => d.CompanyName, opt => opt.MapFrom(s => s.Company.Name))
+                .ForMember(d => d.CompanyName, opt => opt.MapFrom(s => s.Company != null ? s.Company.Name : null))
                 .ForMember(d => d.Roles, opt => opt.MapFrom(s => s.UserRoles.Select(r => r.RoleName).ToList()));
-            CreateMap<UserCreateDto, User>();
-            CreateMap<UserUpdateDto, User>();
 
-            // Customer ↔ CustomerDto
-            CreateMap<Customer, CustomerDto>().ReverseMap();
-            CreateMap<Customer, CustomerCreateDto>().ReverseMap();
-            CreateMap<Customer, CustomerUpdateDto>().ReverseMap();
+            CreateMap<UserCreateDto, User>()
+                .ForMember(d => d.CreatedAt, opt => opt.Ignore())
+                .ForMember(d => d.Company, opt => opt.Ignore())
+                .ForMember(d => d.UserRoles, opt => opt.Ignore())
+                .ForMember(d => d.Customer, opt => opt.Ignore());
+
+            CreateMap<UserUpdateDto, User>()
+                .ForMember(d => d.Id, opt => opt.Ignore())
+                .ForMember(d => d.CompanyId, opt => opt.Ignore())
+                .ForMember(d => d.PasswordHash, opt => opt.Ignore())
+                .ForMember(d => d.CreatedAt, opt => opt.Ignore())
+                .ForMember(d => d.Company, opt => opt.Ignore())
+                .ForMember(d => d.UserRoles, opt => opt.Ignore())
+                .ForMember(d => d.Customer, opt => opt.Ignore());
+
+            // Customer mappings
+            CreateMap<Customer, CustomerDto>()
+                .ForMember(d => d.CompanyName, opt => opt.MapFrom(s => s.Company != null ? s.Company.Name : null))
+                .ForMember(d => d.TotalOrders, opt => opt.MapFrom(s => s.Orders != null ? s.Orders.Count : 0))
+                .ForMember(d => d.TotalSpent, opt => opt.MapFrom(s => s.Orders != null ? s.Orders.Sum(o => o.TotalAmount) : 0));
+
+            CreateMap<CustomerCreateDto, Customer>()
+                .ForMember(d => d.CreatedAt, opt => opt.Ignore())
+                .ForMember(d => d.Company, opt => opt.Ignore())
+                .ForMember(d => d.User, opt => opt.Ignore())
+                .ForMember(d => d.Orders, opt => opt.Ignore())
+                .ForMember(d => d.Addresses, opt => opt.Ignore())
+                .ForMember(d => d.Reviews, opt => opt.Ignore());
+
+            CreateMap<CustomerUpdateDto, Customer>()
+                .ForMember(d => d.Id, opt => opt.Ignore())
+                .ForMember(d => d.CompanyId, opt => opt.Ignore())
+                .ForMember(d => d.UserId, opt => opt.Ignore())
+                .ForMember(d => d.CreatedAt, opt => opt.Ignore())
+                .ForMember(d => d.Company, opt => opt.Ignore())
+                .ForMember(d => d.User, opt => opt.Ignore())
+                .ForMember(d => d.Orders, opt => opt.Ignore())
+                .ForMember(d => d.Addresses, opt => opt.Ignore())
+                .ForMember(d => d.Reviews, opt => opt.Ignore());
+
             CreateMap<Customer, CustomerSummaryDto>();
 
-            // Address ↔ AddressDto
+            // Address mappings
             CreateMap<Address, AddressDto>().ReverseMap();
 
-            // Product ↔ ProductDto
-            CreateMap<Product, ProductDto>().ReverseMap();
-            CreateMap<Product, ProductCreateDto>().ReverseMap();
-            CreateMap<Product, ProductUpdateDto>().ReverseMap();
+            // Product mappings
+            CreateMap<Product, ProductDto>()
+                .ForMember(d => d.CategoryName, opt => opt.MapFrom(s => s.Category != null ? s.Category.Name : null))
+                .ForMember(d => d.BrandName, opt => opt.MapFrom(s => s.Brand != null ? s.Brand.Name : null))
+                .ForMember(d => d.CompanyName, opt => opt.MapFrom(s => s.Company != null ? s.Company.Name : null))
+                .ForMember(d => d.ReviewCount, opt => opt.MapFrom(s => s.Reviews != null ? s.Reviews.Count : 0))
+                .ForMember(d => d.AverageRating, opt => opt.MapFrom(s => s.Reviews != null && s.Reviews.Any() ? s.Reviews.Average(r => r.Rating) : 0));
 
-            // Brand ↔ BrandDto
+            CreateMap<ProductCreateDto, Product>()
+                .ForMember(d => d.CreatedAt, opt => opt.Ignore())
+                .ForMember(d => d.UpdatedAt, opt => opt.Ignore())
+                .ForMember(d => d.IsActive, opt => opt.Ignore())
+                .ForMember(d => d.Category, opt => opt.Ignore())
+                .ForMember(d => d.Brand, opt => opt.Ignore())
+                .ForMember(d => d.Company, opt => opt.Ignore())
+                .ForMember(d => d.OrderItems, opt => opt.Ignore())
+                .ForMember(d => d.Reviews, opt => opt.Ignore());
+
+            CreateMap<ProductUpdateDto, Product>()
+                .ForMember(d => d.Id, opt => opt.Ignore())
+                .ForMember(d => d.CompanyId, opt => opt.Ignore())
+                .ForMember(d => d.CreatedAt, opt => opt.Ignore())
+                .ForMember(d => d.UpdatedAt, opt => opt.Ignore())
+                .ForMember(d => d.Category, opt => opt.Ignore())
+                .ForMember(d => d.Brand, opt => opt.Ignore())
+                .ForMember(d => d.Company, opt => opt.Ignore())
+                .ForMember(d => d.OrderItems, opt => opt.Ignore())
+                .ForMember(d => d.Reviews, opt => opt.Ignore());
+
+            // Brand mappings
             CreateMap<Brand, BrandDto>().ReverseMap();
 
-            // Category ↔ CategoryDto
+            // Category mappings
             CreateMap<Category, CategoryDto>().ReverseMap();
 
-            // Order ↔ OrderDto
-            CreateMap<Order, OrderDto>().ReverseMap();
-            CreateMap<Order, OrderCreateDto>().ReverseMap();
-            CreateMap<Order, OrderUpdateDto>().ReverseMap();
+            // Order mappings
+            CreateMap<Order, OrderDto>()
+                .ForMember(d => d.CustomerName, opt => opt.MapFrom(s => s.Customer != null ? $"{s.Customer.FirstName} {s.Customer.LastName}" : null))
+                .ForMember(d => d.CompanyName, opt => opt.MapFrom(s => s.Company != null ? s.Company.Name : null));
 
-            // OrderItem ↔ OrderItemDto
-            CreateMap<OrderItem, OrderItemDto>().ReverseMap();
-            CreateMap<OrderItem, OrderItemCreateDto>().ReverseMap();
+            CreateMap<OrderCreateDto, Order>()
+                .ForMember(d => d.OrderDate, opt => opt.Ignore())
+                .ForMember(d => d.TotalAmount, opt => opt.Ignore())
+                .ForMember(d => d.OrderStatus, opt => opt.Ignore())
+                .ForMember(d => d.Customer, opt => opt.Ignore())
+                .ForMember(d => d.Address, opt => opt.Ignore())
+                .ForMember(d => d.Company, opt => opt.Ignore());
 
-            // Review ↔ ReviewDto
-            CreateMap<Review, ReviewDto>().ReverseMap();
-            CreateMap<Review, ReviewCreateDto>().ReverseMap();
-            CreateMap<Review, ReviewUpdateDto>().ReverseMap();
+            CreateMap<OrderUpdateDto, Order>()
+                .ForMember(d => d.Id, opt => opt.Ignore())
+                .ForMember(d => d.CustomerId, opt => opt.Ignore())
+                .ForMember(d => d.CompanyId, opt => opt.Ignore())
+                .ForMember(d => d.OrderDate, opt => opt.Ignore())
+                .ForMember(d => d.TotalAmount, opt => opt.Ignore())
+                .ForMember(d => d.Customer, opt => opt.Ignore())
+                .ForMember(d => d.Address, opt => opt.Ignore())
+                .ForMember(d => d.Company, opt => opt.Ignore())
+                .ForMember(d => d.Items, opt => opt.Ignore());
 
-            // Company ↔ CompanyDto
+            // OrderItem mappings
+            CreateMap<OrderItem, OrderItemDto>()
+                .ForMember(d => d.ProductName, opt => opt.MapFrom(s => s.Product != null ? s.Product.Name : null));
+
+            CreateMap<OrderItemCreateDto, OrderItem>()
+                .ForMember(d => d.Id, opt => opt.Ignore())
+                .ForMember(d => d.OrderId, opt => opt.Ignore())
+                .ForMember(d => d.Order, opt => opt.Ignore())
+                .ForMember(d => d.Product, opt => opt.Ignore());
+
+            // Review mappings
+            CreateMap<Review, ReviewDto>()
+                .ForMember(d => d.ProductName, opt => opt.MapFrom(s => s.Product != null ? s.Product.Name : null))
+                .ForMember(d => d.CustomerName, opt => opt.MapFrom(s => s.Customer != null ? $"{s.Customer.FirstName} {s.Customer.LastName}" : null));
+
+            CreateMap<ReviewCreateDto, Review>()
+                .ForMember(d => d.CreatedAt, opt => opt.Ignore())
+                .ForMember(d => d.UpdatedAt, opt => opt.Ignore())
+                .ForMember(d => d.Product, opt => opt.Ignore())
+                .ForMember(d => d.Customer, opt => opt.Ignore())
+                .ForMember(d => d.Company, opt => opt.Ignore());
+
+            CreateMap<ReviewUpdateDto, Review>()
+                .ForMember(d => d.Id, opt => opt.Ignore())
+                .ForMember(d => d.ProductId, opt => opt.Ignore())
+                .ForMember(d => d.CustomerId, opt => opt.Ignore())
+                .ForMember(d => d.CompanyId, opt => opt.Ignore())
+                .ForMember(d => d.CreatedAt, opt => opt.Ignore())
+                .ForMember(d => d.UpdatedAt, opt => opt.Ignore())
+                .ForMember(d => d.Product, opt => opt.Ignore())
+                .ForMember(d => d.Customer, opt => opt.Ignore())
+                .ForMember(d => d.Company, opt => opt.Ignore());
+
+            // Company mappings
             CreateMap<Company, CompanyDto>().ReverseMap();
-            CreateMap<Company, CompanyCreateDto>().ReverseMap();
-            CreateMap<Company, CompanyUpdateDto>().ReverseMap();
+
+            CreateMap<CompanyCreateDto, Company>()
+                .ForMember(d => d.CreatedAt, opt => opt.Ignore())
+                .ForMember(d => d.UpdatedAt, opt => opt.Ignore())
+                .ForMember(d => d.IsActive, opt => opt.Ignore())
+                .ForMember(d => d.Users, opt => opt.Ignore())
+                .ForMember(d => d.Customers, opt => opt.Ignore())
+                .ForMember(d => d.Products, opt => opt.Ignore())
+                .ForMember(d => d.Orders, opt => opt.Ignore())
+                .ForMember(d => d.Reviews, opt => opt.Ignore());
+
+            CreateMap<CompanyUpdateDto, Company>()
+                .ForMember(d => d.Id, opt => opt.Ignore())
+                .ForMember(d => d.TaxNumber, opt => opt.Ignore())
+                .ForMember(d => d.CreatedAt, opt => opt.Ignore())
+                .ForMember(d => d.UpdatedAt, opt => opt.Ignore())
+                .ForMember(d => d.Users, opt => opt.Ignore())
+                .ForMember(d => d.Customers, opt => opt.Ignore())
+                .ForMember(d => d.Products, opt => opt.Ignore())
+                .ForMember(d => d.Orders, opt => opt.Ignore())
+                .ForMember(d => d.Reviews, opt => opt.Ignore());
         }
     }
 }

@@ -11,10 +11,11 @@ namespace ECommerce.Domain.Entities
         public DateTime OrderDate { get; set; }
         public decimal TotalAmount { get; set; }
         public OrderStatus Status { get; set; } = OrderStatus.Received;
+        public OrderStatus OrderStatus { get; set; } = OrderStatus.Received;
         
-        public required virtual Customer Customer { get; set; }
-        public required virtual Address Address { get; set; }
-        public required virtual Company Company { get; set; }
+        public virtual Customer? Customer { get; set; }
+        public virtual Address? Address { get; set; }
+        public virtual Company? Company { get; set; }
         public virtual ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
     }
 }

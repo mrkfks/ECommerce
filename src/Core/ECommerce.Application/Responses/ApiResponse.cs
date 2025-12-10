@@ -21,5 +21,11 @@ namespace ECommerce.Application.Responses
 
         public static ApiResponse<T> Fail(string message)
             => new ApiResponse<T>(false, message);
+
+        public static ApiResponse<T> SuccessResponse(T data)
+            => new ApiResponse<T>(true, "İşlem başarılı", data);
+
+        public static ApiResponse<T> SuccessResponse(T data, string message)
+            => new ApiResponse<T>(true, message, data);
     }
 }
