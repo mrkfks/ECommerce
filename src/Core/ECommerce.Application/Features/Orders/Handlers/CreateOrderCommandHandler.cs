@@ -77,7 +77,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
             CompanyId = request.Order.CompanyId,
             OrderDate = DateTime.UtcNow,
             TotalAmount = totalAmount,
-            OrderStatus = OrderStatus.Pending,
+            Status = OrderStatus.Pending,
             Items = orderItems
         };
 

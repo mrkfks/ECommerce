@@ -16,6 +16,9 @@ namespace ECommerce.Application.Interfaces
         // Belirli bir markaya ait ürünleri getir
         Task<IReadOnlyList<ProductDto>> GetByBrandIdAsync(int brandId);
 
+        // Şirkete ait ürünleri getir
+        Task<IReadOnlyList<ProductDto>> GetByCompanyAsync(int companyId);
+
         // Yeni ürün oluştur
         Task<ProductDto> CreateAsync(ProductCreateDto dto);
 

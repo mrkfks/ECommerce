@@ -10,6 +10,9 @@ namespace ECommerce.Application.Interfaces
         // Tüm kullanıcıları getir
         Task<IReadOnlyList<UserDto>> GetAllAsync();
 
+        // Şirkete ait kullanıcıları getir
+        Task<IReadOnlyList<UserDto>> GetByCompanyAsync(int companyId);
+
         // Kullanıcı adı ile kullanıcı getir
         Task<UserDto?> GetByUsernameAsync(string username);
 

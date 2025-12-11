@@ -128,3 +128,5 @@ C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\src\Infrastructure\ECommerc
 C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\src\Infrastructure\ECommerce.Infrastructure\obj\Debug\net10.0\ref\ECommerce.Infrastructure.dll
 C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\src\Infrastructure\ECommerce.Infrastructure\bin\Debug\net10.0\ECommerce.Application.dll
 C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\src\Infrastructure\ECommerce.Infrastructure\bin\Debug\net10.0\ECommerce.Application.pdb
+d:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\bin\Debug\net10.0\ECommerce.Application.dll
+d:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\bin\Debug\net10.0\ECommerce.Application.pdb

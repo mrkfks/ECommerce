@@ -1,34 +1,33 @@
-using Microsoft.AspNetCore.Mvc;
-using ECommerce.Application.Services;
 using ECommerce.Application.DTOs;
+using ECommerce.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
-namespace ECommerce.RestApi.Controllers
-{
-    [ApiController]
-    [Route("api/[controller]")]
-    public class ProductController : ControllerBase
+namespace ECommerce.RestApi.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class ProductController : ControllerBase
     {
-        private readonly ProductService _productService;
+        private readonly IProductService _productService;
 
-        public ProductController(ProductService productService)
+        public ProductController(IProductService productService)
         {
             _productService = productService;
         }
         //Create
         [HttpPost]
-        public async Task<actionResult> Get(int id)
+        public async Task<IActionResult> Create(ProductCreateDto dto)
         {
-            var product = await _productService.GetProductByIdAsync(id);
-            if (product == null)
-
-                return NotFound(new { message = "Product not found" });
+            var product = await _productService.CreateAsync(dto);
             return Ok(product);
         }
         //READ - Get By Id
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
-            var product = await _productService.GetProductByIdAsync(id);
+            var product = await _productService.GetByIdAsync(id);
             if (product == null)
                 return NotFound(new { message = "Product not found" });
             return Ok(product);
@@ -42,23 +41,18 @@ namespace ECommerce.RestApi.Controllers
         }
         //UPDATE
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, ProductDto dto)
+        public async Task<IActionResult> Update(int id, ProductUpdateDto dto)
         {
-            var updated = await _productService.UpdateAsync(id, dto.Name, dto.Price, dto.Stock, dto.CompanyId, dto.CategoryId);
-            if(updated == null)
-                return NotFound(new { message = "Ürün Güncellenemedi" });
-            return Ok(updated);
+            if (id != dto.Id) return BadRequest("Id mismatch");
+            
+            await _productService.UpdateAsync(dto);
+            return Ok(new { message = "Ürün Güncellendi" });
         }
         //DELETE
         [HttpDelete("{id}")]
-        public async Task <IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var delete = await _productService.DeleteAsync(id);
-            if(delete == false)
-                return NotFound(new { message = "Ürün Silinemedi" });
+            await _productService.DeleteAsync(id);
             return Ok(new { message = "Ürün Silindi" });
         }
-
-    }
-
 }

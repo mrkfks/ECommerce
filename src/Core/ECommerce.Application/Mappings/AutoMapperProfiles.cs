@@ -30,12 +30,14 @@ namespace ECommerce.Application.Mappings
 
             // Customer mappings
             CreateMap<Customer, CustomerDto>()
+                .ForMember(d => d.Name, opt => opt.MapFrom(s => $"{s.FirstName} {s.LastName}"))
                 .ForMember(d => d.CompanyName, opt => opt.MapFrom(s => s.Company != null ? s.Company.Name : null))
                 .ForMember(d => d.TotalOrders, opt => opt.MapFrom(s => s.Orders != null ? s.Orders.Count : 0))
                 .ForMember(d => d.TotalSpent, opt => opt.MapFrom(s => s.Orders != null ? s.Orders.Sum(o => o.TotalAmount) : 0));
 
             CreateMap<CustomerCreateDto, Customer>()
                 .ForMember(d => d.CreatedAt, opt => opt.Ignore())
+                .ForMember(d => d.UpdatedAt, opt => opt.Ignore())
                 .ForMember(d => d.Company, opt => opt.Ignore())
                 .ForMember(d => d.User, opt => opt.Ignore())
                 .ForMember(d => d.Orders, opt => opt.Ignore())
@@ -47,13 +49,19 @@ namespace ECommerce.Application.Mappings
                 .ForMember(d => d.CompanyId, opt => opt.Ignore())
                 .ForMember(d => d.UserId, opt => opt.Ignore())
                 .ForMember(d => d.CreatedAt, opt => opt.Ignore())
+                .ForMember(d => d.UpdatedAt, opt => opt.Ignore())
                 .ForMember(d => d.Company, opt => opt.Ignore())
                 .ForMember(d => d.User, opt => opt.Ignore())
                 .ForMember(d => d.Orders, opt => opt.Ignore())
                 .ForMember(d => d.Addresses, opt => opt.Ignore())
                 .ForMember(d => d.Reviews, opt => opt.Ignore());
 
-            CreateMap<Customer, CustomerSummaryDto>();
+            CreateMap<Customer, CustomerSummaryDto>()
+                .ForMember(d => d.Name, opt => opt.MapFrom(s => $"{s.FirstName} {s.LastName}"))
+                .ForMember(d => d.OrderCount, opt => opt.MapFrom(s => s.Orders != null ? s.Orders.Count : 0))
+                .ForMember(d => d.ReviewCount, opt => opt.MapFrom(s => s.Reviews != null ? s.Reviews.Count : 0))
+                .ForMember(d => d.TotalOrders, opt => opt.MapFrom(s => s.Orders != null ? s.Orders.Count : 0))
+                .ForMember(d => d.TotalSpent, opt => opt.MapFrom(s => s.Orders != null ? s.Orders.Sum(o => o.TotalAmount) : 0));
 
             // Address mappings
             CreateMap<Address, AddressDto>().ReverseMap();
@@ -101,7 +109,7 @@ namespace ECommerce.Application.Mappings
             CreateMap<OrderCreateDto, Order>()
                 .ForMember(d => d.OrderDate, opt => opt.Ignore())
                 .ForMember(d => d.TotalAmount, opt => opt.Ignore())
-                .ForMember(d => d.OrderStatus, opt => opt.Ignore())
+                .ForMember(d => d.Status, opt => opt.Ignore())
                 .ForMember(d => d.Customer, opt => opt.Ignore())
                 .ForMember(d => d.Address, opt => opt.Ignore())
                 .ForMember(d => d.Company, opt => opt.Ignore());
@@ -133,6 +141,7 @@ namespace ECommerce.Application.Mappings
                 .ForMember(d => d.CustomerName, opt => opt.MapFrom(s => s.Customer != null ? $"{s.Customer.FirstName} {s.Customer.LastName}" : null));
 
             CreateMap<ReviewCreateDto, Review>()
+                .ForMember(d => d.ReviewerName, opt => opt.MapFrom(s => s.ReviewerName ?? "Anonymous"))
                 .ForMember(d => d.CreatedAt, opt => opt.Ignore())
                 .ForMember(d => d.UpdatedAt, opt => opt.Ignore())
                 .ForMember(d => d.Product, opt => opt.Ignore())

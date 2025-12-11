@@ -38,7 +38,7 @@ public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, Api
             order.AddressId = request.Order.AddressId.Value;
         }
 
-        order.OrderStatus = request.Order.OrderStatus;
+        order.Status = request.Order.OrderStatus;
 
         _unitOfWork.Orders.Update(order);
         await _unitOfWork.SaveChangesAsync();

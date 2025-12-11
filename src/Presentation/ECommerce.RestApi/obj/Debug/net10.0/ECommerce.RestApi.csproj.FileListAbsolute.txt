@@ -1,0 +1,9 @@
+d:\Ömer Kafkas\Projects\ECommerce\src\Presentation\ECommerce.RestApi\obj\Debug\net10.0\ECommerce.RestApi.csproj.AssemblyReference.cache
+d:\Ömer Kafkas\Projects\ECommerce\src\Presentation\ECommerce.RestApi\obj\Debug\net10.0\rpswa.dswa.cache.json
+d:\Ömer Kafkas\Projects\ECommerce\src\Presentation\ECommerce.RestApi\obj\Debug\net10.0\ECommerce.RestApi.GeneratedMSBuildEditorConfig.editorconfig
+d:\Ömer Kafkas\Projects\ECommerce\src\Presentation\ECommerce.RestApi\obj\Debug\net10.0\ECommerce.RestApi.AssemblyInfoInputs.cache
+d:\Ömer Kafkas\Projects\ECommerce\src\Presentation\ECommerce.RestApi\obj\Debug\net10.0\ECommerce.RestApi.AssemblyInfo.cs
+d:\Ömer Kafkas\Projects\ECommerce\src\Presentation\ECommerce.RestApi\obj\Debug\net10.0\ECommerce.RestApi.csproj.CoreCompileInputs.cache
+d:\Ömer Kafkas\Projects\ECommerce\src\Presentation\ECommerce.RestApi\obj\Debug\net10.0\ECommerce.RestApi.MvcApplicationPartsAssemblyInfo.cs
+d:\Ömer Kafkas\Projects\ECommerce\src\Presentation\ECommerce.RestApi\obj\Debug\net10.0\ECommerce.RestApi.MvcApplicationPartsAssemblyInfo.cache
+d:\Ömer Kafkas\Projects\ECommerce\src\Presentation\ECommerce.RestApi\obj\Debug\net10.0\ECommerce.RestApi.sourcelink.json

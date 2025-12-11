@@ -10,8 +10,7 @@ namespace ECommerce.Domain.Entities
         public int CompanyId { get; set; }
         public DateTime OrderDate { get; set; }
         public decimal TotalAmount { get; set; }
-        public OrderStatus Status { get; set; } = OrderStatus.Received;
-        public OrderStatus OrderStatus { get; set; } = OrderStatus.Received;
+        public OrderStatus Status { get; set; } = OrderStatus.Pending;
         
         public virtual Customer? Customer { get; set; }
         public virtual Address? Address { get; set; }
