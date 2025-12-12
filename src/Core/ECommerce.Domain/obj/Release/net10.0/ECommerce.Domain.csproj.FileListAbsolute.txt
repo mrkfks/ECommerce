@@ -1,0 +1,12 @@
+C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\src\Core\ECommerce.Domain\bin\Release\net10.0\ECommerce.Domain.deps.json
+C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\src\Core\ECommerce.Domain\bin\Release\net10.0\ECommerce.Domain.dll
+C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\src\Core\ECommerce.Domain\bin\Release\net10.0\ECommerce.Domain.pdb
+C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\src\Core\ECommerce.Domain\obj\Release\net10.0\ECommerce.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\src\Core\ECommerce.Domain\obj\Release\net10.0\ECommerce.Domain.AssemblyInfoInputs.cache
+C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\src\Core\ECommerce.Domain\obj\Release\net10.0\ECommerce.Domain.AssemblyInfo.cs
+C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\src\Core\ECommerce.Domain\obj\Release\net10.0\ECommerce.Domain.csproj.CoreCompileInputs.cache
+C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\src\Core\ECommerce.Domain\obj\Release\net10.0\ECommerce.Domain.sourcelink.json
+C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\src\Core\ECommerce.Domain\obj\Release\net10.0\ECommerce.Domain.dll
+C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\src\Core\ECommerce.Domain\obj\Release\net10.0\refint\ECommerce.Domain.dll
+C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\src\Core\ECommerce.Domain\obj\Release\net10.0\ECommerce.Domain.pdb
+C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\src\Core\ECommerce.Domain\obj\Release\net10.0\ref\ECommerce.Domain.dll

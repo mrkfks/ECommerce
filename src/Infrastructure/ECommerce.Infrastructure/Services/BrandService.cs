@@ -32,7 +32,7 @@ namespace ECommerce.Infrastructure.Services
             var brand = new Brand
             {
                 Name = dto.Name,
-                Description = dto.Description,
+                Description = dto.Description ?? string.Empty,
                 IsActive = true
             };
             _context.Brands.Add(brand);
@@ -46,7 +46,7 @@ namespace ECommerce.Infrastructure.Services
             if(brand != null)
             {
                 brand.Name = dto.Name;
-                brand.Description = dto.Description;
+                brand.Description = dto.Description ?? string.Empty;
                 brand.IsActive = dto.IsActive;
                 await _context.SaveChangesAsync();
             }

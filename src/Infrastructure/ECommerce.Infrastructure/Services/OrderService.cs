@@ -63,7 +63,6 @@ namespace ECommerce.Infrastructure.Services
         public async Task<OrderDto> CreateAsync(OrderCreateDto dto)
         {
             // Verify items stock
-            decimal totalAmount = 0;
             var orderItems = new List<OrderItem>();
             
             // Assume dto has Items list, though OrderCreateDto definition wasn't viewed. 

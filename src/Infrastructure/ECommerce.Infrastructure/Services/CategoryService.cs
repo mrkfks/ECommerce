@@ -32,7 +32,7 @@ namespace ECommerce.Infrastructure.Services
             var category = new Category
             {
                 Name = dto.Name,
-                Description = dto.Description,
+                Description = dto.Description ?? string.Empty,
                 IsActive = true
             };
             _context.Categories.Add(category);
@@ -46,7 +46,7 @@ namespace ECommerce.Infrastructure.Services
             if(category != null)
             {
                 category.Name = dto.Name;
-                category.Description = dto.Description;
+                category.Description = dto.Description ?? string.Empty;
                 category.IsActive = dto.IsActive;
                 await _context.SaveChangesAsync();
             }

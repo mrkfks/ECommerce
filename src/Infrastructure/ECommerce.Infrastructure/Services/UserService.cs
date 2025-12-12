@@ -143,7 +143,7 @@ namespace ECommerce.Infrastructure.Services
         {
             var roles = await _context.UserRoles
                 .Where(ur => ur.UserId == userId)
-                .Select(ur => ur.Role.Name)
+                .Select(ur => ur.Role.Name ?? string.Empty)
                 .ToListAsync();
             return roles;
         }
@@ -151,13 +151,13 @@ namespace ECommerce.Infrastructure.Services
         public async Task AddRoleAsync(int userId, string roleName)
         {
             var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == roleName);
-            if(role != null)
+            if(role == null)
+                throw new InvalidOperationException($"Rol bulunamadı: {roleName}");
+            
+            if(!await _context.UserRoles.AnyAsync(ur => ur.UserId == userId && ur.RoleId == role.Id))
             {
-                 if(!await _context.UserRoles.AnyAsync(ur => ur.UserId == userId && ur.RoleId == role.Id))
-                 {
-                     _context.UserRoles.Add(new UserRole { UserId = userId, RoleId = role.Id });
-                     await _context.SaveChangesAsync();
-                 }
+                _context.UserRoles.Add(new UserRole { UserId = userId, RoleId = role.Id });
+                await _context.SaveChangesAsync();
             }
         }
         // Controller Compat
