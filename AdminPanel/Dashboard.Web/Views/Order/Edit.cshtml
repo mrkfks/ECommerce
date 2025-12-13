@@ -1,0 +1,30 @@
+@model ECommerce.Application.DTOs.OrderDto
+
+@{
+    ViewData["Title"] = "Sipariş Durum Güncelle";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5>Sipariş Durum Güncelle</h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="Id" />
+
+            <div class="mb-3">
+                <label asp-for="Status" class="form-label"></label>
+                <select asp-for="Status" class="form-select">
+                    <option>Beklemede</option>
+                    <option>İşleniyor</option>
+                    <option>Kargoda</option>
+                    <option>Teslim</option>
+                </select>
+                <span asp-validation-for="Status" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Kaydet</button>
+            <a asp-action="Index" class="btn btn-secondary">İptal</a>
+        </form>
+    </div>
+</div>

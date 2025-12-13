@@ -25,6 +25,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAll()
     {
         var orders = await _orderService.GetAllAsync();

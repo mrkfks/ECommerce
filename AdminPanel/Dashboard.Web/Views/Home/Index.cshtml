@@ -1,8 +1,121 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Ana Sayfa";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="row g-3">
+    <div class="col-md-3">
+        <div class="card card-metric p-3">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <div class="text-muted">Toplam Ürün</div>
+                    <div class="h4 fw-bold">—</div>
+                </div>
+                <i class="fa-solid fa-box-open icon text-primary"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-metric p-3">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <div class="text-muted">Toplam Sipariş</div>
+                    <div class="h4 fw-bold">—</div>
+                </div>
+                <i class="fa-solid fa-cart-shopping icon text-success"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-metric p-3">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <div class="text-muted">Toplam Müşteri</div>
+                    <div class="h4 fw-bold">—</div>
+                </div>
+                <i class="fa-solid fa-users icon text-warning"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-metric p-3">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <div class="text-muted">Toplam Satış</div>
+                    <div class="h4 fw-bold">—</div>
+                </div>
+                <i class="fa-solid fa-coins icon text-danger"></i>
+            </div>
+        </div>
+    </div>
 </div>
+
+<div class="row g-3 mt-1">
+    <div class="col-lg-6">
+        <div class="card p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Satış Trendi</h6>
+            </div>
+            <canvas id="salesTrend" height="120"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Sipariş Durum Dağılımı</h6>
+            </div>
+            <canvas id="orderStatus" height="120"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">
+        Son Siparişler
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Sipariş No</th>
+                        <th>Müşteri</th>
+                        <th>Tutar</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="4" class="text-muted">Veri bağlanınca dolacak…</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // Placeholder data – API bağlandıktan sonra dinamik dolduracağız.
+    const salesCtx = document.getElementById('salesTrend');
+    if (salesCtx) {
+        new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz'],
+                datasets: [{ label: 'Satış', data: [12, 19, 15, 22, 30, 28], borderColor: '#3b82f6' }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+    }
+    const statusCtx = document.getElementById('orderStatus');
+    if (statusCtx) {
+        new Chart(statusCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Beklemede', 'İşleniyor', 'Kargoda', 'Teslim'],
+                datasets: [{ data: [10, 25, 15, 50], backgroundColor: ['#60a5fa','#22c55e','#facc15','#ef4444'] }]
+            },
+            options: { responsive: true }
+        });
+    }
+</script>
+}
+

@@ -36,6 +36,15 @@ public class UserController : ControllerBase
             return Ok(user);
         }
 
+        // READ - Get All
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAll()
+        {
+            var users = await _userService.GetAllAsync();
+            return Ok(users);
+        }
+
         // READ - Get all by Company
         [HttpGet("company/{companyId}")]
         public async Task<IActionResult> GetByCompany(int companyId)

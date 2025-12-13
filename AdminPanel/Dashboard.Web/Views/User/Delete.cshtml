@@ -1,0 +1,20 @@
+@model ECommerce.Application.DTOs.UserDto
+
+@{
+    ViewData["Title"] = "Kullanıcı Sil";
+}
+
+<div class="card">
+    <div class="card-header bg-danger text-white">
+        <h5>Kullanıcı Silme Onayı</h5>
+    </div>
+    <div class="card-body">
+        <p><strong>@Model.Username</strong> adlı kullanıcıyı silmek istediğinizden emin misiniz?</p>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" class="btn btn-danger">Sil</button>
+            <a asp-action="Index" class="btn btn-secondary">İptal</a>
+        </form>
+    </div>
+</div>

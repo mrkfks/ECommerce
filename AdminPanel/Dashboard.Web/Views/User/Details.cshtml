@@ -1,0 +1,26 @@
+@model ECommerce.Application.DTOs.UserDto
+
+@{
+    ViewData["Title"] = "Kullanıcı Detayı";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5>Kullanıcı Detayı</h5>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Kullanıcı Adı</dt>
+            <dd class="col-sm-9">@Model.Username</dd>
+
+            <dt class="col-sm-3">Email</dt>
+            <dd class="col-sm-9">@Model.Email</dd>
+
+            <dt class="col-sm-3">Roller</dt>
+            <dd class="col-sm-9">@string.Join(", ", Model.Roles)</dd>
+        </dl>
+
+        <a asp-action="Index" class="btn btn-secondary">Geri</a>
+    </div>
+</div>
+

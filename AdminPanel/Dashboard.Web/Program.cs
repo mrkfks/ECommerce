@@ -1,26 +1,35 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Dashboard.Web.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Base URL config
+var apiBaseUrl = builder.Configuration.GetSection("ApiSettings")["BaseUrl"] ?? throw new InvalidOperationException("API BaseUrl not found");
+
+// Add services to the container
 builder.Services.AddControllersWithViews();
 
 // HttpClient for API calls
 builder.Services.AddHttpClient("ECommerceApi", client =>
 {
-    client.BaseAddress = new Uri("https://localhost:5001/api/");
-});
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+})
+    .AddHttpMessageHandler<AuthTokenHandler>();
 
 // CORS (Angular veya başka frontend bağlanacaksa)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowDashboard",
-        policy => policy.WithOrigins("https://localhost:5002") // Dashboard domain
+        policy => policy.WithOrigins("http://localhost:5041") // Dashboard domain
                         .AllowAnyHeader()
                         .AllowAnyMethod());
 });
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<AuthTokenHandler>();
 
 // JWT Authentication
 var jwt = builder.Configuration.GetSection("Jwt");
@@ -28,6 +37,20 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                // Cookie’den token oku
+                var token = context.Request.Cookies["AuthToken"];
+                if (!string.IsNullOrEmpty(token))
+                {
+                    context.Token = token;
+                }
+                return Task.CompletedTask;
+            }
+        };
+
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -36,15 +59,21 @@ builder.Services
             ValidateIssuerSigningKey = true,
             ValidIssuer = jwt["Issuer"],
             ValidAudience = jwt["Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"] ?? throw new InvalidOperationException("JWT Key not configured")))
         };
     });
 
-builder.Services.AddAuthorization();
+// Authorization + rol bazlı yetkilendirme
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("ManagerOnly", policy => policy.RequireRole("Manager"));
+    // İstersen farklı roller için ek politikalar tanımlayabilirsin
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -57,7 +86,7 @@ app.UseRouting();
 
 app.UseCors("AllowDashboard"); // CORS aktif
 app.UseAuthentication();       // JWT aktif
-app.UseAuthorization();
+app.UseAuthorization();        // Authorize attribute aktif
 
 app.MapControllerRoute(
     name: "default",

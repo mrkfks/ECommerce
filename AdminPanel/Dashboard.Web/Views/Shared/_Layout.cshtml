@@ -1,50 +1,95 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="tr">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Dashboard.Web</title>
-    <script type="importmap"></script>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Dashboard.Web.styles.css" asp-append-version="true" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Dashboard</title>
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+    <style>
+        body { background-color: #f5f6fa; }
+        .sidebar {
+            width: 260px; background: #0d1b2a; color: #fff; position: fixed; top: 0; bottom: 0; left: 0;
+        }
+        .sidebar .brand { padding: 1rem 1.25rem; font-weight: 700; letter-spacing: .5px; border-bottom: 1px solid rgba(255,255,255,.1); }
+        .sidebar a { color: #e0e1dd; text-decoration: none; display: block; padding: .75rem 1.25rem; }
+        .sidebar a.active, .sidebar a:hover { background: #1b263b; color: #fff; }
+        .content { margin-left: 260px; }
+        .navbar { background: #ffffff; border-bottom: 1px solid #e5e7eb; }
+        .card-metric .icon { font-size: 24px; opacity: .8; }
+    </style>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+    <!-- Sidebar -->
+    <aside class="sidebar d-flex flex-column">
+        <div class="brand">DASHBOARD</div>
+        <nav class="flex-grow-1">
+            <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Home" ? "active" : "")" asp-controller="Home" asp-action="Index">
+                <i class="fa-solid fa-house me-2"></i> Ana Sayfa
+            </a>
+            <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Product" ? "active" : "")" asp-controller="Product" asp-action="Index">
+                <i class="fa-solid fa-box-open me-2"></i> Ürünler
+            </a>
+            <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Order" ? "active" : "")" asp-controller="Order" asp-action="Index">
+                <i class="fa-solid fa-cart-shopping me-2"></i> Siparişler
+            </a>
+            <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Customer" ? "active" : "")" asp-controller="Customer" asp-action="Index">
+                <i class="fa-solid fa-users me-2"></i> Müşteriler
+            </a>
+            <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Review" ? "active" : "")" asp-controller="Review" asp-action="Index">
+                <i class="fa-regular fa-comment-dots me-2"></i> Yorumlar
+            </a>
+            <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="User" ? "active" : "")" asp-controller="User" asp-action="Index">
+                <i class="fa-solid fa-user-shield me-2"></i> Kullanıcılar & Roller
+            </a>
+        </nav>
+        <div class="p-3 text-muted" style="border-top:1px solid rgba(255,255,255,.1); font-size: .85rem;">
+            © @DateTime.Now.Year Admin Panel
+        </div>
+    </aside>
+
+    <!-- Top Navbar -->
+    <div class="content">
+        <nav class="navbar navbar-expand-lg px-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Dashboard.Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-brand fw-semibold">Admin Panel</span>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                <div id="topNav" class="collapse navbar-collapse justify-content-end">
+                    <ul class="navbar-nav">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
+                                <img src="https://via.placeholder.com/32" class="rounded-circle me-2" alt="Admin" />
+                                <span>Admin</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" asp-controller="Auth" asp-action="Profile"><i class="fa-regular fa-id-badge me-2"></i> Profil</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><a class="dropdown-item text-danger" asp-controller="Auth" asp-action="Logout"><i class="fa-solid fa-right-from-bracket me-2"></i> Çıkış</a></li>
+                            </ul>
                         </li>
                     </ul>
                 </div>
             </div>
         </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+
+        <!-- Content area -->
+        <main class="container-fluid py-4">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - Dashboard.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    @RenderSection("Scripts", required: false)
 </body>
 </html>
+
+    

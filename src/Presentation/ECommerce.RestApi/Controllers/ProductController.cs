@@ -7,7 +7,6 @@ namespace ECommerce.RestApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
@@ -18,6 +17,7 @@ public class ProductController : ControllerBase
         }
         //Create
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Create(ProductCreateDto dto)
         {
             var product = await _productService.CreateAsync(dto);
@@ -25,6 +25,7 @@ public class ProductController : ControllerBase
         }
         //READ - Get By Id
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> Get(int id)
         {
             var product = await _productService.GetByIdAsync(id);
@@ -34,13 +35,23 @@ public class ProductController : ControllerBase
         }
         // READ - Get all by Company
         [HttpGet("company/{companyId}")]
+        [Authorize]
         public async Task<IActionResult> GetByCompany(int companyId)
         {
             var products = await _productService.GetByCompanyAsync(companyId);
             return Ok(products);
         }
+        // GET: api/product
+        [HttpGet]
+        [AllowAnonymous] // Ürünleri herkese göster
+        public async Task<IActionResult> GetAll()
+        {
+            var products = await _productService.GetAllAsync();
+            return Ok(products);
+        }
         //UPDATE
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> Update(int id, ProductUpdateDto dto)
         {
             if (id != dto.Id) return BadRequest("Id mismatch");
@@ -50,6 +61,7 @@ public class ProductController : ControllerBase
         }
         //DELETE
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
             await _productService.DeleteAsync(id);

@@ -32,6 +32,15 @@ public class ReviewController : ControllerBase
                 return NotFound(new { message = "Yorum Bulunamadı" });
             return Ok(review);
         }
+        // READ - Get All
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAll()
+        {
+            var reviews = await _reviewService.GetAllAsync();
+            return Ok(reviews);
+        }
+
         //READ - Get by Product
         [HttpGet("product/{productId}")]
         public async Task<IActionResult> GEtByProduct(int productId)

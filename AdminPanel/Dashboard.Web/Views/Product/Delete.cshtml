@@ -1,0 +1,30 @@
+@model ECommerce.Application.DTOs.ProductDto
+
+@{
+    ViewData["Title"] = "Ürün Sil";
+}
+
+<div class="card">
+    <div class="card-header bg-danger text-white">
+        <h5>Ürün Silme Onayı</h5>
+    </div>
+    <div class="card-body">
+        <p><strong>@Model.Name</strong> adlı ürünü silmek istediğinizden emin misiniz?</p>
+        <dl class="row">
+            <dt class="col-sm-3">Fiyat</dt>
+            <dd class="col-sm-9">@Model.Price.ToString("C")</dd>
+
+            <dt class="col-sm-3">Stok</dt>
+            <dd class="col-sm-9">@Model.StockQuantity</dd>
+
+            <dt class="col-sm-3">Kategori</dt>
+            <dd class="col-sm-9">@Model.CategoryName</dd>
+        </dl>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" class="btn btn-danger">Sil</button>
+            <a asp-action="Index" class="btn btn-secondary">İptal</a>
+        </form>
+    </div>
+</div>

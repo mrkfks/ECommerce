@@ -25,6 +25,7 @@ public class CustomerController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetAll()
     {
         var customers = await _customerService.GetAllAsync();

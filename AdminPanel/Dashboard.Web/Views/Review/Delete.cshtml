@@ -1,0 +1,23 @@
+@model ECommerce.Application.DTOs.ReviewDto
+
+@{
+    ViewData["Title"] = "Yorum Sil";
+}
+
+<div class="card">
+    <div class="card-header bg-danger text-white">
+        <h5>Yorum Silme Onayı</h5>
+    </div>
+    <div class="card-body">
+        <p><strong>@Model.ReviewerName</strong> tarafından <strong>@Model.ProductName</strong> için yapılan yorumu silmek istediğinizden emin misiniz?</p>
+        <blockquote class="blockquote">
+            @Model.Comment
+        </blockquote>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" class="btn btn-danger">Sil</button>
+            <a asp-action="Index" class="btn btn-secondary">İptal</a>
+        </form>
+    </div>
+</div>

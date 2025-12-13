@@ -1,0 +1,31 @@
+@model ECommerce.Application.DTOs.OrderDto
+
+@{
+    ViewData["Title"] = "Sipariş Detayı";
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5>Sipariş Detayı</h5>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Sipariş No</dt>
+            <dd class="col-sm-9">@Model.Id</dd>
+
+            <dt class="col-sm-3">Müşteri</dt>
+            <dd class="col-sm-9">@Model.CustomerName</dd>
+
+            <dt class="col-sm-3">Tutar</dt>
+            <dd class="col-sm-9">@Model.TotalAmount.ToString("C")</dd>
+
+            <dt class="col-sm-3">Durum</dt>
+            <dd class="col-sm-9">@Model.Status</dd>
+
+            <dt class="col-sm-3">Tarih</dt>
+            <dd class="col-sm-9">@Model.OrderDate.ToString("dd.MM.yyyy HH:mm")</dd>
+        </dl>
+
+        <a asp-action="Index" class="btn btn-secondary">Geri</a>
+    </div>
+</div>
