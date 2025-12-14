@@ -1,0 +1,45 @@
+@model ECommerce.Application.DTOs.RequestCreateDto
+
+@{
+    ViewData["Title"] = "Talep Oluştur";
+}
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Yeni Talep Oluştur</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <input asp-for="CompanyId" type="hidden" />
+
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label">Talep Başlığı *</label>
+                        <input asp-for="Title" class="form-control" placeholder="Örn: Yeni Ürün Talebim" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label">Açıklama *</label>
+                        <textarea asp-for="Description" class="form-control" rows="5" placeholder="Talebin detaylarını açıklayın..."></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-paper-plane"></i> Talep Gönder
+                        </button>
+                        <a asp-action="Index" asp-controller="Home" class="btn btn-secondary">
+                            <i class="fa-solid fa-x"></i> İptal
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

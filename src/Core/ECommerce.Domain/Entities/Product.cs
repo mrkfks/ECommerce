@@ -20,5 +20,8 @@ namespace ECommerce.Domain.Entities
         public virtual Company? Company { get; set; }
         public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+        
+        [System.ComponentModel.DataAnnotations.ConcurrencyCheck]
+        public Guid Version { get; set; } = Guid.NewGuid();
     }
 }

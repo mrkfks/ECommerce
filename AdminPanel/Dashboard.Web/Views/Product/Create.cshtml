@@ -1,4 +1,4 @@
-@model ECommerce.Application.DTOs.ProductDto
+@model ECommerce.Application.DTOs.ProductCreateDto
 @inject IConfiguration Configuration
 
 @{
@@ -38,12 +38,37 @@
                 </div>
                 <div class="col-md-6">
                     <div class="mb-3">
-                        <label asp-for="CategoryName" class="form-label fw-semibold">Kategori</label>
-                        <input asp-for="CategoryName" class="form-control" placeholder="Kategori adını giriniz" />
-                        <span asp-validation-for="CategoryName" class="text-danger small"></span>
+                        <label asp-for="CategoryId" class="form-label fw-semibold">Kategori</label>
+                        <select asp-for="CategoryId" class="form-select" asp-items="@(new SelectList(ViewBag.Categories, "Id", "Name"))">
+                            <option value="">-- Kategori Seçiniz --</option>
+                        </select>
+                        <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                    </div>
+                     <div class="mb-3">
+                        <label asp-for="BrandId" class="form-label fw-semibold">Marka</label>
+                         <select asp-for="BrandId" class="form-select" asp-items="@(new SelectList(ViewBag.Brands, "Id", "Name"))">
+                            <option value="">-- Marka Seçiniz --</option>
+                        </select>
+                        <span asp-validation-for="BrandId" class="text-danger small"></span>
                     </div>
                 </div>
             </div>
+            
+            @if(User.IsInRole("SuperAdmin"))
+            {
+                 <div class="mb-3">
+                    <label asp-for="CompanyId" class="form-label fw-semibold">Şirket</label>
+                    <select asp-for="CompanyId" class="form-select" asp-items="@(new SelectList(ViewBag.Companies, "Id", "Name"))">
+                            <option value="">-- Şirket Seçiniz --</option>
+                    </select>
+                    <span asp-validation-for="CompanyId" class="text-danger small"></span>
+                </div>
+            }
+            else
+            {
+                 <input type="hidden" asp-for="CompanyId" value="@(User.FindFirst("CompanyId")?.Value ?? "1")" />
+            }
+
 
             <div class="mb-3">
                 <label class="form-label fw-semibold">Ürün Resmi</label>

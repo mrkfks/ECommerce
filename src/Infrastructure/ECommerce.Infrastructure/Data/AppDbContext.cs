@@ -5,7 +5,10 @@ namespace ECommerce.Infrastructure.Data
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+        public AppDbContext(DbContextOptions<AppDbContext> options, ECommerce.Application.Interfaces.ITenantService tenantService) : base(options) 
+        {
+            CurrentCompanyId = tenantService.GetCompanyId();
+        }
 
         // DbSets
         public DbSet<Product> Products { get; set; }
@@ -21,6 +24,7 @@ namespace ECommerce.Infrastructure.Data
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<Address> Addresses { get; set; }
         public DbSet<Company> Companies { get; set; }
+        public DbSet<Request> Requests { get; set; }
 
         // Tenant context
         public int? CurrentCompanyId { get; private set; }
@@ -166,6 +170,13 @@ namespace ECommerce.Infrastructure.Data
                 .HasForeignKey(r => r.CompanyId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Request ilişkileri
+            modelBuilder.Entity<Request>()
+                .HasOne(r => r.Company)
+                .WithMany(c => c.Requests)
+                .HasForeignKey(r => r.CompanyId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // Global Query Filters (tenant izolasyonu)
             modelBuilder.Entity<User>()
                 .HasQueryFilter(e => CurrentCompanyId == null || e.CompanyId == CurrentCompanyId);
@@ -177,6 +188,18 @@ namespace ECommerce.Infrastructure.Data
                 .HasQueryFilter(e => CurrentCompanyId == null || e.CompanyId == CurrentCompanyId);
             modelBuilder.Entity<Review>()
                 .HasQueryFilter(e => CurrentCompanyId == null || e.CompanyId == CurrentCompanyId);
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            foreach (var entry in ChangeTracker.Entries<Product>())
+            {
+                if (entry.State == EntityState.Modified)
+                {
+                    entry.Entity.Version = Guid.NewGuid();
+                }
+            }
+            return base.SaveChangesAsync(cancellationToken);
         }
     }
 }

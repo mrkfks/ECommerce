@@ -10,5 +10,21 @@ namespace Dashboard.Web.Controllers
         {
             return View();
         }
+
+        [AllowAnonymous]
+        public IActionResult DebugClaims()
+        {
+            if (User?.Claims == null) return Content("User claims are null");
+            
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine($"IsAuthenticated: {User.Identity?.IsAuthenticated}");
+            sb.AppendLine($"Name: {User.Identity?.Name}");
+            sb.AppendLine("Claims:");
+            foreach (var claim in User.Claims)
+            {
+                sb.AppendLine($"- {claim.Type}: {claim.Value}");
+            }
+            return Content(sb.ToString());
+        }
     }
 }

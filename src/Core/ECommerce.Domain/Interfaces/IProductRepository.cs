@@ -8,5 +8,6 @@ namespace ECommerce.Domain.Interfaces
         Task<bool> IsStockAvailableAsync(int productId, int quantity);
         Task<List<Product>> GetByCategoryAsync(int categoryId);
         Task<List<Product>> SearchAsync(string searchTerm);
+        Task<IReadOnlyList<Product>> GetAllWithDetailsAsync();
     }
 }

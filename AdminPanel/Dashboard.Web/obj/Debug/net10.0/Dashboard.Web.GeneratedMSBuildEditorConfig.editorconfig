@@ -94,6 +94,22 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvZHVjdFxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/mrkfk/OneDrive/Desktop/Projelerim/ECommerce/AdminPanel/Dashboard.Web/Views/Request/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVxdWVzdFxDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mrkfk/OneDrive/Desktop/Projelerim/ECommerce/AdminPanel/Dashboard.Web/Views/Request/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVxdWVzdFxEZXRhaWxzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mrkfk/OneDrive/Desktop/Projelerim/ECommerce/AdminPanel/Dashboard.Web/Views/Request/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVxdWVzdFxJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mrkfk/OneDrive/Desktop/Projelerim/ECommerce/AdminPanel/Dashboard.Web/Views/Request/MyRequests.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVxdWVzdFxNeVJlcXVlc3RzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/mrkfk/OneDrive/Desktop/Projelerim/ECommerce/AdminPanel/Dashboard.Web/Views/Review/Delete.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmV2aWV3XERlbGV0ZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -116,6 +132,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/mrkfk/OneDrive/Desktop/Projelerim/ECommerce/AdminPanel/Dashboard.Web/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/mrkfk/OneDrive/Desktop/Projelerim/ECommerce/AdminPanel/Dashboard.Web/Views/User/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlclxDcmVhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/mrkfk/OneDrive/Desktop/Projelerim/ECommerce/AdminPanel/Dashboard.Web/Views/User/Delete.cshtml]

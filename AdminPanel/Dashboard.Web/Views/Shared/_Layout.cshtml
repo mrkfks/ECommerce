@@ -47,6 +47,19 @@
                 <i class="fa-regular fa-comment-dots me-2"></i> Yorumlar
             </a>
             @if (User.IsInRole("CompanyAdmin") || User.IsInRole("SuperAdmin"))
+            @if (User.Identity?.IsAuthenticated ?? false)
+            {
+                <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Request" && ViewContext.RouteData.Values["action"]?.ToString()=="Create" ? "active" : "")" asp-controller="Request" asp-action="Create">
+                    <i class="fa-solid fa-plus me-2"></i> Talep Oluştur
+                </a>
+                @if (!User.IsInRole("SuperAdmin"))
+                {
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Request" && ViewContext.RouteData.Values["action"]?.ToString()=="MyRequests" ? "active" : "")" asp-controller="Request" asp-action="MyRequests">
+                        <i class="fa-solid fa-list-check me-2"></i> Taleplerim
+                    </a>
+                }
+            }
+            @if (User.IsInRole("SuperAdmin"))
             {
                 <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="User" ? "active" : "")" asp-controller="User" asp-action="Index">
                     <i class="fa-solid fa-user-shield me-2"></i> Kullanıcılar & Roller
@@ -56,6 +69,9 @@
             {
                 <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Company" ? "active" : "")" asp-controller="Company" asp-action="Index">
                     <i class="fa-solid fa-building me-2"></i> Şirketler
+                </a>
+                <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Request" && ViewContext.RouteData.Values["action"]?.ToString()=="Index" ? "active" : "")" asp-controller="Request" asp-action="Index">
+                    <i class="fa-solid fa-envelope-open-text me-2"></i> Talepler
                 </a>
             }
             }

@@ -47,6 +47,17 @@ namespace Dashboard.Web.Controllers
             if (user == null)
                 return NotFound();
 
+            // API'den roller listesi çek
+            try
+            {
+                var roles = await client.GetFromJsonAsync<List<string>>("api/User/roles");
+                ViewBag.AllRoles = roles ?? new List<string>();
+            }
+            catch
+            {
+                ViewBag.AllRoles = new List<string> { "SuperAdmin", "CompanyAdmin", "CompanyStaff" };
+            }
+
             return View(user);
         }
 
@@ -54,15 +65,38 @@ namespace Dashboard.Web.Controllers
         public async Task<IActionResult> Edit(UserDto user)
         {
             if (!ModelState.IsValid)
+            {
+                // Hata durumunda rolleri yeniden yükle
+                var client = _httpClientFactory.CreateClient("ECommerceApi");
+                try
+                {
+                    var roles = await client.GetFromJsonAsync<List<string>>("api/User/roles");
+                    ViewBag.AllRoles = roles ?? new List<string>();
+                }
+                catch
+                {
+                    ViewBag.AllRoles = new List<string> { "SuperAdmin", "CompanyAdmin", "CompanyStaff" };
+                }
                 return View(user);
+            }
 
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var response = await client.PutAsJsonAsync($"api/User/{user.Id}", user);
+            var apiClient = _httpClientFactory.CreateClient("ECommerceApi");
+            var response = await apiClient.PutAsJsonAsync($"api/User/{user.Id}", user);
 
             if (response.IsSuccessStatusCode)
                 return RedirectToAction(nameof(Index));
 
             ModelState.AddModelError("", "Kullanıcı güncellenirken hata oluştu.");
+            // Hata durumunda rolleri yeniden yükle
+            try
+            {
+                var roles = await apiClient.GetFromJsonAsync<List<string>>("api/User/roles");
+                ViewBag.AllRoles = roles ?? new List<string>();
+            }
+            catch
+            {
+                ViewBag.AllRoles = new List<string> { "SuperAdmin", "CompanyAdmin", "CompanyStaff" };
+            }
             return View(user);
         }
 

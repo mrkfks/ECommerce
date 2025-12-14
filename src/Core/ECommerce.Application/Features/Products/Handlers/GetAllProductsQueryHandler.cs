@@ -20,7 +20,7 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, A
 
     public async Task<ApiResponse<List<ProductDto>>> Handle(GetAllProductsQuery request, CancellationToken cancellationToken)
     {
-        var products = await _unitOfWork.Products.GetAllAsync();
+        var products = await _unitOfWork.Products.GetAllWithDetailsAsync();
         var productDtos = _mapper.Map<List<ProductDto>>(products);
 
         return ApiResponse<List<ProductDto>>.SuccessResponse(productDtos);

@@ -33,7 +33,14 @@ public class UpdateStockCommandHandler : IRequestHandler<UpdateStockCommand, Api
         product.UpdatedAt = DateTime.UtcNow;
 
         _unitOfWork.Products.Update(product);
-        await _unitOfWork.SaveChangesAsync();
+        try 
+        {
+            await _unitOfWork.SaveChangesAsync();
+        }
+        catch (ECommerce.Application.Exceptions.ConcurrencyException)
+        {
+            throw new BusinessException("Stok bilgisi başka bir işlem tarafından değiştirildi. Lütfen sayfayı yenileyip tekrar deneyin.");
+        }
 
         return ApiResponse<bool>.SuccessResponse(true, "Stok başarıyla güncellendi");
     }

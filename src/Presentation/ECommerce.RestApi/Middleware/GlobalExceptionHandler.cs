@@ -61,7 +61,8 @@ public class GlobalExceptionHandler
         var response = new
         {
             statusCode = (int)statusCode,
-            message,
+            message = statusCode == HttpStatusCode.InternalServerError ? $"{message}: {exception.Message}" : message, 
+            details = statusCode == HttpStatusCode.InternalServerError ? exception.ToString() : null,
             errors = errors.Count > 0 ? errors : null
         };
 

@@ -1,15 +1,16 @@
 <Solution>
-  <Folder Name="/src/">
-    <Folder Name="/Core/">
-      <Project Path="src/Core/ECommerce.Domain/ECommerce.Domain.csproj" />
-      <Project Path="src/Core/ECommerce.Application/ECommerce.Application.csproj" />
-    </Folder>
-    <Folder Name="/Infrastructure/">
-      <Project Path="src/Infrastructure/ECommerce.Infrastructure/ECommerce.Infrastructure.csproj" />
-    </Folder>
-    <Folder Name="/Presentation/">
-      <Project Path="src/Presentation/ECommerce.RestApi/ECommerce.RestApi.csproj" />
-      <Project Path="src/Presentation/ECommerce.AdminPanel/ECommerce.AdminPanel.csproj" />
-    </Folder>
+  <Folder Name="/AdminPanel/">
+    <Project Path="AdminPanel/Dashboard.Web/Dashboard.Web.csproj" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Core/">
+    <Project Path="src/Core/ECommerce.Application/ECommerce.Application.csproj" />
+    <Project Path="src/Core/ECommerce.Domain/ECommerce.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/Infrastructure/">
+    <Project Path="src/Infrastructure/ECommerce.Infrastructure/ECommerce.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Presentation/">
+    <Project Path="src/Presentation/ECommerce.RestApi/ECommerce.RestApi.csproj" />
   </Folder>
 </Solution>

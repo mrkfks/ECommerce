@@ -1515,7 +1515,10 @@
         },
         "runtime": {
           "bin/placeholder/ECommerce.Infrastructure.dll": {}
-        }
+        },
+        "frameworkReferences": [
+          "Microsoft.AspNetCore.App"
+        ]
       }
     }
   },

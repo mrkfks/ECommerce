@@ -1,0 +1,149 @@
+@model ECommerce.Application.DTOs.RequestDto
+
+@{
+    ViewData["Title"] = "Talep Detayları";
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Talep Detayları</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Talep ID</label>
+                        <p class="form-control-plaintext">@Model.Id</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Şirket ID</label>
+                        <p class="form-control-plaintext">@Model.CompanyId</p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Başlık</label>
+                        <p class="form-control-plaintext">@Model.Title</p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Açıklama</label>
+                        <p class="form-control-plaintext">@Model.Description</p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Geri Bildirim</label>
+                        <p class="form-control-plaintext">@(string.IsNullOrWhiteSpace(Model.Feedback) ? "-" : Model.Feedback)</p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Durum</label>
+                        <p class="form-control-plaintext">
+                            @{
+                                var statusText = Model.Status switch
+                                {
+                                    0 => "Beklemede",
+                                    1 => "Onaylandı",
+                                    2 => "Reddedildi",
+                                    3 => "İşleniyor",
+                                    4 => "Tamamlandı",
+                                    _ => "Bilinmiyor"
+                                };
+                                var badgeClass = Model.Status switch
+                                {
+                                    0 => "badge-warning",
+                                    1 => "badge-success",
+                                    2 => "badge-danger",
+                                    3 => "badge-info",
+                                    4 => "badge-secondary",
+                                    _ => "badge-secondary"
+                                };
+                            }
+                            <span class="badge @badgeClass">@statusText</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Oluşturma Tarihi</label>
+                        <p class="form-control-plaintext">@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm:ss")</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.Status == 0) // Beklemede
+        {
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Talep İşlemleri</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Geri Bildirim</label>
+                        <textarea id="feedbackText" form="approveForm" name="feedback" class="form-control" rows="3" placeholder="Onay veya ret gerekçesini yazın"></textarea>
+                    </div>
+                    <form id="approveForm" method="post" asp-action="Approve" asp-route-id="@Model.Id" class="d-inline">
+                        <button type="submit" class="btn btn-success" onclick="return confirm('Bu talep onaylanacak. Devam et?')">
+                            <i class="fa-solid fa-check"></i> Onayla
+                        </button>
+                    </form>
+                    <form id="rejectForm" method="post" asp-action="Reject" asp-route-id="@Model.Id" class="d-inline ms-2">
+                        <input id="rejectFeedbackHidden" type="hidden" name="feedback" value="" />
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Bu talep reddedilecek. Devam et?')">
+                            <i class="fa-solid fa-times"></i> Reddet
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Bilgiler</h5>
+            </div>
+            <div class="card-body">
+                <p>
+                    <strong>Talep Durumu:</strong><br />
+                    @{
+                        var status = Model.Status switch
+                        {
+                            0 => "Sistem tarafından İncelenmek üzere beklemektedir",
+                            1 => "SuperAdmin tarafından onaylanmıştır",
+                            2 => "SuperAdmin tarafından reddedilmiştir",
+                            3 => "Şu anda işlenmektedir",
+                            4 => "İşlemi tamamlanmıştır",
+                            _ => "Bilinmeyen bir durumdadır"
+                        };
+                    }
+                    @status
+                </p>
+            </div>
+        </div>
+
+        <a asp-action="Index" class="btn btn-secondary w-100 mt-3">
+            <i class="fa-solid fa-arrow-left"></i> Geri Dön
+        </a>
+    </div>
+</div>
+
+<script>
+    const rejectForm = document.getElementById('rejectForm');
+    if (rejectForm) {
+        rejectForm.addEventListener('submit', () => {
+            const feedbackInput = document.getElementById('feedbackText');
+            const hidden = document.getElementById('rejectFeedbackHidden');
+            if (feedbackInput && hidden) {
+                hidden.value = feedbackInput.value;
+            }
+        });
+    }
+</script>

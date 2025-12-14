@@ -18,5 +18,6 @@ namespace ECommerce.Domain.Entities
         public virtual ICollection<Product> Products { get; set; } = new List<Product>();
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
         public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
+        public virtual ICollection<Request> Requests { get; set; } = new List<Request>();
     }
 }

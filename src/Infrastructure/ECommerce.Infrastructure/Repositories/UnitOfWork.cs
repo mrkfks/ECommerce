@@ -23,6 +23,7 @@ namespace ECommerce.Infrastructure.Repositories
             Banners = new GenericRepository<Banner>(_context);
             Users = new GenericRepository<User>(_context);
             Roles = new GenericRepository<Role>(_context);
+            Requests = new GenericRepository<Request>(_context);
         }
 
         public IProductRepository Products { get; }
@@ -36,10 +37,18 @@ namespace ECommerce.Infrastructure.Repositories
         public IGenericRepository<Banner> Banners { get; }
         public IGenericRepository<User> Users { get; }
         public IGenericRepository<Role> Roles { get; }
+        public IGenericRepository<Request> Requests { get; }
 
         public async Task<int> SaveChangesAsync()
         {
-            return await _context.SaveChangesAsync();
+            try
+            {
+                return await _context.SaveChangesAsync();
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException ex)
+            {
+                throw new ECommerce.Application.Exceptions.ConcurrencyException("A concurrency conflict occurred.", ex);
+            }
         }
 
         public void Dispose()

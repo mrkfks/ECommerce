@@ -61,16 +61,25 @@ namespace ECommerce.Infrastructure.Services
             {
                 Username = dto.Username,
                 Email = dto.Email,
-                // Assuming simple hashing here, consistent with AuthService
-                PasswordHash = HashPassword(dto.Password), 
+                FirstName = dto.Username, // Defaulting if not in DTO or use another field
+                LastName = "",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password), 
                 CompanyId = dto.CompanyId,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UserRoles = new List<UserRole>()
             };
 
-            // Handle Role assignment if DTO has it, or default
-            
+            // Handle Role assignment
+            if (dto.Roles != null && dto.Roles.Any())
+            {
+                var roles = await _context.Roles.Where(r => dto.Roles.Contains(r.Name)).ToListAsync();
+                foreach (var role in roles)
+                {
+                    user.UserRoles.Add(new UserRole { Role = role });
+                }
+            }
+
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
             return MapToDto(user);

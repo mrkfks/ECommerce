@@ -12,7 +12,12 @@ namespace ECommerce.Infrastructure.Data
             // SQLite için connection string
             optionsBuilder.UseSqlite("Data Source=ECommerce.db");
             
-            return new AppDbContext(optionsBuilder.Options);
+            return new AppDbContext(optionsBuilder.Options, new DesignTimeTenantService());
+        }
+
+        private class DesignTimeTenantService : ECommerce.Application.Interfaces.ITenantService
+        {
+            public int? GetCompanyId() => null;
         }
     }
 }

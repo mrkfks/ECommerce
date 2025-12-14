@@ -1,0 +1,117 @@
+@model List<RequestDto>
+
+@{
+    ViewData["Title"] = "Taleplerim";
+}
+
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>Taleplerim</h2>
+        </div>
+        @if (!User.IsInRole("SuperAdmin"))
+        {
+            <div class="col-md-4 text-end">
+                <a href="@Url.Action("Create", "Request")" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Yeni Talep Oluştur
+                </a>
+            </div>
+        }
+    </div>
+
+    @if (ViewBag.ErrorMessage != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            @ViewBag.ErrorMessage
+        </div>
+    }
+
+    @if (Model == null || Model.Count == 0)
+    {
+        <div class="alert alert-info" role="alert">
+            Henüz talep göndermediniz.
+            @if (!User.IsInRole("SuperAdmin"))
+            {
+                <span><a href="@Url.Action("Create", "Request")">Yeni talep oluşturmak için buraya tıklayın</a>.</span>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width: 15%">Talep No</th>
+                        <th style="width: 25%">Başlık</th>
+                        <th style="width: 25%">Açıklama</th>
+                        <th style="width: 20%">Geri Bildirim</th>
+                        <th style="width: 12%">Durum</th>
+                        <th style="width: 13%">Gönderme Tarihi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var request in Model)
+                    {
+                        <tr style="cursor: pointer;" onclick="location.href='@Url.Action("Details", "Request", new { id = request.Id })'">
+                            <td>
+                                <strong>#@request.Id</strong>
+                            </td>
+                            <td>@request.Title</td>
+                            <td>
+                                @{
+                                    var shortDesc = request.Description?.Length > 40 
+                                        ? request.Description.Substring(0, 40) + "..." 
+                                        : request.Description;
+                                }
+                                @shortDesc
+                            </td>
+                            <td>
+                                @{
+                                    var fb = string.IsNullOrWhiteSpace(request.Feedback) ? "-" : request.Feedback;
+                                    var shortFb = fb.Length > 40 ? fb.Substring(0, 40) + "..." : fb;
+                                }
+                                @shortFb
+                            </td>
+                            <td>
+                                @{
+                                    var statusText = ((int)request.Status) switch
+                                    {
+                                        0 => "Bekleme",
+                                        1 => "Onaylandı",
+                                        2 => "Reddedildi",
+                                        3 => "İşlemde",
+                                        4 => "Tamamlandı",
+                                        _ => "Bilinmiyor"
+                                    };
+                                    var badgeClass = ((int)request.Status) switch
+                                    {
+                                        0 => "badge bg-warning text-dark",
+                                        1 => "badge bg-success",
+                                        2 => "badge bg-danger",
+                                        3 => "badge bg-info",
+                                        4 => "badge bg-secondary",
+                                        _ => "badge bg-secondary"
+                                    };
+                                }
+                                <span class="@badgeClass">@statusText</span>
+                            </td>
+                            <td>
+                                @request.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<style>
+    tr {
+        transition: background-color 0.3s ease;
+    }
+    tr:hover {
+        background-color: #f8f9fa;
+    }
+</style>

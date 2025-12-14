@@ -82,7 +82,14 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
         };
 
         await _unitOfWork.Orders.AddAsync(order);
-        await _unitOfWork.SaveChangesAsync();
+        try
+        {
+            await _unitOfWork.SaveChangesAsync();
+        }
+        catch (ECommerce.Application.Exceptions.ConcurrencyException)
+        {
+             throw new BusinessException("Sipariş oluşturulurken stok bilgisi değişti. Lütfen sepetinizi kontrol edip tekrar deneyin.");
+        }
 
         var orderDto = _mapper.Map<OrderDto>(order);
 
