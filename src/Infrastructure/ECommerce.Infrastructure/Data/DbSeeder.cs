@@ -28,9 +28,10 @@ public static class DbSeeder
         await context.SaveChangesAsync();
 
         // Roles
-        var adminRole = new Role { Name = "Admin", UserRoles = new List<UserRole>() };
-        var userRole = new Role { Name = "User", UserRoles = new List<UserRole>() };
-        context.Roles.AddRange(adminRole, userRole);
+        var superAdminRole = new Role { Name = "SuperAdmin", UserRoles = new List<UserRole>() };
+        var companyAdminRole = new Role { Name = "CompanyAdmin", UserRoles = new List<UserRole>() };
+        var companyStaffRole = new Role { Name = "CompanyStaff", UserRoles = new List<UserRole>() };
+        context.Roles.AddRange(superAdminRole, companyAdminRole, companyStaffRole);
         await context.SaveChangesAsync();
 
         // Admin User
@@ -47,10 +48,14 @@ public static class DbSeeder
         context.Users.Add(adminUser);
         await context.SaveChangesAsync();
 
-        context.UserRoles.Add(new UserRole { UserId = adminUser.Id, RoleId = adminRole.Id });
+        context.UserRoles.Add(new UserRole { UserId = adminUser.Id, RoleId = superAdminRole.Id });
         await context.SaveChangesAsync();
 
         // Categories
+        // Demo company onaylı başlasın
+        company.IsApproved = true;
+        await context.SaveChangesAsync();
+
         var categories = new List<Category>
         {
             new() { Name = "Elektronik", Description = "Elektronik ürünler", IsActive = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
@@ -82,7 +87,7 @@ public static class DbSeeder
                 CategoryId = categories[0].Id,
                 BrandId = brands[0].Id,
                 CompanyId = company.Id,
-                ImageUrl = "https://images.samsung.com/galaxy-s23.jpg",
+                ImageUrl = null,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -96,7 +101,7 @@ public static class DbSeeder
                 CategoryId = categories[0].Id,
                 BrandId = brands[1].Id,
                 CompanyId = company.Id,
-                ImageUrl = "https://images.apple.com/iphone-15-pro.jpg",
+                ImageUrl = null,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -110,7 +115,7 @@ public static class DbSeeder
                 CategoryId = categories[1].Id,
                 BrandId = brands[2].Id,
                 CompanyId = company.Id,
-                ImageUrl = "https://images.nike.com/air-max.jpg",
+                ImageUrl = null,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow

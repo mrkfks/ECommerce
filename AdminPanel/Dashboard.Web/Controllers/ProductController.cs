@@ -1,10 +1,12 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http;
 using System.Net.Http.Json;
-using ECommerce.Application.DTOs; // Artık Application DTO’larını doğrudan kullanıyoruz
+using ECommerce.Application.DTOs; // Artık Application DTO'larını doğrudan kullanıyoruz
 
 namespace Dashboard.Web.Controllers
 {
+    [Authorize]
     public class ProductController : Controller
     {
         private readonly IHttpClientFactory _httpClientFactory;
@@ -20,7 +22,22 @@ namespace Dashboard.Web.Controllers
             var products = await client.GetFromJsonAsync<List<ProductDto>>("api/Product");
             return View(products ?? new List<ProductDto>());
         }
+
+        // GET: Ürün detayları
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var client = _httpClientFactory.CreateClient("ECommerceApi");
+            var product = await client.GetFromJsonAsync<ProductDto>($"api/Product/{id}");
+
+            if (product == null)
+                return NotFound();
+
+            return View(product);
+        }
+
         // GET: Create formu
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         [HttpGet]
         public IActionResult Create()
         {
@@ -28,6 +45,7 @@ namespace Dashboard.Web.Controllers
         }
 
         // POST: Yeni ürün ekleme
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         [HttpPost]
         public async Task<IActionResult> Create(ProductDto product)
         {
@@ -47,6 +65,7 @@ namespace Dashboard.Web.Controllers
         }
 
         // GET: Edit formu
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -60,6 +79,7 @@ namespace Dashboard.Web.Controllers
         }
 
         // POST: Ürün güncelleme
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         [HttpPost]
         public async Task<IActionResult> Edit(ProductDto product)
         {
@@ -78,6 +98,7 @@ namespace Dashboard.Web.Controllers
             return View(product);
         }
         // GET: Delete onay ekranı
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
@@ -91,6 +112,7 @@ namespace Dashboard.Web.Controllers
         }
 
         // POST: Ürün silme
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         [HttpPost, ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {

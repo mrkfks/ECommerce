@@ -45,6 +45,7 @@ public class BrandController : ControllerBase
     /// Create a new brand
     /// </summary>
     [HttpPost]
+    [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
     public async Task<IActionResult> Create([FromBody] BrandCreateDto dto)
     {
         var brand = await _brandService.CreateAsync(dto);
@@ -55,6 +56,7 @@ public class BrandController : ControllerBase
     /// Update a brand
     /// </summary>
     [HttpPut("{id}")]
+    [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
     public async Task<IActionResult> Update(int id, [FromBody] BrandUpdateDto dto)
     {
         if (id != dto.Id)
@@ -68,6 +70,7 @@ public class BrandController : ControllerBase
     /// Delete a brand
     /// </summary>
     [HttpDelete("{id}")]
+    [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
     public async Task<IActionResult> Delete(int id)
     {
         await _brandService.DeleteAsync(id);

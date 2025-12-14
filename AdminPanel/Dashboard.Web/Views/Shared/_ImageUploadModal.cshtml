@@ -1,0 +1,155 @@
+@{
+    ViewData["Title"] = "Dosya Yükle";
+}
+
+<div class="modal fade" id="imageUploadModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-image me-2"></i> Resim Yükle
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="imageUploadForm" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="imageFile" class="form-label">Resim Seç</label>
+                        <input type="file" class="form-control" id="imageFile" name="file" accept="image/*" required>
+                        <small class="form-text text-muted d-block mt-2">
+                            <i class="fa-solid fa-info-circle me-1"></i>
+                            Desteklenen formatlar: JPG, PNG, GIF, WEBP (Maks: 5 MB)
+                        </small>
+                    </div>
+                    <div id="previewContainer" class="mb-3" style="display: none;">
+                        <label class="form-label">Önizleme</label>
+                        <div class="text-center">
+                            <img id="imagePreview" src="" alt="Önizleme" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
+                        </div>
+                    </div>
+                    <div id="uploadProgress" class="progress" style="display: none;">
+                        <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" id="uploadBtn" onclick="uploadImage()">
+                    <i class="fa-solid fa-upload me-2"></i> Yükle
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Resim seçildiğinde önizleme göster
+document.getElementById('imageFile').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            document.getElementById('imagePreview').src = event.target.result;
+            document.getElementById('previewContainer').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+function uploadImage() {
+    const fileInput = document.getElementById('imageFile');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        alert('Lütfen bir resim seçin!');
+        return;
+    }
+
+    const uploadUrl = document.getElementById('imageUploadForm').getAttribute('data-upload-url');
+    if (!uploadUrl) {
+        alert('Upload URL belirtilmedi!');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const progressBar = document.getElementById('progressBar');
+    const uploadProgress = document.getElementById('uploadProgress');
+    uploadProgress.style.display = 'block';
+
+    // Önce token'ı al
+    fetch('/Auth/GetToken')
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            }
+            // Hata oluşursa detaylı bilgi al
+            return response.json().then(data => {
+                throw new Error(data.message || 'Token alınamadı');
+            });
+        })
+        .then(data => {
+            if (!data.token) {
+                throw new Error('Token boş döndü');
+            }
+            const token = data.token;
+            
+            // Şimdi dosyayı yükle - token ile Authorization header'ında gönder
+            const fetchOptions = {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            };
+
+            return fetch(uploadUrl, fetchOptions);
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(`HTTP Error: ${response.status} - ${text}`);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                alert('Resim başarıyla yüklendi!');
+                progressBar.style.width = '100%';
+                
+                // Parent form'a URL'yi gönder
+                if (window.imageUploadCallback) {
+                    window.imageUploadCallback(data.imageUrl);
+                }
+                
+                // Modal'ı kapat
+                const modal = bootstrap.Modal.getInstance(document.getElementById('imageUploadModal'));
+                modal.hide();
+                
+                // Formu temizle
+                fileInput.value = '';
+                document.getElementById('previewContainer').style.display = 'none';
+                uploadProgress.style.display = 'none';
+                progressBar.style.width = '0%';
+            } else {
+                alert('Hata: ' + (data.message || 'Bilinmeyen hata'));
+            }
+        })
+        .catch(error => {
+            console.error('Yükleme Hatası:', error);
+            alert('Dosya yüklenirken hata oluştu:\n' + error.message);
+            uploadProgress.style.display = 'none';
+            progressBar.style.width = '0%';
+        });
+}
+
+// Modal açılırken form'u temizle
+document.getElementById('imageUploadModal').addEventListener('hidden.bs.modal', function() {
+    document.getElementById('imageFile').value = '';
+    document.getElementById('previewContainer').style.display = 'none';
+    document.getElementById('uploadProgress').style.display = 'none';
+    document.getElementById('progressBar').style.width = '0%';
+});
+</script>

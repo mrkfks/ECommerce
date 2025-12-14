@@ -7,7 +7,7 @@ namespace ECommerce.RestApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Policy = "SameCompanyOrSuperAdmin")]
 public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -19,6 +19,7 @@ public class UserController : ControllerBase
 
         // CREATE
         [HttpPost]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         public async Task<IActionResult> Add(UserCreateDto dto)
         {
             var user = await _userService.CreateAsync(dto);
@@ -38,7 +39,7 @@ public class UserController : ControllerBase
 
         // READ - Get All
         [HttpGet]
-        [AllowAnonymous]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         public async Task<IActionResult> GetAll()
         {
             var users = await _userService.GetAllAsync();
@@ -47,6 +48,7 @@ public class UserController : ControllerBase
 
         // READ - Get all by Company
         [HttpGet("company/{companyId}")]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         public async Task<IActionResult> GetByCompany(int companyId)
         {
             var users = await _userService.GetByCompanyAsync(companyId);
@@ -55,6 +57,7 @@ public class UserController : ControllerBase
 
         // UPDATE
         [HttpPut("{id}")]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         public async Task<IActionResult> Update(int id, UserUpdateDto dto)
         {
              if(id != dto.Id) return BadRequest();
@@ -64,6 +67,7 @@ public class UserController : ControllerBase
 
         // DELETE
         [HttpDelete("{id}")]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         public async Task<IActionResult> Delete(int id)
         {
             await _userService.DeleteAsync(id);
@@ -72,6 +76,7 @@ public class UserController : ControllerBase
 
         // ROLE ASSIGNMENT
         [HttpPost("{id}/assign-role")]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         public async Task<IActionResult> AssignRole(int id, [FromBody] string roleName)
         {
             await _userService.AddRoleAsync(id, roleName);

@@ -30,9 +30,34 @@ namespace ECommerce.Infrastructure.Services
                 .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(u => u.Email == loginDto.UsernameOrEmail || u.Username == loginDto.UsernameOrEmail);
 
-            if (user == null || !VerifyPassword(loginDto.Password, user.PasswordHash))
+            if (user == null)
             {
                 throw new Exception("Invalid credentials");
+            }
+
+            var passwordOk = BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash);
+            if (!passwordOk)
+            {
+                // Legacy SHA256 hash desteği: eşleşirse bcrypt'e geçir.
+                var legacy = LegacyHashPassword(loginDto.Password);
+                if (legacy == user.PasswordHash)
+                {
+                    user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(loginDto.Password);
+                    await _context.SaveChangesAsync();
+                    passwordOk = true;
+                }
+            }
+
+            if (!passwordOk)
+            {
+                throw new Exception("Invalid credentials");
+            }
+
+            // Şirket onayı kontrolü
+            var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == user.CompanyId);
+            if (company == null || !company.IsApproved)
+            {
+                throw new Exception("Company is not approved");
             }
 
             var token = GenerateJwtToken(user);
@@ -59,7 +84,9 @@ namespace ECommerce.Infrastructure.Services
             {
                 Username = registerDto.Username,
                 Email = registerDto.Email,
-                PasswordHash = HashPassword(registerDto.Password),
+                FirstName = registerDto.FirstName,
+                LastName = registerDto.LastName,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
                 CompanyId = registerDto.CompanyId,
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true,
@@ -143,20 +170,14 @@ namespace ECommerce.Infrastructure.Services
             }
         }
 
-        // Placeholder hashing - In production use BCrypt or Argon2
-        private string HashPassword(string password)
-        {
-            using (var sha256 = SHA256.Create())
-            {
-                var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-                return Convert.ToBase64String(bytes);
-            }
-        }
+        // Password hashing handled via BCrypt
 
-        private bool VerifyPassword(string inputPassword, string storedHash)
+        // Legacy SHA256 hashing (migrate on login if encountered)
+        private string LegacyHashPassword(string password)
         {
-            var hash = HashPassword(inputPassword);
-            return hash == storedHash;
+            using var sha256 = SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+            return Convert.ToBase64String(bytes);
         }
     }
 }

@@ -1,0 +1,31 @@
+# Build outputs
+**/bin/
+**/obj/
+
+# VS/VSCode
+.vscode/
+.vs/
+*.user
+*.suo
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Rider/IDEA
+.idea/
+
+# dotnet tools
+**/.store/
+
+# Publish
+**/publish/
+
+# User secrets
+**/secrets.json
+
+# Coverage
+coverage/

@@ -6,6 +6,7 @@ using ECommerce.Application.DTOs;
 
 namespace Dashboard.Web.Controllers
 {
+    [Authorize]
     public class CustomerController : Controller
     {
         private readonly IHttpClientFactory _httpClientFactory;
@@ -16,7 +17,6 @@ namespace Dashboard.Web.Controllers
         }
 
         // Listeleme
-        [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
             var client = _httpClientFactory.CreateClient("ECommerceApi");
@@ -26,7 +26,6 @@ namespace Dashboard.Web.Controllers
 
         // Detay
         [HttpGet]
-        [AllowAnonymous]
         public async Task<IActionResult> Details(int id)
         {
             var client = _httpClientFactory.CreateClient("ECommerceApi");
@@ -40,7 +39,7 @@ namespace Dashboard.Web.Controllers
 
         // Düzenleme
         [HttpGet]
-        [Authorize]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         public async Task<IActionResult> Edit(int id)
         {
             var client = _httpClientFactory.CreateClient("ECommerceApi");
@@ -53,7 +52,7 @@ namespace Dashboard.Web.Controllers
         }
 
         [HttpPost]
-        [Authorize]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         public async Task<IActionResult> Edit(CustomerDto customer)
         {
             if (!ModelState.IsValid)
@@ -71,7 +70,7 @@ namespace Dashboard.Web.Controllers
 
         // Silme
         [HttpGet]
-        [Authorize]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         public async Task<IActionResult> Delete(int id)
         {
             var client = _httpClientFactory.CreateClient("ECommerceApi");
@@ -84,7 +83,7 @@ namespace Dashboard.Web.Controllers
         }
 
         [HttpPost, ActionName("Delete")]
-        [Authorize]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var client = _httpClientFactory.CreateClient("ECommerceApi");

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -5,6 +6,7 @@ using ECommerce.Application.DTOs;
 
 namespace Dashboard.Web.Controllers
 {
+    [Authorize]
     public class OrderController : Controller
     {
         private readonly IHttpClientFactory _httpClientFactory;
@@ -36,6 +38,7 @@ namespace Dashboard.Web.Controllers
         }
 
         // Durum güncelleme (Edit)
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -48,6 +51,7 @@ namespace Dashboard.Web.Controllers
             return View(order);
         }
 
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         [HttpPost]
         public async Task<IActionResult> Edit(OrderDto order)
         {

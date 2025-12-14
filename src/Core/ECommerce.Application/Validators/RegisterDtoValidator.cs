@@ -7,6 +7,16 @@ public class RegisterDtoValidator : AbstractValidator<RegisterDto>
 {
     public RegisterDtoValidator()
     {
+        RuleFor(x => x.FirstName)
+            .NotEmpty().WithMessage("Ad zorunludur")
+            .MinimumLength(2).WithMessage("Ad en az 2 karakter olmalıdır")
+            .MaximumLength(50).WithMessage("Ad en fazla 50 karakter olabilir");
+
+        RuleFor(x => x.LastName)
+            .NotEmpty().WithMessage("Soyadı zorunludur")
+            .MinimumLength(2).WithMessage("Soyadı en az 2 karakter olmalıdır")
+            .MaximumLength(50).WithMessage("Soyadı en fazla 50 karakter olabilir");
+
         RuleFor(x => x.Username)
             .NotEmpty().WithMessage("Kullanıcı adı zorunludur")
             .MinimumLength(3).WithMessage("Kullanıcı adı en az 3 karakter olmalıdır")

@@ -1,0 +1,108 @@
+@model ECommerce.Application.DTOs.ProductDto
+@inject IConfiguration Configuration
+
+@{
+    ViewData["Title"] = "Ürün Detayları";
+}
+
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fa-solid fa-box me-2"></i> Ürün Detayları</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Ürün Resmi</label>
+                        @{
+                            var apiBaseUrl = (Configuration["ApiSettings:BaseUrl"] ?? "").TrimEnd('/');
+                            var displayImageUrl = string.IsNullOrWhiteSpace(Model.ImageUrl)
+                                ? ""
+                                : (Model.ImageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                                    ? Model.ImageUrl
+                                    : (Model.ImageUrl.StartsWith("/", StringComparison.Ordinal)
+                                        ? $"{apiBaseUrl}{Model.ImageUrl}"
+                                        : $"{apiBaseUrl}/{Model.ImageUrl}"));
+                        }
+
+                        <div class="text-center">
+                            <img src="@displayImageUrl" alt="@Model.Name" class="img-fluid rounded" style="max-width: 300px; max-height: 300px; object-fit: cover;">
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Ürün Adı</label>
+                    <p class="form-control-plaintext">@Model.Name</p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Fiyat</label>
+                    <p class="form-control-plaintext">@Model.Price.ToString("C2")</p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Stok Miktarı</label>
+                    <p class="form-control-plaintext">
+                        <span class="badge @(Model.StockQuantity > 0 ? "bg-success" : "bg-danger")">
+                            @Model.StockQuantity adet
+                        </span>
+                    </p>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Kategori</label>
+                    <p class="form-control-plaintext">@Model.CategoryName</p>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.BrandName))
+                {
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Marka</label>
+                        <p class="form-control-plaintext">@Model.BrandName</p>
+                    </div>
+                }
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Durum</label>
+                    <p class="form-control-plaintext">
+                        <span class="@(Model.IsActive ? "badge bg-success" : "badge bg-danger")">
+                            @(Model.IsActive ? "Aktif" : "Pasif")
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Açıklama</label>
+                <div class="alert alert-light p-3">
+                    @Model.Description
+                </div>
+            </div>
+        }
+
+        <div class="row">
+            <div class="col-md-12">
+                <hr />
+                <div class="btn-group" role="group">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                        <i class="fa-solid fa-pencil me-2"></i> Düzenle
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">
+                        <i class="fa-solid fa-trash me-2"></i> Sil
+                    </a>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fa-solid fa-arrow-left me-2"></i> Geri Dön
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

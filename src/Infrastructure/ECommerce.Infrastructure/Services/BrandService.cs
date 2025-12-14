@@ -69,6 +69,7 @@ namespace ECommerce.Infrastructure.Services
                 Id = b.Id,
                 Name = b.Name,
                 Description = b.Description,
+                ImageUrl = b.ImageUrl,
                 IsActive = b.IsActive
             };
         }

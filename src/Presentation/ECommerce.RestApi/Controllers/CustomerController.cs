@@ -7,7 +7,7 @@ namespace ECommerce.RestApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Policy = "SameCompanyOrSuperAdmin")]
 public class CustomerController : ControllerBase
 {
     private readonly ICustomerService _customerService;
@@ -18,6 +18,7 @@ public class CustomerController : ControllerBase
     }
     
     [HttpPost]
+    [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
     public async Task<IActionResult> Add(CustomerCreateDto dto)
     {
         var customer = await _customerService.CreateAsync(dto);
@@ -42,6 +43,7 @@ public class CustomerController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
     public async Task<IActionResult> Update(int id, CustomerUpdateDto dto)
     {
         dto.Id = id;
@@ -50,6 +52,7 @@ public class CustomerController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
     public async Task<IActionResult> Delete(int id)
     {
         await _customerService.DeleteAsync(id);

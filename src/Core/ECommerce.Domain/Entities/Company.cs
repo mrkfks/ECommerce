@@ -11,6 +11,7 @@ namespace ECommerce.Domain.Entities
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
         public required string TaxNumber { get; set; }
         public bool IsActive { get; set; } = true;
+        public bool IsApproved { get; set; } = false;
 
         public virtual ICollection<User> Users { get; set; } = new List<User>();
         public virtual ICollection<Customer> Customers { get; set; } = new List<Customer>();

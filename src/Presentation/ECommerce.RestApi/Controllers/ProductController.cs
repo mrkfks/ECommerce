@@ -7,6 +7,7 @@ namespace ECommerce.RestApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Policy = "SameCompanyOrSuperAdmin")]
 public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
@@ -17,7 +18,7 @@ public class ProductController : ControllerBase
         }
         //Create
         [HttpPost]
-        [Authorize]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         public async Task<IActionResult> Create(ProductCreateDto dto)
         {
             var product = await _productService.CreateAsync(dto);
@@ -51,7 +52,7 @@ public class ProductController : ControllerBase
         }
         //UPDATE
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         public async Task<IActionResult> Update(int id, ProductUpdateDto dto)
         {
             if (id != dto.Id) return BadRequest("Id mismatch");
@@ -61,7 +62,7 @@ public class ProductController : ControllerBase
         }
         //DELETE
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         public async Task<IActionResult> Delete(int id)
         {
             await _productService.DeleteAsync(id);

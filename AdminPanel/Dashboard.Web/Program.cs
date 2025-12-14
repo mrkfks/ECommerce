@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Dashboard.Web.Infrastructure;
@@ -47,8 +48,13 @@ builder.Services
                 {
                     context.Token = token;
                 }
-                return Task.CompletedTask;
-            }
+                return Task.CompletedTask;            },
+            OnChallenge = context =>
+            {
+                // 401 Unauthorized ise Login page'e redirect et
+                context.HandleResponse();
+                context.Response.Redirect("/Auth/Login");
+                return Task.CompletedTask;            }
         };
 
         options.TokenValidationParameters = new TokenValidationParameters
@@ -66,9 +72,12 @@ builder.Services
 // Authorization + rol bazlı yetkilendirme
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
-    options.AddPolicy("ManagerOnly", policy => policy.RequireRole("Manager"));
-    // İstersen farklı roller için ek politikalar tanımlayabilirsin
+    options.AddPolicy("SuperAdminOnly", policy => policy.RequireRole("SuperAdmin"));
+    options.AddPolicy("CompanyAdminOrSuperAdmin", policy => policy.RequireRole("CompanyAdmin", "SuperAdmin"));
+    // Tüm sayfalar varsayılan olarak giriş gerektirsin
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
 });
 
 var app = builder.Build();

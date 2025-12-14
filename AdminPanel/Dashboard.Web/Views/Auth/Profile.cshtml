@@ -1,0 +1,132 @@
+@model ECommerce.Application.DTOs.UserDto
+
+@{
+    ViewData["Title"] = "Profil";
+}
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fa-regular fa-id-badge me-2"></i> Profil Bilgileri</h5>
+            </div>
+            <div class="card-body">
+                @if (Model == null || string.IsNullOrEmpty(Model.Email))
+                {
+                    <div class="alert alert-warning">
+                        <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                        Profil bilgileri yüklenemedi. Lütfen tekrar giriş yapın.
+                    </div>
+                    <a asp-controller="Auth" asp-action="Login" class="btn btn-primary">
+                        Giriş Yap
+                    </a>
+                }
+                else
+                {
+                    <div class="row mb-4">
+                        <div class="col-md-4 text-center">
+                            <img src="https://via.placeholder.com/150" class="rounded-circle mb-3" alt="@Model.Username" style="width: 150px; height: 150px;" />
+                            <h5 class="fw-bold">@Model.Username</h5>
+                            <span class="badge bg-primary">Admin</span>
+                        </div>
+                        <div class="col-md-8">
+                            <h6 class="text-muted mb-3">Hesap Bilgileri</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-muted">Kullanıcı Adı</label>
+                                <div class="form-control-plaintext">@Model.Username</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-muted">E-posta</label>
+                                <div class="form-control-plaintext">@Model.Email</div>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(Model.CompanyName))
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-muted">Şirket</label>
+                                    <div class="form-control-plaintext">@Model.CompanyName</div>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.CustomerName))
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-muted">Müşteri Profili</label>
+                                    <div class="form-control-plaintext">@Model.CustomerName</div>
+                                </div>
+                            }
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-muted">Durum</label>
+                                <div class="form-control-plaintext">
+                                    @if (Model.IsActive)
+                                    {
+                                        <span class="badge bg-success">Aktif</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Pasif</span>
+                                    }
+                                </div>
+                            </div>
+
+                            @if (Model.Roles != null && Model.Roles.Any())
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold text-muted">Roller</label>
+                                    <div class="form-control-plaintext">
+                                        @foreach (var role in Model.Roles)
+                                        {
+                                            <span class="badge bg-primary me-1">@role</span>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold text-muted">Kayıt Tarihi</label>
+                                <div class="form-control-plaintext">
+                                    @if (Model.CreatedAt != default)
+                                    {
+                                        @Model.CreatedAt.ToString("dd MMMM yyyy HH:mm")
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">
+                                    <i class="fa-solid fa-arrow-left me-2"></i> Ana Sayfaya Dön
+                                </a>
+                                <button type="button" class="btn btn-primary" onclick="alert('Profil düzenleme özelliği yakında eklenecek!')">
+                                    <i class="fa-solid fa-pen-to-square me-2"></i> Profili Düzenle
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h6 class="text-muted mb-3">Güvenlik</h6>
+                            <div class="d-grid gap-2 d-md-flex">
+                                <button type="button" class="btn btn-outline-warning" onclick="alert('Şifre değiştirme özelliği yakında eklenecek!')">
+                                    <i class="fa-solid fa-key me-2"></i> Şifre Değiştir
+                                </button>
+                                <button type="button" class="btn btn-outline-info" onclick="alert('İki faktörlü kimlik doğrulama özelliği yakında eklenecek!')">
+                                    <i class="fa-solid fa-shield-halved me-2"></i> İki Faktörlü Kimlik Doğrulama
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

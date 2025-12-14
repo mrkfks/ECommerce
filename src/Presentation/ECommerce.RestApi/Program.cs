@@ -2,6 +2,7 @@ using ECommerce.Application;
 using ECommerce.Infrastructure;
 using ECommerce.RestApi.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -16,9 +17,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("http://localhost:5041", "http://localhost:3000")
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
@@ -40,7 +42,17 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireSuperAdmin", policy => policy.RequireRole("SuperAdmin"));
+    options.AddPolicy("SameCompanyOrSuperAdmin", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.Requirements.Add(new ECommerce.RestApi.Authorization.SameCompanyRequirement());
+    });
+});
+
+builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, ECommerce.RestApi.Authorization.SameCompanyAuthorizationHandler>();
 
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -82,8 +94,31 @@ builder.Services.AddSwaggerGen(c =>
 // Application & Infrastructure Services
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
+builder.Services.AddHttpContextAccessor();
+
+// Configure FileUploadService with uploads folder path
+var webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+var uploadsFolder = Path.Combine(webRootPath, "uploads");
+builder.Services.AddScoped<ECommerce.Application.Interfaces.IFileUploadService>(sp =>
+    new ECommerce.Infrastructure.Services.FileUploadService(uploadsFolder));
 
 var app = builder.Build();
+
+// Apply Migrations
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<ECommerce.Infrastructure.Data.AppDbContext>();
+        await context.Database.MigrateAsync();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while applying migrations.");
+    }
+}
 
 // Seed Database
 using (var scope = app.Services.CreateScope())
@@ -97,7 +132,8 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while seeding the database.");
+        logger.LogWarning(ex, "An error occurred while seeding the database. Continuing anyway.");
+        // Devam et, seed'i zorunlu kılma
     }
 }
 
@@ -115,6 +151,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();

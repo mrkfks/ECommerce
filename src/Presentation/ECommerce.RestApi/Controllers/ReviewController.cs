@@ -7,7 +7,7 @@ namespace ECommerce.RestApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Policy = "SameCompanyOrSuperAdmin")]
 public class ReviewController : ControllerBase
     {
         private readonly IReviewService _reviewService;
@@ -18,6 +18,7 @@ public class ReviewController : ControllerBase
         }
         //CREATE
         [HttpPost]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         public async Task<IActionResult> Add(ReviewCreateDto dto)
         {
             var review = await _reviewService.CreateAsync(dto);
@@ -58,6 +59,7 @@ public class ReviewController : ControllerBase
 
         // UPDATE
         [HttpPut("{id}")]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         public async Task<IActionResult> Update(int id, ReviewUpdateDto dto)
         {
             if (id != dto.Id) return BadRequest();
@@ -67,6 +69,7 @@ public class ReviewController : ControllerBase
 
         // DELETE
         [HttpDelete("{id}")]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         public async Task<IActionResult> Delete(int id)
         {
             await _reviewService.DeleteAsync(id);

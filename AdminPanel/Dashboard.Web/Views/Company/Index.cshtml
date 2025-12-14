@@ -1,0 +1,82 @@
+@model List<Dashboard.Web.Controllers.CompanyVm>
+@{
+    ViewData["Title"] = "Şirketler";
+}
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h4 class="m-0">Şirketler</h4>
+    <div>
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success py-1 px-2 mb-0">@TempData["Success"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger py-1 px-2 mb-0">@TempData["Error"]</div>
+        }
+    </div>
+</div>
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-striped align-middle m-0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Ad</th>
+            <th>Email</th>
+            <th>Vergi No</th>
+            <th>Onay</th>
+            <th>Durum</th>
+            <th class="text-end">İşlemler</th>
+          </tr>
+        </thead>
+        <tbody>
+        @if (Model != null && Model.Any())
+        {
+            int i = 1;
+            foreach (var c in Model)
+            {
+                <tr>
+                    <td>@i</td>
+                    <td>@c.Name</td>
+                    <td>@c.Email</td>
+                    <td>@c.TaxNumber</td>
+                    <td>
+                        @if (c.IsApproved)
+                        { <span class="badge text-bg-success">Onaylı</span> }
+                        else
+                        { <span class="badge text-bg-warning">Bekliyor</span> }
+                    </td>
+                    <td>
+                        @if (c.IsActive)
+                        { <span class="badge text-bg-primary">Aktif</span> }
+                        else
+                        { <span class="badge text-bg-secondary">Pasif</span> }
+                    </td>
+                    <td class="text-end">
+                        <form asp-action="Approve" asp-controller="Company" method="post" class="d-inline">
+                            <input type="hidden" name="id" value="@c.Id" />
+                            <button type="submit" class="btn btn-sm btn-success" @(c.IsApproved ? "disabled" : null)>
+                                <i class="fa-solid fa-check me-1"></i> Onayla
+                            </button>
+                        </form>
+                        <form asp-action="Deactivate" asp-controller="Company" method="post" class="d-inline ms-1">
+                            <input type="hidden" name="id" value="@c.Id" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="fa-solid fa-ban me-1"></i> Pasifleştir
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                i++;
+            }
+        }
+        else
+        {
+            <tr><td colspan="7" class="text-center py-4 text-muted">Kayıt bulunamadı</td></tr>
+        }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

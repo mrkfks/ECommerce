@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -5,6 +6,7 @@ using ECommerce.Application.DTOs;
 
 namespace Dashboard.Web.Controllers
 {
+    [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
     public class UserController : Controller
     {
         private readonly IHttpClientFactory _httpClientFactory;
