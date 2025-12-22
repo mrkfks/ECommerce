@@ -14,12 +14,12 @@ namespace Dashboard.Web.Controllers
             _httpClientFactory = httpClientFactory;
         }
 
-        // Talep oluşturma formu (Tüm authorized users)
+        // Talep oluşturma formu (SuperAdmin hariç tüm kullanıcılar)
         [Authorize]
         [HttpGet]
         public IActionResult Create()
         {
-            // SuperAdmin talepleri oluşturmaz; sadece yanıtlar
+            // SuperAdmin talep oluşturamaz
             if (User.IsInRole("SuperAdmin"))
             {
                 return Forbid();
@@ -34,7 +34,7 @@ namespace Dashboard.Web.Controllers
             return View(new RequestCreateDto { CompanyId = companyId });
         }
 
-        // Talep gönderme (Tüm authorized users)
+        // Talep gönderme (SuperAdmin hariç tüm kullanıcılar)
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create(RequestCreateDto dto)
@@ -63,7 +63,7 @@ namespace Dashboard.Web.Controllers
                 if (response.IsSuccessStatusCode)
                 {
                     TempData["SuccessMessage"] = "Talep başarıyla gönderildi!";
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("MyRequests");
                 }
 
                 ModelState.AddModelError("", "Talep gönderilirken hata oluştu.");
@@ -75,6 +75,8 @@ namespace Dashboard.Web.Controllers
                 return View(dto);
             }
         }
+
+
 
         // Kullanıcı: Kendi şirketinin taleplerini görebilsin (Taleplerim)
         [Authorize]
@@ -100,17 +102,22 @@ namespace Dashboard.Web.Controllers
             }
         }
 
-        // SuperAdmin: Talepler listesi
-        [Authorize(Roles = "SuperAdmin")]
+        // Liste: SuperAdmin tüm talepler, diğer roller kendi taleplerine yönlendirilir
+        [Authorize]
         public async Task<IActionResult> Index()
         {
+            if (!User.IsInRole("SuperAdmin"))
+            {
+                return RedirectToAction(nameof(MyRequests));
+            }
+
             var client = _httpClientFactory.CreateClient("ECommerceApi");
             var requests = await client.GetFromJsonAsync<List<RequestDto>>("api/Request") ?? new List<RequestDto>();
             return View(requests);
         }
 
-        // SuperAdmin: Talep detayı
-        [Authorize(Roles = "SuperAdmin")]
+        // Detay: SuperAdmin tüm talepləri görebilir, users sadece kendi taleplerini görebilir
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
@@ -119,6 +126,18 @@ namespace Dashboard.Web.Controllers
 
             if (request == null)
                 return NotFound();
+
+            // SuperAdmin ise tüm talepləri görebilir
+            if (User.IsInRole("SuperAdmin"))
+                return View(request);
+
+            // Normal user sadece kendi şirketinin taleplerini görebilir
+            var companyIdClaim = User.FindFirst("CompanyId")?.Value;
+            if (string.IsNullOrEmpty(companyIdClaim) || !int.TryParse(companyIdClaim, out int companyId))
+                return Forbid();
+
+            if (request.CompanyId != companyId)
+                return Forbid();
 
             return View(request);
         }

@@ -39,10 +39,26 @@ namespace Dashboard.Web.Controllers
         // GET: Create formu
         [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         [HttpGet]
-        public IActionResult Create()
-        {
-            return View();
-        }
+            public async Task<IActionResult> Create()
+            {
+                var client = _httpClientFactory.CreateClient("ECommerceApi");
+            
+                // Kategorileri ve markaları yükle
+                var categories = await client.GetFromJsonAsync<List<CategoryDto>>("api/Category") ?? new List<CategoryDto>();
+                var brands = await client.GetFromJsonAsync<List<BrandDto>>("api/Brand") ?? new List<BrandDto>();
+            
+                ViewBag.Categories = categories;
+                ViewBag.Brands = brands;
+            
+                // SuperAdmin ise şirketleri de yükle
+                if (User.IsInRole("SuperAdmin"))
+                {
+                    var companies = await client.GetFromJsonAsync<List<CompanyDto>>("api/Company") ?? new List<CompanyDto>();
+                    ViewBag.Companies = companies;
+                }
+            
+                return View();
+            }
 
         // POST: Yeni ürün ekleme
         [Authorize(Roles = "CompanyAdmin,SuperAdmin")]

@@ -44,9 +44,9 @@ public class RequestController : ControllerBase
         }
     }
 
-    // SuperAdmin: Talep detayını görebilsin
+    // Talep detayı: SuperAdmin tüm talepləri görebilir, kullanıcılar sadece kendi şirketlerinin taleplerini
     [HttpGet("{id}")]
-    [Authorize(Roles = "SuperAdmin")]
+    [Authorize]
     public async Task<IActionResult> GetRequestById(int id)
     {
         try

@@ -8,7 +8,7 @@
     <div class="col-md-8 offset-md-2">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">Yeni Talep Oluştur</h5>
+                <h5 class="mb-0"><i class="fa-solid fa-paper-plane me-2"></i>Yeni Talep Oluştur</h5>
             </div>
             <div class="card-body">
                 <form asp-action="Create" method="post">
@@ -28,10 +28,10 @@
 
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary">
-                            <i class="fa-solid fa-paper-plane"></i> Talep Gönder
+                            <i class="fa-solid fa-paper-plane me-1"></i> Talep Gönder
                         </button>
-                        <a asp-action="Index" asp-controller="Home" class="btn btn-secondary">
-                            <i class="fa-solid fa-x"></i> İptal
+                        <a asp-action="MyRequests" class="btn btn-secondary">
+                            <i class="fa-solid fa-xmark me-1"></i> İptal
                         </a>
                     </div>
                 </form>
