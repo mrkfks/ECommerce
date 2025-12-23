@@ -1,35 +1,32 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Http;
-using System.Net.Http.Json;
 using ECommerce.Application.DTOs;
+using Dashboard.Web.Services;
 
 namespace Dashboard.Web.Controllers
 {
     [Authorize]
     public class ReviewController : Controller
     {
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ReviewApiService _reviewService;
 
-        public ReviewController(IHttpClientFactory httpClientFactory)
+        public ReviewController(ReviewApiService reviewService)
         {
-            _httpClientFactory = httpClientFactory;
+            _reviewService = reviewService;
         }
 
         // Listeleme
         public async Task<IActionResult> Index()
         {
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var reviews = await client.GetFromJsonAsync<List<ReviewDto>>("api/Review");
-            return View(reviews ?? new List<ReviewDto>());
+            var reviews = await _reviewService.GetAllAsync();
+            return View(reviews);
         }
 
         // Detay
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var review = await client.GetFromJsonAsync<ReviewDto>($"api/Review/{id}");
+            var review = await _reviewService.GetByIdAsync(id);
 
             if (review == null)
                 return NotFound();
@@ -42,8 +39,7 @@ namespace Dashboard.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var review = await client.GetFromJsonAsync<ReviewDto>($"api/Review/{id}");
+            var review = await _reviewService.GetByIdAsync(id);
 
             if (review == null)
                 return NotFound();
@@ -55,14 +51,13 @@ namespace Dashboard.Web.Controllers
         [HttpPost, ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var response = await client.DeleteAsync($"api/Review/{id}");
+            var success = await _reviewService.DeleteAsync(id);
 
-            if (response.IsSuccessStatusCode)
+            if (success)
                 return RedirectToAction(nameof(Index));
 
             ModelState.AddModelError("", "Yorum silinirken hata oluştu.");
-            var review = await client.GetFromJsonAsync<ReviewDto>($"api/Review/{id}");
+            var review = await _reviewService.GetByIdAsync(id);
             return View(review);
         }
     }

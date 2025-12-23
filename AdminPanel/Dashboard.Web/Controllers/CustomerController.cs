@@ -1,26 +1,24 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using System.Net.Http;
-using System.Net.Http.Json;
 using ECommerce.Application.DTOs;
+using Dashboard.Web.Services;
 
 namespace Dashboard.Web.Controllers
 {
     [Authorize]
     public class CustomerController : Controller
     {
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly CustomerApiService _customerService;
 
-        public CustomerController(IHttpClientFactory httpClientFactory)
+        public CustomerController(CustomerApiService customerService)
         {
-            _httpClientFactory = httpClientFactory;
+            _customerService = customerService;
         }
 
         // Listeleme
         public async Task<IActionResult> Index()
         {
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var customers = await client.GetFromJsonAsync<List<CustomerDto>>("api/Customer");
+            var customers = await _customerService.GetAllAsync();
             return View(customers);
         }
 
@@ -28,9 +26,7 @@ namespace Dashboard.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var customer = await client.GetFromJsonAsync<CustomerDto>($"api/Customer/{id}");
-
+            var customer = await _customerService.GetByIdAsync(id);
             if (customer == null)
                 return NotFound();
 
@@ -42,9 +38,7 @@ namespace Dashboard.Web.Controllers
         [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         public async Task<IActionResult> Edit(int id)
         {
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var customer = await client.GetFromJsonAsync<CustomerDto>($"api/Customer/{id}");
-
+            var customer = await _customerService.GetByIdAsync(id);
             if (customer == null)
                 return NotFound();
 
@@ -58,10 +52,8 @@ namespace Dashboard.Web.Controllers
             if (!ModelState.IsValid)
                 return View(customer);
 
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var response = await client.PutAsJsonAsync($"api/Customer/{customer.Id}", customer);
-
-            if (response.IsSuccessStatusCode)
+            var success = await _customerService.UpdateAsync(customer.Id, customer);
+            if (success)
                 return RedirectToAction(nameof(Index));
 
             ModelState.AddModelError("", "Müşteri güncellenirken hata oluştu.");
@@ -73,9 +65,7 @@ namespace Dashboard.Web.Controllers
         [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         public async Task<IActionResult> Delete(int id)
         {
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var customer = await client.GetFromJsonAsync<CustomerDto>($"api/Customer/{id}");
-
+            var customer = await _customerService.GetByIdAsync(id);
             if (customer == null)
                 return NotFound();
 
@@ -86,14 +76,12 @@ namespace Dashboard.Web.Controllers
         [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var response = await client.DeleteAsync($"api/Customer/{id}");
-
-            if (response.IsSuccessStatusCode)
+            var success = await _customerService.DeleteAsync(id);
+            if (success)
                 return RedirectToAction(nameof(Index));
 
             ModelState.AddModelError("", "Müşteri silinirken hata oluştu.");
-            var customer = await client.GetFromJsonAsync<CustomerDto>($"api/Customer/{id}");
+            var customer = await _customerService.GetByIdAsync(id);
             return View(customer);
         }
     }

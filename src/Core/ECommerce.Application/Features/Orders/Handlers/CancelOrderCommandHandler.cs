@@ -24,23 +24,18 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Api
             throw new NotFoundException("Sipariş bulunamadı");
         }
 
-        if (order.Status == OrderStatus.Delivered || order.Status == OrderStatus.Cancelled)
-        {
-            throw new BusinessException("İptal edilmiş veya teslim edilmiş sipariş iptal edilemez");
-        }
-
         // Stokları geri ekle
         foreach (var item in order.Items)
         {
             var product = await _unitOfWork.Products.GetByIdAsync(item.ProductId);
             if (product != null)
             {
-                product.StockQuantity += item.Quantity;
+                product.UpdateStock(product.StockQuantity + item.Quantity);
                 _unitOfWork.Products.Update(product);
             }
         }
 
-        order.Status = OrderStatus.Cancelled;
+        order.Cancel();
         _unitOfWork.Orders.Update(order);
         await _unitOfWork.SaveChangesAsync();
 

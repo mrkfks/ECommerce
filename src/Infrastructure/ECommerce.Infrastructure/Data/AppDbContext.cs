@@ -1,4 +1,5 @@
 using ECommerce.Domain.Entities;
+using ECommerce.Infrastructure.Data.Configurations;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Infrastructure.Data
@@ -34,148 +35,21 @@ namespace ECommerce.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // UserRole ilişkisi
-            modelBuilder.Entity<UserRole>()
-                .HasKey(ur => new { ur.UserId, ur.RoleId });
-
-            modelBuilder.Entity<UserRole>()
-                .HasOne(ur => ur.User)
-                .WithMany(u => u.UserRoles)
-                .HasForeignKey(ur => ur.UserId);
-
-            modelBuilder.Entity<UserRole>()
-                .HasOne(ur => ur.Role)
-                .WithMany(r => r.UserRoles)
-                .HasForeignKey(ur => ur.RoleId);
-
-            // OrderItem ilişkileri
-            modelBuilder.Entity<OrderItem>()
-                .HasOne(oi => oi.Order)
-                .WithMany(o => o.Items)
-                .HasForeignKey(oi => oi.OrderId);
-
-            modelBuilder.Entity<OrderItem>()
-                .HasOne(oi => oi.Product)
-                .WithMany(p => p.OrderItems)
-                .HasForeignKey(oi => oi.ProductId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // Review ilişkileri
-            modelBuilder.Entity<Review>()
-                .HasOne(r => r.Product)
-                .WithMany(p => p.Reviews)
-                .HasForeignKey(r => r.ProductId);
-
-            modelBuilder.Entity<Review>()
-                .HasOne(r => r.Customer)
-                .WithMany(c => c.Reviews)
-                .HasForeignKey(r => r.CustomerId);
-
-            // Order ilişkileri
-            modelBuilder.Entity<Order>()
-                .HasOne(o => o.Customer)
-                .WithMany(c => c.Orders)
-                .HasForeignKey(o => o.CustomerId);
-
-            modelBuilder.Entity<Order>()
-                .HasOne(o => o.Address)
-                .WithMany(a => a.Orders)
-                .HasForeignKey(o => o.AddressId);
-
-            // Product ilişkileri
-            modelBuilder.Entity<Product>()
-                .HasOne(p => p.Category)
-                .WithMany(c => c.Products)
-                .HasForeignKey(p => p.CategoryId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Product>()
-                .HasOne(p => p.Brand)
-                .WithMany(b => b.Products)
-                .HasForeignKey(p => p.BrandId)
-                .OnDelete(DeleteBehavior.Restrict);
-                
-            // Decimal precision ayarları
-            modelBuilder.Entity<Product>()
-                .Property(p => p.Price)
-                .HasPrecision(18, 2);
-                
-            modelBuilder.Entity<Order>()
-                .Property(o => o.TotalAmount)
-                .HasPrecision(18, 2);
-                
-            modelBuilder.Entity<OrderItem>()
-                .Property(oi => oi.UnitPrice)
-                .HasPrecision(18, 2);
-                
-            // Indexes
-            modelBuilder.Entity<Product>()
-                .HasIndex(p => p.Name);
-                
-            modelBuilder.Entity<Customer>()
-                .HasIndex(c => c.Email)
-                .IsUnique();
-                
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.Email)
-                .IsUnique();
-                
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.Username)
-                .IsUnique();
-
-            // Address ilişkileri
-            modelBuilder.Entity<Address>()
-                .HasOne(a => a.Customer)
-                .WithMany(c => c.Addresses)
-                .HasForeignKey(a => a.CustomerId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // Customer ↔ User birebir ilişkisi (optional)
-            modelBuilder.Entity<Customer>()
-                .HasOne(c => c.User)
-                .WithOne(u => u.CustomerProfile)
-                .HasForeignKey<Customer>(c => c.UserId)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            // Company ilişkileri
-            modelBuilder.Entity<User>()
-                .HasOne(u => u.Company)
-                .WithMany(c => c.Users)
-                .HasForeignKey(u => u.CompanyId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Customer>()
-                .HasOne(c => c.Company)
-                .WithMany(cmp => cmp.Customers)
-                .HasForeignKey(c => c.CompanyId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Order>()
-                .HasOne(o => o.Company)
-                .WithMany(c => c.Orders)
-                .HasForeignKey(o => o.CompanyId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Product>()
-                .HasOne(p => p.Company)
-                .WithMany(c => c.Products)
-                .HasForeignKey(p => p.CompanyId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Review>()
-                .HasOne(r => r.Company)
-                .WithMany(c => c.Reviews)
-                .HasForeignKey(r => r.CompanyId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // Request ilişkileri
-            modelBuilder.Entity<Request>()
-                .HasOne(r => r.Company)
-                .WithMany(c => c.Requests)
-                .HasForeignKey(r => r.CompanyId)
-                .OnDelete(DeleteBehavior.Restrict);
+            // Apply all entity configurations
+            modelBuilder.ApplyConfiguration(new ProductConfiguration());
+            modelBuilder.ApplyConfiguration(new OrderConfiguration());
+            modelBuilder.ApplyConfiguration(new OrderItemConfiguration());
+            modelBuilder.ApplyConfiguration(new CategoryConfiguration());
+            modelBuilder.ApplyConfiguration(new BrandConfiguration());
+            modelBuilder.ApplyConfiguration(new CustomerConfiguration());
+            modelBuilder.ApplyConfiguration(new UserConfiguration());
+            modelBuilder.ApplyConfiguration(new UserRoleConfiguration());
+            modelBuilder.ApplyConfiguration(new ReviewConfiguration());
+            modelBuilder.ApplyConfiguration(new AddressConfiguration());
+            modelBuilder.ApplyConfiguration(new CompanyConfiguration());
+            modelBuilder.ApplyConfiguration(new RoleConfiguration());
+            modelBuilder.ApplyConfiguration(new BannerConfiguration());
+            modelBuilder.ApplyConfiguration(new RequestConfiguration());
 
             // Global Query Filters (tenant izolasyonu)
             modelBuilder.Entity<User>()
@@ -192,13 +66,37 @@ namespace ECommerce.Infrastructure.Data
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            foreach (var entry in ChangeTracker.Entries<Product>())
+            var entries = ChangeTracker.Entries();
+
+            foreach (var entry in entries)
             {
-                if (entry.State == EntityState.Modified)
+                // Audit alanlarını otomatik set et
+                if (entry.Entity is IAuditable auditable)
                 {
-                    entry.Entity.Version = Guid.NewGuid();
+                    var now = DateTime.UtcNow;
+
+                    if (entry.State == EntityState.Added)
+                    {
+                        // CreatedAt ve UpdatedAt'ı reflection ile set et (private setter bypass)
+                        entry.Property("CreatedAt").CurrentValue = now;
+                        entry.Property("UpdatedAt").CurrentValue = now;
+                    }
+                    else if (entry.State == EntityState.Modified)
+                    {
+                        // UpdatedAt'ı güncelle
+                        entry.Property("UpdatedAt").CurrentValue = now;
+                        // CreatedAt değişmesin
+                        entry.Property("CreatedAt").IsModified = false;
+                    }
+                }
+
+                // Product Version kontrolü (Optimistic Concurrency)
+                if (entry.Entity is Product && entry.State == EntityState.Modified)
+                {
+                    entry.Property("Version").CurrentValue = Guid.NewGuid();
                 }
             }
+
             return base.SaveChangesAsync(cancellationToken);
         }
     }

@@ -1,4 +1,5 @@
-﻿@{
+﻿@model Dashboard.Web.Models.DashboardStatsVm
+@{
     ViewData["Title"] = "Ana Sayfa";
 }
 
@@ -8,7 +9,7 @@
             <div class="d-flex justify-content-between">
                 <div>
                     <div class="text-muted">Toplam Ürün</div>
-                    <div class="h4 fw-bold">—</div>
+                    <div class="h4 fw-bold">@Model.TotalProducts</div>
                 </div>
                 <i class="fa-solid fa-box-open icon text-primary"></i>
             </div>
@@ -19,7 +20,7 @@
             <div class="d-flex justify-content-between">
                 <div>
                     <div class="text-muted">Toplam Sipariş</div>
-                    <div class="h4 fw-bold">—</div>
+                    <div class="h4 fw-bold">@Model.TotalOrders</div>
                 </div>
                 <i class="fa-solid fa-cart-shopping icon text-success"></i>
             </div>
@@ -30,7 +31,7 @@
             <div class="d-flex justify-content-between">
                 <div>
                     <div class="text-muted">Toplam Müşteri</div>
-                    <div class="h4 fw-bold">—</div>
+                    <div class="h4 fw-bold">@Model.TotalCustomers</div>
                 </div>
                 <i class="fa-solid fa-users icon text-warning"></i>
             </div>
@@ -41,7 +42,7 @@
             <div class="d-flex justify-content-between">
                 <div>
                     <div class="text-muted">Toplam Satış</div>
-                    <div class="h4 fw-bold">—</div>
+                    <div class="h4 fw-bold">@Model.TotalSales.ToString("C2")</div>
                 </div>
                 <i class="fa-solid fa-coins icon text-danger"></i>
             </div>

@@ -22,10 +22,16 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
 
     public async Task<ApiResponse<ProductDto>> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
-        var product = _mapper.Map<ECommerce.Domain.Entities.Product>(request.Product);
-        product.CreatedAt = DateTime.UtcNow;
-        product.UpdatedAt = DateTime.UtcNow;
-        product.IsActive = true;
+        var product = ECommerce.Domain.Entities.Product.Create(
+            request.Product.Name,
+            request.Product.Description,
+            request.Product.Price,
+            request.Product.CategoryId,
+            request.Product.BrandId,
+            request.Product.CompanyId,
+            request.Product.StockQuantity,
+            request.Product.ImageUrl
+        );
 
         await _unitOfWork.Products.AddAsync(product);
         await _unitOfWork.SaveChangesAsync();

@@ -1,15 +1,62 @@
 namespace ECommerce.Domain.Entities
 {
-    public class Category
+    public class Category : IAuditable
     {
-        public int Id { get; set; }
-        public required string Name { get; set; }
-        public required string Description { get; set; }
-        public string? ImageUrl { get; set; }
-        public bool IsActive { get; set; } = true;
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        private Category() { }
+
+        public int Id { get; private set; }
+        public string Name { get; private set; } = string.Empty;
+        public string Description { get; private set; } = string.Empty;
+        public string? ImageUrl { get; private set; }
+        public bool IsActive { get; private set; } = true;
+        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
         
-        public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+        public virtual ICollection<Product> Products { get; private set; } = new List<Product>();
+
+        public static Category Create(string name, string description, string? imageUrl = null)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Kategori adı boş olamaz.", nameof(name));
+            
+            if (string.IsNullOrWhiteSpace(description))
+                throw new ArgumentException("Kategori açıklaması boş olamaz.", nameof(description));
+
+            return new Category
+            {
+                Name = name,
+                Description = description,
+                ImageUrl = imageUrl,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+        }
+
+        public void Update(string name, string description, string? imageUrl = null)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Kategori adı boş olamaz.", nameof(name));
+            
+            if (string.IsNullOrWhiteSpace(description))
+                throw new ArgumentException("Kategori açıklaması boş olamaz.", nameof(description));
+
+            Name = name;
+            Description = description;
+            ImageUrl = imageUrl;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void Activate()
+        {
+            IsActive = true;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void Deactivate()
+        {
+            IsActive = false;
+            UpdatedAt = DateTime.UtcNow;
+        }
     }
 }

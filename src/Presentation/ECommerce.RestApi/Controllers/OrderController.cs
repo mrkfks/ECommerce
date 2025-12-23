@@ -3,7 +3,6 @@ using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 
 namespace ECommerce.RestApi.Controllers;
 

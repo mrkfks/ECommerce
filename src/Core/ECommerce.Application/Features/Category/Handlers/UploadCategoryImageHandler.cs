@@ -40,8 +40,7 @@ namespace ECommerce.Application.Features.Category.Handlers
                     };
                 }
 
-                category.ImageUrl = imageUrl;
-                category.UpdatedAt = DateTime.UtcNow;
+                category.Update(category.Name, category.Description, imageUrl);
                 _unitOfWork.Categories.Update(category);
                 await _unitOfWork.SaveChangesAsync();
 

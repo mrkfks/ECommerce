@@ -40,8 +40,8 @@ namespace ECommerce.Application.Features.Product.Handlers
                     };
                 }
 
-                product.ImageUrl = imageUrl;
-                product.UpdatedAt = DateTime.UtcNow;
+                // ImageUrl setter'ını Product entity'nin Update metoduyla değiştir
+                product.Update(product.Name, product.Description, product.Price, imageUrl);
                 _unitOfWork.Products.Update(product);
                 await _unitOfWork.SaveChangesAsync();
 

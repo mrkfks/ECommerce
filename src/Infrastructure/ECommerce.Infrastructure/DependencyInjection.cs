@@ -30,16 +30,21 @@ public static class DependencyInjection
         services.AddScoped<ICompanyRepository, CompanyRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-        // Services
-        services.AddScoped<IProductService, ProductService>();
+        // Services - yorumlandı (CQRS/MediatR kullanılıyor)
+        // services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IAuthService, AuthService>();
-        services.AddScoped<IOrderService, OrderService>();
-        services.AddScoped<ICustomerService, CustomerService>();
-        services.AddScoped<IReviewService, ReviewService>();
-        services.AddScoped<IUserService, UserService>();
-        services.AddScoped<ICategoryService, CategoryService>();
-        services.AddScoped<IBrandService, BrandService>();
+        // services.AddScoped<IOrderService, OrderService>();
+        // services.AddScoped<ICustomerService, CustomerService>();
+        // services.AddScoped<IReviewService, ReviewService>();
+        // services.AddScoped<IUserService, UserService>();
+        // services.AddScoped<ICategoryService, CategoryService>();
+        // services.AddScoped<IBrandService, BrandService>();
         services.AddScoped<ITenantService, TenantService>();
+        services.AddScoped<IFileUploadService, FileUploadService>(provider =>
+        {
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+            return new FileUploadService(uploadsFolder);
+        });
 
         return services;
     }

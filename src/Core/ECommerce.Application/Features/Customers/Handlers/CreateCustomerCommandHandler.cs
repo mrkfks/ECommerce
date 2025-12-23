@@ -21,8 +21,15 @@ public class CreateCustomerCommandHandler : IRequestHandler<CreateCustomerComman
 
     public async Task<ApiResponse<CustomerDto>> Handle(CreateCustomerCommand request, CancellationToken cancellationToken)
     {
-        var customer = _mapper.Map<Customer>(request.Customer);
-        customer.CreatedAt = DateTime.UtcNow;
+        var customer = Customer.Create(
+            request.Customer.CompanyId,
+            request.Customer.FirstName,
+            request.Customer.LastName,
+            request.Customer.Email,
+            request.Customer.PhoneNumber,
+            request.Customer.DateOfBirth,
+            request.Customer.UserId
+        );
 
         await _unitOfWork.Customers.AddAsync(customer);
         await _unitOfWork.SaveChangesAsync();

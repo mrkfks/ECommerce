@@ -29,8 +29,7 @@ public class UpdateStockCommandHandler : IRequestHandler<UpdateStockCommand, Api
             throw new BusinessException("Stok miktarı negatif olamaz");
         }
 
-        product.StockQuantity = newStock;
-        product.UpdatedAt = DateTime.UtcNow;
+        product.UpdateStock(newStock);
 
         _unitOfWork.Products.Update(product);
         try 

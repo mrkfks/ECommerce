@@ -1,4 +1,4 @@
-@model List<Dashboard.Web.Controllers.CompanyVm>
+@model List<Dashboard.Web.Models.CompanyVm>
 @{
     ViewData["Title"] = "Şirketler";
 }
@@ -60,12 +60,24 @@
                                 <i class="fa-solid fa-check me-1"></i> Onayla
                             </button>
                         </form>
-                        <form asp-action="Deactivate" asp-controller="Company" method="post" class="d-inline ms-1">
-                            <input type="hidden" name="id" value="@c.Id" />
-                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                <i class="fa-solid fa-ban me-1"></i> Pasifleştir
-                            </button>
-                        </form>
+                        @if (c.IsActive)
+                        {
+                            <form asp-action="Deactivate" asp-controller="Company" method="post" class="d-inline ms-1">
+                                <input type="hidden" name="id" value="@c.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="fa-solid fa-ban me-1"></i> Pasifleştir
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-action="Activate" asp-controller="Company" method="post" class="d-inline ms-1">
+                                <input type="hidden" name="id" value="@c.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-success">
+                                    <i class="fa-solid fa-power-off me-1"></i> Aktif Yap
+                                </button>
+                            </form>
+                        }
                     </td>
                 </tr>
                 i++;

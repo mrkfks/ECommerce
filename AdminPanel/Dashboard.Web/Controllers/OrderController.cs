@@ -1,36 +1,32 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Http;
-using System.Net.Http.Json;
 using ECommerce.Application.DTOs;
+using Dashboard.Web.Services;
 
 namespace Dashboard.Web.Controllers
 {
     [Authorize]
     public class OrderController : Controller
     {
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly OrderApiService _orderService;
 
-        public OrderController(IHttpClientFactory httpClientFactory)
+        public OrderController(OrderApiService orderService)
         {
-            _httpClientFactory = httpClientFactory;
+            _orderService = orderService;
         }
 
         // Listeleme
         public async Task<IActionResult> Index()
         {
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var orders = await client.GetFromJsonAsync<List<OrderDto>>("api/Order");
-            return View(orders ?? new List<OrderDto>());
+            var orders = await _orderService.GetAllAsync();
+            return View(orders);
         }
 
         // Detay
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var order = await client.GetFromJsonAsync<OrderDto>($"api/Order/{id}");
-
+            var order = await _orderService.GetByIdAsync(id);
             if (order == null)
                 return NotFound();
 
@@ -42,9 +38,7 @@ namespace Dashboard.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var order = await client.GetFromJsonAsync<OrderDto>($"api/Order/{id}");
-
+            var order = await _orderService.GetByIdAsync(id);
             if (order == null)
                 return NotFound();
 
@@ -58,10 +52,8 @@ namespace Dashboard.Web.Controllers
             if (!ModelState.IsValid)
                 return View(order);
 
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var response = await client.PutAsJsonAsync($"api/Order/{order.Id}", order);
-
-            if (response.IsSuccessStatusCode)
+            var success = await _orderService.UpdateAsync(order.Id, order);
+            if (success)
                 return RedirectToAction(nameof(Index));
 
             ModelState.AddModelError("", "Sipariş güncellenirken hata oluştu.");

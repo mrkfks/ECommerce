@@ -37,8 +37,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
             throw new NotFoundException("Adres bulunamadı");
         }
 
-        // Stok kontrolü ve toplam hesaplama
-        decimal totalAmount = 0;
+        // Stok kontrolü ve sipariş öğelerini oluştur
         var orderItems = new List<OrderItem>();
 
         foreach (var item in request.Order.Items)
@@ -54,32 +53,23 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Api
                 throw new BusinessException($"Yetersiz stok: {product.Name}");
             }
 
-            // Stok düşür
-            product.StockQuantity -= item.Quantity;
-            _unitOfWork.Products.Update(product);
-
-            var orderItem = new OrderItem
-            {
-                ProductId = item.ProductId,
-                Quantity = item.Quantity,
-                UnitPrice = product.Price
-            };
-
+            // OrderItem'ı factory pattern ile oluştur
+            var orderItem = OrderItem.Create(item.ProductId, item.Quantity, product.Price);
             orderItems.Add(orderItem);
-            totalAmount += orderItem.Quantity * orderItem.UnitPrice;
+
+            // Stok düşür
+            product.DecreaseStock(item.Quantity);
+            _unitOfWork.Products.Update(product);
         }
 
-        // Sipariş oluştur
-        var order = new Order
+        // Sipariş'ı factory pattern ile oluştur
+        var order = Order.Create(request.Order.CustomerId, request.Order.AddressId, request.Order.CompanyId);
+
+        // Order item'ları ekle
+        foreach (var item in orderItems)
         {
-            CustomerId = request.Order.CustomerId,
-            AddressId = request.Order.AddressId,
-            CompanyId = request.Order.CompanyId,
-            OrderDate = DateTime.UtcNow,
-            TotalAmount = totalAmount,
-            Status = OrderStatus.Pending,
-            Items = orderItems
-        };
+            order.AddItem(item);
+        }
 
         await _unitOfWork.Orders.AddAsync(order);
         try

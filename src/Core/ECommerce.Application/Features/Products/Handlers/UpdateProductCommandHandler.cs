@@ -27,8 +27,17 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             throw new NotFoundException("Ürün bulunamadı");
         }
 
-        _mapper.Map(request.Product, product);
-        product.UpdatedAt = DateTime.UtcNow;
+        product.Update(request.Product.Name, request.Product.Description, request.Product.Price, request.Product.ImageUrl);
+
+        // IsActive durumunu güncelle
+        if (request.Product.IsActive)
+        {
+            product.Activate();
+        }
+        else
+        {
+            product.Deactivate();
+        }
 
         _unitOfWork.Products.Update(product);
         await _unitOfWork.SaveChangesAsync();

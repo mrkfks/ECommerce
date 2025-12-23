@@ -96,12 +96,6 @@ builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 
-// Configure FileUploadService with uploads folder path
-var webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-var uploadsFolder = Path.Combine(webRootPath, "uploads");
-builder.Services.AddScoped<ECommerce.Application.Interfaces.IFileUploadService>(sp =>
-    new ECommerce.Infrastructure.Services.FileUploadService(uploadsFolder));
-
 var app = builder.Build();
 
 // Apply Migrations
@@ -117,23 +111,6 @@ using (var scope = app.Services.CreateScope())
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "An error occurred while applying migrations.");
-    }
-}
-
-// Seed Database
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<ECommerce.Infrastructure.Data.AppDbContext>();
-        await ECommerce.Infrastructure.Data.DbSeeder.SeedAsync(context);
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogWarning(ex, "An error occurred while seeding the database. Continuing anyway.");
-        // Devam et, seed'i zorunlu kılma
     }
 }
 

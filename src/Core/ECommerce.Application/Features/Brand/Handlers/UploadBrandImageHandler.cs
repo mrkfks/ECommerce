@@ -40,8 +40,7 @@ namespace ECommerce.Application.Features.Brand.Handlers
                     };
                 }
 
-                brand.ImageUrl = imageUrl;
-                brand.UpdatedAt = DateTime.UtcNow;
+                brand.Update(brand.Name, brand.Description, imageUrl);
                 _unitOfWork.Brands.Update(brand);
                 await _unitOfWork.SaveChangesAsync();
 

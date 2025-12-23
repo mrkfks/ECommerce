@@ -30,7 +30,7 @@ namespace ECommerce.RestApi.Controllers
         {
             var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
             if (company == null) return NotFound();
-            company.IsApproved = true;
+            company.Approve();
             await _context.SaveChangesAsync();
             return Ok(new { message = "Company approved" });
         }
@@ -41,9 +41,20 @@ namespace ECommerce.RestApi.Controllers
         {
             var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
             if (company == null) return NotFound();
-            company.IsActive = false;
+            company.Deactivate();
             await _context.SaveChangesAsync();
             return Ok(new { message = "Company deactivated" });
+        }
+
+        [HttpPost("{id:int}/activate")]
+        [Authorize(Policy = "RequireSuperAdmin")]
+        public async Task<IActionResult> Activate(int id)
+        {
+            var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
+            if (company == null) return NotFound();
+            company.Activate();
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Company activated" });
         }
     }
 }

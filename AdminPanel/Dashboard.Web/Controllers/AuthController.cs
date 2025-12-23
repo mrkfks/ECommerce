@@ -1,18 +1,17 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Http;
-using System.Net.Http.Json;
 using ECommerce.Application.DTOs;
+using Dashboard.Web.Services;
 
 namespace Dashboard.Web.Controllers
 {
     public class AuthController : Controller
     {
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly AuthApiService _authService;
 
-        public AuthController(IHttpClientFactory httpClientFactory)
+        public AuthController(AuthApiService authService)
         {
-            _httpClientFactory = httpClientFactory;
+            _authService = authService;
         }
 
         // GET: Login formu
@@ -31,37 +30,12 @@ namespace Dashboard.Web.Controllers
             if (!ModelState.IsValid)
                 return View(loginDto);
 
-            var isHttps = HttpContext.Request.IsHttps;
+            var authResponse = await _authService.LoginAsync(loginDto);
 
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var response = await client.PostAsJsonAsync("api/auth/login", loginDto);
-
-            if (response.IsSuccessStatusCode)
+            if (authResponse != null && !string.IsNullOrEmpty(authResponse.AccessToken))
             {
-                var authResponse = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
-
-                if (authResponse != null && !string.IsNullOrEmpty(authResponse.AccessToken))
-                {
-                    // HttpOnly cookie - server-side operations için
-                    HttpContext.Response.Cookies.Append("AuthToken", authResponse.AccessToken, new CookieOptions
-                    {
-                        HttpOnly = true,
-                        Secure = isHttps,
-                        SameSite = SameSiteMode.Strict,
-                        Expires = authResponse.ExpiresAt
-                    });
-
-                    // Regular cookie - JavaScript'ten erişim için (DEVELOPMENT ONLY)
-                    HttpContext.Response.Cookies.Append("JwtToken", authResponse.AccessToken, new CookieOptions
-                    {
-                        HttpOnly = false,
-                        Secure = isHttps,
-                        SameSite = SameSiteMode.Lax,
-                        Expires = authResponse.ExpiresAt
-                    });
-
-                    return RedirectToAction("Index", "Home");
-                }
+                _authService.SetAuthCookies(authResponse);
+                return RedirectToAction("Index", "Home");
             }
 
             ModelState.AddModelError("", "Email/Kullanıcı adı veya şifre yanlış.");
@@ -84,41 +58,16 @@ namespace Dashboard.Web.Controllers
             if (!ModelState.IsValid)
                 return View(registerDto);
 
-            var isHttps = HttpContext.Request.IsHttps;
-
             // Admin panelde company seçimi yok; demo/tek tenant senaryosunda varsayılan company.
             if (registerDto.CompanyId <= 0)
                 registerDto.CompanyId = 1;
 
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var response = await client.PostAsJsonAsync("api/auth/register", registerDto);
+            var authResponse = await _authService.RegisterAsync(registerDto);
 
-            if (response.IsSuccessStatusCode)
+            if (authResponse != null && !string.IsNullOrEmpty(authResponse.AccessToken))
             {
-                var authResponse = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
-
-                if (authResponse != null && !string.IsNullOrEmpty(authResponse.AccessToken))
-                {
-                    // HttpOnly cookie - server-side operations için
-                    HttpContext.Response.Cookies.Append("AuthToken", authResponse.AccessToken, new CookieOptions
-                    {
-                        HttpOnly = true,
-                        Secure = isHttps,
-                        SameSite = SameSiteMode.Strict,
-                        Expires = authResponse.ExpiresAt
-                    });
-
-                    // Regular cookie - JavaScript'ten erişim için (DEVELOPMENT ONLY)
-                    HttpContext.Response.Cookies.Append("JwtToken", authResponse.AccessToken, new CookieOptions
-                    {
-                        HttpOnly = false,
-                        Secure = isHttps,
-                        SameSite = SameSiteMode.Lax,
-                        Expires = authResponse.ExpiresAt
-                    });
-
-                    return RedirectToAction("Index", "Home");
-                }
+                _authService.SetAuthCookies(authResponse);
+                return RedirectToAction("Index", "Home");
             }
 
             ModelState.AddModelError("", "Kayıt işlemi başarısız. Lütfen tekrar deneyin.");
@@ -130,13 +79,6 @@ namespace Dashboard.Web.Controllers
         [HttpGet]
         public IActionResult Profile()
         {
-            // TODO: Login sistemi aktif olunca token kontrolü eklenecek
-            // var token = HttpContext.Request.Cookies["AuthToken"];
-            // if (string.IsNullOrEmpty(token))
-            // {
-            //     return RedirectToAction("Login");
-            // }
-
             // Demo profil bilgileri
             var userDto = new UserDto
             {
@@ -159,20 +101,8 @@ namespace Dashboard.Web.Controllers
         {
             HttpContext.Response.Cookies.Delete("AuthToken");
             HttpContext.Response.Cookies.Delete("JwtToken");
+            HttpContext.Response.Cookies.Delete("RefreshToken");
             return RedirectToAction("Login");
-        }
-
-        // GET: Token'ı JavaScript'e döndür (DEVELOPMENT ONLY)
-        [AllowAnonymous]
-        [HttpGet]
-        public IActionResult GetToken()
-        {
-            var token = HttpContext.Request.Cookies["JwtToken"];
-            if (string.IsNullOrEmpty(token))
-            {
-                return BadRequest(new { message = "Token bulunamadı" });
-            }
-            return Ok(new { token });
         }
     }
 }

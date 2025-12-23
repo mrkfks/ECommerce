@@ -1,35 +1,32 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Http;
-using System.Net.Http.Json;
 using ECommerce.Application.DTOs;
+using Dashboard.Web.Services;
 
 namespace Dashboard.Web.Controllers
 {
     [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
     public class UserController : Controller
     {
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly UserApiService _userService;
 
-        public UserController(IHttpClientFactory httpClientFactory)
+        public UserController(UserApiService userService)
         {
-            _httpClientFactory = httpClientFactory;
+            _userService = userService;
         }
 
         // Listeleme
         public async Task<IActionResult> Index()
         {
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var users = await client.GetFromJsonAsync<List<UserDto>>("api/User");
-            return View(users ?? new List<UserDto>());
+            var users = await _userService.GetAllAsync();
+            return View(users);
         }
 
         // Detay
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var user = await client.GetFromJsonAsync<UserDto>($"api/User/{id}");
+            var user = await _userService.GetByIdAsync(id);
 
             if (user == null)
                 return NotFound();
@@ -41,22 +38,13 @@ namespace Dashboard.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var user = await client.GetFromJsonAsync<UserDto>($"api/User/{id}");
+            var user = await _userService.GetByIdAsync(id);
 
             if (user == null)
                 return NotFound();
 
-            // API'den roller listesi çek
-            try
-            {
-                var roles = await client.GetFromJsonAsync<List<string>>("api/User/roles");
-                ViewBag.AllRoles = roles ?? new List<string>();
-            }
-            catch
-            {
-                ViewBag.AllRoles = new List<string> { "SuperAdmin", "CompanyAdmin", "CompanyStaff" };
-            }
+            var roles = await _userService.GetRolesAsync();
+            ViewBag.AllRoles = roles ?? new List<string>();
 
             return View(user);
         }
@@ -66,37 +54,19 @@ namespace Dashboard.Web.Controllers
         {
             if (!ModelState.IsValid)
             {
-                // Hata durumunda rolleri yeniden yükle
-                var client = _httpClientFactory.CreateClient("ECommerceApi");
-                try
-                {
-                    var roles = await client.GetFromJsonAsync<List<string>>("api/User/roles");
-                    ViewBag.AllRoles = roles ?? new List<string>();
-                }
-                catch
-                {
-                    ViewBag.AllRoles = new List<string> { "SuperAdmin", "CompanyAdmin", "CompanyStaff" };
-                }
+                var roles = await _userService.GetRolesAsync();
+                ViewBag.AllRoles = roles ?? new List<string>();
                 return View(user);
             }
 
-            var apiClient = _httpClientFactory.CreateClient("ECommerceApi");
-            var response = await apiClient.PutAsJsonAsync($"api/User/{user.Id}", user);
+            var success = await _userService.UpdateAsync(user.Id, user);
 
-            if (response.IsSuccessStatusCode)
+            if (success)
                 return RedirectToAction(nameof(Index));
 
             ModelState.AddModelError("", "Kullanıcı güncellenirken hata oluştu.");
-            // Hata durumunda rolleri yeniden yükle
-            try
-            {
-                var roles = await apiClient.GetFromJsonAsync<List<string>>("api/User/roles");
-                ViewBag.AllRoles = roles ?? new List<string>();
-            }
-            catch
-            {
-                ViewBag.AllRoles = new List<string> { "SuperAdmin", "CompanyAdmin", "CompanyStaff" };
-            }
+            var roleList = await _userService.GetRolesAsync();
+            ViewBag.AllRoles = roleList ?? new List<string>();
             return View(user);
         }
 
@@ -104,8 +74,7 @@ namespace Dashboard.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var user = await client.GetFromJsonAsync<UserDto>($"api/User/{id}");
+            var user = await _userService.GetByIdAsync(id);
 
             if (user == null)
                 return NotFound();
@@ -116,14 +85,13 @@ namespace Dashboard.Web.Controllers
         [HttpPost, ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var response = await client.DeleteAsync($"api/User/{id}");
+            var success = await _userService.DeleteAsync(id);
 
-            if (response.IsSuccessStatusCode)
+            if (success)
                 return RedirectToAction(nameof(Index));
 
             ModelState.AddModelError("", "Kullanıcı silinirken hata oluştu.");
-            var user = await client.GetFromJsonAsync<UserDto>($"api/User/{id}");
+            var user = await _userService.GetByIdAsync(id);
             return View(user);
         }
     }

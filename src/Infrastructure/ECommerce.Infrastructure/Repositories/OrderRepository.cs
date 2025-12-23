@@ -42,7 +42,24 @@ namespace ECommerce.Infrastructure.Repositories
             {
                 return false;
             }
-            order.Status = newStatus;
+            
+            // Rich Domain Model: Entity üzerindeki metotları kullan
+            switch(newStatus)
+            {
+                case OrderStatus.Processing:
+                    order.Confirm();
+                    break;
+                case OrderStatus.Shipped:
+                    order.Ship();
+                    break;
+                case OrderStatus.Delivered:
+                    order.Deliver();
+                    break;
+                case OrderStatus.Cancelled:
+                    order.Cancel();
+                    break;
+            }
+            
             _context.Orders.Update(order);
             await _context.SaveChangesAsync();
             return true;

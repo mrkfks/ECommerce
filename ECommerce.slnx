@@ -13,4 +13,8 @@
   <Folder Name="/src/Presentation/">
     <Project Path="src/Presentation/ECommerce.RestApi/ECommerce.RestApi.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ECommerce.Tests.Unit/ECommerce.Tests.Unit.csproj" />
+    <Project Path="tests/ECommerce.Tests.Integration/ECommerce.Tests.Integration.csproj" />
+  </Folder>
 </Solution>

@@ -45,9 +45,9 @@ namespace ECommerce.Infrastructure.Repositories
             {
                 return await _context.SaveChangesAsync();
             }
-            catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException ex)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
             {
-                throw new ECommerce.Application.Exceptions.ConcurrencyException("A concurrency conflict occurred.", ex);
+                throw new ECommerce.Application.Exceptions.ConcurrencyException("A concurrency conflict occurred.");
             }
         }
 

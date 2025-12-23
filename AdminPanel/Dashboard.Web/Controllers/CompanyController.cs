@@ -1,57 +1,47 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Http;
-using System.Net.Http.Json;
+using Dashboard.Web.Services;
 
 namespace Dashboard.Web.Controllers
 {
     [Authorize(Roles = "SuperAdmin")]
     public class CompanyController : Controller
     {
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly CompanyApiService _companyService;
 
-        public CompanyController(IHttpClientFactory httpClientFactory)
+        public CompanyController(CompanyApiService companyService)
         {
-            _httpClientFactory = httpClientFactory;
+            _companyService = companyService;
         }
 
         public async Task<IActionResult> Index()
         {
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var companies = await client.GetFromJsonAsync<List<CompanyVm>>("api/company");
-            return View(companies ?? new List<CompanyVm>());
+            var companies = await _companyService.GetAllAsync();
+            return View(companies);
         }
 
         [HttpPost]
         public async Task<IActionResult> Approve(int id)
         {
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var resp = await client.PostAsync($"api/company/{id}/approve", null);
-            TempData[resp.IsSuccessStatusCode ? "Success" : "Error"] = resp.IsSuccessStatusCode ? "Şirket onaylandı" : "Onay işlemi başarısız";
+            var success = await _companyService.ApproveAsync(id);
+            TempData[success ? "Success" : "Error"] = success ? "Şirket onaylandı" : "Onay işlemi başarısız";
             return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
         public async Task<IActionResult> Deactivate(int id)
         {
-            var client = _httpClientFactory.CreateClient("ECommerceApi");
-            var resp = await client.PostAsync($"api/company/{id}/deactivate", null);
-            TempData[resp.IsSuccessStatusCode ? "Success" : "Error"] = resp.IsSuccessStatusCode ? "Şirket pasifleştirildi" : "Pasifleştirme başarısız";
+            var success = await _companyService.DeactivateAsync(id);
+            TempData[success ? "Success" : "Error"] = success ? "Şirket pasifleştirildi" : "Pasifleştirme başarısız";
             return RedirectToAction(nameof(Index));
         }
-    }
 
-    public class CompanyVm
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Address { get; set; } = string.Empty;
-        public string PhoneNumber { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string TaxNumber { get; set; } = string.Empty;
-        public bool IsActive { get; set; }
-        public bool IsApproved { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
+        [HttpPost]
+        public async Task<IActionResult> Activate(int id)
+        {
+            var success = await _companyService.ActivateAsync(id);
+            TempData[success ? "Success" : "Error"] = success ? "Şirket aktif hale getirildi" : "Aktivasyon başarısız";
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

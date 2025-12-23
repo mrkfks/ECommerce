@@ -110,16 +110,11 @@ public class RequestController : ControllerBase
 
         try
         {
-            var request = new ECommerce.Domain.Entities.Request
-            {
-                CompanyId = dto.CompanyId,
-                Title = dto.Title,
-                Description = dto.Description,
-                Feedback = null,
-                Status = ECommerce.Domain.Entities.RequestStatus.Pending,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+            var request = ECommerce.Domain.Entities.Request.Create(
+                dto.CompanyId,
+                dto.Title,
+                dto.Description
+            );
 
             await _unitOfWork.Requests.AddAsync(request);
             await _unitOfWork.SaveChangesAsync();
@@ -144,37 +139,6 @@ public class RequestController : ControllerBase
         }
     }
 
-    // SuperAdmin: Talep durumunu güncellesin
-    [HttpPut("{id}")]
-    [Authorize(Roles = "SuperAdmin")]
-    public async Task<IActionResult> UpdateRequest(int id, [FromBody] RequestUpdateDto dto)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        try
-        {
-            var request = await _unitOfWork.Requests.GetByIdAsync(id);
-            if (request == null)
-                return NotFound(new { error = "Talep bulunamadı" });
-
-            request.Title = dto.Title;
-            request.Description = dto.Description;
-            request.Status = (ECommerce.Domain.Entities.RequestStatus)dto.Status;
-            request.Feedback = string.IsNullOrWhiteSpace(dto.Feedback) ? null : dto.Feedback.Trim();
-            request.UpdatedAt = DateTime.UtcNow;
-
-            _unitOfWork.Requests.Update(request);
-            await _unitOfWork.SaveChangesAsync();
-
-            return Ok(new { message = "Talep güncellendi", status = (int)request.Status });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { error = ex.Message });
-        }
-    }
-
     // SuperAdmin: Talep onaylasın
     [HttpPost("{id}/approve")]
     [Authorize(Roles = "SuperAdmin")]
@@ -186,9 +150,7 @@ public class RequestController : ControllerBase
             if (request == null)
                 return NotFound(new { error = "Talep bulunamadı" });
 
-            request.Status = ECommerce.Domain.Entities.RequestStatus.Approved;
-            request.Feedback = string.IsNullOrWhiteSpace(dto?.Feedback) ? request.Feedback : dto.Feedback!.Trim();
-            request.UpdatedAt = DateTime.UtcNow;
+            request.Approve(string.IsNullOrWhiteSpace(dto?.Feedback) ? null : dto.Feedback!.Trim());
 
             _unitOfWork.Requests.Update(request);
             await _unitOfWork.SaveChangesAsync();
@@ -212,9 +174,7 @@ public class RequestController : ControllerBase
             if (request == null)
                 return NotFound(new { error = "Talep bulunamadı" });
 
-            request.Status = ECommerce.Domain.Entities.RequestStatus.Rejected;
-            request.Feedback = string.IsNullOrWhiteSpace(dto?.Feedback) ? request.Feedback : dto.Feedback!.Trim();
-            request.UpdatedAt = DateTime.UtcNow;
+            request.Reject(string.IsNullOrWhiteSpace(dto?.Feedback) ? null : dto.Feedback!.Trim());
 
             _unitOfWork.Requests.Update(request);
             await _unitOfWork.SaveChangesAsync();

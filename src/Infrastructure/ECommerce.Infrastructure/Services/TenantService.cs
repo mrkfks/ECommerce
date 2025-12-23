@@ -19,7 +19,7 @@ public class TenantService : ITenantService
         if (context == null) return null;
 
         var user = context.User;
-        if (user == null || !user.Identity.IsAuthenticated) return null;
+        if (user == null || !user.Identity?.IsAuthenticated == true) return null;
 
         // SuperAdmin ise her şeyi görebilsin (null dönerek filtreyi devre dışı bırak)
         if (user.IsInRole("SuperAdmin"))
