@@ -17,6 +17,10 @@
                         <th>Ad Soyad</th>
                         <th>Email</th>
                         <th>Telefon</th>
+                        @if (User.IsInRole("SuperAdmin"))
+                        {
+                            <th>Şirket</th>
+                        }
                         <th>İşlemler</th>
                     </tr>
                 </thead>
@@ -28,10 +32,17 @@
                         <td>@customer.Name</td>
                         <td>@customer.Email</td>
                         <td>@customer.PhoneNumber</td>
+                        @if (User.IsInRole("SuperAdmin"))
+                        {
+                            <td><span class="badge bg-secondary">@customer.CompanyName</span></td>
+                        }
                         <td>
                             <a asp-action="Details" asp-route-id="@customer.Id" class="btn btn-sm btn-info">Detay</a>
-                            <a asp-action="Edit" asp-route-id="@customer.Id" class="btn btn-sm btn-warning">Düzenle</a>
-                            <a asp-action="Delete" asp-route-id="@customer.Id" class="btn btn-sm btn-danger">Sil</a>
+                            @if (User.IsInRole("CompanyAdmin") || User.IsInRole("SuperAdmin"))
+                            {
+                                <a asp-action="Edit" asp-route-id="@customer.Id" class="btn btn-sm btn-warning">Düzenle</a>
+                                <a asp-action="Delete" asp-route-id="@customer.Id" class="btn btn-sm btn-danger">Sil</a>
+                            }
                         </td>
                     </tr>
                 }

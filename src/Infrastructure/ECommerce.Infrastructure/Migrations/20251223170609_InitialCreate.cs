@@ -17,9 +17,9 @@ namespace ECommerce.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Title = table.Column<string>(type: "TEXT", nullable: false),
-                    ImageUrl = table.Column<string>(type: "TEXT", nullable: false),
-                    RedirectUrl = table.Column<string>(type: "TEXT", nullable: false)
+                    Title = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    ImageUrl = table.Column<string>(type: "TEXT", maxLength: 500, nullable: false),
+                    RedirectUrl = table.Column<string>(type: "TEXT", maxLength: 500, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -32,9 +32,10 @@ namespace ECommerce.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Description = table.Column<string>(type: "TEXT", nullable: false),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: false),
+                    ImageUrl = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: true),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
@@ -49,9 +50,10 @@ namespace ECommerce.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Description = table.Column<string>(type: "TEXT", nullable: false),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: false),
+                    ImageUrl = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: true),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
@@ -66,14 +68,15 @@ namespace ECommerce.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Address = table.Column<string>(type: "TEXT", nullable: false),
-                    PhoneNumber = table.Column<string>(type: "TEXT", nullable: false),
-                    Email = table.Column<string>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    Address = table.Column<string>(type: "TEXT", maxLength: 500, nullable: false),
+                    PhoneNumber = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
+                    Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    TaxNumber = table.Column<string>(type: "TEXT", nullable: false),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false)
+                    TaxNumber = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: true),
+                    IsApproved = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
@@ -86,7 +89,7 @@ namespace ECommerce.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", nullable: false)
+                    Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -99,18 +102,18 @@ namespace ECommerce.Infrastructure.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Description = table.Column<string>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
+                    Description = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: false),
                     Price = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
                     CategoryId = table.Column<int>(type: "INTEGER", nullable: false),
                     BrandId = table.Column<int>(type: "INTEGER", nullable: false),
                     CompanyId = table.Column<int>(type: "INTEGER", nullable: false),
                     StockQuantity = table.Column<int>(type: "INTEGER", nullable: false),
-                    ImageUrl = table.Column<string>(type: "TEXT", nullable: true),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
+                    ImageUrl = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: true),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    CompanyId1 = table.Column<int>(type: "INTEGER", nullable: true)
+                    Version = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -133,11 +136,31 @@ namespace ECommerce.Infrastructure.Migrations
                         principalTable: "Companies",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Requests",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    CompanyId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Title = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: false),
+                    Status = table.Column<int>(type: "INTEGER", nullable: false),
+                    Feedback = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Requests", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Products_Companies_CompanyId1",
-                        column: x => x.CompanyId1,
+                        name: "FK_Requests_Companies_CompanyId",
+                        column: x => x.CompanyId,
                         principalTable: "Companies",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -147,11 +170,14 @@ namespace ECommerce.Infrastructure.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     CompanyId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Username = table.Column<string>(type: "TEXT", nullable: false),
-                    Email = table.Column<string>(type: "TEXT", nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", nullable: false),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Username = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
+                    PasswordHash = table.Column<string>(type: "TEXT", maxLength: 500, nullable: false),
+                    FirstName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
+                    LastName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
+                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: true),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -171,11 +197,11 @@ namespace ECommerce.Infrastructure.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     CompanyId = table.Column<int>(type: "INTEGER", nullable: false),
-                    FirstName = table.Column<string>(type: "TEXT", nullable: false),
-                    LastName = table.Column<string>(type: "TEXT", nullable: false),
-                    Email = table.Column<string>(type: "TEXT", nullable: false),
+                    FirstName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    LastName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
                     UserId = table.Column<int>(type: "INTEGER", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "TEXT", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
                     DateOfBirth = table.Column<DateTime>(type: "TEXT", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
@@ -195,7 +221,7 @@ namespace ECommerce.Infrastructure.Migrations
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Customers_Users_UserId1",
                         column: x => x.UserId1,
@@ -209,7 +235,7 @@ namespace ECommerce.Infrastructure.Migrations
                 {
                     UserId = table.Column<int>(type: "INTEGER", nullable: false),
                     RoleId = table.Column<int>(type: "INTEGER", nullable: false),
-                    RoleName = table.Column<string>(type: "TEXT", nullable: false)
+                    RoleName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -235,11 +261,11 @@ namespace ECommerce.Infrastructure.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     CustomerId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Street = table.Column<string>(type: "TEXT", nullable: false),
-                    City = table.Column<string>(type: "TEXT", nullable: false),
-                    State = table.Column<string>(type: "TEXT", nullable: false),
-                    ZipCode = table.Column<string>(type: "TEXT", nullable: false),
-                    Country = table.Column<string>(type: "TEXT", nullable: false)
+                    Street = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
+                    City = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    State = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    ZipCode = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
+                    Country = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -261,9 +287,9 @@ namespace ECommerce.Infrastructure.Migrations
                     ProductId = table.Column<int>(type: "INTEGER", nullable: false),
                     CustomerId = table.Column<int>(type: "INTEGER", nullable: false),
                     CompanyId = table.Column<int>(type: "INTEGER", nullable: false),
-                    ReviewerName = table.Column<string>(type: "TEXT", nullable: false),
+                    ReviewerName = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
                     Rating = table.Column<int>(type: "INTEGER", nullable: false),
-                    Comment = table.Column<string>(type: "TEXT", nullable: false),
+                    Comment = table.Column<string>(type: "TEXT", maxLength: 2000, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
@@ -281,13 +307,13 @@ namespace ECommerce.Infrastructure.Migrations
                         column: x => x.CustomerId,
                         principalTable: "Customers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Reviews_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -301,7 +327,9 @@ namespace ECommerce.Infrastructure.Migrations
                     CompanyId = table.Column<int>(type: "INTEGER", nullable: false),
                     OrderDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     TotalAmount = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    Status = table.Column<int>(type: "INTEGER", nullable: false)
+                    Status = table.Column<int>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -311,7 +339,7 @@ namespace ECommerce.Infrastructure.Migrations
                         column: x => x.AddressId,
                         principalTable: "Addresses",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Orders_Companies_CompanyId",
                         column: x => x.CompanyId,
@@ -323,7 +351,7 @@ namespace ECommerce.Infrastructure.Migrations
                         column: x => x.CustomerId,
                         principalTable: "Customers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -335,8 +363,7 @@ namespace ECommerce.Infrastructure.Migrations
                     ProductId = table.Column<int>(type: "INTEGER", nullable: false),
                     Quantity = table.Column<int>(type: "INTEGER", nullable: false),
                     UnitPrice = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    OrderId = table.Column<int>(type: "INTEGER", nullable: false),
-                    ProductId1 = table.Column<int>(type: "INTEGER", nullable: true)
+                    OrderId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -352,18 +379,34 @@ namespace ECommerce.Infrastructure.Migrations
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_OrderItems_Products_ProductId1",
-                        column: x => x.ProductId1,
-                        principalTable: "Products",
-                        principalColumn: "Id");
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Addresses_CustomerId",
                 table: "Addresses",
                 column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Brands_Name",
+                table: "Brands",
+                column: "Name");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Categories_Name",
+                table: "Categories",
+                column: "Name");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Companies_Email",
+                table: "Companies",
+                column: "Email");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Companies_TaxNumber",
+                table: "Companies",
+                column: "TaxNumber",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Customers_CompanyId",
@@ -399,11 +442,6 @@ namespace ECommerce.Infrastructure.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_OrderItems_ProductId1",
-                table: "OrderItems",
-                column: "ProductId1");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Orders_AddressId",
                 table: "Orders",
                 column: "AddressId");
@@ -417,6 +455,16 @@ namespace ECommerce.Infrastructure.Migrations
                 name: "IX_Orders_CustomerId",
                 table: "Orders",
                 column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_OrderDate",
+                table: "Orders",
+                column: "OrderDate");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_Status",
+                table: "Orders",
+                column: "Status");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Products_BrandId",
@@ -434,14 +482,19 @@ namespace ECommerce.Infrastructure.Migrations
                 column: "CompanyId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Products_CompanyId1",
-                table: "Products",
-                column: "CompanyId1");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Products_Name",
                 table: "Products",
                 column: "Name");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Requests_CompanyId",
+                table: "Requests",
+                column: "CompanyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Requests_Status",
+                table: "Requests",
+                column: "Status");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reviews_CompanyId",
@@ -457,6 +510,12 @@ namespace ECommerce.Infrastructure.Migrations
                 name: "IX_Reviews_ProductId",
                 table: "Reviews",
                 column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Roles_Name",
+                table: "Roles",
+                column: "Name",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserRoles_RoleId",
@@ -489,6 +548,9 @@ namespace ECommerce.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "OrderItems");
+
+            migrationBuilder.DropTable(
+                name: "Requests");
 
             migrationBuilder.DropTable(
                 name: "Reviews");

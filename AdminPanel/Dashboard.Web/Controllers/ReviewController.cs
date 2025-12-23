@@ -5,7 +5,7 @@ using Dashboard.Web.Services;
 
 namespace Dashboard.Web.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "CompanyAdmin,SuperAdmin,CompanyStaff")]
     public class ReviewController : Controller
     {
         private readonly ReviewApiService _reviewService;

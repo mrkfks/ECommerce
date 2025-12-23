@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ECommerce.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251214205019_AddRequestFeedback")]
-    partial class AddRequestFeedback
+    [Migration("20251223210853_AddResponsiblePersonToCompany")]
+    partial class AddResponsiblePersonToCompany
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -28,10 +28,12 @@ namespace ECommerce.Infrastructure.Migrations
 
                     b.Property<string>("City")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Country")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("CustomerId")
@@ -39,14 +41,17 @@ namespace ECommerce.Infrastructure.Migrations
 
                     b.Property<string>("State")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Street")
                         .IsRequired()
+                        .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ZipCode")
                         .IsRequired()
+                        .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -64,14 +69,17 @@ namespace ECommerce.Infrastructure.Migrations
 
                     b.Property<string>("ImageUrl")
                         .IsRequired()
+                        .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("RedirectUrl")
                         .IsRequired()
+                        .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Title")
                         .IsRequired()
+                        .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -90,22 +98,29 @@ namespace ECommerce.Infrastructure.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
+                        .HasMaxLength(1000)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name");
 
                     b.ToTable("Brands");
                 });
@@ -121,22 +136,29 @@ namespace ECommerce.Infrastructure.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
+                        .HasMaxLength(1000)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name");
 
                     b.ToTable("Categories");
                 });
@@ -149,6 +171,7 @@ namespace ECommerce.Infrastructure.Migrations
 
                     b.Property<string>("Address")
                         .IsRequired()
+                        .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")
@@ -156,30 +179,52 @@ namespace ECommerce.Infrastructure.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
+                        .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
 
                     b.Property<bool>("IsApproved")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ResponsiblePersonEmail")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ResponsiblePersonName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ResponsiblePersonPhone")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("TaxNumber")
                         .IsRequired()
+                        .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email");
+
+                    b.HasIndex("TaxNumber")
+                        .IsUnique();
 
                     b.ToTable("Companies");
                 });
@@ -201,18 +246,22 @@ namespace ECommerce.Infrastructure.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
+                        .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("LastName")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
+                        .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -252,6 +301,9 @@ namespace ECommerce.Infrastructure.Migrations
                     b.Property<int>("CompanyId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("CustomerId")
                         .HasColumnType("INTEGER");
 
@@ -265,6 +317,9 @@ namespace ECommerce.Infrastructure.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AddressId");
@@ -272,6 +327,10 @@ namespace ECommerce.Infrastructure.Migrations
                     b.HasIndex("CompanyId");
 
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("OrderDate");
+
+                    b.HasIndex("Status");
 
                     b.ToTable("Orders");
                 });
@@ -324,16 +383,21 @@ namespace ECommerce.Infrastructure.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
+                        .HasMaxLength(2000)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("Price")
@@ -377,9 +441,11 @@ namespace ECommerce.Infrastructure.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
+                        .HasMaxLength(2000)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Feedback")
+                        .HasMaxLength(1000)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Status")
@@ -387,6 +453,7 @@ namespace ECommerce.Infrastructure.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
+                        .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -395,6 +462,8 @@ namespace ECommerce.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyId");
+
+                    b.HasIndex("Status");
 
                     b.ToTable("Requests");
                 });
@@ -407,6 +476,7 @@ namespace ECommerce.Infrastructure.Migrations
 
                     b.Property<string>("Comment")
                         .IsRequired()
+                        .HasMaxLength(2000)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("CompanyId")
@@ -426,6 +496,7 @@ namespace ECommerce.Infrastructure.Migrations
 
                     b.Property<string>("ReviewerName")
                         .IsRequired()
+                        .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -450,9 +521,13 @@ namespace ECommerce.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("Roles");
                 });
@@ -471,23 +546,33 @@ namespace ECommerce.Infrastructure.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
+                        .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("FirstName")
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("LastName")
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Username")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -513,6 +598,7 @@ namespace ECommerce.Infrastructure.Migrations
 
                     b.Property<string>("RoleName")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.HasKey("UserId", "RoleId");
@@ -560,7 +646,7 @@ namespace ECommerce.Infrastructure.Migrations
                     b.HasOne("ECommerce.Domain.Entities.Address", "Address")
                         .WithMany("Orders")
                         .HasForeignKey("AddressId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ECommerce.Domain.Entities.Company", "Company")
@@ -572,7 +658,7 @@ namespace ECommerce.Infrastructure.Migrations
                     b.HasOne("ECommerce.Domain.Entities.Customer", "Customer")
                         .WithMany("Orders")
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Address");
@@ -650,13 +736,13 @@ namespace ECommerce.Infrastructure.Migrations
                     b.HasOne("ECommerce.Domain.Entities.Customer", "Customer")
                         .WithMany("Reviews")
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ECommerce.Domain.Entities.Product", "Product")
                         .WithMany("Reviews")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Company");

@@ -58,19 +58,15 @@ namespace Dashboard.Web.Controllers
             if (!ModelState.IsValid)
                 return View(registerDto);
 
-            // Admin panelde company seçimi yok; demo/tek tenant senaryosunda varsayılan company.
-            if (registerDto.CompanyId <= 0)
-                registerDto.CompanyId = 1;
-
             var authResponse = await _authService.RegisterAsync(registerDto);
 
-            if (authResponse != null && !string.IsNullOrEmpty(authResponse.AccessToken))
+            if (authResponse != null)
             {
-                _authService.SetAuthCookies(authResponse);
-                return RedirectToAction("Index", "Home");
+                TempData["Success"] = "Kaydınız alınmıştır. Süper admin onayından sonra giriş yapabileceksiniz.";
+                return RedirectToAction("Login");
             }
 
-            ModelState.AddModelError("", "Kayıt işlemi başarısız. Lütfen tekrar deneyin.");
+            ModelState.AddModelError("", "Kayıt işlemi başarısız. Bu email adresi zaten kullanılıyor olabilir.");
             return View(registerDto);
         }
 

@@ -19,7 +19,8 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite(
                 configuration.GetConnectionString("DefaultConnection"),
-                b => b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
+                b => b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
+            .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
 
         // Repositories
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -36,7 +37,7 @@ public static class DependencyInjection
         // services.AddScoped<IOrderService, OrderService>();
         // services.AddScoped<ICustomerService, CustomerService>();
         // services.AddScoped<IReviewService, ReviewService>();
-        // services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IUserService, UserService>();
         // services.AddScoped<ICategoryService, CategoryService>();
         // services.AddScoped<IBrandService, BrandService>();
         services.AddScoped<ITenantService, TenantService>();
@@ -45,6 +46,9 @@ public static class DependencyInjection
             var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
             return new FileUploadService(uploadsFolder);
         });
+        
+        // DbSeeder
+        services.AddScoped<DbSeeder>();
 
         return services;
     }

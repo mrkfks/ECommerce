@@ -36,11 +36,12 @@ namespace Dashboard.Web.Services
         {
             try
             {
-                var response = await _httpClient.PostAsJsonAsync("api/Auth/register", registerDto);
+                var response = await _httpClient.PostAsJsonAsync("api/Company/register", registerDto);
                 
                 if (response.IsSuccessStatusCode)
                 {
-                    return await response.Content.ReadFromJsonAsync<AuthResponseDto>();
+                    // Kayıt başarılı ama token dönmüyor, sadece success döndür
+                    return new AuthResponseDto(); // Boş response, sadece success kontrolü için
                 }
                 
                 return null;

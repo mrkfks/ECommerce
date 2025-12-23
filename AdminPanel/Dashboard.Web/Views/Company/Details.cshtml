@@ -1,0 +1,208 @@
+@model Dashboard.Web.Models.CompanyVm
+
+@{
+    ViewData["Title"] = "Şirket Detayları";
+}
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h2 class="section-title">Şirket Detayları</h2>
+        <p class="text-muted">@Model.Name şirketinin detaylı bilgileri</p>
+    </div>
+    <div class="col-md-6 text-end">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning me-2">
+            <i class="fa-solid fa-edit me-2"></i> Düzenle
+        </a>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left me-2"></i> Listeye Dön
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-primary fw-bold">Şirket Bilgileri</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <strong>Şirket Adı:</strong>
+                    </div>
+                    <div class="col-md-8">
+                        @Model.Name
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <strong>E-posta:</strong>
+                    </div>
+                    <div class="col-md-8">
+                        <a href="mailto:@Model.Email">@Model.Email</a>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <strong>Telefon:</strong>
+                    </div>
+                    <div class="col-md-8">
+                        <a href="tel:@Model.PhoneNumber">@Model.PhoneNumber</a>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <strong>Adres:</strong>
+                    </div>
+                    <div class="col-md-8">
+                        @Model.Address
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <strong>Vergi No:</strong>
+                    </div>
+                    <div class="col-md-8">
+                        @Model.TaxNumber
+                    </div>
+                </div>
+                <hr />
+                <h6 class="text-primary fw-bold mb-3">Sorumlu Kişi Bilgileri</h6>
+                @if (!string.IsNullOrEmpty(Model.ResponsiblePersonName))
+                {
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Sorumlu Adı:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            @Model.ResponsiblePersonName
+                        </div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.ResponsiblePersonPhone))
+                {
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Sorumlu Telefon:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            <a href="tel:@Model.ResponsiblePersonPhone">@Model.ResponsiblePersonPhone</a>
+                        </div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.ResponsiblePersonEmail))
+                {
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Sorumlu E-posta:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            <a href="mailto:@Model.ResponsiblePersonEmail">@Model.ResponsiblePersonEmail</a>
+                        </div>
+                    </div>
+                }
+                @if (string.IsNullOrEmpty(Model.ResponsiblePersonName) && string.IsNullOrEmpty(Model.ResponsiblePersonPhone) && string.IsNullOrEmpty(Model.ResponsiblePersonEmail))
+                {
+                    <p class="text-muted fst-italic">Sorumlu kişi bilgisi girilmemiş.</p>
+                }
+                <hr />
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <strong>Kayıt Tarihi:</strong>
+                    </div>
+                    <div class="col-md-8">
+                        @Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <strong>Güncellenme Tarihi:</strong>
+                    </div>
+                    <div class="col-md-8">
+                        @Model.UpdatedAt.ToString("dd.MM.yyyy HH:mm")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 mb-3">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-primary fw-bold">Durum</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Onay Durumu:</label>
+                    <div>
+                        @if (Model.IsApproved)
+                        {
+                            <span class="badge bg-success fs-6">
+                                <i class="fa-solid fa-check-circle me-1"></i> Onaylı
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning fs-6">
+                                <i class="fa-solid fa-clock me-1"></i> Onay Bekliyor
+                            </span>
+                        }
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Aktiflik Durumu:</label>
+                    <div>
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge bg-primary fs-6">
+                                <i class="fa-solid fa-circle-check me-1"></i> Aktif
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary fs-6">
+                                <i class="fa-solid fa-ban me-1"></i> Pasif
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-primary fw-bold">İşlemler</h5>
+            </div>
+            <div class="card-body">
+                @if (!Model.IsApproved)
+                {
+                    <form asp-action="Approve" method="post" class="mb-2">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fa-solid fa-check me-2"></i> Şirketi Onayla
+                        </button>
+                    </form>
+                }
+                
+                @if (Model.IsActive)
+                {
+                    <form asp-action="Deactivate" method="post" class="mb-2">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-outline-danger w-100">
+                            <i class="fa-solid fa-ban me-2"></i> Pasifleştir
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <form asp-action="Activate" method="post" class="mb-2">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-outline-success w-100">
+                            <i class="fa-solid fa-circle-check me-2"></i> Aktif Yap
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>

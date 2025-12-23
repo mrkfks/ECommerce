@@ -1,0 +1,114 @@
+@model ECommerce.Application.DTOs.CompanyDto
+
+@{
+    ViewData["Title"] = "Şirket Düzenle";
+}
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h2 class="section-title">Şirket Düzenle</h2>
+        <p class="text-muted">Şirket bilgilerini güncelleyin</p>
+    </div>
+    <div class="col-md-6 text-end">
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-info me-2">
+            <i class="fa-solid fa-eye me-2"></i> Detay
+        </a>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left me-2"></i> Listeye Dön
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-primary fw-bold">Şirket Bilgileri</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="IsApproved" />
+                    <input type="hidden" asp-for="IsActive" />
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Name" class="form-label fw-bold">Şirket Adı <span class="text-danger">*</span></label>
+                            <input asp-for="Name" class="form-control" placeholder="Şirket adını giriniz" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Email" class="form-label fw-bold">E-posta <span class="text-danger">*</span></label>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="ornek@sirket.com" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="PhoneNumber" class="form-label fw-bold">Telefon <span class="text-danger">*</span></label>
+                            <input asp-for="PhoneNumber" type="tel" class="form-control" placeholder="+90 555 123 45 67" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="TaxNumber" class="form-label fw-bold">Vergi No <span class="text-danger">*</span></label>
+                            <input asp-for="TaxNumber" class="form-control" placeholder="1234567890" />
+                            <span asp-validation-for="TaxNumber" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Address" class="form-label fw-bold">Adres <span class="text-danger">*</span></label>
+                        <textarea asp-for="Address" class="form-control" rows="3" placeholder="Tam adres bilgisi giriniz"></textarea>
+                        <span asp-validation-for="Address" class="text-danger small"></span>
+                    </div>
+                    
+                    <hr class="my-4" />
+                    
+                    <h6 class="text-primary fw-bold mb-3"><i class="fa-solid fa-user-tie me-2"></i>Sorumlu Kişi Bilgileri</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="ResponsiblePersonName" class="form-label fw-bold">Sorumlu Adı Soyadı</label>
+                            <input asp-for="ResponsiblePersonName" class="form-control" placeholder="Sorumlu kişinin adı soyadı" />
+                            <span asp-validation-for="ResponsiblePersonName" class="text-danger small"></span>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label asp-for="ResponsiblePersonPhone" class="form-label fw-bold">Sorumlu Telefon</label>
+                            <input asp-for="ResponsiblePersonPhone" type="tel" class="form-control" placeholder="+90 555 123 45 67" />
+                            <span asp-validation-for="ResponsiblePersonPhone" class="text-danger small"></span>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label asp-for="ResponsiblePersonEmail" class="form-label fw-bold">Sorumlu E-posta</label>
+                            <input asp-for="ResponsiblePersonEmail" type="email" class="form-control" placeholder="sorumlu@ornek.com" />
+                            <span asp-validation-for="ResponsiblePersonEmail" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4" />
+                    
+                    <div class="alert alert-info">
+                        <i class="fa-solid fa-info-circle me-2"></i>
+                        <strong>Not:</strong> Logo yükleme özelliği yakında eklenecektir.
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-times me-2"></i> İptal
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-save me-2"></i> Değişiklikleri Kaydet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

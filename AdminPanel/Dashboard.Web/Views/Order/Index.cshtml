@@ -15,6 +15,10 @@
                     <tr>
                         <th>ID</th>
                         <th>Müşteri</th>
+                        @if (User.IsInRole("SuperAdmin"))
+                        {
+                            <th>Şirket</th>
+                        }
                         <th>Tutar</th>
                         <th>Durum</th>
                         <th>Tarih</th>
@@ -27,12 +31,19 @@
                     <tr>
                         <td>@order.Id</td>
                         <td>@order.CustomerName</td>
+                        @if (User.IsInRole("SuperAdmin"))
+                        {
+                            <td><span class="badge bg-secondary">@order.CompanyName</span></td>
+                        }
                         <td>@order.TotalAmount.ToString("C")</td>
                         <td>@order.Status</td>
                         <td>@order.OrderDate.ToString("dd.MM.yyyy")</td>
                         <td>
                             <a asp-action="Details" asp-route-id="@order.Id" class="btn btn-sm btn-info">Detay</a>
-                            <a asp-action="Edit" asp-route-id="@order.Id" class="btn btn-sm btn-warning">Durum Güncelle</a>
+                            @if (User.IsInRole("CompanyAdmin") || User.IsInRole("SuperAdmin"))
+                            {
+                                <a asp-action="Edit" asp-route-id="@order.Id" class="btn btn-sm btn-warning">Durum Güncelle</a>
+                            }
                         </td>
                     </tr>
                 }

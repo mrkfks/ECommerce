@@ -10,12 +10,10 @@ namespace ECommerce.RestApi.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
-    private readonly IUserService _userService;
 
-    public AuthController(IAuthService authService, IUserService userService)
+    public AuthController(IAuthService authService)
     {
         _authService = authService;
-        _userService = userService;
     }
 
     /// <summary>
@@ -47,7 +45,6 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<IActionResult> GetCurrentUser()
     {
-        // Get user id from JWT token claims
         var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
         
         if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
@@ -55,7 +52,7 @@ public class AuthController : ControllerBase
             return Unauthorized();
         }
 
-        var user = await _userService.GetByIdAsync(userId);
+        var user = await _authService.GetUserByIdAsync(userId);
         
         if (user == null)
         {

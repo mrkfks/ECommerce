@@ -9,9 +9,15 @@ namespace ECommerce.Application.DTOs
         public required string Email { get; set; }
         public required string TaxNumber { get; set; }
         public bool IsActive { get; set; }
+        public bool IsApproved { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public int UserCount { get; set; }
         public int CustomerCount { get; set; }
+        
+        // Sorumlu Kişi Bilgileri
+        public string? ResponsiblePersonName { get; set; }
+        public string? ResponsiblePersonPhone { get; set; }
+        public string? ResponsiblePersonEmail { get; set; }
     }
 }

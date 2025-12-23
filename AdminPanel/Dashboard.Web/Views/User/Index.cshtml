@@ -1,15 +1,47 @@
 @model List<ECommerce.Application.DTOs.UserDto>
+@using ECommerce.Application.DTOs
 
 @{
     ViewData["Title"] = "Kullanıcılar & Roller";
 }
 
 <div class="card shadow-sm border-0">
-    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-        <h5 class="mb-0 text-primary fw-bold">Kullanıcı Listesi</h5>
-        <a asp-action="Create" class="btn btn-primary btn-sm px-3">
-            <i class="fa-solid fa-user-plus me-1"></i> Yeni Personel Ekle
-        </a>
+    <div class="card-header bg-white py-3 border-bottom">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0 text-primary fw-bold">Kullanıcı Listesi</h5>
+            <a asp-action="Create" class="btn btn-primary btn-sm px-3">
+                <i class="fa-solid fa-user-plus me-1"></i> Yeni Personel Ekle
+            </a>
+        </div>
+        
+        @if (User.IsInRole("SuperAdmin") && ViewBag.Companies != null)
+        {
+            <form method="get" asp-action="Index" class="row g-2">
+                <div class="col-auto">
+                    <label class="form-label mb-1 small">Şirkete Göre Filtrele:</label>
+                </div>
+                <div class="col-auto">
+                    <select name="companyId" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">Tüm Şirketler</option>
+                        @foreach (var company in (List<CompanyDto>)ViewBag.Companies)
+                        {
+                            var isSelected = ViewBag.SelectedCompanyId == company.Id;
+                            <option value="@company.Id" selected="@isSelected">
+                                @company.Name
+                            </option>
+                        }
+                    </select>
+                </div>
+                @if (ViewBag.SelectedCompanyId != null)
+                {
+                    <div class="col-auto">
+                        <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                            <i class="fa-solid fa-times me-1"></i> Filtreyi Temizle
+                        </a>
+                    </div>
+                }
+            </form>
+        }
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -17,9 +49,12 @@
                 <thead class="table-light">
                     <tr>
                         <th>ID</th>
+                        <th>Ad Soyad</th>
                         <th>Kullanıcı Adı</th>
                         <th>Email</th>
+                        <th>Şirket</th>
                         <th>Rol</th>
+                        <th>Durum</th>
                         <th>İşlemler</th>
                     </tr>
                 </thead>
@@ -28,12 +63,24 @@
                 {
                     <tr>
                         <td>@user.Id</td>
+                        <td>@user.FirstName @user.LastName</td>
                         <td>@user.Username</td>
                         <td>@user.Email</td>
+                        <td>@(user.CompanyName ?? "-")</td>
                         <td>@string.Join(", ", user.Roles)</td>
                         <td>
+                            @if (user.IsActive)
+                            {
+                                <span class="badge bg-success">Aktif</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">Pasif</span>
+                            }
+                        </td>
+                        <td>
                             <a asp-action="Details" asp-route-id="@user.Id" class="btn btn-sm btn-info">Detay</a>
-                            <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-sm btn-warning">Rol Düzenle</a>
+                            <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-sm btn-warning">Düzenle</a>
                             <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-sm btn-danger">Sil</a>
                         </td>
                     </tr>

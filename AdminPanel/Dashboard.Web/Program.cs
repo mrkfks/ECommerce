@@ -138,6 +138,8 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("SuperAdminOnly", policy => policy.RequireRole("SuperAdmin"));
     options.AddPolicy("CompanyAdminOrSuperAdmin", policy => policy.RequireRole("CompanyAdmin", "SuperAdmin"));
+    options.AddPolicy("CompanyAccess", policy => policy.RequireRole("CompanyAdmin", "SuperAdmin", "CompanyStaff"));
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("CompanyAdmin", "SuperAdmin"));
     // Tüm sayfalar varsayılan olarak giriş gerektirsin
     options.FallbackPolicy = new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()

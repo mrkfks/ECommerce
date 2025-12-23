@@ -12,6 +12,19 @@ public class CompanyApiService : ApiService<CompanyDto>
         _httpClient = httpClient;
     }
 
+    public async Task<bool> CreateAsync(CompanyDto dto)
+    {
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync("api/Company", dto);
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public async Task<bool> ApproveAsync(int id)
     {
         try

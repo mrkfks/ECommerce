@@ -18,6 +18,8 @@ namespace ECommerce.Infrastructure.Data
         private class DesignTimeTenantService : ECommerce.Application.Interfaces.ITenantService
         {
             public int? GetCompanyId() => null;
+            public int GetCurrentCompanyId() => 1;
+            public bool IsSuperAdmin() => false;
         }
     }
 }

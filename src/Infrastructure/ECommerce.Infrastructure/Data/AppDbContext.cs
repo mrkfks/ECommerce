@@ -90,6 +90,31 @@ namespace ECommerce.Infrastructure.Data
                     }
                 }
 
+                // IsActive default value set et
+                if (entry.State == EntityState.Added)
+                {
+                    try
+                    {
+                        var entityType = entry.Entity.GetType();
+                        var isActiveProperty = entityType.GetProperty("IsActive");
+                        
+                        if (isActiveProperty != null)
+                        {
+                            var currentValue = isActiveProperty.GetValue(entry.Entity);
+                            
+                            // Eğer IsActive false ise veya henüz set edilmemişse, true yap
+                            if (currentValue == null || (currentValue is bool boolValue && !boolValue))
+                            {
+                                isActiveProperty.SetValue(entry.Entity, true);
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // Entity'nin IsActive property'si yoksa ignore et
+                    }
+                }
+
                 // Product Version kontrolü (Optimistic Concurrency)
                 if (entry.Entity is Product && entry.State == EntityState.Modified)
                 {

@@ -54,6 +54,14 @@ namespace ECommerce.Domain.Entities
             Email = email;
         }
 
+        public void UpdateCompany(int companyId)
+        {
+            if (companyId <= 0)
+                throw new ArgumentException("Geçerli bir şirket ID'si girin.", nameof(companyId));
+
+            CompanyId = companyId;
+        }
+
         public void UpdatePassword(string newPasswordHash)
         {
             if (string.IsNullOrWhiteSpace(newPasswordHash))

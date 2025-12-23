@@ -7,5 +7,6 @@ namespace ECommerce.Application.DTOs
         public DateTime ExpiresAt { get; set; }
         public string Username { get; set; } = string.Empty;
         public List<string> Roles { get; set; } = new();
+        public string? Message { get; set; }
     }
 }

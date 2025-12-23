@@ -17,7 +17,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://localhost:5041", "http://localhost:3000", "http://localhost:5010")
+        policy.WithOrigins("http://localhost:5041", "https://localhost:7088", "http://localhost:3000")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
@@ -98,19 +98,29 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
-// Apply Migrations
+// Apply Migrations & Seed Data
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
     try
     {
         var context = services.GetRequiredService<ECommerce.Infrastructure.Data.AppDbContext>();
+        logger.LogInformation("Starting database migration...");
         await context.Database.MigrateAsync();
+        logger.LogInformation("Migrations completed successfully.");
+        
+        // Seed data
+        logger.LogInformation("Starting seeding...");
+        var seeder = services.GetRequiredService<ECommerce.Infrastructure.Data.DbSeeder>();
+        await seeder.SeedAsync();
+        logger.LogInformation("Seeding completed successfully.");
     }
     catch (Exception ex)
     {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while applying migrations.");
+        logger.LogError(ex, "❌ An error occurred while applying migrations and seeding data. Details: {Message}", ex.Message);
+        logger.LogError("Stack Trace: {StackTrace}", ex.StackTrace);
+        logger.LogWarning("⚠️  Application will continue despite seeding errors");
     }
 }
 
@@ -126,8 +136,11 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommerce API V1");
     });
 }
+else
+{
+    app.UseHttpsRedirection();
+}
 
-app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseCors("AllowAll");
 app.UseAuthentication();

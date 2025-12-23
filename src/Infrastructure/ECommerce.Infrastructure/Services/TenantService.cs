@@ -36,4 +36,25 @@ public class TenantService : ITenantService
 
         return null;
     }
+
+    public int GetCurrentCompanyId()
+    {
+        var companyId = GetCompanyId();
+        if (companyId.HasValue)
+            return companyId.Value;
+        
+        // Eğer null ise (SuperAdmin gibi), varsayılan olarak 1 dön (veya hata fırlat)
+        return 1;
+    }
+
+    public bool IsSuperAdmin()
+    {
+        var context = _httpContextAccessor.HttpContext;
+        if (context == null) return false;
+
+        var user = context.User;
+        if (user == null || !user.Identity?.IsAuthenticated == true) return false;
+
+        return user.IsInRole("SuperAdmin");
+    }
 }

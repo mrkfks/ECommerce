@@ -1,3 +1,4 @@
+using ECommerce.Application.Constants;
 using ECommerce.Application.DTOs;
 using FluentValidation;
 
@@ -8,25 +9,25 @@ public class ProductCreateDtoValidator : AbstractValidator<ProductCreateDto>
     public ProductCreateDtoValidator()
     {
         RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Ürün adı zorunludur")
-            .MaximumLength(200).WithMessage("Ürün adı en fazla 200 karakter olabilir");
+            .NotEmpty().WithMessage(ValidationMessages.ProductNameRequired)
+            .MaximumLength(255).WithMessage(ValidationMessages.ProductNameMaxLength);
 
         RuleFor(x => x.Description)
             .NotEmpty().WithMessage("Ürün açıklaması zorunludur")
-            .MaximumLength(2000).WithMessage("Açıklama en fazla 2000 karakter olabilir");
+            .MaximumLength(1000).WithMessage(ValidationMessages.ProductDescriptionMaxLength);
 
         RuleFor(x => x.Price)
-            .GreaterThan(0).WithMessage("Fiyat 0'dan büyük olmalıdır")
+            .GreaterThan(0).WithMessage(ValidationMessages.ProductPricePositive)
             .LessThan(1000000).WithMessage("Fiyat 1.000.000'dan küçük olmalıdır");
 
         RuleFor(x => x.StockQuantity)
-            .GreaterThanOrEqualTo(0).WithMessage("Stok miktarı negatif olamaz");
+            .GreaterThanOrEqualTo(0).WithMessage(ValidationMessages.ProductStockQuantityNonNegative);
 
         RuleFor(x => x.CategoryId)
-            .GreaterThan(0).WithMessage("Kategori seçilmelidir");
+            .GreaterThan(0).WithMessage(ValidationMessages.ProductCategoryRequired);
 
         RuleFor(x => x.BrandId)
-            .GreaterThan(0).WithMessage("Marka seçilmelidir");
+            .GreaterThan(0).WithMessage(ValidationMessages.ProductBrandRequired);
 
         RuleFor(x => x.CompanyId)
             .GreaterThan(0).WithMessage("Şirket seçilmelidir");

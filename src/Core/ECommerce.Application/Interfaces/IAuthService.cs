@@ -13,6 +13,8 @@ namespace ECommerce.Application.Interfaces
         Task LogoutAsync(int userId);
 
         Task<bool> ValidateTokenAsync(string token);
+
+        Task<UserDto?> GetUserByIdAsync(int userId);
     }
 }
 

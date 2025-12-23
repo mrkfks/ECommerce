@@ -5,7 +5,7 @@ using Dashboard.Web.Services;
 
 namespace Dashboard.Web.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "CompanyAdmin,SuperAdmin,CompanyStaff")]
     public class ProductController : Controller
     {
         private readonly ProductApiService _productService;

@@ -122,6 +122,15 @@
                 <p>Lütfen giriş yapınız</p>
             </div>
             <div class="card-body">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fa-solid fa-circle-check me-2"></i>
+                        @TempData["Success"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                
                 @if (ViewData.ModelState.Values.Any(v => v.Errors.Any()))
                 {
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">

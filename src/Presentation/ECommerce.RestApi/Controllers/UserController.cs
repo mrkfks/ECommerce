@@ -40,10 +40,18 @@ public class UserController : ControllerBase
         // READ - Get All
         [HttpGet]
         [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int? companyId = null)
         {
-            var users = await _userService.GetAllAsync();
-            return Ok(users);
+            if (companyId.HasValue)
+            {
+                var users = await _userService.GetByCompanyAsync(companyId.Value);
+                return Ok(users);
+            }
+            else
+            {
+                var users = await _userService.GetAllAsync();
+                return Ok(users);
+            }
         }
 
         // READ - Get all by Company
@@ -61,8 +69,45 @@ public class UserController : ControllerBase
         public async Task<IActionResult> Update(int id, UserUpdateDto dto)
         {
              if(id != dto.Id) return BadRequest();
-             await _userService.UpdateAsync(dto);
-             return Ok(new { message = "Kullanıcı güncellendi." });
+             
+             try
+             {
+                 await _userService.UpdateAsync(dto);
+                 
+                 // Rolleri güncelle
+                 if (dto.Roles != null && dto.Roles.Any())
+                 {
+                     // Önce mevcut rolleri al
+                     var currentRoles = await _userService.GetRolesAsync(id);
+                     
+                     // Silinmesi gereken roller
+                     foreach (var role in currentRoles)
+                     {
+                         if (!dto.Roles.Contains(role))
+                         {
+                             await _userService.RemoveRoleAsync(id, role);
+                         }
+                     }
+                     
+                     // Eklenmesi gereken roller
+                     foreach (var role in dto.Roles)
+                     {
+                         if (!currentRoles.Contains(role))
+                         {
+                             await _userService.AddRoleAsync(id, role);
+                         }
+                     }
+                 }
+                 
+                 // Aktif durumu güncelle
+                 await _userService.SetActiveStatusAsync(id, dto.IsActive);
+                 
+                 return Ok(new { message = "Kullanıcı güncellendi." });
+             }
+             catch (Exception ex)
+             {
+                 return BadRequest(new { message = ex.Message });
+             }
         }
 
         // DELETE

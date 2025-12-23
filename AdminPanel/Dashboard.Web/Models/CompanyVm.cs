@@ -12,4 +12,9 @@ public class CompanyVm
     public bool IsApproved { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    
+    // Sorumlu Kişi Bilgileri
+    public string? ResponsiblePersonName { get; set; }
+    public string? ResponsiblePersonPhone { get; set; }
+    public string? ResponsiblePersonEmail { get; set; }
 }

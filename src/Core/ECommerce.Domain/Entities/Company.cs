@@ -14,6 +14,11 @@ namespace ECommerce.Domain.Entities
         public string TaxNumber { get; private set; } = string.Empty;
         public bool IsActive { get; private set; } = true;
         public bool IsApproved { get; private set; } = false;
+        
+        // Sorumlu Kişi Bilgileri
+        public string? ResponsiblePersonName { get; private set; }
+        public string? ResponsiblePersonPhone { get; private set; }
+        public string? ResponsiblePersonEmail { get; private set; }
 
         public virtual ICollection<User> Users { get; private set; } = new List<User>();
         public virtual ICollection<Customer> Customers { get; private set; } = new List<Customer>();
@@ -22,7 +27,8 @@ namespace ECommerce.Domain.Entities
         public virtual ICollection<Review> Reviews { get; private set; } = new List<Review>();
         public virtual ICollection<Request> Requests { get; private set; } = new List<Request>();
 
-        public static Company Create(string name, string address, string phoneNumber, string email, string taxNumber)
+        public static Company Create(string name, string address, string phoneNumber, string email, string taxNumber, 
+            string? responsiblePersonName = null, string? responsiblePersonPhone = null, string? responsiblePersonEmail = null)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Şirket adı boş olamaz.", nameof(name));
@@ -46,6 +52,9 @@ namespace ECommerce.Domain.Entities
                 PhoneNumber = phoneNumber,
                 Email = email,
                 TaxNumber = taxNumber,
+                ResponsiblePersonName = responsiblePersonName,
+                ResponsiblePersonPhone = responsiblePersonPhone,
+                ResponsiblePersonEmail = responsiblePersonEmail,
                 IsActive = true,
                 IsApproved = false,
                 CreatedAt = DateTime.UtcNow,

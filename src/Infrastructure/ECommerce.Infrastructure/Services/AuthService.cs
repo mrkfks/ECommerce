@@ -26,25 +26,39 @@ namespace ECommerce.Infrastructure.Services
 
         public async Task<AuthResponseDto> LoginAsync(LoginDto loginDto)
         {
-            var user = await _context.Users
-                .Include(u => u.UserRoles)
-                .ThenInclude(ur => ur.Role)
-                .FirstOrDefaultAsync(u => u.Email == loginDto.UsernameOrEmail || u.Username == loginDto.UsernameOrEmail);
+            var userData = await _context.Users
+                .IgnoreQueryFilters() // Bypass tenant filter for authentication
+                .Where(u => u.Email == loginDto.UsernameOrEmail || u.Username == loginDto.UsernameOrEmail)
+                .Select(u => new
+                {
+                    u.Id,
+                    u.CompanyId,
+                    u.Username,
+                    u.Email,
+                    u.PasswordHash,
+                    Roles = u.UserRoles.Select(ur => ur.Role != null ? ur.Role.Name : "").ToList()
+                })
+                .FirstOrDefaultAsync();
 
-            if (user == null)
+            if (userData == null)
             {
                 throw new UnauthorizedException("Invalid credentials");
             }
 
-            var passwordOk = BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash);
+            var passwordOk = BCrypt.Net.BCrypt.Verify(loginDto.Password, userData.PasswordHash);
             if (!passwordOk)
             {
+                // Legacy SHA256 kontrolü
                 var legacy = LegacyHashPassword(loginDto.Password);
-                if (legacy == user.PasswordHash)
+                if (legacy == userData.PasswordHash)
                 {
-                    user.UpdatePassword(BCrypt.Net.BCrypt.HashPassword(loginDto.Password));
-                    await _context.SaveChangesAsync();
-                    passwordOk = true;
+                    var userToUpdate = await _context.Users.FirstOrDefaultAsync(u => u.Id == userData.Id);
+                    if (userToUpdate != null)
+                    {
+                        userToUpdate.UpdatePassword(BCrypt.Net.BCrypt.HashPassword(loginDto.Password));
+                        await _context.SaveChangesAsync();
+                        passwordOk = true;
+                    }
                 }
             }
 
@@ -53,13 +67,14 @@ namespace ECommerce.Infrastructure.Services
                 throw new UnauthorizedException("Invalid credentials");
             }
 
-            var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == user.CompanyId);
-            if (company == null || !company.IsApproved)
+            // Şirket onay kontrolü - CompanyAdmin veya CompanyUser için
+            var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == userData.CompanyId);
+            if (company != null && !company.IsApproved)
             {
-                throw new ForbiddenException("Company is not approved");
+                throw new ForbiddenException("Şirketiniz henüz onaylanmamıştır. Lütfen süper admin onayını bekleyiniz.");
             }
 
-            var token = GenerateJwtToken(user);
+            var token = GenerateJwtToken(userData.Id, userData.Username, userData.Email, userData.CompanyId, userData.Roles);
             var refreshToken = GenerateRefreshToken();
 
             return new AuthResponseDto
@@ -67,8 +82,8 @@ namespace ECommerce.Infrastructure.Services
                 AccessToken = token,
                 RefreshToken = refreshToken,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(60),
-                Username = user.Username,
-                Roles = user.UserRoles.Select(ur => ur.Role?.Name ?? "").ToList()
+                Username = userData.Username,
+                Roles = userData.Roles
             };
         }
 
@@ -79,29 +94,77 @@ namespace ECommerce.Infrastructure.Services
                 throw new ConflictException("Email already exists");
             }
 
-            var user = User.Create(
-                registerDto.CompanyId,
-                registerDto.Username,
-                registerDto.Email,
-                BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
-                registerDto.FirstName,
-                registerDto.LastName
-            );
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            var token = GenerateJwtToken(user);
-            var refreshToken = GenerateRefreshToken();
-
-            return new AuthResponseDto
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                AccessToken = token,
-                RefreshToken = refreshToken,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(60),
-                Username = user.Username,
-                Roles = new List<string>()
-            };
+                // CompanyId zorunlu - sadece mevcut şirketlere kullanıcı ekleyebilir
+                if (registerDto.CompanyId <= 0)
+                {
+                    throw new ArgumentException("Şirket ID'si gereklidir. Yeni şirket kaydı için /api/Company/register endpoint'ini kullanın.");
+                }
+
+                // Şirketin mevcut ve onaylı olduğunu kontrol et
+                var company = await _context.Companies
+                    .FirstOrDefaultAsync(c => c.Id == registerDto.CompanyId);
+                
+                if (company == null)
+                {
+                    throw new NotFoundException("Belirtilen şirket bulunamadı.");
+                }
+
+                if (!company.IsApproved)
+                {
+                    throw new ForbiddenException("Bu şirket henüz onaylanmamış. Kullanıcı eklenemez.");
+                }
+
+                int companyId = registerDto.CompanyId;
+                bool isNewCompany = false;
+
+                var user = User.Create(
+                    companyId,
+                    registerDto.Username,
+                    registerDto.Email,
+                    BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
+                    registerDto.FirstName,
+                    registerDto.LastName
+                );
+
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+
+                // Assign Role - sadece User rolü (çünkü mevcut şirkete ekleniyor)
+                var roleName = "User";
+                var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == roleName);
+                var roles = new List<string>();
+
+                if (role != null)
+                {
+                    var userRole = UserRole.Create(user.Id, role.Id, role.Name);
+                    _context.UserRoles.Add(userRole);
+                    await _context.SaveChangesAsync();
+                    roles.Add(roleName);
+                }
+
+                await transaction.CommitAsync();
+
+                // Onaylı şirkete kullanıcı eklendi, token ver
+                var token = GenerateJwtToken(user.Id, user.Username, user.Email, user.CompanyId, roles);
+                var refreshToken = GenerateRefreshToken();
+
+                return new AuthResponseDto
+                {
+                    AccessToken = token,
+                    RefreshToken = refreshToken,
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(60),
+                    Username = user.Username,
+                    Roles = roles
+                };
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken)
@@ -177,24 +240,26 @@ namespace ECommerce.Infrastructure.Services
             return !string.IsNullOrEmpty(token);
         }
 
-        private string GenerateJwtToken(User user)
+        private string GenerateJwtToken(int userId, string username, string email, int companyId, IEnumerable<string> roles)
         {
             var jwtSettings = _configuration.GetSection("Jwt");
             var key = Encoding.UTF8.GetBytes(jwtSettings["Key"] ?? "SecretKeySecretKey12345678");
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim("userId", user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim("CompanyId", user.CompanyId.ToString())
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                new Claim("userId", userId.ToString()),
+                new Claim(ClaimTypes.Name, username),
+                new Claim(ClaimTypes.Email, email),
+                new Claim("CompanyId", companyId.ToString())
             };
 
-            foreach (var userRole in user.UserRoles)
+            foreach (var roleName in roles)
             {
-                if (userRole.Role != null)
-                    claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name));
+                if (!string.IsNullOrWhiteSpace(roleName))
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, roleName));
+                }
             }
 
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -209,6 +274,12 @@ namespace ECommerce.Infrastructure.Services
             var tokenHandler = new JwtSecurityTokenHandler();
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+        }
+
+        private string GenerateJwtToken(User user)
+        {
+            var roles = user.UserRoles.Select(ur => ur.Role?.Name ?? "");
+            return GenerateJwtToken(user.Id, user.Username, user.Email, user.CompanyId, roles);
         }
 
         private string GenerateRefreshToken()
@@ -226,6 +297,30 @@ namespace ECommerce.Infrastructure.Services
             using var sha256 = SHA256.Create();
             var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
             return Convert.ToBase64String(bytes);
+        }
+
+        public async Task<UserDto?> GetUserByIdAsync(int userId)
+        {
+            var user = await _context.Users
+                .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .Include(u => u.Company)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+                return null;
+
+            return new UserDto
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Email = user.Email,
+                CompanyId = user.CompanyId,
+                CompanyName = user.Company?.Name,
+                Roles = user.UserRoles.Select(ur => ur.Role?.Name ?? "").ToList(),
+                IsActive = user.IsActive,
+                CreatedAt = user.CreatedAt
+            };
         }
     }
 }

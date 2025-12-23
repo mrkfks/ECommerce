@@ -15,12 +15,56 @@ namespace Dashboard.Web.Services
         {
             try
             {
-                var roles = await _httpClient.GetFromJsonAsync<List<string>>("api/User/roles");
-                return roles ?? new List<string>();
+                var response = await _httpClient.GetAsync("api/Role");
+                if (response.IsSuccessStatusCode)
+                {
+                    var roles = await response.Content.ReadFromJsonAsync<List<RoleDto>>();
+                    return roles?.Select(r => r.Name).ToList() ?? new List<string>();
+                }
+                return new List<string>();
             }
             catch
             {
                 return new List<string>();
+            }
+        }
+
+        public async Task<bool> CreateAsync(UserCreateDto dto)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("api/User", dto);
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateAsync(int id, UserUpdateDto dto)
+        {
+            try
+            {
+                var response = await _httpClient.PutAsJsonAsync($"api/User/{id}", dto);
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<List<UserDto>> GetByCompanyAsync(int companyId)
+        {
+            try
+            {
+                var result = await _httpClient.GetFromJsonAsync<List<UserDto>>($"api/User?companyId={companyId}");
+                return result ?? new List<UserDto>();
+            }
+            catch
+            {
+                return new List<UserDto>();
             }
         }
     }
