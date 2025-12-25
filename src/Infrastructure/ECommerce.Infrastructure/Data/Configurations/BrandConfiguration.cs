@@ -21,6 +21,9 @@ public class BrandConfiguration : IEntityTypeConfiguration<Brand>
         builder.Property(b => b.ImageUrl)
             .HasMaxLength(500);
 
+        builder.Property(b => b.CompanyId)
+            .IsRequired();
+
         builder.Property(b => b.IsActive)
             .IsRequired()
             .HasDefaultValue(true);
@@ -31,7 +34,16 @@ public class BrandConfiguration : IEntityTypeConfiguration<Brand>
         builder.Property(b => b.UpdatedAt)
             .IsRequired();
 
+        // Relationship with Category
+        builder.HasOne(b => b.Category)
+            .WithMany(c => c.Brands)
+            .HasForeignKey(b => b.CategoryId)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
+
         // Indexes
         builder.HasIndex(b => b.Name);
+        builder.HasIndex(b => b.CompanyId);
+        builder.HasIndex(b => b.CategoryId);
     }
 }

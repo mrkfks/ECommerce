@@ -5,7 +5,7 @@ using Dashboard.Web.Services;
 
 namespace Dashboard.Web.Controllers
 {
-    [Authorize(Roles = "CompanyAdmin,SuperAdmin,CompanyStaff")]
+    [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
     public class ReviewController : Controller
     {
         private readonly ReviewApiService _reviewService;
@@ -35,7 +35,7 @@ namespace Dashboard.Web.Controllers
         }
 
         // Silme
-        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
@@ -47,7 +47,7 @@ namespace Dashboard.Web.Controllers
             return View(review);
         }
 
-        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
         [HttpPost, ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {

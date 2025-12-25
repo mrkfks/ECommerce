@@ -1,0 +1,113 @@
+@model ECommerce.Application.DTOs.UserDto
+
+@{
+    ViewData["Title"] = "Profilim";
+}
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h2 class="section-title">Profilim</h2>
+        <p class="text-muted">Kişisel bilgilerinizi güncelleyin.</p>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-check-circle me-2"></i>
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <form asp-action="Profile" method="post">
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="CompanyId" />
+                    <input type="hidden" asp-for="CreatedAt" />
+                    <input type="hidden" asp-for="IsActive" />
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="FirstName" class="form-label fw-bold">Ad <span class="text-danger">*</span></label>
+                            <input asp-for="FirstName" class="form-control" required />
+                            <span asp-validation-for="FirstName" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="LastName" class="form-label fw-bold">Soyad <span class="text-danger">*</span></label>
+                            <input asp-for="LastName" class="form-control" required />
+                            <span asp-validation-for="LastName" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-12">
+                            <label asp-for="Username" class="form-label fw-bold">Kullanıcı Adı <span class="text-danger">*</span></label>
+                            <input asp-for="Username" class="form-control" required />
+                            <span asp-validation-for="Username" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-12">
+                            <label asp-for="Email" class="form-label fw-bold">E-posta <span class="text-danger">*</span></label>
+                            <input asp-for="Email" class="form-control" type="email" required />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-12 mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-save me-2"></i> Kaydet
+                            </button>
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-secondary ms-2">
+                                <i class="fa-solid fa-times me-2"></i> İptal
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h5 class="card-title mb-3">Hesap Bilgileri</h5>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Şirket</small>
+                    <strong>@Model.CompanyName</strong>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Roller</small>
+                    @if (Model.Roles != null && Model.Roles.Any())
+                    {
+                        foreach (var role in Model.Roles)
+                        {
+                            <span class="badge bg-info me-1">@role</span>
+                        }
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Rol Atanmamış</span>
+                    }
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Durum</small>
+                    @if (Model.IsActive)
+                    {
+                        <span class="badge bg-success">Aktif</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Pasif</span>
+                    }
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Kayıt Tarihi</small>
+                    <strong>@Model.CreatedAt.ToString("dd.MM.yyyy")</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

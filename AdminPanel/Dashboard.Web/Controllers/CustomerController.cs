@@ -5,7 +5,7 @@ using Dashboard.Web.Services;
 
 namespace Dashboard.Web.Controllers
 {
-    [Authorize(Roles = "CompanyAdmin,SuperAdmin,CompanyStaff")]
+    [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
     public class CustomerController : Controller
     {
         private readonly CustomerApiService _customerService;
@@ -35,7 +35,7 @@ namespace Dashboard.Web.Controllers
 
         // Düzenleme
         [HttpGet]
-        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
         public async Task<IActionResult> Edit(int id)
         {
             var customer = await _customerService.GetByIdAsync(id);
@@ -46,7 +46,7 @@ namespace Dashboard.Web.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
         public async Task<IActionResult> Edit(CustomerDto customer)
         {
             if (!ModelState.IsValid)
@@ -62,7 +62,7 @@ namespace Dashboard.Web.Controllers
 
         // Silme
         [HttpGet]
-        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
         public async Task<IActionResult> Delete(int id)
         {
             var customer = await _customerService.GetByIdAsync(id);
@@ -73,7 +73,7 @@ namespace Dashboard.Web.Controllers
         }
 
         [HttpPost, ActionName("Delete")]
-        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var success = await _customerService.DeleteAsync(id);

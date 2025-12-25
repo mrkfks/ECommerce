@@ -69,6 +69,9 @@
             }
             @if (User.IsInRole("SuperAdmin"))
             {
+                <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Category" ? "active" : "")" asp-controller="Category" asp-action="Index">
+                    <i class="fa-solid fa-folder-tree me-2"></i> Kategoriler
+                </a>
                 <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Company" ? "active" : "")" asp-controller="Company" asp-action="Index">
                     <i class="fa-solid fa-building me-2"></i> Şirketler
                 </a>
@@ -114,7 +117,7 @@
                             <ul class="dropdown-menu dropdown-menu-end">
                                 @if (User?.Identity?.IsAuthenticated ?? false)
                                 {
-                                    <li><a class="dropdown-item" asp-controller="Auth" asp-action="Profile"><i class="fa-regular fa-id-badge me-2"></i> Profil</a></li>
+                                    <li><a class="dropdown-item" asp-controller="User" asp-action="Profile"><i class="fa-regular fa-id-badge me-2"></i> Profilim</a></li>
                                     <li><hr class="dropdown-divider" /></li>
                                     <li><a class="dropdown-item text-danger" asp-controller="Auth" asp-action="Logout"><i class="fa-solid fa-right-from-bracket me-2"></i> Çıkış</a></li>
                                 }

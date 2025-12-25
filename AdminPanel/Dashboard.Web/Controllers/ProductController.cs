@@ -5,7 +5,7 @@ using Dashboard.Web.Services;
 
 namespace Dashboard.Web.Controllers
 {
-    [Authorize(Roles = "CompanyAdmin,SuperAdmin,CompanyStaff")]
+    [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
     public class ProductController : Controller
     {
         private readonly ProductApiService _productService;
@@ -43,7 +43,7 @@ namespace Dashboard.Web.Controllers
         }
 
         // GET: Create formu
-        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
         [HttpGet]
         public async Task<IActionResult> Create()
         {
@@ -63,7 +63,7 @@ namespace Dashboard.Web.Controllers
         }
 
         // POST: Yeni ürün ekleme
-        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
         [HttpPost]
         public async Task<IActionResult> Create(ProductDto product)
         {
@@ -79,7 +79,7 @@ namespace Dashboard.Web.Controllers
         }
 
         // GET: Edit formu
-        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -91,7 +91,7 @@ namespace Dashboard.Web.Controllers
         }
 
         // POST: Ürün güncelleme
-        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
         [HttpPost]
         public async Task<IActionResult> Edit(ProductDto product)
         {
@@ -106,7 +106,7 @@ namespace Dashboard.Web.Controllers
             return View(product);
         }
         // GET: Delete onay ekranı
-        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
@@ -118,7 +118,7 @@ namespace Dashboard.Web.Controllers
         }
 
         // POST: Ürün silme
-        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
         [HttpPost, ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {

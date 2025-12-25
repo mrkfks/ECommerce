@@ -5,7 +5,7 @@ using Dashboard.Web.Services;
 
 namespace Dashboard.Web.Controllers
 {
-    [Authorize(Roles = "CompanyAdmin,SuperAdmin,CompanyStaff")]
+    [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
     public class OrderController : Controller
     {
         private readonly OrderApiService _orderService;
@@ -34,7 +34,7 @@ namespace Dashboard.Web.Controllers
         }
 
         // Durum güncelleme (Edit)
-        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -45,7 +45,7 @@ namespace Dashboard.Web.Controllers
             return View(order);
         }
 
-        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
         [HttpPost]
         public async Task<IActionResult> Edit(OrderDto order)
         {

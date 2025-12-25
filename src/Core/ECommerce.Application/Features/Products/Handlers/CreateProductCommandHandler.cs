@@ -30,7 +30,9 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             request.Product.BrandId,
             request.Product.CompanyId,
             request.Product.StockQuantity,
-            request.Product.ImageUrl
+            null, // modelId - opsiyonel
+            request.Product.ImageUrl,
+            null  // sku - opsiyonel
         );
 
         await _unitOfWork.Products.AddAsync(product);

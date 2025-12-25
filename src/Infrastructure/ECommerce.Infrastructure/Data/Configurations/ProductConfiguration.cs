@@ -30,6 +30,9 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.ImageUrl)
             .HasMaxLength(500);
 
+        builder.Property(p => p.Sku)
+            .HasMaxLength(100);
+
         builder.Property(p => p.IsActive)
             .IsRequired()
             .HasDefaultValue(true);
@@ -60,10 +63,18 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasForeignKey(p => p.CompanyId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(p => p.Model)
+            .WithMany(m => m.Products)
+            .HasForeignKey(p => p.ModelId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false);
+
         // Indexes
         builder.HasIndex(p => p.Name);
         builder.HasIndex(p => p.CategoryId);
         builder.HasIndex(p => p.BrandId);
+        builder.HasIndex(p => p.ModelId);
         builder.HasIndex(p => p.CompanyId);
+        builder.HasIndex(p => p.Sku);
     }
 }

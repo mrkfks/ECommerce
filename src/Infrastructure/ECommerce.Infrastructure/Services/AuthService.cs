@@ -89,9 +89,17 @@ namespace ECommerce.Infrastructure.Services
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto registerDto)
         {
-            if (await _context.Users.AnyAsync(u => u.Email == registerDto.Email))
+            // Email ve Username kontrolü (TÜM ŞİRKETLERDE benzersiz olmalı)
+            var existingUser = await _context.Users
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(u => u.Email == registerDto.Email || u.Username == registerDto.Username);
+            
+            if (existingUser != null)
             {
-                throw new ConflictException("Email already exists");
+                if (existingUser.Email == registerDto.Email)
+                    throw new ConflictException("Bu email adresi zaten kullanılıyor.");
+                else
+                    throw new ConflictException("Bu kullanıcı adı zaten kullanılıyor.");
             }
 
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -118,7 +126,7 @@ namespace ECommerce.Infrastructure.Services
                 }
 
                 int companyId = registerDto.CompanyId;
-                bool isNewCompany = false;
+                //bool isNewCompany = false;
 
                 var user = User.Create(
                     companyId,

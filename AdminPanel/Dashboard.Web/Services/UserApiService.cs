@@ -67,5 +67,35 @@ namespace Dashboard.Web.Services
                 return new List<UserDto>();
             }
         }
+
+        public async Task<UserDto?> GetProfileAsync()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync("api/User/profile");
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<UserDto>();
+                }
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public async Task<bool> UpdateProfileAsync(UserProfileUpdateDto dto)
+        {
+            try
+            {
+                var response = await _httpClient.PutAsJsonAsync("api/User/profile", dto);
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }

@@ -44,10 +44,17 @@ namespace ECommerce.Domain.Entities
             };
         }
 
-        public void UpdateProfile(string? firstName, string? lastName, string email)
+        public void UpdateProfile(string? firstName, string? lastName, string email, string? username = null)
         {
             if (string.IsNullOrWhiteSpace(email) || !email.Contains("@"))
                 throw new ArgumentException("Geçerli bir e-posta adresi girin.", nameof(email));
+
+            if (!string.IsNullOrWhiteSpace(username))
+            {
+                if (username.Length < 3)
+                    throw new ArgumentException("Kullanıcı adı en az 3 karakter olmalıdır.", nameof(username));
+                Username = username;
+            }
 
             FirstName = firstName;
             LastName = lastName;

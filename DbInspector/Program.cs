@@ -5,41 +5,58 @@ var connectionString = $"Data Source={dbPath}";
 
 if (!File.Exists(dbPath))
 {
-    Console.WriteLine("Database file not found!");
+    Console.WriteLine($"Database file not found at: {dbPath}");
     return;
 }
+
+Console.WriteLine($"Database path: {dbPath}\n");
 
 using (var connection = new SqliteConnection(connectionString))
 {
     connection.Open();
 
-    var emailToDelete = "omerkafkas55@gmail.com"; // Email from screenshot
-
-    var cmdCheck = connection.CreateCommand();
-    cmdCheck.CommandText = "SELECT COUNT(*) FROM Users WHERE Email = @Email";
-    var pEmail = cmdCheck.CreateParameter();
-    pEmail.ParameterName = "@Email";
-    pEmail.Value = emailToDelete;
-    cmdCheck.Parameters.Add(pEmail);
+    // Check for duplicate usernames
+    Console.WriteLine("=== Checking for Duplicate Usernames ===");
+    var cmdDuplicates = connection.CreateCommand();
+    cmdDuplicates.CommandText = @"
+        SELECT Username, COUNT(*) as Count 
+        FROM Users 
+        GROUP BY Username 
+        HAVING COUNT(*) > 1";
     
-    var count = (long)cmdCheck.ExecuteScalar();
-    
-    if (count > 0)
+    using (var reader = cmdDuplicates.ExecuteReader())
     {
-        Console.WriteLine($"Found user with email {emailToDelete}. Deleting...");
+        bool hasDuplicates = false;
+        while (reader.Read())
+        {
+            hasDuplicates = true;
+            Console.WriteLine($"Username: {reader.GetString(0)}, Count: {reader.GetInt64(1)}");
+        }
         
-        var cmdDelete = connection.CreateCommand();
-        cmdDelete.CommandText = "DELETE FROM Users WHERE Email = @Email";
-        var pDelete = cmdDelete.CreateParameter();
-        pDelete.ParameterName = "@Email";
-        pDelete.Value = emailToDelete;
-        cmdDelete.Parameters.Add(pDelete);
-        cmdDelete.ExecuteNonQuery();
-        
-        Console.WriteLine("User deleted successfully.");
+        if (!hasDuplicates)
+        {
+            Console.WriteLine("No duplicate usernames found.");
+        }
     }
-    else
+
+    // List all users
+    Console.WriteLine("\n=== All Users ===");
+    var cmdAllUsers = connection.CreateCommand();
+    cmdAllUsers.CommandText = "SELECT Id, Username, Email, CompanyId, IsActive FROM Users ORDER BY Id";
+    
+    using (var reader = cmdAllUsers.ExecuteReader())
     {
-        Console.WriteLine("User not found.");
+        Console.WriteLine("{0,-5} {1,-20} {2,-35} {3,-10} {4,-8}", "ID", "Username", "Email", "CompanyId", "Active");
+        Console.WriteLine(new string('-', 85));
+        
+        while (reader.Read())
+        {
+            Console.WriteLine("{0,-5} {1,-20} {2,-35} {3,-10} {4,-8}", 
+                reader.GetInt32(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetInt32(3),
+                reader.GetBoolean(4));
+        }
     }
 }

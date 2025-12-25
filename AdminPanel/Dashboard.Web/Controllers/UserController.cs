@@ -164,5 +164,46 @@ namespace Dashboard.Web.Controllers
             var user = await _userService.GetByIdAsync(id);
             return View(user);
         }
+
+        // Profil Görüntüleme ve Düzenleme - Herkes Erişebilir
+        [AllowAnonymous]
+        [Authorize] // Sadece giriş yapmış kullanıcılar
+        [HttpGet]
+        public async Task<IActionResult> Profile()
+        {
+            var user = await _userService.GetProfileAsync();
+            if (user == null)
+                return NotFound();
+
+            return View(user);
+        }
+
+        [AllowAnonymous]
+        [Authorize] // Sadece giriş yapmış kullanıcılar
+        [HttpPost]
+        public async Task<IActionResult> Profile(UserDto user)
+        {
+            if (!ModelState.IsValid)
+                return View(user);
+
+            var profileDto = new UserProfileUpdateDto
+            {
+                Username = user.Username,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName
+            };
+
+            var success = await _userService.UpdateProfileAsync(profileDto);
+
+            if (success)
+            {
+                TempData["Success"] = "Profil bilgileriniz başarıyla güncellendi";
+                return RedirectToAction(nameof(Profile));
+            }
+
+            ModelState.AddModelError("", "Profil güncellenirken hata oluştu.");
+            return View(user);
+        }
     }
 }

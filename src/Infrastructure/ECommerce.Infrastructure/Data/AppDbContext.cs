@@ -15,6 +15,12 @@ namespace ECommerce.Infrastructure.Data
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Brand> Brands { get; set; }
+        public DbSet<Model> Models { get; set; }
+        public DbSet<ProductSpecification> ProductSpecifications { get; set; }
+        public DbSet<ProductAttribute> Attributes { get; set; }
+        public DbSet<AttributeValue> AttributeValues { get; set; }
+        public DbSet<ProductVariant> ProductVariants { get; set; }
+        public DbSet<ProductVariantAttribute> ProductVariantAttributes { get; set; }
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
@@ -26,6 +32,8 @@ namespace ECommerce.Infrastructure.Data
         public DbSet<Address> Addresses { get; set; }
         public DbSet<Company> Companies { get; set; }
         public DbSet<Request> Requests { get; set; }
+        public DbSet<CategoryAttribute> CategoryAttributes { get; set; }
+        public DbSet<CategoryAttributeValue> CategoryAttributeValues { get; set; }
 
         // Tenant context
         public int? CurrentCompanyId { get; private set; }
@@ -37,9 +45,17 @@ namespace ECommerce.Infrastructure.Data
 
             // Apply all entity configurations
             modelBuilder.ApplyConfiguration(new ProductConfiguration());
+            modelBuilder.ApplyConfiguration(new ModelConfiguration());
+            modelBuilder.ApplyConfiguration(new ProductSpecificationConfiguration());
+            modelBuilder.ApplyConfiguration(new AttributeConfiguration());
+            modelBuilder.ApplyConfiguration(new AttributeValueConfiguration());
+            modelBuilder.ApplyConfiguration(new ProductVariantConfiguration());
+            modelBuilder.ApplyConfiguration(new ProductVariantAttributeConfiguration());
             modelBuilder.ApplyConfiguration(new OrderConfiguration());
             modelBuilder.ApplyConfiguration(new OrderItemConfiguration());
             modelBuilder.ApplyConfiguration(new CategoryConfiguration());
+            modelBuilder.ApplyConfiguration(new CategoryAttributeConfiguration());
+            modelBuilder.ApplyConfiguration(new CategoryAttributeValueConfiguration());
             modelBuilder.ApplyConfiguration(new BrandConfiguration());
             modelBuilder.ApplyConfiguration(new CustomerConfiguration());
             modelBuilder.ApplyConfiguration(new UserConfiguration());
@@ -60,7 +76,13 @@ namespace ECommerce.Infrastructure.Data
                 .HasQueryFilter(e => CurrentCompanyId == null || e.CompanyId == CurrentCompanyId);
             modelBuilder.Entity<Product>()
                 .HasQueryFilter(e => CurrentCompanyId == null || e.CompanyId == CurrentCompanyId);
+            modelBuilder.Entity<Category>()
+                .HasQueryFilter(e => CurrentCompanyId == null || e.CompanyId == CurrentCompanyId);
             modelBuilder.Entity<Review>()
+                .HasQueryFilter(e => CurrentCompanyId == null || e.CompanyId == CurrentCompanyId);
+            modelBuilder.Entity<ProductSpecification>()
+                .HasQueryFilter(e => CurrentCompanyId == null || e.CompanyId == CurrentCompanyId);
+            modelBuilder.Entity<ProductVariant>()
                 .HasQueryFilter(e => CurrentCompanyId == null || e.CompanyId == CurrentCompanyId);
         }
 

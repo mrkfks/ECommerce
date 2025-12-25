@@ -38,7 +38,7 @@ public static class DependencyInjection
         // services.AddScoped<ICustomerService, CustomerService>();
         // services.AddScoped<IReviewService, ReviewService>();
         services.AddScoped<IUserService, UserService>();
-        // services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<ICategoryService, CategoryService>();
         // services.AddScoped<IBrandService, BrandService>();
         services.AddScoped<ITenantService, TenantService>();
         services.AddScoped<IFileUploadService, FileUploadService>(provider =>

@@ -96,7 +96,20 @@ namespace ECommerce.Application.Mappings
                 .ForMember(d => d.Reviews, opt => opt.Ignore());
 
             // Brand mappings
-            CreateMap<Brand, BrandDto>().ReverseMap();
+            CreateMap<Brand, BrandDto>()
+                .ForMember(d => d.CategoryName, opt => opt.MapFrom(s => s.Category != null ? s.Category.Name : null));
+            CreateMap<BrandCreateDto, Brand>();
+            CreateMap<BrandUpdateDto, Brand>();
+
+            // Model mappings
+            CreateMap<Model, ModelDto>()
+                .ForMember(d => d.BrandName, opt => opt.MapFrom(s => s.Brand != null ? s.Brand.Name : null));
+            CreateMap<ModelCreateDto, Model>();
+            CreateMap<ModelUpdateDto, Model>();
+
+            // CategoryAttribute mappings
+            CreateMap<CategoryAttribute, CategoryAttributeDto>();
+            CreateMap<CategoryAttributeValue, CategoryAttributeValueDto>();
 
             // Category mappings
             CreateMap<Category, CategoryDto>().ReverseMap();

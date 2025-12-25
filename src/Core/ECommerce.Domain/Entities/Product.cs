@@ -10,23 +10,28 @@ namespace ECommerce.Domain.Entities
         public decimal Price { get; private set; }
         public int CategoryId { get; private set; }
         public int BrandId { get; private set; }
+        public int? ModelId { get; private set; } // Opsiyonel model
         public int CompanyId { get; private set; }
         public int StockQuantity { get; private set; }
         public string? ImageUrl { get; private set; }
+        public string? Sku { get; private set; } // Stock Keeping Unit
         public bool IsActive { get; private set; } = true;
         public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
 
         public virtual Category? Category { get; private set; }
         public virtual Brand? Brand { get; private set; }
+        public virtual Model? Model { get; private set; }
         public virtual Company? Company { get; private set; }
         public virtual ICollection<Review> Reviews { get; private set; } = new List<Review>();
         public virtual ICollection<OrderItem> OrderItems { get; private set; } = new List<OrderItem>();
+        public virtual ICollection<ProductSpecification> Specifications { get; private set; } = new List<ProductSpecification>();
+        public virtual ICollection<ProductVariant> Variants { get; private set; } = new List<ProductVariant>();
         
         [System.ComponentModel.DataAnnotations.ConcurrencyCheck]
         public Guid Version { get; private set; } = Guid.NewGuid();
 
-        public static Product Create(string name, string description, decimal price, int categoryId, int brandId, int companyId, int stockQuantity, string? imageUrl = null)
+        public static Product Create(string name, string description, decimal price, int categoryId, int brandId, int companyId, int stockQuantity, int? modelId = null, string? imageUrl = null, string? sku = null)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Ürün adı boş olamaz.", nameof(name));
@@ -44,9 +49,11 @@ namespace ECommerce.Domain.Entities
                 Price = price,
                 CategoryId = categoryId,
                 BrandId = brandId,
+                ModelId = modelId,
                 CompanyId = companyId,
                 StockQuantity = stockQuantity,
                 ImageUrl = imageUrl,
+                Sku = sku,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
@@ -105,6 +112,33 @@ namespace ECommerce.Domain.Entities
             IsActive = false;
             UpdatedAt = DateTime.UtcNow;
             Version = Guid.NewGuid();
+        }
+
+        // Specification Management
+        public void AddSpecification(string key, string value, int displayOrder = 0)
+        {
+            var spec = ProductSpecification.Create(Id, CompanyId, key, value, displayOrder);
+            ((List<ProductSpecification>)Specifications).Add(spec);
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void RemoveSpecification(ProductSpecification specification)
+        {
+            ((List<ProductSpecification>)Specifications).Remove(specification);
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void SetModel(int? modelId)
+        {
+            ModelId = modelId;
+            UpdatedAt = DateTime.UtcNow;
+            Version = Guid.NewGuid();
+        }
+
+        public void UpdateSku(string? sku)
+        {
+            Sku = sku;
+            UpdatedAt = DateTime.UtcNow;
         }
     }
 }

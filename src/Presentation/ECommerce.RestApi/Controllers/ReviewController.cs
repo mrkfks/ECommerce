@@ -20,7 +20,7 @@ public class ReviewController : ControllerBase
     }
     
     [HttpPost]
-    [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+    [Authorize(Roles = "CompanyAdmin,User,SuperAdmin")]
     public async Task<IActionResult> Add(ReviewCreateDto dto)
     {
         var review = Review.Create(
@@ -138,7 +138,7 @@ public class ReviewController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+    [Authorize(Roles = "CompanyAdmin,User,SuperAdmin")]
     public async Task<IActionResult> Update(int id, ReviewUpdateDto dto)
     {
         if (id != dto.Id) 
@@ -155,7 +155,7 @@ public class ReviewController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+    [Authorize(Roles = "CompanyAdmin,User,SuperAdmin")]
     public async Task<IActionResult> Delete(int id)
     {
         var review = await _context.Reviews.FindAsync(id);

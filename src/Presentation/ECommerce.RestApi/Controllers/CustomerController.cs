@@ -20,7 +20,7 @@ public class CustomerController : ControllerBase
     }
     
     [HttpPost]
-    [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+    [Authorize(Roles = "CompanyAdmin,User,SuperAdmin")]
     public async Task<IActionResult> Add(CustomerCreateDto dto)
     {
         var customer = Customer.Create(
@@ -85,7 +85,7 @@ public class CustomerController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+    [Authorize(Roles = "CompanyAdmin,User,SuperAdmin")]
     public async Task<IActionResult> Update(int id, CustomerUpdateDto dto)
     {
         var customer = await _context.Customers.FindAsync(id);
@@ -99,7 +99,7 @@ public class CustomerController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+    [Authorize(Roles = "CompanyAdmin,User,SuperAdmin")]
     public async Task<IActionResult> Delete(int id)
     {
         var customer = await _context.Customers.FindAsync(id);

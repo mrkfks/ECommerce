@@ -40,7 +40,7 @@ namespace ECommerce.Application.Features.Category.Handlers
                     };
                 }
 
-                category.Update(category.Name, category.Description, imageUrl);
+                category.Update(category.Name, category.Description, imageUrl, category.ParentCategoryId, category.DisplayOrder);
                 _unitOfWork.Categories.Update(category);
                 await _unitOfWork.SaveChangesAsync();
 

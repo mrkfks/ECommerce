@@ -25,7 +25,7 @@ namespace ECommerce.RestApi.Controllers
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // Email kontrolleri
+                // Email ve Username kontrolleri (TÜM ŞİRKETLERDE benzersiz)
                 var existingCompany = await _context.Companies
                     .FirstOrDefaultAsync(c => c.Email == dto.CompanyEmail);
                 
@@ -36,11 +36,14 @@ namespace ECommerce.RestApi.Controllers
 
                 var existingUser = await _context.Users
                     .IgnoreQueryFilters()
-                    .FirstOrDefaultAsync(u => u.Email == dto.Email);
+                    .FirstOrDefaultAsync(u => u.Email == dto.Email || u.Username == dto.Username);
                 
                 if (existingUser != null)
                 {
-                    return BadRequest(new { message = "Bu email adresi ile kayıtlı bir kullanıcı zaten mevcut." });
+                    if (existingUser.Email == dto.Email)
+                        return BadRequest(new { message = "Bu email adresi ile kayıtlı bir kullanıcı zaten mevcut." });
+                    else
+                        return BadRequest(new { message = "Bu kullanıcı adı zaten kullanılıyor." });
                 }
 
                 // Yeni şirket oluştur (IsApproved = false)

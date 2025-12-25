@@ -127,4 +127,57 @@ public class UserController : ControllerBase
             await _userService.AddRoleAsync(id, roleName);
             return Ok(new { message = "Rol atama işlemi tamamlandı." });
         }
+
+        // UPDATE PROFILE - Herkes kendi profilini düzenleyebilir
+        [HttpPut("profile")]
+        [Authorize]
+        public async Task<IActionResult> UpdateProfile([FromBody] UserProfileUpdateDto dto)
+        {
+            // Kullanıcının kendi ID'sini token'dan al
+            var userIdClaim = User.FindFirst("userId") ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return Unauthorized(new { message = "Kullanıcı kimliği bulunamadı." });
+            }
+
+            try
+            {
+                // Kullanıcının kendi profilini güncellemesine izin ver
+                var updateDto = new UserUpdateDto
+                {
+                    Id = userId,
+                    Username = dto.Username,
+                    Email = dto.Email,
+                    FirstName = dto.FirstName,
+                    LastName = dto.LastName,
+                    IsActive = true, // Kullanıcı kendi durumunu değiştiremez
+                    Roles = null // Kullanıcı kendi rollerini değiştiremez
+                };
+
+                await _userService.UpdateAsync(updateDto);
+                return Ok(new { message = "Profil bilgileriniz güncellendi." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // GET PROFILE - Kendi profilini görüntüle
+        [HttpGet("profile")]
+        [Authorize]
+        public async Task<IActionResult> GetProfile()
+        {
+            var userIdClaim = User.FindFirst("userId") ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return Unauthorized(new { message = "Kullanıcı kimliği bulunamadı." });
+            }
+
+            var user = await _userService.GetByIdAsync(userId);
+            if (user == null)
+                return NotFound(new { message = "Kullanıcı bulunamadı." });
+
+            return Ok(user);
+        }
 }

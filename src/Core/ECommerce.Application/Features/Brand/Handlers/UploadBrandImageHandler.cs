@@ -40,7 +40,7 @@ namespace ECommerce.Application.Features.Brand.Handlers
                     };
                 }
 
-                brand.Update(brand.Name, brand.Description, imageUrl);
+                brand.Update(brand.Name, brand.Description, brand.CategoryId, imageUrl);
                 _unitOfWork.Brands.Update(brand);
                 await _unitOfWork.SaveChangesAsync();
 

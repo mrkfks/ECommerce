@@ -4,8 +4,8 @@ namespace Dashboard.Web.Services;
 
 public class ApiService<T> : IApiService<T> where T : class
 {
-    private readonly HttpClient _httpClient;
-    private readonly string _endpoint;
+    protected readonly HttpClient _httpClient;
+    protected readonly string _endpoint;
 
     public ApiService(HttpClient httpClient, string endpoint)
     {

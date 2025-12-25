@@ -53,6 +53,12 @@ builder.Services.AddHttpClient<BrandApiService>(client =>
     client.Timeout = TimeSpan.FromSeconds(30);
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
+builder.Services.AddHttpClient<ModelApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
 builder.Services.AddHttpClient<CompanyApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);

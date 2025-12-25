@@ -135,13 +135,17 @@ public class UserService : IUserService
             ? dto.CompanyId.Value
             : currentCompanyId;
 
-        // Email ve username kontrolü
+        // Email ve username kontrolü (TÜM ŞİRKETLERDE benzersiz olmalı)
         var existingUser = await _context.Users
+            .IgnoreQueryFilters()
             .FirstOrDefaultAsync(u => u.Email == dto.Email || u.Username == dto.Username);
 
         if (existingUser != null)
         {
-            throw new InvalidOperationException("Bu email veya kullanıcı adı zaten kullanılıyor.");
+            if (existingUser.Email == dto.Email)
+                throw new InvalidOperationException("Bu email adresi zaten kullanılıyor.");
+            else
+                throw new InvalidOperationException("Bu kullanıcı adı zaten kullanılıyor.");
         }
 
         // Şifre hash'leme
@@ -174,8 +178,18 @@ public class UserService : IUserService
         if (user == null)
             throw new InvalidOperationException("Kullanıcı bulunamadı.");
 
-        // Profil güncelleme
-        user.UpdateProfile(dto.FirstName, dto.LastName, dto.Email);
+        // Username güncellemesi için benzersizlik kontrolü (TÜM ŞİRKETLERDE)
+        if (!string.IsNullOrEmpty(dto.Username) && dto.Username != user.Username)
+        {
+            var existingUser = await _context.Users
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(u => u.Username == dto.Username && u.Id != dto.Id);
+            if (existingUser != null)
+                throw new InvalidOperationException("Bu kullanıcı adı zaten kullanılıyor.");
+        }
+
+        // Profil güncelleme (username dahil)
+        user.UpdateProfile(dto.FirstName, dto.LastName, dto.Email, dto.Username);
 
         // Şirket güncelleme (SuperAdmin için)
         var isSuperAdmin = _tenantService.IsSuperAdmin();
@@ -189,15 +203,6 @@ public class UserService : IUserService
             user.Activate();
         else
             user.Deactivate();
-
-        if (!string.IsNullOrEmpty(dto.Username))
-        {
-            // Username güncellemesi için check
-            var existingUser = await _context.Users
-                .FirstOrDefaultAsync(u => u.Username == dto.Username && u.Id != dto.Id);
-            if (existingUser != null)
-                throw new InvalidOperationException("Bu kullanıcı adı zaten kullanılıyor.");
-        }
 
         await _context.SaveChangesAsync();
     }

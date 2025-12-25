@@ -20,7 +20,7 @@ public class ProductController : ControllerBase
     }
     
     [HttpPost]
-    [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+    [Authorize(Roles = "CompanyAdmin,User,SuperAdmin")]
     public async Task<IActionResult> Create(ProductCreateDto dto)
     {
         var product = Product.Create(
@@ -31,7 +31,9 @@ public class ProductController : ControllerBase
             dto.BrandId,
             dto.CompanyId,
             dto.StockQuantity,
-            dto.ImageUrl
+            null, // modelId - opsiyonel
+            dto.ImageUrl,
+            null  // sku - opsiyonel
         );
         
         _context.Products.Add(product);
@@ -147,7 +149,7 @@ public class ProductController : ControllerBase
     }
     
     [HttpPut("{id}")]
-    [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+    [Authorize(Roles = "CompanyAdmin,User,SuperAdmin")]
     public async Task<IActionResult> Update(int id, ProductUpdateDto dto)
     {
         if (id != dto.Id) 
@@ -170,7 +172,7 @@ public class ProductController : ControllerBase
     }
     
     [HttpDelete("{id}")]
-    [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+    [Authorize(Roles = "CompanyAdmin,User,SuperAdmin")]
     public async Task<IActionResult> Delete(int id)
     {
         var product = await _context.Products.FindAsync(id);
