@@ -23,7 +23,7 @@ public class UpdateStockCommandHandler : IRequestHandler<UpdateStockCommand, Api
             throw new NotFoundException("Ürün bulunamadı");
         }
 
-        var newStock = product.StockQuantity + request.Quantity;
+        var newStock = product.StockQuantity + request.StockQuantity;
         if (newStock < 0)
         {
             throw new BusinessException("Stok miktarı negatif olamaz");

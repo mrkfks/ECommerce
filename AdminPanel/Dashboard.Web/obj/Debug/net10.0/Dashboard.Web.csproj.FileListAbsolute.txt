@@ -44,7 +44,8 @@ C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\ob
 C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\obj\Debug\net10.0\scopedcss\projectbundle\Dashboard.Web.bundle.scp.css
 C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\obj\Debug\net10.0\compressed\gizta0sqc1-{0}-b9sayid5wm-b9sayid5wm.gz
 C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\obj\Debug\net10.0\compressed\9j744mbp01-{0}-61n19gt1b8-61n19gt1b8.gz
-C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\obj\Debug\net10.0\compressed\itq8ujv6ta-{0}-xtxxf3hu2r-xtxxf3hu2r.gz
+C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\obj\Debug\net10.0\compressed\1zxpp28g46-{0}-xv6cyc7bbp-xv6cyc7bbp.gz
+C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\obj\Debug\net10.0\compressed\sf2amcd8l5-{0}-bccd3p1955-bccd3p1955.gz
 C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\obj\Debug\net10.0\compressed\elm9hs6wjn-{0}-bqjiyaj88i-bqjiyaj88i.gz
 C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\obj\Debug\net10.0\compressed\jpybq7ydxb-{0}-c2jlpeoesf-c2jlpeoesf.gz
 C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\obj\Debug\net10.0\compressed\fmb68j3j2x-{0}-erw9l3u2r3-erw9l3u2r3.gz
@@ -117,5 +118,4 @@ C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\ob
 C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\obj\Debug\net10.0\Dashboard.Web.pdb
 C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\obj\Debug\net10.0\Dashboard.Web.genruntimeconfig.cache
 C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\obj\Debug\net10.0\ref\Dashboard.Web.dll
-C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\obj\Debug\net10.0\compressed\1zxpp28g46-{0}-xv6cyc7bbp-xv6cyc7bbp.gz
-C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\obj\Debug\net10.0\compressed\sf2amcd8l5-{0}-bccd3p1955-bccd3p1955.gz
+C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\obj\Debug\net10.0\compressed\itq8ujv6ta-{0}-n59vor8fyq-n59vor8fyq.gz

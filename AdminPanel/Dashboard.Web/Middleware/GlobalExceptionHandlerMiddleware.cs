@@ -1,14 +1,22 @@
+using System.Net;
+using System.Text.Json;
+
 namespace Dashboard.Web.Middleware;
 
 public class GlobalExceptionHandlerMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<GlobalExceptionHandlerMiddleware> _logger;
+    private readonly IWebHostEnvironment _env;
 
-    public GlobalExceptionHandlerMiddleware(RequestDelegate next, ILogger<GlobalExceptionHandlerMiddleware> logger)
+    public GlobalExceptionHandlerMiddleware(
+        RequestDelegate next, 
+        ILogger<GlobalExceptionHandlerMiddleware> logger,
+        IWebHostEnvironment env)
     {
         _next = next;
         _logger = logger;
+        _env = env;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -17,79 +25,56 @@ public class GlobalExceptionHandlerMiddleware
         {
             await _next(context);
 
-            // Handle 401 Unauthorized
-            if (context.Response.StatusCode == 401)
+            if (context.Response.StatusCode == 401 && !context.Response.HasStarted)
             {
-                _logger.LogWarning("401 Unauthorized response. Attempting token refresh...");
+                _logger.LogWarning("401 Unauthorized - Redirecting to login");
                 await HandleUnauthorized(context);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unhandled exception occurred");
+            _logger.LogError(ex, "Beklenmeyen hata: {Message}", ex.Message);
             await HandleExceptionAsync(context, ex);
         }
     }
 
-    private static async Task HandleUnauthorized(HttpContext context)
+    private static Task HandleUnauthorized(HttpContext context)
     {
-        // Token expired, try to refresh
-        if (context.Request.Cookies.TryGetValue("RefreshToken", out var refreshToken))
-        {
-            context.Items["NeedsTokenRefresh"] = new { refreshToken };
-        }
-        else
-        {
-            // No refresh token, redirect to login
-            context.Response.Redirect("/Auth/Login");
-        }
+        context.Response.Redirect("/Auth/Login");
+        return Task.CompletedTask;
     }
 
-    private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         context.Response.ContentType = "application/json";
+        
+        var (statusCode, message) = exception switch
+        {
+            UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "Yetkisiz erişim"),
+            InvalidOperationException => (HttpStatusCode.BadRequest, "Geçersiz işlem"),
+            KeyNotFoundException => (HttpStatusCode.NotFound, "Kayıt bulunamadı"),
+            ArgumentException => (HttpStatusCode.BadRequest, exception.Message),
+            _ => (HttpStatusCode.InternalServerError, "Sunucu hatası. Lütfen daha sonra tekrar deneyiniz.")
+        };
+
+        context.Response.StatusCode = (int)statusCode;
 
         var response = new
         {
             success = false,
-            message = exception.Message,
-            timestamp = DateTime.UtcNow
+            message,
+            timestamp = DateTime.UtcNow,
+            details = _env.IsDevelopment() ? exception.ToString() : null
         };
 
-        // Set appropriate status code based on exception type
-        if (exception is UnauthorizedAccessException)
-        {
-            context.Response.StatusCode = 401;
-            response = new
-            {
-                success = false,
-                message = "Yetkisiz erişim",
-                timestamp = DateTime.UtcNow
-            };
-        }
-        else if (exception is InvalidOperationException)
-        {
-            context.Response.StatusCode = 400;
-        }
-        else
-        {
-            context.Response.StatusCode = 500;
-            response = new
-            {
-                success = false,
-                message = "Sunucu hatası",
-                timestamp = DateTime.UtcNow
-            };
-        }
-
-        return context.Response.WriteAsJsonAsync(response);
+        await context.Response.WriteAsync(JsonSerializer.Serialize(response));
     }
 }
 
-public static class GlobalExceptionHandlerMiddlewareExtensions
+public static class GlobalExceptionHandlerExtensions
 {
-    public static IApplicationBuilder UseGlobalExceptionHandler(this IApplicationBuilder builder)
+    public static IApplicationBuilder UseGlobalExceptionHandler(this IApplicationBuilder app)
     {
-        return builder.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+        return app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
     }
 }

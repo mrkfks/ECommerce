@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Dashboard.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3067f5856b74b21a58873ff39b5dde39722bdf5d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+de02b030fef1249d010a300ad7a32f1a8c66c009")]
 [assembly: System.Reflection.AssemblyProductAttribute("Dashboard.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Dashboard.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

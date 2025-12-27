@@ -1,0 +1,54 @@
+@{
+    ViewData["Title"] = "Auth Test";
+}
+
+<div class="container mt-5">
+    <h2>Authentication Debug Info</h2>
+    
+    <div class="card mt-3">
+        <div class="card-header">
+            <h5>Cookies</h5>
+        </div>
+        <div class="card-body">
+            <p><strong>AuthToken:</strong> <code>@ViewBag.AuthToken</code></p>
+            <p><strong>JwtToken:</strong> <code>@ViewBag.JwtToken</code></p>
+            <p><strong>RefreshToken:</strong> <code>@ViewBag.RefreshToken</code></p>
+        </div>
+    </div>
+    
+    <div class="card mt-3">
+        <div class="card-header">
+            <h5>User Info</h5>
+        </div>
+        <div class="card-body">
+            <p><strong>Is Authenticated:</strong> @ViewBag.IsAuthenticated</p>
+            <p><strong>Username:</strong> @ViewBag.UserName</p>
+        </div>
+    </div>
+    
+    <div class="card mt-3">
+        <div class="card-header">
+            <h5>Claims</h5>
+        </div>
+        <div class="card-body">
+            @if (ViewBag.Claims != null && ViewBag.Claims.Count > 0)
+            {
+                <ul>
+                    @foreach (var claim in ViewBag.Claims)
+                    {
+                        <li><code>@claim</code></li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p>No claims found</p>
+            }
+        </div>
+    </div>
+    
+    <div class="mt-3">
+        <a href="/Auth/Login" class="btn btn-primary">Go to Login</a>
+        <a href="/Home/Index" class="btn btn-success">Go to Home</a>
+    </div>
+</div>

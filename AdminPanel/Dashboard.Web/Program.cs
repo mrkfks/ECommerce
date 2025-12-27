@@ -24,7 +24,7 @@ builder.Services.AddHttpClient("ECommerceApi", client =>
 })
     .AddHttpMessageHandler<AuthTokenHandler>();
 
-// Typed HttpClient Services - Yeni geliştirilen servisler (interface kullanımı)
+// Typed HttpClient Services
 builder.Services.AddHttpClient<IProductApiService, TypedProductApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
@@ -43,26 +43,13 @@ builder.Services.AddHttpClient<IOrderApiService, TypedOrderApiService>(client =>
     client.Timeout = TimeSpan.FromSeconds(30);
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
-// Eski servisler (geriye dönük uyumluluk için)
+builder.Services.AddHttpClient<CompanyApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
 builder.Services.AddHttpClient<CustomerApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
-
-builder.Services.AddHttpClient<ProductApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
-
-builder.Services.AddHttpClient<OrderApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
-
-builder.Services.AddHttpClient<CategoryApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
@@ -75,12 +62,6 @@ builder.Services.AddHttpClient<BrandApiService>(client =>
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
 builder.Services.AddHttpClient<ModelApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
-
-builder.Services.AddHttpClient<CompanyApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
@@ -99,6 +80,24 @@ builder.Services.AddHttpClient<UserApiService>(client =>
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
 builder.Services.AddHttpClient<ReviewApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+builder.Services.AddHttpClient<ProductApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+builder.Services.AddHttpClient<OrderApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+builder.Services.AddHttpClient<CategoryApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
@@ -139,13 +138,27 @@ builder.Services
                 {
                     context.Token = token;
                 }
-                return Task.CompletedTask;            },
+                return Task.CompletedTask;
+            },
             OnChallenge = context =>
             {
                 // 401 Unauthorized ise Login page'e redirect et
-                context.HandleResponse();
-                context.Response.Redirect("/Auth/Login");
-                return Task.CompletedTask;            }
+                if (!context.Response.HasStarted)
+                {
+                    context.HandleResponse();
+                    context.Response.Redirect("/Auth/Login");
+                }
+                return Task.CompletedTask;
+            },
+            OnAuthenticationFailed = context =>
+            {
+                // Token validation failed
+                if (context.Exception != null)
+                {
+                    context.Response.Headers.Append("Token-Expired", "true");
+                }
+                return Task.CompletedTask;
+            }
         };
 
         options.TokenValidationParameters = new TokenValidationParameters
@@ -167,10 +180,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("CompanyAdminOrSuperAdmin", policy => policy.RequireRole("CompanyAdmin", "SuperAdmin"));
     options.AddPolicy("CompanyAccess", policy => policy.RequireRole("CompanyAdmin", "SuperAdmin", "CompanyStaff"));
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("CompanyAdmin", "SuperAdmin"));
-    // Tüm sayfalar varsayılan olarak giriş gerektirsin
-    options.FallbackPolicy = new AuthorizationPolicyBuilder()
-        .RequireAuthenticatedUser()
-        .Build();
+    // FallbackPolicy removed - Controllers have [Authorize] attributes
 });
 
 var app = builder.Build();
@@ -185,7 +195,11 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// Development'ta HTTP kullanıldığı için HTTPS redirect kapalı
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseStaticFiles(); // wwwroot için gerekli
 app.UseRouting();
 
@@ -195,7 +209,7 @@ app.UseAuthorization();        // Authorize attribute aktif
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Auth}/{action=Login}/{id?}");
 
 app.Run();
 

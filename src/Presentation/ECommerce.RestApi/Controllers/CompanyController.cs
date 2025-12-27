@@ -102,7 +102,7 @@ namespace ECommerce.RestApi.Controllers
         }
 
         [HttpPost]
-        [Authorize(Policy = "RequireSuperAdmin")]
+        [Authorize(Policy = "SuperAdminOnly")]
         public async Task<IActionResult> Create([FromBody] CompanyDto dto)
         {
             try
@@ -143,7 +143,7 @@ namespace ECommerce.RestApi.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "RequireSuperAdmin")]
+        [Authorize(Policy = "SuperAdminOnly")]
         public async Task<IActionResult> GetAll()
         {
             var companies = await _context.Companies
@@ -171,7 +171,7 @@ namespace ECommerce.RestApi.Controllers
         }
 
         [HttpGet("{id:int}")]
-        [Authorize(Policy = "RequireSuperAdmin")]
+        [Authorize(Policy = "SuperAdminOnly")]
         public async Task<IActionResult> GetById(int id)
         {
             var company = await _context.Companies
@@ -203,7 +203,7 @@ namespace ECommerce.RestApi.Controllers
         }
 
         [HttpPut("{id:int}")]
-        [Authorize(Policy = "RequireSuperAdmin")]
+        [Authorize(Policy = "SuperAdminOnly")]
         public async Task<IActionResult> Update(int id, [FromBody] CompanyDto dto)
         {
             if (id != dto.Id)
@@ -220,7 +220,7 @@ namespace ECommerce.RestApi.Controllers
         }
 
         [HttpPost("{id:int}/approve")]
-        [Authorize(Policy = "RequireSuperAdmin")]
+        [Authorize(Policy = "SuperAdminOnly")]
         public async Task<IActionResult> Approve(int id)
         {
             var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
@@ -232,7 +232,7 @@ namespace ECommerce.RestApi.Controllers
         }
 
         [HttpPost("{id:int}/reject")]
-        [Authorize(Policy = "RequireSuperAdmin")]
+        [Authorize(Policy = "SuperAdminOnly")]
         public async Task<IActionResult> Reject(int id)
         {
             var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
@@ -244,7 +244,7 @@ namespace ECommerce.RestApi.Controllers
         }
 
         [HttpPost("{id:int}/deactivate")]
-        [Authorize(Policy = "RequireSuperAdmin")]
+        [Authorize(Policy = "SuperAdminOnly")]
         public async Task<IActionResult> Deactivate(int id)
         {
             var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
@@ -256,7 +256,7 @@ namespace ECommerce.RestApi.Controllers
         }
 
         [HttpPost("{id:int}/activate")]
-        [Authorize(Policy = "RequireSuperAdmin")]
+        [Authorize(Policy = "SuperAdminOnly")]
         public async Task<IActionResult> Activate(int id)
         {
             var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);

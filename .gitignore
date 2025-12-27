@@ -10,6 +10,7 @@
 
 # Logs
 *.log
+logs/
 
 # OS
 .DS_Store
@@ -26,8 +27,35 @@ Thumbs.db
 
 # User secrets
 **/secrets.json
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
+!appsettings.Production.json
 
 # Coverage
 coverage/
 
 .fake
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+data/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Docker
+docker-compose.override.yml
+
+# Uploads
+wwwroot/uploads/
+
+# Node modules (if any)
+node_modules/
+
+# Migrations (opsiyonel - isteğe bağlı)
+# **/Migrations/

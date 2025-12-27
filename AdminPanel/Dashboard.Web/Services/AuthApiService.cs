@@ -1,4 +1,5 @@
 using ECommerce.Application.DTOs;
+using Microsoft.Extensions.Logging;
 
 namespace Dashboard.Web.Services
 {
@@ -6,28 +7,38 @@ namespace Dashboard.Web.Services
     {
         private readonly HttpClient _httpClient;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger<AuthApiService> _logger;
 
-        public AuthApiService(HttpClient httpClient, IHttpContextAccessor httpContextAccessor)
+        public AuthApiService(HttpClient httpClient, IHttpContextAccessor httpContextAccessor, ILogger<AuthApiService> logger)
         {
             _httpClient = httpClient;
             _httpContextAccessor = httpContextAccessor;
+            _logger = logger;
         }
 
         public async Task<AuthResponseDto?> LoginAsync(LoginDto loginDto)
         {
             try
             {
+                _logger.LogInformation("Login attempt for: {UsernameOrEmail}", loginDto.UsernameOrEmail);
                 var response = await _httpClient.PostAsJsonAsync("api/Auth/login", loginDto);
+                
+                _logger.LogInformation("API Response Status: {StatusCode}", response.StatusCode);
                 
                 if (response.IsSuccessStatusCode)
                 {
-                    return await response.Content.ReadFromJsonAsync<AuthResponseDto>();
+                    var result = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
+                    _logger.LogInformation("Login successful, token received: {HasToken}", !string.IsNullOrEmpty(result?.AccessToken));
+                    return result;
                 }
                 
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("Login failed: {StatusCode} - {Content}", response.StatusCode, errorContent);
                 return null;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Exception during login");
                 return null;
             }
         }

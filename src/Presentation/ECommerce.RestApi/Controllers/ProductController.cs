@@ -1,9 +1,9 @@
 using ECommerce.Application.DTOs;
-using ECommerce.Domain.Entities;
-using ECommerce.Infrastructure.Data;
+using ECommerce.Application.Features.Products.Commands;
+using ECommerce.Application.Features.Products.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.RestApi.Controllers;
 
@@ -12,176 +12,137 @@ namespace ECommerce.RestApi.Controllers;
 [Authorize(Policy = "SameCompanyOrSuperAdmin")]
 public class ProductController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IMediator _mediator;
+    private readonly ILogger<ProductController> _logger;
 
-    public ProductController(AppDbContext context)
+    public ProductController(IMediator mediator, ILogger<ProductController> logger)
     {
-        _context = context;
+        _mediator = mediator;
+        _logger = logger;
     }
     
+    /// <summary>
+    /// Yeni ürün oluşturur
+    /// </summary>
     [HttpPost]
     [Authorize(Roles = "CompanyAdmin,User,SuperAdmin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create(ProductCreateDto dto)
     {
-        var product = Product.Create(
-            dto.Name,
-            dto.Description,
-            dto.Price,
-            dto.CategoryId,
-            dto.BrandId,
-            dto.CompanyId,
-            dto.StockQuantity,
-            null, // modelId - opsiyonel
-            dto.ImageUrl,
-            null  // sku - opsiyonel
-        );
-        
-        _context.Products.Add(product);
-        await _context.SaveChangesAsync();
-        
-        return Ok(new { id = product.Id, message = "Ürün oluşturuldu" });
+        _logger.LogInformation("Creating new product: {ProductName}", dto.Name);
+        var command = new CreateProductCommand { Product = dto };
+        var result = await _mediator.Send(command);
+        return Ok(result);
     }
     
+    /// <summary>
+    /// ID'ye göre ürün getirir
+    /// </summary>
     [HttpGet("{id}")]
     [AllowAnonymous]
+    [ResponseCache(Duration = 60, VaryByQueryKeys = new[] { "id" })]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Get(int id)
     {
-        var product = await _context.Products
-            .Include(p => p.Category)
-            .Include(p => p.Brand)
-            .Include(p => p.Company)
-            .Include(p => p.Reviews)
-            .AsNoTracking()
-            .Where(p => p.Id == id)
-            .Select(p => new ProductDto
-            {
-                Id = p.Id,
-                Name = p.Name,
-                Description = p.Description,
-                Price = p.Price,
-                StockQuantity = p.StockQuantity,
-                CategoryId = p.CategoryId,
-                CategoryName = p.Category != null ? p.Category.Name : "",
-                BrandId = p.BrandId,
-                BrandName = p.Brand != null ? p.Brand.Name : "",
-                CompanyId = p.CompanyId,
-                CompanyName = p.Company != null ? p.Company.Name : "",
-                ImageUrl = p.ImageUrl,
-                IsActive = p.IsActive,
-                CreatedAt = p.CreatedAt,
-                UpdatedAt = p.UpdatedAt,
-                ReviewCount = p.Reviews.Count,
-                AverageRating = p.Reviews.Any() ? p.Reviews.Average(r => r.Rating) : 0
-            })
-            .FirstOrDefaultAsync();
-            
-        if (product == null)
-            return NotFound(new { message = "Product not found" });
-        return Ok(product);
+        _logger.LogInformation("Fetching product with ID: {ProductId}", id);
+        var query = new GetProductByIdQuery { Id = id };
+        var result = await _mediator.Send(query);
+        return Ok(result);
     }
     
-    [HttpGet("company/{companyId}")]
-    [Authorize]
-    public async Task<IActionResult> GetByCompany(int companyId)
-    {
-        var products = await _context.Products
-            .Include(p => p.Category)
-            .Include(p => p.Brand)
-            .Include(p => p.Company)
-            .Where(p => p.CompanyId == companyId)
-            .AsNoTracking()
-            .Select(p => new ProductDto
-            {
-                Id = p.Id,
-                Name = p.Name,
-                Description = p.Description,
-                Price = p.Price,
-                StockQuantity = p.StockQuantity,
-                CategoryId = p.CategoryId,
-                CategoryName = p.Category != null ? p.Category.Name : "",
-                BrandId = p.BrandId,
-                BrandName = p.Brand != null ? p.Brand.Name : "",
-                CompanyId = p.CompanyId,
-                CompanyName = p.Company != null ? p.Company.Name : "",
-                ImageUrl = p.ImageUrl,
-                IsActive = p.IsActive,
-                CreatedAt = p.CreatedAt,
-                UpdatedAt = p.UpdatedAt,
-                ReviewCount = p.Reviews.Count,
-                AverageRating = p.Reviews.Any() ? p.Reviews.Average(r => r.Rating) : 0
-            })
-            .ToListAsync();
-        return Ok(products);
-    }
-    
+    /// <summary>
+    /// Tüm ürünleri getirir
+    /// </summary>
     [HttpGet]
     [AllowAnonymous]
+    [ResponseCache(Duration = 30)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll()
     {
-        var products = await _context.Products
-            .Include(p => p.Category)
-            .Include(p => p.Brand)
-            .Include(p => p.Company)
-            .Include(p => p.Reviews)
-            .AsNoTracking()
-            .Select(p => new ProductDto
-            {
-                Id = p.Id,
-                Name = p.Name,
-                Description = p.Description,
-                Price = p.Price,
-                StockQuantity = p.StockQuantity,
-                CategoryId = p.CategoryId,
-                CategoryName = p.Category != null ? p.Category.Name : "",
-                BrandId = p.BrandId,
-                BrandName = p.Brand != null ? p.Brand.Name : "",
-                CompanyId = p.CompanyId,
-                CompanyName = p.Company != null ? p.Company.Name : "",
-                ImageUrl = p.ImageUrl,
-                IsActive = p.IsActive,
-                CreatedAt = p.CreatedAt,
-                UpdatedAt = p.UpdatedAt,
-                ReviewCount = p.Reviews.Count,
-                AverageRating = p.Reviews.Any() ? p.Reviews.Average(r => r.Rating) : 0
-            })
-            .ToListAsync();
-        return Ok(products);
+        _logger.LogInformation("Fetching all products");
+        var query = new GetAllProductsQuery();
+        var result = await _mediator.Send(query);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Kategoriye göre ürünleri getirir
+    /// </summary>
+    [HttpGet("category/{categoryId}")]
+    [AllowAnonymous]
+    [ResponseCache(Duration = 60, VaryByQueryKeys = new[] { "categoryId" })]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetByCategory(int categoryId)
+    {
+        _logger.LogInformation("Fetching products for category: {CategoryId}", categoryId);
+        var query = new GetProductsByCategoryQuery { CategoryId = categoryId };
+        var result = await _mediator.Send(query);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Ürün arama
+    /// </summary>
+    [HttpGet("search")]
+    [AllowAnonymous]
+    [ResponseCache(Duration = 30, VaryByQueryKeys = new[] { "searchTerm" })]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> Search([FromQuery] string searchTerm)
+    {
+        _logger.LogInformation("Searching products with term: {SearchTerm}", searchTerm);
+        var query = new SearchProductsQuery { SearchTerm = searchTerm };
+        var result = await _mediator.Send(query);
+        return Ok(result);
     }
     
+    /// <summary>
+    /// Ürün günceller
+    /// </summary>
     [HttpPut("{id}")]
     [Authorize(Roles = "CompanyAdmin,User,SuperAdmin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(int id, ProductUpdateDto dto)
     {
         if (id != dto.Id) 
-            return BadRequest("Id mismatch");
+            return BadRequest(new { message = "Id mismatch" });
         
-        var product = await _context.Products.FindAsync(id);
-        if (product == null)
-            return NotFound(new { message = "Ürün bulunamadı" });
-        
-        product.Update(dto.Name, dto.Description, dto.Price, dto.ImageUrl);
-        product.UpdateStock(dto.StockQuantity);
-        
-        if (dto.IsActive)
-            product.Activate();
-        else
-            product.Deactivate();
-        
-        await _context.SaveChangesAsync();
-        return Ok(new { message = "Ürün Güncellendi" });
+        _logger.LogInformation("Updating product: {ProductId}", id);
+        var command = new UpdateProductCommand { Product = dto };
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Stok günceller
+    /// </summary>
+    [HttpPatch("{id}/stock")]
+    [Authorize(Roles = "CompanyAdmin,User,SuperAdmin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateStock(int id, [FromBody] int stockQuantity)
+    {
+        _logger.LogInformation("Updating stock for product {ProductId} to {StockQuantity}", id, stockQuantity);
+        var command = new UpdateStockCommand { ProductId = id, StockQuantity = stockQuantity };
+        var result = await _mediator.Send(command);
+        return Ok(result);
     }
     
+    /// <summary>
+    /// Ürün siler
+    /// </summary>
     [HttpDelete("{id}")]
     [Authorize(Roles = "CompanyAdmin,User,SuperAdmin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
-        var product = await _context.Products.FindAsync(id);
-        if (product == null)
-            return NotFound(new { message = "Ürün bulunamadı" });
-        
-        _context.Products.Remove(product);
-        await _context.SaveChangesAsync();
-        
-        return Ok(new { message = "Ürün Silindi" });
+        _logger.LogInformation("Deleting product: {ProductId}", id);
+        var command = new DeleteProductCommand { Id = id };
+        var result = await _mediator.Send(command);
+        return Ok(result);
     }
 }

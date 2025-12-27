@@ -151,7 +151,7 @@ public class UserController : ControllerBase
                     FirstName = dto.FirstName,
                     LastName = dto.LastName,
                     IsActive = true, // Kullanıcı kendi durumunu değiştiremez
-                    Roles = null // Kullanıcı kendi rollerini değiştiremez
+                    Roles = new List<string>() // Kullanıcı kendi rollerini değiştiremez
                 };
 
                 await _userService.UpdateAsync(updateDto);

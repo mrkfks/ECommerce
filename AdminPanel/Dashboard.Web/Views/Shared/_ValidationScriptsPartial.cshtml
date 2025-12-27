@@ -1,2 +1,16 @@
 ﻿<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
 <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+<script>
+    // Türkçe validation mesajları
+    jQuery.extend(jQuery.validator.messages, {
+        required: "Bu alan zorunludur.",
+        email: "Geçerli bir e-posta adresi giriniz.",
+        number: "Geçerli bir sayı giriniz.",
+        digits: "Sadece rakam giriniz.",
+        maxlength: jQuery.validator.format("En fazla {0} karakter girebilirsiniz."),
+        minlength: jQuery.validator.format("En az {0} karakter girmelisiniz."),
+        range: jQuery.validator.format("Lütfen {0} ile {1} arasında bir değer giriniz."),
+        max: jQuery.validator.format("Lütfen {0} veya daha küçük bir değer giriniz."),
+        min: jQuery.validator.format("Lütfen {0} veya daha büyük bir değer giriniz.")
+    });
+</script>

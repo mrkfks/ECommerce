@@ -1,7 +1,9 @@
 using ECommerce.Application;
 using ECommerce.Infrastructure;
+using ECommerce.Infrastructure.Data;
 using ECommerce.RestApi.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -10,141 +12,148 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Controllers
-builder.Services.AddControllers();
+    builder.Services.AddControllers();
 
-// CORS Policy
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", policy =>
+    // CORS
+    builder.Services.AddCors(options =>
     {
-        policy.WithOrigins("http://localhost:5041", "https://localhost:7088", "http://localhost:3000")
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
-    });
-});
-
-// JWT Authentication
-var jwt = builder.Configuration.GetSection("Jwt");
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
+        options.AddPolicy("AllowAll", policy =>
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwt["Issuer"],
-            ValidAudience = jwt["Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"] ?? throw new InvalidOperationException("JWT Key is not configured")))
-        };
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        });
     });
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("RequireSuperAdmin", policy => policy.RequireRole("SuperAdmin"));
-    options.AddPolicy("SameCompanyOrSuperAdmin", policy =>
-    {
-        policy.RequireAuthenticatedUser();
-        policy.Requirements.Add(new ECommerce.RestApi.Authorization.SameCompanyRequirement());
-    });
-});
+    // Health Checks
+    builder.Services.AddHealthChecks()
+        .AddDbContextCheck<AppDbContext>("database");
 
-builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, ECommerce.RestApi.Authorization.SameCompanyAuthorizationHandler>();
+    // Caching
+    builder.Services.AddResponseCaching();
+    builder.Services.AddMemoryCache();
 
-// Swagger/OpenAPI
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "ECommerce API",
-        Version = "v1",
-        Description = "ECommerce REST API"
-    });
-
-    // JWT Authorization in Swagger
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
-    });
-
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
+    // JWT Authentication
+    var jwtConfig = builder.Configuration.GetSection("Jwt");
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
         {
-            new OpenApiSecurityScheme
+            options.TokenValidationParameters = new TokenValidationParameters
             {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
-});
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwtConfig["Issuer"],
+                ValidAudience = jwtConfig["Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(jwtConfig["Key"] ?? throw new InvalidOperationException("JWT Key bulunamadı"))
+                ),
+                ClockSkew = TimeSpan.Zero
+            };
+        });
 
-// Application & Infrastructure Services
-builder.Services.AddApplicationServices();
-builder.Services.AddInfrastructureServices(builder.Configuration);
-builder.Services.AddHttpContextAccessor();
-
-var app = builder.Build();
-
-// Apply Migrations & Seed Data
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var logger = services.GetRequiredService<ILogger<Program>>();
-    try
+    // Authorization
+    builder.Services.AddAuthorization(options =>
     {
-        var context = services.GetRequiredService<ECommerce.Infrastructure.Data.AppDbContext>();
-        logger.LogInformation("Starting database migration...");
-        await context.Database.MigrateAsync();
-        logger.LogInformation("Migrations completed successfully.");
+        options.AddPolicy("SuperAdminOnly", policy => 
+            policy.RequireRole("SuperAdmin"));
         
-        // Seed data
-        logger.LogInformation("Starting seeding...");
-        var seeder = services.GetRequiredService<ECommerce.Infrastructure.Data.DbSeeder>();
-        await seeder.SeedAsync();
-        logger.LogInformation("Seeding completed successfully.");
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "❌ An error occurred while applying migrations and seeding data. Details: {Message}", ex.Message);
-        logger.LogError("Stack Trace: {StackTrace}", ex.StackTrace);
-        logger.LogWarning("⚠️  Application will continue despite seeding errors");
-    }
-}
-
-// Global Exception Handler
-app.UseGlobalExceptionHandler();
-
-// Swagger UI
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommerce API V1");
+        options.AddPolicy("CompanyAccess", policy => 
+            policy.RequireRole("CompanyAdmin", "SuperAdmin", "User"));
+        
+        options.AddPolicy("SameCompanyOrSuperAdmin", policy =>
+            policy.RequireAssertion(context =>
+                context.User.IsInRole("SuperAdmin") ||
+                context.User.HasClaim(c => c.Type == "CompanyId")));
     });
-}
-else
-{
-    app.UseHttpsRedirection();
-}
 
-app.UseStaticFiles();
-app.UseCors("AllowAll");
-app.UseAuthentication();
-app.UseAuthorization();
+    builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, 
+        ECommerce.RestApi.Authorization.SameCompanyAuthorizationHandler>();
+
+    // Swagger
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new OpenApiInfo
+        {
+            Title = "ECommerce API",
+            Version = "v1",
+            Description = "ECommerce REST API Documentation"
+        });
+
+        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Description = "JWT Authorization header. Example: \"Bearer {token}\"",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.ApiKey,
+            Scheme = "Bearer"
+        });
+
+        c.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                Array.Empty<string>()
+            }
+        });
+    });
+
+    // Application & Infrastructure Services
+    builder.Services.AddApplicationServices();
+    builder.Services.AddInfrastructureServices(builder.Configuration);
+    builder.Services.AddHttpContextAccessor();
+
+    var app = builder.Build();
+
+    // Database Migration (Seed data devre dışı - SQLite'daki mevcut veriler kullanılıyor)
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        
+        try
+        {
+            var context = services.GetRequiredService<AppDbContext>();
+            await context.Database.MigrateAsync();
+            logger.LogInformation("✅ Migrations tamamlandı - SQLite veritabanı hazır");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "❌ Migration hatası");
+        }
+    }
+
+    // Middleware Pipeline
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+        app.UseSwagger();
+        app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommerce API V1"));
+    }
+    else
+    {
+        app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+    }
+
+    app.UseStaticFiles();
+    app.UseRouting();
+    app.UseCors("AllowAll");
+    app.UseResponseCaching();
+
+    app.UseAuthentication();
+    app.UseAuthorization();
+    
 app.MapControllers();
+app.MapHealthChecks("/health");
 
+app.Logger.LogInformation("🚀 ECommerce API başlatıldı - http://localhost:5010");
 app.Run();
