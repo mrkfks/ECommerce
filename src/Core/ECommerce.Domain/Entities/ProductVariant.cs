@@ -4,19 +4,16 @@ namespace ECommerce.Domain.Entities
     /// Ürün varyantları - Öznitelik kombinasyonları
     /// Örnek: iPhone 15 Pro - Siyah - 256GB
     /// </summary>
-    public class ProductVariant : IAuditable, ITenantEntity
+    public class ProductVariant : BaseEntity, ITenantEntity
     {
         private ProductVariant() { }
 
-        public int Id { get; private set; }
         public int ProductId { get; private set; }
         public int CompanyId { get; private set; }
         public string Sku { get; private set; } = string.Empty; // Stock Keeping Unit
         public decimal? PriceAdjustment { get; private set; } // Ana ürün fiyatına ek/indirim
         public int StockQuantity { get; private set; }
         public bool IsActive { get; private set; } = true;
-        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
 
         // Navigation Properties
         public virtual Product? Product { get; private set; }
@@ -37,9 +34,7 @@ namespace ECommerce.Domain.Entities
                 Sku = sku,
                 PriceAdjustment = priceAdjustment,
                 StockQuantity = stockQuantity,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                IsActive = true
             };
         }
 

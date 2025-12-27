@@ -4,6 +4,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Dashboard.Web.Infrastructure;
 using Dashboard.Web.Services;
+using Dashboard.Web.Services.Contracts;
+using Dashboard.Web.Services.Implementations;
 using Dashboard.Web.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,7 +24,26 @@ builder.Services.AddHttpClient("ECommerceApi", client =>
 })
     .AddHttpMessageHandler<AuthTokenHandler>();
 
-// Typed HttpClient Services
+// Typed HttpClient Services - Yeni geliştirilen servisler (interface kullanımı)
+builder.Services.AddHttpClient<IProductApiService, TypedProductApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+builder.Services.AddHttpClient<ICategoryApiService, TypedCategoryApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+builder.Services.AddHttpClient<IOrderApiService, TypedOrderApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+// Eski servisler (geriye dönük uyumluluk için)
 builder.Services.AddHttpClient<CustomerApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);

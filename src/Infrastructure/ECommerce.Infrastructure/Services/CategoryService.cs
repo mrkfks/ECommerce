@@ -1,5 +1,6 @@
 using AutoMapper;
 using ECommerce.Application.DTOs;
+using ECommerce.Application.Exceptions;
 using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Entities;
 using ECommerce.Infrastructure.Data;
@@ -55,7 +56,7 @@ public class CategoryService : ICategoryService
         var isSuperAdmin = _tenantService.IsSuperAdmin();
 
         // SuperAdmin için CompanyId yoksa varsayılan olarak 1 kullan (sistem şirketi)
-        var companyId = currentCompanyId ?? (isSuperAdmin ? 1 : throw new InvalidOperationException("Company context is required"));
+        var companyId = currentCompanyId ?? (isSuperAdmin ? 1 : throw new BusinessException("Company context is required"));
 
         var category = Category.Create(
             dto.Name,
@@ -119,7 +120,7 @@ public class CategoryService : ICategoryService
 
         if (hasSubcategories)
         {
-            throw new InvalidOperationException("Cannot delete category with subcategories");
+            throw new BusinessException("Alt kategorileri olan kategori silinemez");
         }
 
         // Check if category has products
@@ -128,7 +129,7 @@ public class CategoryService : ICategoryService
 
         if (hasProducts)
         {
-            throw new InvalidOperationException("Cannot delete category with products");
+            throw new BusinessException("Ürünleri olan kategori silinemez");
         }
 
         _context.Categories.Remove(category);

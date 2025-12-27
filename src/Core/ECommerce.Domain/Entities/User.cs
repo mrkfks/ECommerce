@@ -1,10 +1,9 @@
 namespace ECommerce.Domain.Entities
 {
-    public class User : IAuditable, ITenantEntity
+    public class User : BaseEntity, ITenantEntity
     {
         private User() { }
 
-        public int Id { get; private set; }
         public int CompanyId { get; private set; }
         public string Username { get; private set; } = string.Empty;
         public string Email { get; private set; } = string.Empty;
@@ -12,8 +11,6 @@ namespace ECommerce.Domain.Entities
         public string? FirstName { get; private set; }
         public string? LastName { get; private set; }
         public bool IsActive { get; private set; } = true;
-        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
 
         public Company Company { get; private set; } = null!;
         public virtual Customer? Customer { get; private set; }
@@ -39,8 +36,7 @@ namespace ECommerce.Domain.Entities
                 PasswordHash = passwordHash,
                 FirstName = firstName,
                 LastName = lastName,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
+                IsActive = true
             };
         }
 
@@ -59,6 +55,7 @@ namespace ECommerce.Domain.Entities
             FirstName = firstName;
             LastName = lastName;
             Email = email;
+            MarkAsModified();
         }
 
         public void UpdateCompany(int companyId)
@@ -67,6 +64,7 @@ namespace ECommerce.Domain.Entities
                 throw new ArgumentException("Geçerli bir şirket ID'si girin.", nameof(companyId));
 
             CompanyId = companyId;
+            MarkAsModified();
         }
 
         public void UpdatePassword(string newPasswordHash)
@@ -75,16 +73,19 @@ namespace ECommerce.Domain.Entities
                 throw new ArgumentException("Şifre boş olamaz.", nameof(newPasswordHash));
 
             PasswordHash = newPasswordHash;
+            MarkAsModified();
         }
 
         public void Activate()
         {
             IsActive = true;
+            MarkAsModified();
         }
 
         public void Deactivate()
         {
             IsActive = false;
+            MarkAsModified();
         }
     }
 }

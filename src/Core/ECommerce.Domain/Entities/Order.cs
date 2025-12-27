@@ -2,19 +2,16 @@ using ECommerce.Domain.Enums;
 
 namespace ECommerce.Domain.Entities
 {
-    public class Order : IAuditable, ITenantEntity
+    public class Order : BaseEntity, ITenantEntity
     {
         private Order() { }
 
-        public int Id { get; private set; }
         public int CustomerId { get; private set; }
         public int AddressId { get; private set; }
         public int CompanyId { get; private set; }
         public DateTime OrderDate { get; private set; }
         public decimal TotalAmount { get; private set; }
         public OrderStatus Status { get; private set; } = OrderStatus.Pending;
-        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
         
         public virtual Customer? Customer { get; private set; }
         public virtual Address? Address { get; private set; }
@@ -74,6 +71,7 @@ namespace ECommerce.Domain.Entities
                 throw new InvalidOperationException("En az bir ürün içermesi gereken sipariş onaylanamaz.");
             
             Status = OrderStatus.Processing;
+            MarkAsModified();
         }
 
         public void Ship()
@@ -82,6 +80,7 @@ namespace ECommerce.Domain.Entities
                 throw new InvalidOperationException("Yalnızca İşlemde olan siparişler gönderilebilir.");
             
             Status = OrderStatus.Shipped;
+            MarkAsModified();
         }
 
         public void Deliver()
@@ -90,6 +89,7 @@ namespace ECommerce.Domain.Entities
                 throw new InvalidOperationException("Yalnızca Gönderilen siparişler teslim edilebilir.");
             
             Status = OrderStatus.Delivered;
+            MarkAsModified();
         }
 
         public void Cancel()
@@ -98,6 +98,7 @@ namespace ECommerce.Domain.Entities
                 throw new InvalidOperationException("Teslim edilen veya iptal edilmiş siparişler iptal edilemez.");
             
             Status = OrderStatus.Cancelled;
+            MarkAsModified();
         }
 
         private void RecalculateTotal()

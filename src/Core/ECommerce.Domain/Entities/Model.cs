@@ -4,23 +4,21 @@ namespace ECommerce.Domain.Entities
     /// Model entity - Her model bir markaya bağlıdır
     /// Örnek: Samsung Galaxy S23, iPhone 15 Pro
     /// </summary>
-    public class Model : IAuditable
+    public class Model : BaseEntity, ITenantEntity
     {
         private Model() { }
 
-        public int Id { get; private set; }
         public string Name { get; private set; } = string.Empty;
         public string Description { get; private set; } = string.Empty;
         public int BrandId { get; private set; }
+        public int CompanyId { get; private set; }
         public bool IsActive { get; private set; } = true;
-        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
 
         // Navigation Properties
         public virtual Brand? Brand { get; private set; }
         public virtual ICollection<Product> Products { get; private set; } = new List<Product>();
 
-        public static Model Create(string name, string description, int brandId)
+        public static Model Create(string name, string description, int brandId, int companyId)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Model adı boş olamaz.", nameof(name));
@@ -33,9 +31,8 @@ namespace ECommerce.Domain.Entities
                 Name = name,
                 Description = description ?? string.Empty,
                 BrandId = brandId,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CompanyId = companyId,
+                IsActive = true
             };
         }
 
@@ -46,7 +43,7 @@ namespace ECommerce.Domain.Entities
 
             Name = name;
             Description = description ?? string.Empty;
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
         }
 
         public void ChangeBrand(int brandId)

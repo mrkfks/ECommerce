@@ -1,10 +1,9 @@
 namespace ECommerce.Domain.Entities
 {
-    public class Product : IAuditable, ITenantEntity
+    public class Product : BaseEntity, ITenantEntity
     {
         private Product() { }
 
-        public int Id { get; private set; }
         public string Name { get; private set; } = string.Empty;
         public string Description { get; private set; } = string.Empty;
         public decimal Price { get; private set; }
@@ -16,8 +15,6 @@ namespace ECommerce.Domain.Entities
         public string? ImageUrl { get; private set; }
         public string? Sku { get; private set; } // Stock Keeping Unit
         public bool IsActive { get; private set; } = true;
-        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
 
         public virtual Category? Category { get; private set; }
         public virtual Brand? Brand { get; private set; }
@@ -55,8 +52,6 @@ namespace ECommerce.Domain.Entities
                 ImageUrl = imageUrl,
                 Sku = sku,
                 IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
                 Version = Guid.NewGuid()
             };
         }
@@ -73,7 +68,7 @@ namespace ECommerce.Domain.Entities
             Description = description;
             Price = price;
             ImageUrl = imageUrl;
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
             Version = Guid.NewGuid();
         }
 
@@ -83,7 +78,7 @@ namespace ECommerce.Domain.Entities
                 throw new ArgumentException("Stok miktarı negatif olamaz.", nameof(quantity));
             
             StockQuantity = quantity;
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
             Version = Guid.NewGuid();
         }
 
@@ -96,21 +91,21 @@ namespace ECommerce.Domain.Entities
                 throw new InvalidOperationException($"Yeterli stok yok. Mevcut: {StockQuantity}, İstenen: {quantity}");
             
             StockQuantity -= quantity;
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
             Version = Guid.NewGuid();
         }
 
         public void Activate()
         {
             IsActive = true;
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
             Version = Guid.NewGuid();
         }
 
         public void Deactivate()
         {
             IsActive = false;
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
             Version = Guid.NewGuid();
         }
 
@@ -119,26 +114,26 @@ namespace ECommerce.Domain.Entities
         {
             var spec = ProductSpecification.Create(Id, CompanyId, key, value, displayOrder);
             ((List<ProductSpecification>)Specifications).Add(spec);
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
         }
 
         public void RemoveSpecification(ProductSpecification specification)
         {
             ((List<ProductSpecification>)Specifications).Remove(specification);
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
         }
 
         public void SetModel(int? modelId)
         {
             ModelId = modelId;
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
             Version = Guid.NewGuid();
         }
 
         public void UpdateSku(string? sku)
         {
             Sku = sku;
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
         }
     }
 }

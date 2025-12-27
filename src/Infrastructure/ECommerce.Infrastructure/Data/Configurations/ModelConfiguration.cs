@@ -19,6 +19,9 @@ namespace ECommerce.Infrastructure.Data.Configurations
             builder.Property(m => m.Description)
                 .HasMaxLength(1000);
 
+            builder.Property(m => m.CompanyId)
+                .IsRequired();
+
             // Brand ilişkisi
             builder.HasOne(m => m.Brand)
                 .WithMany(b => b.Models)
@@ -26,6 +29,7 @@ namespace ECommerce.Infrastructure.Data.Configurations
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasIndex(m => m.BrandId);
+            builder.HasIndex(m => m.CompanyId);
             builder.HasIndex(m => new { m.Name, m.BrandId }).IsUnique();
         }
     }

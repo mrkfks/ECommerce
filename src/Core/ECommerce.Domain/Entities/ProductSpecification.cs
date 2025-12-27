@@ -4,18 +4,15 @@ namespace ECommerce.Domain.Entities
     /// Ürün özellikleri - Dinamik key-value yapısı
     /// Örnek: Ekran Boyutu: 6.7", RAM: 8GB, İşlemci: Snapdragon 8 Gen 2
     /// </summary>
-    public class ProductSpecification : IAuditable, ITenantEntity
+    public class ProductSpecification : BaseEntity, ITenantEntity
     {
         private ProductSpecification() { }
 
-        public int Id { get; private set; }
         public int ProductId { get; private set; }
         public int CompanyId { get; private set; }
         public string Key { get; private set; } = string.Empty;
         public string Value { get; private set; } = string.Empty;
         public int DisplayOrder { get; private set; }
-        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
 
         // Navigation Properties
         public virtual Product? Product { get; private set; }
@@ -34,9 +31,7 @@ namespace ECommerce.Domain.Entities
                 CompanyId = companyId,
                 Key = key,
                 Value = value,
-                DisplayOrder = displayOrder,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                DisplayOrder = displayOrder
             };
         }
 

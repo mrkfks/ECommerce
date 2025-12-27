@@ -1,16 +1,13 @@
 namespace ECommerce.Domain.Entities
 {
-    public class Company : IAuditable
+    public class Company : BaseEntity
     {
         private Company() { }
 
-        public int Id { get; private set; }
         public string Name { get; private set; } = string.Empty;
         public string Address { get; private set; } = string.Empty;
         public string PhoneNumber { get; private set; } = string.Empty;
         public string Email { get; private set; } = string.Empty;
-        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
         public string TaxNumber { get; private set; } = string.Empty;
         public bool IsActive { get; private set; } = true;
         public bool IsApproved { get; private set; } = false;
@@ -56,9 +53,7 @@ namespace ECommerce.Domain.Entities
                 ResponsiblePersonPhone = responsiblePersonPhone,
                 ResponsiblePersonEmail = responsiblePersonEmail,
                 IsActive = true,
-                IsApproved = false,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                IsApproved = false
             };
         }
 
@@ -80,31 +75,31 @@ namespace ECommerce.Domain.Entities
             Address = address;
             PhoneNumber = phoneNumber;
             Email = email;
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
         }
 
         public void Approve()
         {
             IsApproved = true;
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
         }
 
         public void Reject()
         {
             IsApproved = false;
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
         }
 
         public void Activate()
         {
             IsActive = true;
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
         }
 
         public void Deactivate()
         {
             IsActive = false;
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
         }
     }
 }

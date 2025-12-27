@@ -43,47 +43,29 @@ namespace ECommerce.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Apply all entity configurations
-            modelBuilder.ApplyConfiguration(new ProductConfiguration());
-            modelBuilder.ApplyConfiguration(new ModelConfiguration());
-            modelBuilder.ApplyConfiguration(new ProductSpecificationConfiguration());
-            modelBuilder.ApplyConfiguration(new AttributeConfiguration());
-            modelBuilder.ApplyConfiguration(new AttributeValueConfiguration());
-            modelBuilder.ApplyConfiguration(new ProductVariantConfiguration());
-            modelBuilder.ApplyConfiguration(new ProductVariantAttributeConfiguration());
-            modelBuilder.ApplyConfiguration(new OrderConfiguration());
-            modelBuilder.ApplyConfiguration(new OrderItemConfiguration());
-            modelBuilder.ApplyConfiguration(new CategoryConfiguration());
-            modelBuilder.ApplyConfiguration(new CategoryAttributeConfiguration());
-            modelBuilder.ApplyConfiguration(new CategoryAttributeValueConfiguration());
-            modelBuilder.ApplyConfiguration(new BrandConfiguration());
-            modelBuilder.ApplyConfiguration(new CustomerConfiguration());
-            modelBuilder.ApplyConfiguration(new UserConfiguration());
-            modelBuilder.ApplyConfiguration(new UserRoleConfiguration());
-            modelBuilder.ApplyConfiguration(new ReviewConfiguration());
-            modelBuilder.ApplyConfiguration(new AddressConfiguration());
-            modelBuilder.ApplyConfiguration(new CompanyConfiguration());
-            modelBuilder.ApplyConfiguration(new RoleConfiguration());
-            modelBuilder.ApplyConfiguration(new BannerConfiguration());
-            modelBuilder.ApplyConfiguration(new RequestConfiguration());
+            // Apply all configurations from assembly automatically
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
-            // Global Query Filters (tenant izolasyonu)
+            // Seed data - Not: Seed data manuel olarak veya ayrı bir DbInitializer ile eklenecek
+            // Seed.DataSeeder.SeedData(modelBuilder);
+
+            // Global Query Filters (tenant izolasyonu + soft delete)
             modelBuilder.Entity<User>()
-                .HasQueryFilter(e => CurrentCompanyId == null || e.CompanyId == CurrentCompanyId);
+                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
             modelBuilder.Entity<Customer>()
-                .HasQueryFilter(e => CurrentCompanyId == null || e.CompanyId == CurrentCompanyId);
+                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
             modelBuilder.Entity<Order>()
-                .HasQueryFilter(e => CurrentCompanyId == null || e.CompanyId == CurrentCompanyId);
+                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
             modelBuilder.Entity<Product>()
-                .HasQueryFilter(e => CurrentCompanyId == null || e.CompanyId == CurrentCompanyId);
+                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
             modelBuilder.Entity<Category>()
-                .HasQueryFilter(e => CurrentCompanyId == null || e.CompanyId == CurrentCompanyId);
+                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
             modelBuilder.Entity<Review>()
-                .HasQueryFilter(e => CurrentCompanyId == null || e.CompanyId == CurrentCompanyId);
+                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
             modelBuilder.Entity<ProductSpecification>()
-                .HasQueryFilter(e => CurrentCompanyId == null || e.CompanyId == CurrentCompanyId);
+                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
             modelBuilder.Entity<ProductVariant>()
-                .HasQueryFilter(e => CurrentCompanyId == null || e.CompanyId == CurrentCompanyId);
+                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -92,8 +74,17 @@ namespace ECommerce.Infrastructure.Data
 
             foreach (var entry in entries)
             {
+                // Soft Delete: Silme işlemlerini DeletedAt ile işaretle
+                if (entry.State == EntityState.Deleted && entry.Entity is ISoftDeletable)
+                {
+                    entry.State = EntityState.Modified;
+                    entry.Property("IsDeleted").CurrentValue = true;
+                    entry.Property("DeletedAt").CurrentValue = DateTime.UtcNow;
+                    entry.Property("UpdatedAt").CurrentValue = DateTime.UtcNow;
+                }
+
                 // Audit alanlarını otomatik set et
-                if (entry.Entity is IAuditable auditable)
+                if (entry.Entity is IAuditable)
                 {
                     var now = DateTime.UtcNow;
 
@@ -102,6 +93,13 @@ namespace ECommerce.Infrastructure.Data
                         // CreatedAt ve UpdatedAt'ı reflection ile set et (private setter bypass)
                         entry.Property("CreatedAt").CurrentValue = now;
                         entry.Property("UpdatedAt").CurrentValue = now;
+                        
+                        // Soft delete için varsayılan değer
+                        if (entry.Entity is ISoftDeletable)
+                        {
+                            entry.Property("IsDeleted").CurrentValue = false;
+                            entry.Property("DeletedAt").CurrentValue = null;
+                        }
                     }
                     else if (entry.State == EntityState.Modified)
                     {

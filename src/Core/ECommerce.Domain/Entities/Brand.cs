@@ -1,18 +1,15 @@
 namespace ECommerce.Domain.Entities
 {
-    public class Brand : IAuditable
+    public class Brand : BaseEntity, ITenantEntity
     {
         private Brand() { }
 
-        public int Id { get; private set; }
         public string Name { get; private set; } = string.Empty;
         public string Description { get; private set; } = string.Empty;
         public string? ImageUrl { get; private set; }
         public int CompanyId { get; private set; }
         public int? CategoryId { get; private set; } // Opsiyonel kategori ilişkisi
         public bool IsActive { get; private set; } = true;
-        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
         
         // Navigation Properties
         public virtual Category? Category { get; private set; }
@@ -34,9 +31,7 @@ namespace ECommerce.Domain.Entities
                 CompanyId = companyId,
                 CategoryId = categoryId,
                 ImageUrl = imageUrl,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                IsActive = true
             };
         }
 
@@ -52,25 +47,25 @@ namespace ECommerce.Domain.Entities
             Description = description;
             CategoryId = categoryId;
             ImageUrl = imageUrl;
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
         }
 
         public void SetCategory(int? categoryId)
         {
             CategoryId = categoryId;
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
         }
 
         public void Activate()
         {
             IsActive = true;
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
         }
 
         public void Deactivate()
         {
             IsActive = false;
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
         }
     }
 }

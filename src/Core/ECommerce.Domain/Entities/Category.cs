@@ -3,11 +3,10 @@ namespace ECommerce.Domain.Entities
     /// <summary>
     /// Kategori entity - Hiyerarşik yapı ile alt kategori desteği
     /// </summary>
-    public class Category : IAuditable
+    public class Category : BaseEntity, ITenantEntity
     {
         private Category() { }
 
-        public int Id { get; private set; }
         public string Name { get; private set; } = string.Empty;
         public string Description { get; private set; } = string.Empty;
         public string? ImageUrl { get; private set; }
@@ -15,8 +14,6 @@ namespace ECommerce.Domain.Entities
         public int? ParentCategoryId { get; private set; } // Hiyerarşik yapı için
         public int DisplayOrder { get; private set; }
         public bool IsActive { get; private set; } = true;
-        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
         
         // Navigation Properties
         public virtual Category? ParentCategory { get; private set; }
@@ -38,9 +35,7 @@ namespace ECommerce.Domain.Entities
                 CompanyId = companyId,
                 ParentCategoryId = parentCategoryId,
                 DisplayOrder = displayOrder,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                IsActive = true
             };
         }
 
@@ -58,7 +53,7 @@ namespace ECommerce.Domain.Entities
             ImageUrl = imageUrl;
             ParentCategoryId = parentCategoryId;
             DisplayOrder = displayOrder;
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
         }
 
         public void SetParentCategory(int? parentCategoryId)
@@ -67,19 +62,19 @@ namespace ECommerce.Domain.Entities
                 throw new InvalidOperationException("Bir kategori kendi alt kategorisi olamaz.");
 
             ParentCategoryId = parentCategoryId;
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
         }
 
         public void Activate()
         {
             IsActive = true;
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
         }
 
         public void Deactivate()
         {
             IsActive = false;
-            UpdatedAt = DateTime.UtcNow;
+            MarkAsModified();
         }
     }
 }

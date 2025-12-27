@@ -1,18 +1,15 @@
 namespace ECommerce.Domain.Entities
 {
-    public class Review : IAuditable, ITenantEntity
+    public class Review : BaseEntity, ITenantEntity
     {
         private Review() { }
 
-        public int Id { get; private set; }
         public int ProductId { get; private set; }
         public int CustomerId { get; private set; }
         public int CompanyId { get; private set; }
         public string ReviewerName { get; private set; } = string.Empty;
         public int Rating { get; private set; } // 1 to 5
         public string Comment { get; private set; } = string.Empty;
-        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
         
         public virtual Product? Product { get; private set; }
         public virtual Customer? Customer { get; private set; }
@@ -36,9 +33,7 @@ namespace ECommerce.Domain.Entities
                 CompanyId = companyId,
                 ReviewerName = reviewerName,
                 Rating = rating,
-                Comment = comment,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                Comment = comment
             };
         }
 

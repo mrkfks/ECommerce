@@ -1,10 +1,9 @@
 namespace ECommerce.Domain.Entities
 {
-    public class Customer : IAuditable, ITenantEntity
+    public class Customer : BaseEntity, ITenantEntity
     {
         private Customer() { }
 
-        public int Id { get; private set; }
         public int CompanyId { get; private set; }
         public string FirstName { get; private set; } = string.Empty;
         public string LastName { get; private set; } = string.Empty;
@@ -12,8 +11,6 @@ namespace ECommerce.Domain.Entities
         public int? UserId { get; private set; }
         public string PhoneNumber { get; private set; } = string.Empty;
         public DateTime DateOfBirth { get; private set; }
-        public DateTime CreatedAt { get; private set; }
-        public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
 
         public virtual User? User { get; private set; }
         public virtual Company? Company { get; private set; }
@@ -43,9 +40,7 @@ namespace ECommerce.Domain.Entities
                 Email = email,
                 PhoneNumber = phoneNumber,
                 DateOfBirth = dateOfBirth,
-                UserId = userId,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                UserId = userId
             };
         }
 
