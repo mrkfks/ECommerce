@@ -19,7 +19,7 @@ namespace ECommerce.Infrastructure.Repositories
             return await _context.Orders
                 .Where(o => o.CustomerId == customerId)
                 .Include(o => o.Items)
-                    .ThenInclude(oi => oi.Product)
+                .ThenInclude(oi => oi.Product)
                 .Include(o => o.Address)
                 .Include(o => o.Customer)
                 .OrderByDescending(o => o.OrderDate)

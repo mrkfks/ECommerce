@@ -114,7 +114,7 @@ var builder = WebApplication.CreateBuilder(args);
 
     var app = builder.Build();
 
-    // Database Migration (Seed data devre dışı - SQLite'daki mevcut veriler kullanılıyor)
+    // Database Migration
     using (var scope = app.Services.CreateScope())
     {
         var services = scope.ServiceProvider;
@@ -124,11 +124,11 @@ var builder = WebApplication.CreateBuilder(args);
         {
             var context = services.GetRequiredService<AppDbContext>();
             await context.Database.MigrateAsync();
-            logger.LogInformation("✅ Migrations tamamlandı - SQLite veritabanı hazır");
+            logger.LogInformation("✅ Database migrations completed");
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "❌ Migration hatası");
+            logger.LogError(ex, "❌ Migration error");
         }
     }
 

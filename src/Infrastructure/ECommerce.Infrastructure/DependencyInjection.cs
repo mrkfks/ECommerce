@@ -46,9 +46,6 @@ public static class DependencyInjection
             var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
             return new FileUploadService(uploadsFolder);
         });
-        
-        // DbSeeder
-        services.AddScoped<DbSeeder>();
 
         return services;
     }
