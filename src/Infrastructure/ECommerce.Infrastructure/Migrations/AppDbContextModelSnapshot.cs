@@ -130,9 +130,6 @@ namespace ECommerce.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("CategoryId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<int>("CompanyId")
                         .HasColumnType("INTEGER");
 
@@ -169,13 +166,46 @@ namespace ECommerce.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CategoryId");
-
                     b.HasIndex("CompanyId");
 
                     b.HasIndex("Name");
 
                     b.ToTable("Brands");
+                });
+
+            modelBuilder.Entity("ECommerce.Domain.Entities.BrandCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BrandId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BrandId");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("BrandId", "CategoryId")
+                        .IsUnique();
+
+                    b.ToTable("BrandCategories");
                 });
 
             modelBuilder.Entity("ECommerce.Domain.Entities.Category", b =>
@@ -320,6 +350,49 @@ namespace ECommerce.Infrastructure.Migrations
                     b.ToTable("CategoryAttributeValues");
                 });
 
+            modelBuilder.Entity("ECommerce.Domain.Entities.CategoryGlobalAttribute", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GlobalAttributeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsRequired")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("GlobalAttributeId");
+
+                    b.HasIndex("CategoryId", "GlobalAttributeId")
+                        .IsUnique();
+
+                    b.ToTable("CategoryGlobalAttributes");
+                });
+
             modelBuilder.Entity("ECommerce.Domain.Entities.Company", b =>
                 {
                     b.Property<int>("Id")
@@ -456,6 +529,101 @@ namespace ECommerce.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Customers");
+                });
+
+            modelBuilder.Entity("ECommerce.Domain.Entities.GlobalAttribute", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AttributeType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("DisplayOrder");
+
+                    b.HasIndex("CompanyId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("GlobalAttributes");
+                });
+
+            modelBuilder.Entity("ECommerce.Domain.Entities.GlobalAttributeValue", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ColorCode")
+                        .HasMaxLength(7)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("GlobalAttributeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GlobalAttributeId");
+
+                    b.HasIndex("GlobalAttributeId", "Value")
+                        .IsUnique();
+
+                    b.ToTable("GlobalAttributeValues");
                 });
 
             modelBuilder.Entity("ECommerce.Domain.Entities.Model", b =>
@@ -1046,12 +1214,21 @@ namespace ECommerce.Infrastructure.Migrations
                     b.Navigation("Attribute");
                 });
 
-            modelBuilder.Entity("ECommerce.Domain.Entities.Brand", b =>
+            modelBuilder.Entity("ECommerce.Domain.Entities.BrandCategory", b =>
                 {
+                    b.HasOne("ECommerce.Domain.Entities.Brand", "Brand")
+                        .WithMany("CategoryMappings")
+                        .HasForeignKey("BrandId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ECommerce.Domain.Entities.Category", "Category")
-                        .WithMany("Brands")
+                        .WithMany("BrandMappings")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Brand");
 
                     b.Navigation("Category");
                 });
@@ -1088,6 +1265,25 @@ namespace ECommerce.Infrastructure.Migrations
                     b.Navigation("CategoryAttribute");
                 });
 
+            modelBuilder.Entity("ECommerce.Domain.Entities.CategoryGlobalAttribute", b =>
+                {
+                    b.HasOne("ECommerce.Domain.Entities.Category", "Category")
+                        .WithMany("GlobalAttributeMappings")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ECommerce.Domain.Entities.GlobalAttribute", "GlobalAttribute")
+                        .WithMany("CategoryMappings")
+                        .HasForeignKey("GlobalAttributeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("GlobalAttribute");
+                });
+
             modelBuilder.Entity("ECommerce.Domain.Entities.Customer", b =>
                 {
                     b.HasOne("ECommerce.Domain.Entities.Company", "Company")
@@ -1108,6 +1304,17 @@ namespace ECommerce.Infrastructure.Migrations
                     b.Navigation("Company");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ECommerce.Domain.Entities.GlobalAttributeValue", b =>
+                {
+                    b.HasOne("ECommerce.Domain.Entities.GlobalAttribute", "GlobalAttribute")
+                        .WithMany("Values")
+                        .HasForeignKey("GlobalAttributeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("GlobalAttribute");
                 });
 
             modelBuilder.Entity("ECommerce.Domain.Entities.Model", b =>
@@ -1322,6 +1529,8 @@ namespace ECommerce.Infrastructure.Migrations
 
             modelBuilder.Entity("ECommerce.Domain.Entities.Brand", b =>
                 {
+                    b.Navigation("CategoryMappings");
+
                     b.Navigation("Models");
 
                     b.Navigation("Products");
@@ -1331,7 +1540,9 @@ namespace ECommerce.Infrastructure.Migrations
                 {
                     b.Navigation("Attributes");
 
-                    b.Navigation("Brands");
+                    b.Navigation("BrandMappings");
+
+                    b.Navigation("GlobalAttributeMappings");
 
                     b.Navigation("Products");
 
@@ -1365,6 +1576,13 @@ namespace ECommerce.Infrastructure.Migrations
                     b.Navigation("Orders");
 
                     b.Navigation("Reviews");
+                });
+
+            modelBuilder.Entity("ECommerce.Domain.Entities.GlobalAttribute", b =>
+                {
+                    b.Navigation("CategoryMappings");
+
+                    b.Navigation("Values");
                 });
 
             modelBuilder.Entity("ECommerce.Domain.Entities.Model", b =>

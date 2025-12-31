@@ -1,0 +1,400 @@
+@model List<ECommerce.Application.DTOs.BrandDto>
+
+@{
+    ViewData["Title"] = "Marka Yönetimi";
+}
+
+<div class="mb-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index">Envanter Yönetimi</a></li>
+            <li class="breadcrumb-item active">Marka Yönetimi</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fa-solid fa-tag me-2"></i> Marka Listesi</h5>
+        @if (User.IsInRole("CompanyAdmin") || User.IsInRole("SuperAdmin"))
+        {
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createBrandModal">
+                <i class="fa fa-plus"></i> Yeni Marka
+            </button>
+        }
+    </div>
+    <div class="card-body p-0">
+        @if (Model == null || Model.Count == 0)
+        {
+            <div class="alert alert-info m-3">
+                <i class="fa-solid fa-info-circle me-2"></i> Henüz marka bulunmamaktadır.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Logo</th>
+                            <th>Ad</th>
+                            <th>Açıklama</th>
+                            <th>Durum</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var brand in Model)
+                    {
+                        <tr>
+                            <td>@brand.Id</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(brand.ImageUrl))
+                                {
+                                    <img src="@brand.ImageUrl" alt="@brand.Name" style="width: 40px; height: 40px; object-fit: contain;" />
+                                }
+                                else
+                                {
+                                    <i class="fa-solid fa-image fa-2x text-muted"></i>
+                                }
+                            </td>
+                            <td><strong>@brand.Name</strong></td>
+                            <td>@brand.Description</td>
+                            <td>
+                                <span class="badge @(brand.IsActive ? "bg-success" : "bg-secondary")">
+                                    @(brand.IsActive ? "Aktif" : "Pasif")
+                                </span>
+                            </td>
+                            <td>
+                                @if (User.IsInRole("CompanyAdmin") || User.IsInRole("SuperAdmin"))
+                                {
+                                    <button class="btn btn-sm btn-warning" onclick="editBrand(@brand.Id)">
+                                        <i class="fa-solid fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteBrand(@brand.Id)">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Create Brand Modal -->
+<div class="modal fade" id="createBrandModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Yeni Marka Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-action="CreateBrand" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Marka Adı</label>
+                        <input type="text" class="form-control" name="Name" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Açıklama</label>
+                        <textarea class="form-control" name="Description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Logo</label>
+                        <input type="file" class="form-control" name="ImageFile" accept="image/*" />
+                        <small class="text-muted d-block mt-1">JPG, PNG, GIF formatında logo seçin</small>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="IsActive" value="true" checked id="isActiveBrand" />
+                        <label class="form-check-label" for="isActiveBrand">Aktif</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Brand Modal -->
+<div class="modal fade" id="editBrandModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Marka Düzenle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-action="EditBrand" enctype="multipart/form-data">
+                <input type="hidden" id="editBrandId" name="id" />
+                <div class="modal-body">
+                    <ul class="nav nav-tabs mb-3" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="brand-info-tab" data-bs-toggle="tab" data-bs-target="#brand-info" type="button">Marka Bilgileri</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="brand-models-tab" data-bs-toggle="tab" data-bs-target="#brand-models" type="button">Modeller</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="brand-info">
+                            <div class="mb-3">
+                                <label class="form-label">Marka Adı</label>
+                                <input type="text" class="form-control" id="editBrandName" name="Name" required />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Açıklama</label>
+                                <textarea class="form-control" id="editBrandDescription" name="Description" rows="3"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Mevcut Logo</label>
+                                <div class="mb-2">
+                                    <img id="currentImagePreview" src="" alt="Mevcut logo" style="max-width: 100px; max-height: 100px; display: none;" />
+                                </div>
+                                <label class="form-label">Yeni Logo</label>
+                                <input type="file" class="form-control" name="ImageFile" accept="image/*" />
+                                <small class="text-muted d-block mt-1">JPG, PNG, GIF formatında yeni logo seçin (opsiyonel)</small>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editBrandIsActive" name="IsActive" value="true" />
+                                <label class="form-check-label" for="editBrandIsActive">Aktif</label>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="brand-models">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Markaya ait modeller</h6>
+                                <button type="button" class="btn btn-sm btn-primary" onclick="showAddModelForm()"><i class="fa fa-plus"></i> Model Ekle</button>
+                            </div>
+                            
+                            <div id="addModelForm" style="display: none;" class="card mb-3">
+                                <div class="card-body">
+                                    <h6>Yeni Model Ekle</h6>
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <input type="text" class="form-control" id="newModelName" placeholder="Model Adı" />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="text" class="form-control" id="newModelDescription" placeholder="Açıklama" />
+                                        </div>
+                                        <div class="col-12">
+                                            <button type="button" class="btn btn-sm btn-success" onclick="addModel()">Ekle</button>
+                                            <button type="button" class="btn btn-sm btn-secondary" onclick="hideAddModelForm()">İptal</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="modelsList" class="list-group">
+                                <!-- Models will be loaded here dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Güncelle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let currentBrandId = 0;
+    let currentModels = [];
+
+    async function editBrand(id) {
+        try {
+            const response = await fetch(`/Category/GetBrand?id=${id}`);
+            if (!response.ok) {
+                alert('Marka yüklenemedi.');
+                return;
+            }
+            const data = await response.json();
+            currentBrandId = id;
+            currentModels = data.models || [];
+            
+            // Formu doldur
+            document.getElementById('editBrandId').value = data.brand.id;
+            document.getElementById('editBrandName').value = data.brand.name;
+            document.getElementById('editBrandDescription').value = data.brand.description || '';
+            document.getElementById('editBrandIsActive').checked = data.brand.isActive;
+            document.getElementById('currentImagePreview').src = data.brand.imageUrl || '';
+            document.getElementById('currentImagePreview').style.display = data.brand.imageUrl ? 'block' : 'none';
+            
+            // Modelleri listele
+            renderModels();
+            
+            // Modal aç
+            const modal = new bootstrap.Modal(document.getElementById('editBrandModal'));
+            modal.show();
+        } catch (error) {
+            console.error('Hata:', error);
+            alert('Bir hata oluştu.');
+        }
+    }
+
+    function renderModels() {
+        const list = document.getElementById('modelsList');
+        if (currentModels.length === 0) {
+            list.innerHTML = '<div class="alert alert-info">Bu markaya ait model bulunmuyor.</div>';
+            return;
+        }
+        
+        list.innerHTML = currentModels.map(model => `
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>${model.name}</strong>
+                    <div class="text-muted small">${model.description || ''}</div>
+                </div>
+                <div>
+                    <span class="badge ${model.isActive ? 'bg-success' : 'bg-secondary'} me-2">${model.isActive ? 'Aktif' : 'Pasif'}</span>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteModel(${model.id})">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function showAddModelForm() {
+        document.getElementById('addModelForm').style.display = 'block';
+        document.getElementById('newModelName').value = '';
+        document.getElementById('newModelDescription').value = '';
+    }
+
+    function hideAddModelForm() {
+        document.getElementById('addModelForm').style.display = 'none';
+    }
+
+    async function addModel() {
+        const name = document.getElementById('newModelName').value.trim();
+        const description = document.getElementById('newModelDescription').value.trim();
+        
+        if (!name) {
+            alert('Model adı gerekli.');
+            return;
+        }
+        
+        try {
+            const payload = {
+                name: name,
+                description: description || '',
+                isActive: true,
+                brandId: currentBrandId
+            };
+            
+            console.log('Gönderilen payload:', payload);
+            
+            const response = await fetch(`/Category/CreateModel?brandId=${currentBrandId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            console.log('Response status:', response.status);
+            const result = await response.json();
+            console.log('Response JSON:', result);
+            
+            if (response.ok) {
+                console.log('Model başarıyla oluşturuldu');
+                hideAddModelForm();
+                
+                // Reload models
+                const brandResponse = await fetch(`/Category/GetBrand?id=${currentBrandId}`);
+                const data = await brandResponse.json();
+                
+                console.log('Alınan veri:', data);
+                console.log('Modeller:', data.models);
+                
+                currentModels = data.models || [];
+                console.log('currentModels güncellendi:', currentModels);
+                
+                renderModels();
+                alert('Model eklendi.');
+            } else {
+                console.error('Model eklenemedi:', result.message);
+                alert('Model eklenemedi: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Hata:', error);
+            alert('Bir hata oluştu: ' + error.message);
+        }
+    }
+
+    async function deleteModel(modelId) {
+        console.log('deleteModel çağrıldı:', modelId);
+        if (!confirm('Bu modeli silmek istediğinizden emin misiniz?')) return;
+        
+        try {
+            console.log('Silme isteği gönderiliyor - ModelId:', modelId);
+            
+            const response = await fetch('/Category/DeleteModel?id=' + modelId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            
+            console.log('Silme yanıtı status:', response.status);
+            const result = await response.json();
+            console.log('Silme yanıtı JSON:', result);
+            
+            if (response.ok && result.success) {
+                console.log('Model başarıyla silindi');
+                alert('Model silindi.');
+                
+                // Sayfayı 1 saniye sonra yenile
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                console.error('Silme başarısız:', result.message);
+                alert('Model silinemedi: ' + (result.message || 'Bilinmeyen hata'));
+            }
+        } catch (error) {
+            console.error('Hata:', error);
+            alert('Bir hata oluştu: ' + error.message);
+        }
+    }
+
+    async function deleteBrand(id) {
+        if (!confirm('Bu markayı silmek istediğinizden emin misiniz?')) return;
+        
+        try {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/Category/DeleteBrand';
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'id';
+            input.value = id;
+            form.appendChild(input);
+            
+            // CSRF token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) {
+                form.appendChild(token.cloneNode());
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
+        } catch (error) {
+            console.error('Hata:', error);
+            alert('Bir hata oluştu.');
+        }
+    }
+</script>
+}

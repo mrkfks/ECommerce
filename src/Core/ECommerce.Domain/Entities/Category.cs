@@ -19,8 +19,9 @@ namespace ECommerce.Domain.Entities
         public virtual Category? ParentCategory { get; private set; }
         public virtual ICollection<Category> SubCategories { get; private set; } = new List<Category>();
         public virtual ICollection<Product> Products { get; private set; } = new List<Product>();
-        public virtual ICollection<Brand> Brands { get; private set; } = new List<Brand>();
+        public virtual ICollection<BrandCategory> BrandMappings { get; private set; } = new List<BrandCategory>();
         public virtual ICollection<CategoryAttribute> Attributes { get; private set; } = new List<CategoryAttribute>();
+        public virtual ICollection<CategoryGlobalAttribute> GlobalAttributeMappings { get; private set; } = new List<CategoryGlobalAttribute>();
 
         public static Category Create(string name, string description, string? imageUrl, int companyId, int? parentCategoryId = null, int displayOrder = 0)
         {

@@ -4586,7 +4586,8 @@
       "Serilog.AspNetCore >= 8.0.3",
       "Serilog.Sinks.Console >= 6.0.0",
       "Serilog.Sinks.File >= 6.0.0",
-      "Swashbuckle.AspNetCore >= 7.2.0"
+      "Swashbuckle.AspNetCore >= 7.2.0",
+      "System.IdentityModel.Tokens.Jwt >= 8.2.1"
     ]
   },
   "packageFolders": {
@@ -4696,6 +4697,10 @@
           "Swashbuckle.AspNetCore": {
             "target": "Package",
             "version": "[7.2.0, )"
+          },
+          "System.IdentityModel.Tokens.Jwt": {
+            "target": "Package",
+            "version": "[8.2.1, )"
           }
         },
         "imports": [

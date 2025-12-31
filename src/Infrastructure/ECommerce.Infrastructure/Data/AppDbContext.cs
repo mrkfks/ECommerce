@@ -34,6 +34,10 @@ namespace ECommerce.Infrastructure.Data
         public DbSet<Request> Requests { get; set; }
         public DbSet<CategoryAttribute> CategoryAttributes { get; set; }
         public DbSet<CategoryAttributeValue> CategoryAttributeValues { get; set; }
+        public DbSet<GlobalAttribute> GlobalAttributes { get; set; }
+        public DbSet<GlobalAttributeValue> GlobalAttributeValues { get; set; }
+        public DbSet<CategoryGlobalAttribute> CategoryGlobalAttributes { get; set; }
+        public DbSet<BrandCategory> BrandCategories { get; set; }
 
         // Tenant context
         public int? CurrentCompanyId { get; private set; }
@@ -66,6 +70,22 @@ namespace ECommerce.Infrastructure.Data
                 .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
             modelBuilder.Entity<ProductVariant>()
                 .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
+            
+            // Brand ve Model query filters
+            modelBuilder.Entity<Brand>()
+                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
+            modelBuilder.Entity<Model>()
+                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
+
+            // Global attribute entities
+            modelBuilder.Entity<GlobalAttribute>()
+                .HasQueryFilter(e => CurrentCompanyId == null || e.CompanyId == CurrentCompanyId);
+            modelBuilder.Entity<GlobalAttributeValue>()
+                .HasQueryFilter(e => e.GlobalAttribute == null || CurrentCompanyId == null || e.GlobalAttribute.CompanyId == CurrentCompanyId);
+            modelBuilder.Entity<CategoryGlobalAttribute>()
+                .HasQueryFilter(e => CurrentCompanyId == null || e.Category.CompanyId == CurrentCompanyId);
+            modelBuilder.Entity<BrandCategory>()
+                .HasQueryFilter(e => CurrentCompanyId == null || e.Brand.CompanyId == CurrentCompanyId);
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

@@ -35,7 +35,7 @@
                 <i class="fa-solid fa-house me-2"></i> Ana Sayfa
             </a>
             <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Product" ? "active" : "")" asp-controller="Product" asp-action="Index">
-                <i class="fa-solid fa-box-open me-2"></i> Ürünler
+                <i class="fa-solid fa-warehouse me-2"></i> Envanter Yönetimi
             </a>
             <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Order" ? "active" : "")" asp-controller="Order" asp-action="Index">
                 <i class="fa-solid fa-cart-shopping me-2"></i> Siparişler
@@ -69,9 +69,6 @@
             }
             @if (User.IsInRole("SuperAdmin"))
             {
-                <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Category" ? "active" : "")" asp-controller="Category" asp-action="Index">
-                    <i class="fa-solid fa-folder-tree me-2"></i> Kategoriler
-                </a>
                 <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Company" ? "active" : "")" asp-controller="Company" asp-action="Index">
                     <i class="fa-solid fa-building me-2"></i> Şirketler
                 </a>

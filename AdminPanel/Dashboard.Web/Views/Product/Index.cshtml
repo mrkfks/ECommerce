@@ -1,70 +1,108 @@
 @model List<ECommerce.Application.DTOs.ProductDto>
 
 @{
-    ViewData["Title"] = "Ürünler";
+    ViewData["Title"] = "Envanter Yönetimi";
 }
 
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Ürün Listesi</h5>
-        @if (User.IsInRole("CompanyAdmin") || User.IsInRole("SuperAdmin"))
-        {
-            <a asp-action="Create" class="btn btn-primary btn-sm">
-                <i class="fa fa-plus"></i> Yeni Ürün
-            </a>
-        }
-    </div>
-    <div class="card-body p-0">
-        @if (Model == null || Model.Count == 0)
-        {
-            <div class="alert alert-info m-3">
-                <i class="fa-solid fa-info-circle me-2"></i> Henüz ürün bulunmamaktadır.
-            </div>
-        }
-        else
-        {
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>Ad</th>
-                            <th>Fiyat</th>
-                            <th>Stok</th>
-                            <th>Kategori</th>
-                            @if (User.IsInRole("SuperAdmin"))
-                            {
-                                <th>Şirket</th>
-                            }
-                            <th>İşlemler</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    @foreach (var product in Model)
-                    {
-                        <tr>
-                            <td>@product.Id</td>
-                            <td>@product.Name</td>
-                            <td>@product.Price.ToString("C")</td>
-                            <td>@product.StockQuantity</td>
-                            <td>@product.CategoryName</td>
-                            @if (User.IsInRole("SuperAdmin"))
-                            {
-                                <td><span class="badge bg-secondary">@product.CompanyName</span></td>
-                            }
-                            <td>
-                                <a asp-action="Details" asp-route-id="@product.Id" class="btn btn-sm btn-info">Detaylar</a>
-                                @if (User.IsInRole("CompanyAdmin") || User.IsInRole("SuperAdmin"))
-                                {
-                                    <a asp-action="Edit" asp-route-id="@product.Id" class="btn btn-sm btn-warning">Düzenle</a>
-                                    <a asp-action="Delete" asp-route-id="@product.Id" class="btn btn-sm btn-danger">Sil</a>
-                                }
-                            </td>
-                        </tr>
-                    }
-                    </tbody>
-                </table>
-            </div>
-        }
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="mb-3"><i class="fa-solid fa-warehouse me-2"></i> Envanter Yönetimi</h2>
+        <p class="text-muted">Kategori, marka, özellik ve ürün yönetimini buradan yapabilirsiniz.</p>
     </div>
 </div>
+
+<div class="row g-4">
+    <!-- 1. Kategori Yönetimi -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm border-0 hover-card">
+            <div class="card-body text-center p-4">
+                <div class="mb-3">
+                    <i class="fa-solid fa-folder-tree fa-3x text-primary"></i>
+                </div>
+                <h5 class="card-title fw-bold">Kategori Yönetimi</h5>
+                <p class="card-text text-muted small">Ürün kategorilerini düzenleyin ve hiyerarşik yapılandırın.</p>
+                <a asp-controller="Category" asp-action="Index" class="btn btn-primary btn-sm mt-2 w-100">
+                    <i class="fa-solid fa-arrow-right me-1"></i> Kategorilere Git
+                </a>
+            </div>
+            <div class="card-footer bg-light border-0 text-center">
+                <small class="text-muted">
+                    <i class="fa-solid fa-layer-group me-1"></i> Hiyerarşik Yapı
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Marka Yönetimi -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm border-0 hover-card">
+            <div class="card-body text-center p-4">
+                <div class="mb-3">
+                    <i class="fa-solid fa-tag fa-3x text-success"></i>
+                </div>
+                <h5 class="card-title fw-bold">Marka Yönetimi</h5>
+                <p class="card-text text-muted small">Markaları yönetin ve kategorilerle ilişkilendirin.</p>
+                <a asp-controller="Category" asp-action="Brands" class="btn btn-success btn-sm mt-2 w-100">
+                    <i class="fa-solid fa-arrow-right me-1"></i> Markalara Git
+                </a>
+            </div>
+            <div class="card-footer bg-light border-0 text-center">
+                <small class="text-muted">
+                    <i class="fa-solid fa-link me-1"></i> Kategori Bağlantısı
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Özellik Yönetimi -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm border-0 hover-card">
+            <div class="card-body text-center p-4">
+                <div class="mb-3">
+                    <i class="fa-solid fa-sliders fa-3x text-warning"></i>
+                </div>
+                <h5 class="card-title fw-bold">Özellik Yönetimi</h5>
+                <p class="card-text text-muted small">Global özellikler oluşturun ve kategorilere atayın.</p>
+                <a asp-controller="Category" asp-action="Attributes" class="btn btn-warning btn-sm mt-2 w-100">
+                    <i class="fa-solid fa-arrow-right me-1"></i> Özelliklere Git
+                </a>
+            </div>
+            <div class="card-footer bg-light border-0 text-center">
+                <small class="text-muted">
+                    <i class="fa-solid fa-globe me-1"></i> Global & Dinamik
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Ürün Yönetimi -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm border-0 hover-card">
+            <div class="card-body text-center p-4">
+                <div class="mb-3">
+                    <i class="fa-solid fa-box-open fa-3x text-danger"></i>
+                </div>
+                <h5 class="card-title fw-bold">Ürün Yönetimi</h5>
+                <p class="card-text text-muted small">Ürünleri ekleyin, düzenleyin ve stok yönetimi yapın.</p>
+                <a asp-controller="Product" asp-action="List" class="btn btn-danger btn-sm mt-2 w-100">
+                    <i class="fa-solid fa-arrow-right me-1"></i> Ürünlere Git
+                </a>
+            </div>
+            <div class="card-footer bg-light border-0 text-center">
+                <small class="text-muted">
+                    <i class="fa-solid fa-boxes-stacked me-1"></i> Stok Takibi
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-card {
+        transition: all 0.3s ease;
+    }
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
+    }
+</style>

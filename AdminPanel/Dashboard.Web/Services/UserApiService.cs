@@ -4,11 +4,8 @@ namespace Dashboard.Web.Services
 {
     public class UserApiService : ApiService<UserDto>
     {
-        private readonly HttpClient _httpClient;
-
         public UserApiService(HttpClient httpClient) : base(httpClient, "User")
         {
-            _httpClient = httpClient;
         }
 
         public async Task<List<string>> GetRolesAsync()

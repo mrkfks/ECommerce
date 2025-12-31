@@ -97,7 +97,7 @@ namespace ECommerce.Application.Mappings
 
             // Brand mappings
             CreateMap<Brand, BrandDto>()
-                .ForMember(d => d.CategoryName, opt => opt.MapFrom(s => s.Category != null ? s.Category.Name : null));
+                .ForMember(d => d.CategoryName, opt => opt.Ignore()); // CategoryMappings yerine kullanılacak
             CreateMap<BrandCreateDto, Brand>();
             CreateMap<BrandUpdateDto, Brand>();
 
@@ -106,6 +106,14 @@ namespace ECommerce.Application.Mappings
                 .ForMember(d => d.BrandName, opt => opt.MapFrom(s => s.Brand != null ? s.Brand.Name : null));
             CreateMap<ModelCreateDto, Model>();
             CreateMap<ModelUpdateDto, Model>();
+
+            // Global Attribute mappings
+            CreateMap<GlobalAttribute, GlobalAttributeDto>();
+            CreateMap<GlobalAttributeValue, GlobalAttributeValueDto>();
+            CreateMap<GlobalAttributeCreateDto, GlobalAttribute>();
+            CreateMap<GlobalAttributeValueCreateDto, GlobalAttributeValue>();
+            CreateMap<GlobalAttributeUpdateDto, GlobalAttribute>();
+            CreateMap<GlobalAttributeValueUpdateDto, GlobalAttributeValue>();
 
             // CategoryAttribute mappings
             CreateMap<CategoryAttribute, CategoryAttributeDto>();

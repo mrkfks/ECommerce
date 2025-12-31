@@ -4,25 +4,9 @@ namespace Dashboard.Web.Services;
 
 public class CompanyApiService : ApiService<CompanyDto>
 {
-    private readonly HttpClient _httpClient;
-
     public CompanyApiService(HttpClient httpClient) 
         : base(httpClient, "Company")
     {
-        _httpClient = httpClient;
-    }
-
-    public async Task<bool> CreateAsync(CompanyDto dto)
-    {
-        try
-        {
-            var response = await _httpClient.PostAsJsonAsync("api/Company", dto);
-            return response.IsSuccessStatusCode;
-        }
-        catch
-        {
-            return false;
-        }
     }
 
     public async Task<bool> ApproveAsync(int id)

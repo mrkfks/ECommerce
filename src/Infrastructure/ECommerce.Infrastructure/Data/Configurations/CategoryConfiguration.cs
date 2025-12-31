@@ -41,6 +41,17 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
             .OnDelete(DeleteBehavior.Restrict)
             .IsRequired(false);
 
+        // Relationships with BrandCategory and CategoryGlobalAttribute
+        builder.HasMany(c => c.BrandMappings)
+            .WithOne(bc => bc.Category)
+            .HasForeignKey(bc => bc.CategoryId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(c => c.GlobalAttributeMappings)
+            .WithOne(cga => cga.Category)
+            .HasForeignKey(cga => cga.CategoryId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // Indexes
         builder.HasIndex(c => c.Name);
         builder.HasIndex(c => c.ParentCategoryId);

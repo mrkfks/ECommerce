@@ -34,16 +34,15 @@ public class BrandConfiguration : IEntityTypeConfiguration<Brand>
         builder.Property(b => b.UpdatedAt)
             .IsRequired();
 
-        // Relationship with Category
-        builder.HasOne(b => b.Category)
-            .WithMany(c => c.Brands)
-            .HasForeignKey(b => b.CategoryId)
-            .OnDelete(DeleteBehavior.SetNull)
-            .IsRequired(false);
+        // Relationships
+        builder.HasMany(b => b.CategoryMappings)
+            .WithOne(bc => bc.Brand)
+            .HasForeignKey(bc => bc.BrandId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Indexes
         builder.HasIndex(b => b.Name);
         builder.HasIndex(b => b.CompanyId);
-        builder.HasIndex(b => b.CategoryId);
     }
 }
+

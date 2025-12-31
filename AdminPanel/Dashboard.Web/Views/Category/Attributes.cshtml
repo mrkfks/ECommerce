@@ -1,0 +1,217 @@
+@model List<ECommerce.Application.DTOs.GlobalAttributeDto>
+@{
+    ViewData["Title"] = "Özellik Yönetimi";
+}
+
+<div class="mb-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index">Envanter Yönetimi</a></li>
+            <li class="breadcrumb-item active">Özellik Yönetimi</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fa-solid fa-sliders me-2"></i> Global Özellik Yönetimi</h5>
+        @if (User.IsInRole("CompanyAdmin") || User.IsInRole("SuperAdmin"))
+        {
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createAttributeModal">
+                <i class="fa fa-plus"></i> Yeni Özellik
+            </button>
+        }
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info">
+            <i class="fa-solid fa-info-circle me-2"></i>
+            Global özellikler tüm kategorilerde ortak kullanılabilir. Örn: Renk, Beden, Materyal.
+        </div>
+
+        @if (Model == null || !Model.Any())
+        {
+            <div class="alert alert-warning">
+                <i class="fa-solid fa-circle-info me-2"></i> Henüz global özellik eklenmemiş.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Ad</th>
+                            <th>Tip</th>
+                            <th>Değerler</th>
+                            <th>Sıra</th>
+                            <th>Durum</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var attr in Model.OrderBy(a => a.DisplayOrder).ThenBy(a => a.DisplayName))
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@attr.DisplayName</strong>
+                                    <div class="text-muted small">@attr.Description</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">@((ECommerce.Domain.Entities.AttributeType)attr.AttributeType)</span>
+                                </td>
+                                <td>
+                                    @if (attr.Values != null && attr.Values.Any())
+                                    {
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @foreach (var v in attr.Values.OrderBy(v => v.DisplayOrder))
+                                            {
+                                                <span class="badge bg-light text-dark border">@v.Value</span>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">Değer yok</span>
+                                    }
+                                </td>
+                                <td>@attr.DisplayOrder</td>
+                                <td>
+                                    <span class="badge @(attr.IsActive ? "bg-success" : "bg-secondary")">@(attr.IsActive ? "Aktif" : "Pasif")</span>
+                                </td>
+                                <td class="text-end">
+                                    <form asp-action="DeleteAttribute" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@attr.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Silinsin mi?');">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Create Attribute Modal -->
+<div class="modal fade" id="createAttributeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form asp-action="CreateAttribute" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Yeni Global Özellik Ekle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Sistem Adı (name)</label>
+                            <input class="form-control" name="Name" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Görünen Ad (displayName)</label>
+                            <input class="form-control" name="DisplayName" required />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Açıklama</label>
+                            <textarea class="form-control" name="Description" rows="2"></textarea>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Tip</label>
+                            <select class="form-select" name="AttributeType">
+                                @foreach (var t in Enum.GetValues(typeof(ECommerce.Domain.Entities.AttributeType)))
+                                {
+                                    <option value="@((int)t)">@t</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Sıra</label>
+                            <input type="number" class="form-control" name="DisplayOrder" value="0" />
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="IsActive" value="true" checked />
+                                <label class="form-check-label">Aktif</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr />
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0">Değerler</h6>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="addValueRow"><i class="fa fa-plus"></i> Değer Ekle</button>
+                    </div>
+                    <div id="valueRows" class="vstack gap-2">
+                        <div class="card card-body p-2 value-row">
+                            <div class="row g-2 align-items-center">
+                                <div class="col-md-5">
+                                    <input class="form-control" name="Values[0].Value" placeholder="Örn: Kırmızı" required />
+                                </div>
+                                <div class="col-md-3">
+                                    <input class="form-control" name="Values[0].ColorCode" placeholder="#FF0000" />
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="number" class="form-control" name="Values[0].DisplayOrder" value="0" />
+                                </div>
+                                <div class="col-md-1 text-center">
+                                    <input class="form-check-input" type="checkbox" name="Values[0].IsActive" value="true" checked />
+                                </div>
+                                <div class="col-md-1 text-end">
+                                    <button type="button" class="btn btn-link text-danger p-0 remove-row" title="Sil"><i class="fa fa-times"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    (() => {
+        const container = document.getElementById('valueRows');
+        const addBtn = document.getElementById('addValueRow');
+
+        const renumber = () => {
+            const rows = container.querySelectorAll('.value-row');
+            rows.forEach((row, idx) => {
+                row.querySelectorAll('input').forEach(input => {
+                    const name = input.getAttribute('name');
+                    if (!name) return;
+                    const newName = name.replace(/Values\[\d+\]/, `Values[${idx}]`);
+                    input.setAttribute('name', newName);
+                });
+            });
+        };
+
+        addBtn.addEventListener('click', () => {
+            const clone = container.querySelector('.value-row').cloneNode(true);
+            clone.querySelectorAll('input').forEach(inp => {
+                inp.value = '';
+                if (inp.type === 'checkbox') inp.checked = true;
+                if (inp.type === 'number') inp.value = '0';
+            });
+            container.appendChild(clone);
+            renumber();
+        });
+
+        container.addEventListener('click', (e) => {
+            if (e.target.closest('.remove-row')) {
+                const rows = container.querySelectorAll('.value-row');
+                if (rows.length === 1) return; // en az bir satır kalsın
+                e.target.closest('.value-row').remove();
+                renumber();
+            }
+        });
+    })();
+</script>
+}

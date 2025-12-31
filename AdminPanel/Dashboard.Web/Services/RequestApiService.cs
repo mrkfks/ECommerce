@@ -4,11 +4,8 @@ namespace Dashboard.Web.Services
 {
     public class RequestApiService : ApiService<RequestDto>
     {
-        private readonly HttpClient _httpClient;
-
         public RequestApiService(HttpClient httpClient) : base(httpClient, "Request")
         {
-            _httpClient = httpClient;
         }
 
         public async Task<bool> CreateAsync(RequestCreateDto dto)

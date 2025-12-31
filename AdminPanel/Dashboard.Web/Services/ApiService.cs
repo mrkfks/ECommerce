@@ -1,11 +1,24 @@
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace Dashboard.Web.Services;
+
+// API'nin döndürdüğü wrapper response
+public class ApiResponse<T>
+{
+    public bool Success { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public T? Data { get; set; }
+}
 
 public class ApiService<T> : IApiService<T> where T : class
 {
     protected readonly HttpClient _httpClient;
     protected readonly string _endpoint;
+    private static readonly JsonSerializerOptions _jsonOptions = new() 
+    { 
+        PropertyNameCaseInsensitive = true 
+    };
 
     public ApiService(HttpClient httpClient, string endpoint)
     {
@@ -17,11 +30,40 @@ public class ApiService<T> : IApiService<T> where T : class
     {
         try
         {
-            var result = await _httpClient.GetFromJsonAsync<List<T>>($"api/{_endpoint}");
-            return result ?? new List<T>();
+            var response = await _httpClient.GetAsync($"api/{_endpoint}");
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"[ApiService] GetAllAsync failed: {response.StatusCode}");
+                return new List<T>();
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            
+            // Önce ApiResponse<List<T>> olarak dene
+            try
+            {
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<T>>>(content, _jsonOptions);
+                if (apiResponse?.Success == true && apiResponse.Data != null)
+                {
+                    Console.WriteLine($"[ApiService] GetAllAsync: {apiResponse.Data.Count} items");
+                    return apiResponse.Data;
+                }
+            }
+            catch { }
+
+            // Düz List<T> olarak dene
+            try
+            {
+                var result = JsonSerializer.Deserialize<List<T>>(content, _jsonOptions);
+                return result ?? new List<T>();
+            }
+            catch { }
+
+            return new List<T>();
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"[ApiService] GetAllAsync exception: {ex.Message}");
             return new List<T>();
         }
     }
@@ -30,7 +72,29 @@ public class ApiService<T> : IApiService<T> where T : class
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<T>($"api/{_endpoint}/{id}");
+            var response = await _httpClient.GetAsync($"api/{_endpoint}/{id}");
+            if (!response.IsSuccessStatusCode)
+                return null;
+
+            var content = await response.Content.ReadAsStringAsync();
+            
+            // Önce ApiResponse<T> olarak dene
+            try
+            {
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<T>>(content, _jsonOptions);
+                if (apiResponse?.Success == true && apiResponse.Data != null)
+                    return apiResponse.Data;
+            }
+            catch { }
+
+            // Düz T olarak dene
+            try
+            {
+                return JsonSerializer.Deserialize<T>(content, _jsonOptions);
+            }
+            catch { }
+
+            return null;
         }
         catch
         {

@@ -27,6 +27,13 @@ namespace Dashboard.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
+            // Envanter yönetimi ana sayfası - sadece 4 kart gösterilecek
+            return View();
+        }
+
+        // Ürün listesi
+        public async Task<IActionResult> List()
+        {
             var products = await _productService.GetAllAsync();
             return View(products);
         }
@@ -65,16 +72,51 @@ namespace Dashboard.Web.Controllers
         // POST: Yeni ürün ekleme
         [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
         [HttpPost]
-        public async Task<IActionResult> Create(ProductDto product)
+        public async Task<IActionResult> Create(ProductCreateDto product)
         {
+            // CompanyId kontrolü - eğer set edilmemişse claim'den al
+            if (product.CompanyId == 0)
+            {
+                var companyIdClaim = User.FindFirst("CompanyId")?.Value;
+                if (int.TryParse(companyIdClaim, out var companyId))
+                {
+                    product.CompanyId = companyId;
+                }
+            }
+
+            Console.WriteLine($"[ProductController] Creating product: {product.Name}, CompanyId: {product.CompanyId}");
+
             if (!ModelState.IsValid)
+            {
+                var categories = await _categoryService.GetAllAsync();
+                var brands = await _brandService.GetAllAsync();
+                ViewBag.Categories = categories;
+                ViewBag.Brands = brands;
+                if (User.IsInRole("SuperAdmin"))
+                {
+                    var companies = await _companyService.GetAllAsync();
+                    ViewBag.Companies = companies;
+                }
                 return View(product);
+            }
 
             var success = await _productService.CreateAsync(product);
             if (success)
-                return RedirectToAction(nameof(Index));
+            {
+                TempData["SuccessMessage"] = "Ürün başarıyla eklendi.";
+                return RedirectToAction(nameof(List));
+            }
 
             ModelState.AddModelError("", "Ürün eklenirken hata oluştu.");
+            var cats = await _categoryService.GetAllAsync();
+            var brds = await _brandService.GetAllAsync();
+            ViewBag.Categories = cats;
+            ViewBag.Brands = brds;
+            if (User.IsInRole("SuperAdmin"))
+            {
+                var comps = await _companyService.GetAllAsync();
+                ViewBag.Companies = comps;
+            }
             return View(product);
         }
 
