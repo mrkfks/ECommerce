@@ -1,6 +1,6 @@
-﻿@model Dashboard.Web.Models.DashboardStatsVm
+﻿@model Dashboard.Web.Models.DashboardKpiViewModel
 @{
-    ViewData["Title"] = "Ana Sayfa";
+    ViewData["Title"] = "Dashboard - Genel Özet";
 }
 
 @if (TempData["LoginSuccess"] != null)
@@ -12,78 +12,1492 @@
     </div>
 }
 
-<div class="row g-3">
-    <div class="col-md-3">
-        <div class="card card-metric p-3">
-            <div class="d-flex justify-content-between">
-                <div>
-                    <div class="text-muted">Toplam Ürün</div>
-                    <div class="h4 fw-bold">@Model.TotalProducts</div>
-                </div>
-                <i class="fa-solid fa-box-open icon text-primary"></i>
+<!-- Hızlı Aksiyon Butonları -->
+<div class="card mb-4 border-0 shadow-sm quick-actions-card">
+    <div class="card-body py-3">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <h6 class="mb-0 fw-semibold text-muted">
+                    <i class="fa-solid fa-bolt me-2"></i>Hızlı Aksiyonlar
+                </h6>
             </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card card-metric p-3">
-            <div class="d-flex justify-content-between">
-                <div>
-                    <div class="text-muted">Toplam Sipariş</div>
-                    <div class="h4 fw-bold">@Model.TotalOrders</div>
-                </div>
-                <i class="fa-solid fa-cart-shopping icon text-success"></i>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card card-metric p-3">
-            <div class="d-flex justify-content-between">
-                <div>
-                    <div class="text-muted">Toplam Müşteri</div>
-                    <div class="h4 fw-bold">@Model.TotalCustomers</div>
-                </div>
-                <i class="fa-solid fa-users icon text-warning"></i>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card card-metric p-3">
-            <div class="d-flex justify-content-between">
-                <div>
-                    <div class="text-muted">Toplam Satış</div>
-                    <div class="h4 fw-bold">@Model.TotalSales.ToString("C2")</div>
-                </div>
-                <i class="fa-solid fa-coins icon text-danger"></i>
+            <div class="d-flex flex-wrap gap-2">
+                <!-- Ürün Ekle Butonu -->
+                <button type="button" class="btn btn-success btn-sm quick-action-btn" data-bs-toggle="offcanvas" data-bs-target="#addProductPanel">
+                    <i class="fa-solid fa-plus me-1"></i> Ürün Ekle
+                </button>
+                
+                <!-- Kampanya Başlat Butonu -->
+                <button type="button" class="btn btn-primary btn-sm quick-action-btn" data-bs-toggle="modal" data-bs-target="#campaignModal">
+                    <i class="fa-solid fa-percent me-1"></i> Kampanya Başlat
+                </button>
+                
+                <!-- Sipariş Güncelle Butonu -->
+                <button type="button" class="btn btn-warning btn-sm quick-action-btn" data-bs-toggle="modal" data-bs-target="#orderUpdateModal">
+                    <i class="fa-solid fa-truck me-1"></i> Sipariş Güncelle
+                </button>
+                
+                <!-- Mesaj Yanıtla Butonu -->
+                <button type="button" class="btn btn-secondary btn-sm quick-action-btn position-relative" data-bs-toggle="offcanvas" data-bs-target="#messagesPanel">
+                    <i class="fa-solid fa-comment-dots me-1"></i> Mesaj Yanıtla
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="unreadMessagesBadge" style="display: none;">
+                        0
+                    </span>
+                </button>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Aktif Kampanyalar Banner -->
+<div class="card mb-4 border-0 shadow-sm bg-gradient" id="activeCampaignsCard" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: none;">
+    <div class="card-body py-3 text-white">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center justify-content-center bg-white bg-opacity-25 rounded-circle" style="width: 40px; height: 40px;">
+                    <i class="fa-solid fa-fire fa-lg"></i>
+                </div>
+                <div>
+                    <h6 class="mb-0 fw-bold">Aktif Kampanyalar</h6>
+                    <small class="opacity-75" id="activeCampaignsList"></small>
+                </div>
+            </div>
+            <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#campaignModal">
+                <i class="fa-solid fa-eye me-1"></i> Detaylar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Filtre Çubuğu -->
+<div class="card mb-4 border-0 shadow-sm">
+    <div class="card-body py-3">
+        <div class="row align-items-center g-3">
+            <div class="col-md-6">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="input-group" style="max-width: 320px;">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="fa-regular fa-calendar text-muted"></i>
+                        </span>
+                        <input type="date" class="form-control border-start-0" id="startDate" />
+                        <span class="input-group-text bg-light border-0">–</span>
+                        <input type="date" class="form-control" id="endDate" />
+                    </div>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-primary btn-sm filter-preset active" data-days="1">Bugün</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm filter-preset" data-days="7">7 Gün</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm filter-preset" data-days="30">30 Gün</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <button class="btn btn-primary btn-sm" id="applyFilters">
+                    <i class="fa-solid fa-filter me-1"></i> Filtrele
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" id="refreshData">
+                    <i class="fa-solid fa-refresh me-1"></i> Yenile
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- KPI Kartları - Satış -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card kpi-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="kpi-label text-muted">Günlük Satış</span>
+                    <span class="badge @(Model.Sales.DailySalesChange >= 0 ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger")">
+                        <i class="fa-solid @(Model.Sales.DailySalesChange >= 0 ? "fa-arrow-up" : "fa-arrow-down") me-1"></i>
+                        @Model.Sales.DailySalesChange.ToString("N1")%
+                    </span>
+                </div>
+                <div class="kpi-value h3 fw-bold mb-1">@Model.Sales.DailySalesFormatted</div>
+                <small class="text-muted">Dün: @Model.Sales.YesterdaySalesFormatted</small>
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0">
+                <div class="progress" style="height: 4px;">
+                    <div class="progress-bar bg-primary" style="width: @(Model.Sales.YesterdaySales > 0 ? Math.Min(100, (Model.Sales.DailySales / Model.Sales.YesterdaySales) * 100) : 0)%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card kpi-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="kpi-label text-muted">Haftalık Satış</span>
+                    <span class="badge @(Model.Sales.WeeklySalesChange >= 0 ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger")">
+                        <i class="fa-solid @(Model.Sales.WeeklySalesChange >= 0 ? "fa-arrow-up" : "fa-arrow-down") me-1"></i>
+                        @Model.Sales.WeeklySalesChange.ToString("N1")%
+                    </span>
+                </div>
+                <div class="kpi-value h3 fw-bold mb-1">@Model.Sales.WeeklySalesFormatted</div>
+                <small class="text-muted">Geçen Hafta: @Model.Sales.LastWeekSalesFormatted</small>
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0">
+                <div class="progress" style="height: 4px;">
+                    <div class="progress-bar bg-info" style="width: @(Model.Sales.LastWeekSales > 0 ? Math.Min(100, (Model.Sales.WeeklySales / Model.Sales.LastWeekSales) * 100) : 0)%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card kpi-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="kpi-label text-muted">Aylık Satış</span>
+                    <span class="badge @(Model.Sales.MonthlySalesChange >= 0 ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger")">
+                        <i class="fa-solid @(Model.Sales.MonthlySalesChange >= 0 ? "fa-arrow-up" : "fa-arrow-down") me-1"></i>
+                        @Model.Sales.MonthlySalesChange.ToString("N1")%
+                    </span>
+                </div>
+                <div class="kpi-value h3 fw-bold mb-1">@Model.Sales.MonthlySalesFormatted</div>
+                <small class="text-muted">Hedef: @Model.Sales.MonthlyTargetFormatted</small>
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0">
+                <div class="progress" style="height: 4px;">
+                    <div class="progress-bar bg-warning" style="width: @(Model.Sales.MonthlyTarget > 0 ? Math.Min(100, (Model.Sales.MonthlySales / Model.Sales.MonthlyTarget) * 100) : 0)%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card kpi-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="kpi-label text-muted">Ortalama Sepet</span>
+                    <span class="badge @(Model.Sales.AverageOrderValueChange >= 0 ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger")">
+                        <i class="fa-solid @(Model.Sales.AverageOrderValueChange >= 0 ? "fa-arrow-up" : "fa-arrow-down") me-1"></i>
+                        @Model.Sales.AverageOrderValueChange.ToString("N1")%
+                    </span>
+                </div>
+                <div class="kpi-value h3 fw-bold mb-1">@Model.Sales.AverageOrderValueFormatted</div>
+                <small class="text-muted">Son 30 gün ortalaması</small>
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0">
+                <div class="progress" style="height: 4px;">
+                    <div class="progress-bar bg-success" style="width: 70%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- KPI Kartları - Sipariş & Müşteri -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card kpi-card border-0 shadow-sm h-100 bg-primary bg-gradient text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="kpi-label opacity-75">Toplam Sipariş</span>
+                    <i class="fa-solid fa-cart-shopping fa-lg opacity-50"></i>
+                </div>
+                <div class="kpi-value h2 fw-bold mb-1">@Model.Orders.TotalOrders</div>
+                <small class="opacity-75">Bugün: @Model.Orders.DailyOrders sipariş</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card kpi-card border-0 shadow-sm h-100 bg-success bg-gradient text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="kpi-label opacity-75">Toplam Müşteri</span>
+                    <i class="fa-solid fa-users fa-lg opacity-50"></i>
+                </div>
+                <div class="kpi-value h2 fw-bold mb-1">@Model.Customers.TotalCustomers</div>
+                <small class="opacity-75">Bugün: +@Model.Customers.DailyNewCustomers yeni</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card kpi-card border-0 shadow-sm h-100 bg-info bg-gradient text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="kpi-label opacity-75">Aylık Yeni Müşteri</span>
+                    <i class="fa-solid fa-user-plus fa-lg opacity-50"></i>
+                </div>
+                <div class="kpi-value h2 fw-bold mb-1">@Model.Customers.MonthlyNewCustomers</div>
+                <small class="opacity-75">
+                    <i class="fa-solid @(Model.Customers.CustomerGrowthRate >= 0 ? "fa-arrow-up" : "fa-arrow-down")"></i>
+                    @Model.Customers.CustomerGrowthRate.ToString("N1")% büyüme
+                </small>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card kpi-card border-0 shadow-sm h-100 bg-warning bg-gradient text-dark">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="kpi-label opacity-75">Teslim Oranı</span>
+                    <i class="fa-solid fa-truck-fast fa-lg opacity-50"></i>
+                </div>
+                <div class="kpi-value h2 fw-bold mb-1">%@Model.Orders.DeliveredPercent.ToString("N0")</div>
+                <small class="opacity-75">@Model.Orders.DeliveredCount / @Model.Orders.TotalOrders sipariş</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Grafikler -->
+<div class="row g-3 mb-4">
+    <!-- Gelir Trendi -->
+    <div class="col-xl-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-semibold">
+                    <i class="fa-solid fa-chart-line text-primary me-2"></i>
+                    Gelir Trendi (Son 30 Gün)
+                </h6>
+                <span class="badge bg-light text-dark">Line Chart</span>
+            </div>
+            <div class="card-body">
+                <canvas id="revenueTrendChart" height="280"></canvas>
+            </div>
+        </div>
+    </div>
+    <!-- Sipariş Durumu -->
+    <div class="col-xl-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-semibold">
+                    <i class="fa-solid fa-chart-pie text-info me-2"></i>
+                    Sipariş Durumu
+                </h6>
+                <span class="badge bg-light text-dark">Donut</span>
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <canvas id="orderStatusChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alt Bölüm: Tablolar -->
+<div class="row g-3 mb-4">
+    <!-- En Çok Satan Ürünler -->
+    <div class="col-xl-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-semibold">
+                    <i class="fa-solid fa-trophy text-warning me-2"></i>
+                    En Çok Satan 5 Ürün
+                </h6>
+                <span class="badge bg-warning-subtle text-warning">Top 5</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="border-0">Ürün</th>
+                                <th class="border-0 text-center">Adet</th>
+                                <th class="border-0 text-end">Gelir</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.TopProducts.Any())
+                            {
+                                @foreach (var product in Model.TopProducts)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                                {
+                                                    <img src="@product.ImageUrl" alt="" class="rounded me-2" style="width:36px;height:36px;object-fit:cover;">
+                                                }
+                                                else
+                                                {
+                                                    <div class="bg-light rounded me-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
+                                                        <i class="fa-solid fa-box text-muted"></i>
+                                                    </div>
+                                                }
+                                                <div>
+                                                    <div class="fw-medium">@product.ProductName</div>
+                                                    <small class="text-muted">@product.CategoryName</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-primary-subtle text-primary">@product.QuantitySold</span>
+                                        </td>
+                                        <td class="text-end fw-semibold">@product.RevenueFormatted</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted py-4">
+                                        <i class="fa-solid fa-inbox fa-2x mb-2 d-block opacity-50"></i>
+                                        Henüz veri yok
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Kritik Stok -->
+    <div class="col-xl-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-semibold">
+                    <i class="fa-solid fa-triangle-exclamation text-danger me-2"></i>
+                    Kritik Stok (&lt;10)
+                </h6>
+                <span class="badge bg-danger-subtle text-danger">Uyarı</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="border-0">Ürün</th>
+                                <th class="border-0 text-center">Stok</th>
+                                <th class="border-0 text-center">Günlük Ort.</th>
+                                <th class="border-0 text-center">Kalan Gün</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.LowStockProducts.Any())
+                            {
+                                @foreach (var product in Model.LowStockProducts)
+                                {
+                                    <tr class="@(product.IsCritical ? "table-danger" : product.CurrentStock < 8 ? "table-warning" : "")">
+                                        <td>
+                                            <div class="fw-medium">@product.ProductName</div>
+                                            <small class="text-muted">@product.CategoryName</small>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge @(product.IsCritical ? "bg-danger" : "bg-warning")">@product.CurrentStock</span>
+                                        </td>
+                                        <td class="text-center">@product.DailyAverageSales.ToString("N1")</td>
+                                        <td class="text-center">
+                                            @if (product.DaysUntilOutOfStock < 3)
+                                            {
+                                                <span class="badge bg-danger">@product.DaysUntilOutOfStock gün</span>
+                                            }
+                                            else if (product.DaysUntilOutOfStock < 7)
+                                            {
+                                                <span class="badge bg-warning text-dark">@product.DaysUntilOutOfStock gün</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">@product.DaysUntilOutOfStock gün</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">
+                                        <i class="fa-solid fa-check-circle fa-2x mb-2 d-block text-success opacity-50"></i>
+                                        Kritik stok ürünü yok
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Müşteri Segmentasyonu -->
+<div class="row g-3">
+    <div class="col-xl-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-semibold">
+                    <i class="fa-solid fa-users-viewfinder text-purple me-2"></i>
+                    Müşteri Segmentasyonu
+                </h6>
+                <span class="badge bg-light text-dark">Bar Chart</span>
+            </div>
+            <div class="card-body">
+                <canvas id="customerSegmentChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-0">
+                <h6 class="mb-0 fw-semibold">
+                    <i class="fa-solid fa-chart-simple text-info me-2"></i>
+                    Segment Detayları
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="p-3 bg-primary bg-opacity-10 rounded-3 text-center">
+                            <div class="h4 fw-bold text-primary mb-1">@Model.CustomerSegmentation.NewCustomers</div>
+                            <div class="text-muted small">Yeni Müşteri</div>
+                            <div class="text-primary fw-semibold">@Model.CustomerSegmentation.NewCustomersRevenue.ToString("C0", new System.Globalization.CultureInfo("tr-TR"))</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 bg-success bg-opacity-10 rounded-3 text-center">
+                            <div class="h4 fw-bold text-success mb-1">@Model.CustomerSegmentation.ReturningCustomers</div>
+                            <div class="text-muted small">Tekrar Müşteri</div>
+                            <div class="text-success fw-semibold">@Model.CustomerSegmentation.ReturningCustomersRevenue.ToString("C0", new System.Globalization.CultureInfo("tr-TR"))</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="small text-muted">Yeni Müşteri Oranı</span>
+                        <span class="small fw-medium">%@Model.CustomerSegmentation.NewCustomerPercent.ToString("N0")</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-primary" style="width: @Model.CustomerSegmentation.NewCustomerPercent%"></div>
+                        <div class="progress-bar bg-success" style="width: @Model.CustomerSegmentation.ReturningCustomerPercent%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== SON GİRİŞLER WİDGET ==================== -->
+@if (User.IsInRole("CompanyAdmin") || User.IsInRole("SuperAdmin"))
+{
+<div class="row g-3 mt-3">
+    <div class="col-xl-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-semibold">
+                    <i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>
+                    Son Giriş Yapan Kullanıcılar
+                </h6>
+                <div>
+                    <span class="badge bg-light text-dark me-2" id="loginSummaryBadge">Yükleniyor...</span>
+                    <a href="/User/LoginHistory" class="btn btn-sm btn-outline-primary">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="border-0">Kullanıcı</th>
+                                <th class="border-0">Rol</th>
+                                <th class="border-0">IP Adresi</th>
+                                <th class="border-0">Giriş Zamanı</th>
+                                <th class="border-0 text-center">Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentLoginsTable">
+                            <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    <i class="fa-solid fa-spinner fa-spin fa-2x text-muted mb-2"></i>
+                                    <p class="text-muted mb-0">Yükleniyor...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent border-0">
+                <h6 class="mb-0 fw-semibold">
+                    <i class="fa-solid fa-shield-halved text-warning me-2"></i>
+                    Güvenlik Özeti
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="p-3 bg-primary bg-opacity-10 rounded-3 text-center">
+                            <div class="h3 fw-bold text-primary mb-1" id="todayLoginsCount">-</div>
+                            <div class="text-muted small">Bugünkü Giriş</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 bg-success bg-opacity-10 rounded-3 text-center">
+                            <div class="h3 fw-bold text-success mb-1" id="uniqueUsersCount">-</div>
+                            <div class="text-muted small">Benzersiz Kullanıcı</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 bg-warning bg-opacity-10 rounded-3 text-center">
+                            <div class="h3 fw-bold text-warning mb-1" id="failedLoginsCount">-</div>
+                            <div class="text-muted small">Başarısız Giriş</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 bg-danger bg-opacity-10 rounded-3 text-center" id="suspiciousCard">
+                            <div class="h3 fw-bold text-danger mb-1" id="suspiciousLoginsCount">-</div>
+                            <div class="text-muted small">Şüpheli Giriş</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 text-center">
+                    <a href="/User/SuspiciousLogins" class="btn btn-outline-danger btn-sm">
+                        <i class="fa-solid fa-triangle-exclamation me-1"></i> Şüpheli Girişleri Gör
+                    </a>
+                    <a href="/User/Management" class="btn btn-outline-primary btn-sm">
+                        <i class="fa-solid fa-users-gear me-1"></i> Kullanıcı Yönetimi
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+}
+
+@section Styles {
+<style>
+    .kpi-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+    }
+    .kpi-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    .kpi-value {
+        letter-spacing: -0.02em;
+    }
+    .filter-preset.active {
+        background-color: var(--bs-primary);
+        color: white;
+    }
+    .bg-success-subtle { background-color: rgba(25, 135, 84, 0.1) !important; }
+    .bg-danger-subtle { background-color: rgba(220, 53, 69, 0.1) !important; }
+    .bg-warning-subtle { background-color: rgba(255, 193, 7, 0.15) !important; }
+    .bg-primary-subtle { background-color: rgba(13, 110, 253, 0.1) !important; }
+    .text-purple { color: #6f42c1; }
+    
+    /* Quick Actions Styles */
+    .quick-actions-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+    .quick-action-btn {
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .quick-action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .message-item {
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    .message-item:hover {
+        transform: translateX(4px);
+    }
+    .message-item.border-primary {
+        background: #f0f7ff;
+    }
+    
+    /* Login History Widget Styles */
+    .login-row {
+        transition: background-color 0.2s;
+    }
+    .login-row:hover {
+        background-color: rgba(13, 110, 253, 0.05);
+    }
+    .login-row.suspicious {
+        background-color: rgba(220, 53, 69, 0.08);
+    }
+    .role-badge-superadmin { background: #dc3545 !important; color: white; }
+    .role-badge-companyadmin { background: #0d6efd !important; color: white; }
+    .role-badge-customer { background: #198754 !important; color: white; }
+    .ip-code {
+        font-family: 'Consolas', monospace;
+        font-size: 0.85rem;
+        background: #f8f9fa;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+    #suspiciousCard.has-suspicious {
+        animation: pulseWarning 2s infinite;
+    }
+    @@keyframes pulseWarning {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+        50% { box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); }
+    }
+</style>
+}
+
 @section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
-    // Placeholder data – API bağlandıktan sonra dinamik dolduracağız.
-    const salesCtx = document.getElementById('salesTrend');
-    if (salesCtx) {
-        new Chart(salesCtx, {
+    // Revenue Trend Data
+    const revenueTrendData = @Html.Raw(Model.RevenueTrendJson);
+    
+    // Order Status Data
+    const orderStatusData = @Html.Raw(Model.OrderStatusJson);
+    
+    // Customer Segment Data
+    const customerSegmentData = @Html.Raw(Model.CustomerSegmentJson);
+
+    // Revenue Trend Chart
+    const revenueTrendCtx = document.getElementById('revenueTrendChart');
+    if (revenueTrendCtx) {
+        new Chart(revenueTrendCtx, {
             type: 'line',
             data: {
-                labels: ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz'],
-                datasets: [{ label: 'Satış', data: [12, 19, 15, 22, 30, 28], borderColor: '#3b82f6' }]
+                labels: revenueTrendData.map(d => d.date),
+                datasets: [{
+                    label: 'Gelir (₺)',
+                    data: revenueTrendData.map(d => d.revenue),
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 2,
+                    pointHoverRadius: 6
+                }]
             },
-            options: { responsive: true, plugins: { legend: { display: false } } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return '₺' + context.parsed.y.toLocaleString('tr-TR');
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₺' + value.toLocaleString('tr-TR');
+                            }
+                        }
+                    }
+                }
+            }
         });
     }
-    const statusCtx = document.getElementById('orderStatus');
-    if (statusCtx) {
-        new Chart(statusCtx, {
-            type: 'pie',
+
+    // Order Status Chart
+    const orderStatusCtx = document.getElementById('orderStatusChart');
+    if (orderStatusCtx) {
+        new Chart(orderStatusCtx, {
+            type: 'doughnut',
             data: {
-                labels: ['Beklemede', 'İşleniyor', 'Kargoda', 'Teslim'],
-                datasets: [{ data: [10, 25, 15, 50], backgroundColor: ['#60a5fa','#22c55e','#facc15','#ef4444'] }]
+                labels: orderStatusData.labels,
+                datasets: [{
+                    data: orderStatusData.data,
+                    backgroundColor: ['#0dcaf0', '#ffc107', '#198754', '#dc3545'],
+                    borderWidth: 0
+                }]
             },
-            options: { responsive: true }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { usePointStyle: true, padding: 15 }
+                    }
+                }
+            }
         });
+    }
+
+    // Customer Segment Chart
+    const customerSegmentCtx = document.getElementById('customerSegmentChart');
+    if (customerSegmentCtx) {
+        new Chart(customerSegmentCtx, {
+            type: 'bar',
+            data: {
+                labels: customerSegmentData.labels,
+                datasets: [{
+                    label: 'Müşteri Sayısı',
+                    data: customerSegmentData.data,
+                    backgroundColor: ['#0d6efd', '#198754'],
+                    borderRadius: 8,
+                    barPercentage: 0.5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    // Filter Preset Buttons
+    document.querySelectorAll('.filter-preset').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filter-preset').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const days = parseInt(this.dataset.days);
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(endDate.getDate() - days);
+            
+            document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+            document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
+        });
+    });
+
+    // Refresh Button
+    document.getElementById('refreshData')?.addEventListener('click', function() {
+        location.reload();
+    });
+
+    // Apply Filters
+    document.getElementById('applyFilters')?.addEventListener('click', function() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        
+        // AJAX ile verileri yenile
+        fetch('/Home/GetKpiData?' + params.toString())
+            .then(response => response.json())
+            .then(data => {
+                console.log('KPI Data:', data);
+                location.reload();
+            })
+            .catch(error => console.error('Error:', error));
+    });
+
+    // Initialize dates
+    const today = new Date();
+    document.getElementById('endDate').value = today.toISOString().split('T')[0];
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    document.getElementById('startDate').value = yesterday.toISOString().split('T')[0];
+
+    // ===============================
+    // HIZLI AKSİYON BUTONLARI - JAVASCRIPT
+    // ===============================
+
+    // Load Quick Actions Data on Page Load
+    loadQuickActionsData();
+
+    function loadQuickActionsData() {
+        // Load active campaigns
+        fetch('/Home/GetActiveCampaigns')
+            .then(r => r.json())
+            .then(campaigns => {
+                if (campaigns && campaigns.length > 0) {
+                    document.getElementById('activeCampaignsCard').style.display = 'block';
+                    const list = campaigns.map(c => `${c.name} (%${c.discountPercent})`).slice(0, 3).join(' • ');
+                    document.getElementById('activeCampaignsList').textContent = list;
+                }
+            })
+            .catch(err => console.log('Kampanya yüklenemedi'));
+
+        // Load message summary
+        fetch('/Home/GetMessageSummary')
+            .then(r => r.json())
+            .then(summary => {
+                if (summary && summary.pendingReplies > 0) {
+                    const badge = document.getElementById('unreadMessagesBadge');
+                    badge.textContent = summary.pendingReplies;
+                    badge.style.display = 'inline-flex';
+                }
+            })
+            .catch(err => console.log('Mesaj özeti yüklenemedi'));
+    }
+
+    // ========== ÜRÜN EKLEME ==========
+    const addProductPanel = document.getElementById('addProductPanel');
+    if (addProductPanel) {
+        addProductPanel.addEventListener('show.bs.offcanvas', function() {
+            loadProductFormData();
+        });
+    }
+
+    function loadProductFormData() {
+        fetch('/Home/GetQuickProductFormData')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    // Populate categories
+                    const catSelect = document.getElementById('quickProductCategory');
+                    catSelect.innerHTML = '<option value="">Kategori Seçin</option>';
+                    data.categories.forEach(c => {
+                        catSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                    });
+
+                    // Populate brands
+                    const brandSelect = document.getElementById('quickProductBrand');
+                    brandSelect.innerHTML = '<option value="">Marka Seçin</option>';
+                    data.brands.forEach(b => {
+                        brandSelect.innerHTML += `<option value="${b.id}">${b.name}</option>`;
+                    });
+                }
+            })
+            .catch(err => console.error('Form verisi yüklenemedi:', err));
+    }
+
+    function submitQuickProduct() {
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Ekleniyor...';
+
+        const product = {
+            name: document.getElementById('quickProductName').value,
+            description: document.getElementById('quickProductDescription').value,
+            price: parseFloat(document.getElementById('quickProductPrice').value) || 0,
+            stockQuantity: parseInt(document.getElementById('quickProductStock').value) || 0,
+            categoryId: parseInt(document.getElementById('quickProductCategory').value) || 0,
+            brandId: parseInt(document.getElementById('quickProductBrand').value) || 0,
+            imageUrl: document.getElementById('quickProductImage').value || null
+        };
+
+        fetch('/Home/QuickAddProduct', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(product)
+        })
+        .then(r => r.json())
+        .then(result => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Ürün Ekle';
+            
+            if (result.success) {
+                showToast('Başarılı', result.message, 'success');
+                document.getElementById('quickProductForm').reset();
+                bootstrap.Offcanvas.getInstance(addProductPanel).hide();
+            } else {
+                showToast('Hata', result.message, 'danger');
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Ürün Ekle';
+            showToast('Hata', 'Bir hata oluştu', 'danger');
+        });
+    }
+
+    // ========== KAMPANYA ==========
+    function submitCampaign() {
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Oluşturuluyor...';
+
+        const campaign = {
+            name: document.getElementById('campaignName').value,
+            description: document.getElementById('campaignDescription').value,
+            discountPercent: parseFloat(document.getElementById('campaignDiscount').value) || 0,
+            startDate: document.getElementById('campaignStartDate').value,
+            endDate: document.getElementById('campaignEndDate').value
+        };
+
+        fetch('/Home/CreateCampaign', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(campaign)
+        })
+        .then(r => r.json())
+        .then(result => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-rocket me-1"></i> Kampanya Başlat';
+            
+            if (result.success) {
+                showToast('Başarılı', result.message, 'success');
+                document.getElementById('campaignForm').reset();
+                bootstrap.Modal.getInstance(document.getElementById('campaignModal')).hide();
+                loadQuickActionsData();
+            } else {
+                showToast('Hata', result.message, 'danger');
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-rocket me-1"></i> Kampanya Başlat';
+            showToast('Hata', 'Bir hata oluştu', 'danger');
+        });
+    }
+
+    // ========== SİPARİŞ GÜNCELLEME ==========
+    function searchOrder() {
+        const orderId = document.getElementById('searchOrderId').value;
+        if (!orderId) return;
+
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+        fetch(`/Home/SearchOrder?orderId=${orderId}`)
+            .then(r => r.json())
+            .then(result => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-search"></i>';
+                
+                const resultDiv = document.getElementById('orderSearchResult');
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <div class="card border-0 bg-light">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h6 class="mb-1">Sipariş #${result.order.id}</h6>
+                                        <small class="text-muted">${result.order.customerName}</small>
+                                    </div>
+                                    <span class="badge bg-primary">${result.order.statusText}</span>
+                                </div>
+                                <div class="row g-2 text-muted small mb-3">
+                                    <div class="col-6"><i class="fa-regular fa-calendar me-1"></i>${result.order.orderDate}</div>
+                                    <div class="col-6 text-end"><strong>₺${result.order.totalAmount.toFixed(2)}</strong></div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-medium">Yeni Durum</label>
+                                    <select class="form-select" id="newOrderStatus">
+                                        <option value="">Durum Seçin</option>
+                                        <option value="Pending" ${result.order.status === 'Pending' ? 'selected' : ''}>Beklemede</option>
+                                        <option value="Processing" ${result.order.status === 'Processing' ? 'selected' : ''}>İşleniyor</option>
+                                        <option value="Shipped" ${result.order.status === 'Shipped' ? 'selected' : ''}>Kargoda</option>
+                                        <option value="Delivered" ${result.order.status === 'Delivered' ? 'selected' : ''}>Teslim Edildi</option>
+                                        <option value="Cancelled" ${result.order.status === 'Cancelled' ? 'selected' : ''}>İptal</option>
+                                    </select>
+                                </div>
+                                <button type="button" class="btn btn-warning w-100" onclick="updateOrderStatus(${result.order.id})">
+                                    <i class="fa-solid fa-save me-1"></i> Durumu Güncelle
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="alert alert-warning mb-0">${result.message}</div>`;
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-search"></i>';
+                showToast('Hata', 'Sipariş bulunamadı', 'danger');
+            });
+    }
+
+    function updateOrderStatus(orderId) {
+        const status = document.getElementById('newOrderStatus').value;
+        if (!status) {
+            showToast('Uyarı', 'Lütfen bir durum seçin', 'warning');
+            return;
+        }
+
+        fetch('/Home/UpdateOrderStatus', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: orderId, status: status })
+        })
+        .then(r => r.json())
+        .then(result => {
+            if (result.success) {
+                showToast('Başarılı', result.message, 'success');
+                document.getElementById('searchOrderId').value = '';
+                document.getElementById('orderSearchResult').innerHTML = '';
+                bootstrap.Modal.getInstance(document.getElementById('orderUpdateModal')).hide();
+            } else {
+                showToast('Hata', result.message, 'danger');
+            }
+        })
+        .catch(err => showToast('Hata', 'Bir hata oluştu', 'danger'));
+    }
+
+    // ========== MESAJ YANITLAMA ==========
+    const messagesPanel = document.getElementById('messagesPanel');
+    if (messagesPanel) {
+        messagesPanel.addEventListener('show.bs.offcanvas', function() {
+            loadPendingMessages();
+        });
+    }
+
+    function loadPendingMessages() {
+        const container = document.getElementById('messagesList');
+        container.innerHTML = '<div class="text-center py-4"><i class="fa-solid fa-spinner fa-spin"></i> Yükleniyor...</div>';
+
+        fetch('/Home/GetPendingMessages')
+            .then(r => r.json())
+            .then(messages => {
+                if (messages && messages.length > 0) {
+                    container.innerHTML = messages.map(m => `
+                        <div class="message-item card border-0 shadow-sm mb-2" onclick="selectMessage(${m.id})">
+                            <div class="card-body p-3">
+                                <div class="d-flex gap-3">
+                                    <div class="message-avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; flex-shrink: 0;">
+                                        ${m.customerInitials}
+                                    </div>
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <h6 class="mb-0 text-truncate">${m.customerName}</h6>
+                                            <small class="text-muted">${m.timeAgo}</small>
+                                        </div>
+                                        <div class="text-muted small text-truncate">${m.subject}</div>
+                                        <div class="d-flex gap-1 mt-1">
+                                            <span class="badge ${m.categoryBadgeClass}">${m.categoryText}</span>
+                                            <span class="badge ${m.statusBadgeClass}">${m.statusText}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-check-circle fa-3x mb-3 text-success"></i>
+                            <p class="mb-0">Yanıtlanmayı bekleyen mesaj yok</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(err => {
+                container.innerHTML = '<div class="alert alert-danger">Mesajlar yüklenemedi</div>';
+            });
+    }
+
+    let selectedMessageId = null;
+
+    function selectMessage(messageId) {
+        selectedMessageId = messageId;
+        document.querySelectorAll('.message-item').forEach(el => el.classList.remove('border-primary'));
+        event.currentTarget.classList.add('border-primary', 'border-2');
+        
+        // Fetch message details
+        fetch(`/Home/GetPendingMessages`)
+            .then(r => r.json())
+            .then(messages => {
+                const msg = messages.find(m => m.id === messageId);
+                if (msg) {
+                    document.getElementById('messageReplySection').innerHTML = `
+                        <div class="card border-0 bg-light mb-3">
+                            <div class="card-body">
+                                <h6 class="fw-bold mb-2">${msg.subject}</h6>
+                                <p class="mb-2 small">${msg.message}</p>
+                                <small class="text-muted">- ${msg.customerName} (${msg.customerEmail})</small>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Yanıtınız</label>
+                            <textarea class="form-control" id="messageReplyText" rows="4" placeholder="Müşteriye yanıtınızı yazın..."></textarea>
+                        </div>
+                        <button type="button" class="btn btn-primary w-100" onclick="sendMessageReply()">
+                            <i class="fa-solid fa-paper-plane me-1"></i> Yanıt Gönder
+                        </button>
+                    `;
+                }
+            });
+    }
+
+    function sendMessageReply() {
+        if (!selectedMessageId) return;
+        
+        const reply = document.getElementById('messageReplyText').value;
+        if (!reply.trim()) {
+            showToast('Uyarı', 'Lütfen bir yanıt yazın', 'warning');
+            return;
+        }
+
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Gönderiliyor...';
+
+        fetch('/Home/ReplyToMessage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messageId: selectedMessageId, reply: reply })
+        })
+        .then(r => r.json())
+        .then(result => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> Yanıt Gönder';
+            
+            if (result.success) {
+                showToast('Başarılı', result.message, 'success');
+                document.getElementById('messageReplySection').innerHTML = '';
+                selectedMessageId = null;
+                loadPendingMessages();
+                loadQuickActionsData();
+            } else {
+                showToast('Hata', result.message, 'danger');
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> Yanıt Gönder';
+            showToast('Hata', 'Bir hata oluştu', 'danger');
+        });
+    }
+
+    // ========== TOAST NOTIFICATION ==========
+    function showToast(title, message, type = 'info') {
+        const toastContainer = document.getElementById('toastContainer') || createToastContainer();
+        const toastId = 'toast_' + Date.now();
+        
+        const bgClass = {
+            'success': 'bg-success',
+            'danger': 'bg-danger',
+            'warning': 'bg-warning',
+            'info': 'bg-info'
+        }[type] || 'bg-info';
+
+        const iconClass = {
+            'success': 'fa-check-circle',
+            'danger': 'fa-times-circle',
+            'warning': 'fa-exclamation-triangle',
+            'info': 'fa-info-circle'
+        }[type] || 'fa-info-circle';
+
+        const toastHtml = `
+            <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fa-solid ${iconClass} me-2"></i>
+                        <strong>${title}:</strong> ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        `;
+        
+        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+        const toastEl = document.getElementById(toastId);
+        const toast = new bootstrap.Toast(toastEl, { autohide: true, delay: 4000 });
+        toast.show();
+        
+        toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+    }
+
+    function createToastContainer() {
+        const container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        container.style.zIndex = '1100';
+        document.body.appendChild(container);
+        return container;
+    }
+
+    // Set default dates for campaign
+    const campaignStartDate = document.getElementById('campaignStartDate');
+    const campaignEndDate = document.getElementById('campaignEndDate');
+    if (campaignStartDate && campaignEndDate) {
+        const today = new Date();
+        campaignStartDate.value = today.toISOString().split('T')[0];
+        const nextWeek = new Date(today);
+        nextWeek.setDate(today.getDate() + 7);
+        campaignEndDate.value = nextWeek.toISOString().split('T')[0];
     }
 </script>
 }
 
+<!-- ============================================================== -->
+<!-- HIZLI AKSİYON MODALLARI VE PANELLERİ -->
+<!-- ============================================================== -->
+
+<!-- Ürün Ekleme Offcanvas Panel -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="addProductPanel" style="width: 450px;">
+    <div class="offcanvas-header bg-success text-white">
+        <h5 class="offcanvas-title">
+            <i class="fa-solid fa-plus me-2"></i>Hızlı Ürün Ekle
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+        <form id="quickProductForm">
+            <div class="mb-3">
+                <label class="form-label fw-medium">Ürün Adı <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="quickProductName" required placeholder="Ürün adını girin">
+            </div>
+            
+            <div class="row g-3 mb-3">
+                <div class="col-6">
+                    <label class="form-label fw-medium">Fiyat (₺) <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control" id="quickProductPrice" step="0.01" min="0" required placeholder="0.00">
+                </div>
+                <div class="col-6">
+                    <label class="form-label fw-medium">Stok <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control" id="quickProductStock" min="0" required placeholder="0">
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-medium">Kategori <span class="text-danger">*</span></label>
+                <select class="form-select" id="quickProductCategory" required>
+                    <option value="">Yükleniyor...</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-medium">Marka <span class="text-danger">*</span></label>
+                <select class="form-select" id="quickProductBrand" required>
+                    <option value="">Yükleniyor...</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-medium">Görsel URL</label>
+                <input type="url" class="form-control" id="quickProductImage" placeholder="https://...">
+                <small class="text-muted">Opsiyonel - Ürün görseli URL'si</small>
+            </div>
+            
+            <div class="mb-4">
+                <label class="form-label fw-medium">Açıklama</label>
+                <textarea class="form-control" id="quickProductDescription" rows="3" placeholder="Ürün açıklaması..."></textarea>
+            </div>
+            
+            <button type="button" class="btn btn-success w-100" onclick="submitQuickProduct()">
+                <i class="fa-solid fa-check me-1"></i> Ürün Ekle
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Kampanya Modal -->
+<div class="modal fade" id="campaignModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-percent me-2"></i>Kampanya Başlat
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="campaignForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Kampanya Adı <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="campaignName" required placeholder="Örn: Yılbaşı İndirimi">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">İndirim Yüzdesi <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">%</span>
+                            <input type="number" class="form-control" id="campaignDiscount" min="1" max="100" required placeholder="10">
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-medium">Başlangıç <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="campaignStartDate" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-medium">Bitiş <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="campaignEndDate" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Açıklama</label>
+                        <textarea class="form-control" id="campaignDescription" rows="2" placeholder="Kampanya detayları..."></textarea>
+                    </div>
+                </form>
+                
+                <!-- Aktif Kampanyalar Listesi -->
+                <div class="mt-4 pt-3 border-top" id="activeCampaignsSection">
+                    <h6 class="fw-bold mb-3"><i class="fa-solid fa-fire text-warning me-2"></i>Aktif Kampanyalar</h6>
+                    <div id="campaignList" class="d-flex flex-column gap-2">
+                        <div class="text-center text-muted small py-2">Yükleniyor...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" onclick="submitCampaign()">
+                    <i class="fa-solid fa-rocket me-1"></i> Kampanya Başlat
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sipariş Güncelleme Modal -->
+<div class="modal fade" id="orderUpdateModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-truck me-2"></i>Sipariş Durumu Güncelle
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <label class="form-label fw-medium">Sipariş Numarası</label>
+                    <div class="input-group">
+                        <span class="input-group-text">#</span>
+                        <input type="number" class="form-control" id="searchOrderId" placeholder="Sipariş numarasını girin">
+                        <button type="button" class="btn btn-primary" onclick="searchOrder()">
+                            <i class="fa-solid fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="orderSearchResult"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mesaj Yanıtlama Offcanvas Panel -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="messagesPanel" style="width: 500px;">
+    <div class="offcanvas-header bg-secondary text-white">
+        <h5 class="offcanvas-title">
+            <i class="fa-solid fa-comment-dots me-2"></i>Müşteri Mesajları
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+        <div class="row g-0 h-100">
+            <!-- Mesaj Listesi -->
+            <div class="col-12 border-bottom" style="max-height: 50%; overflow-y: auto;">
+                <div class="p-3">
+                    <h6 class="fw-bold mb-3">Yanıt Bekleyen Mesajlar</h6>
+                    <div id="messagesList"></div>
+                </div>
+            </div>
+            
+            <!-- Yanıt Bölümü -->
+            <div class="col-12 p-3" style="max-height: 50%; overflow-y: auto;">
+                <div id="messageReplySection">
+                    <div class="text-center text-muted py-5">
+                        <i class="fa-solid fa-hand-pointer fa-2x mb-3 opacity-50"></i>
+                        <p class="mb-0">Yanıtlamak için bir mesaj seçin</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ==================== SON GİRİŞLER WİDGET SCRIPT ====================
+document.addEventListener('DOMContentLoaded', function() {
+    // Sadece admin rolleri için çalıştır
+    const recentLoginsTable = document.getElementById('recentLoginsTable');
+    if (recentLoginsTable) {
+        loadRecentLogins();
+        loadLoginSummary();
+    }
+});
+
+async function loadRecentLogins() {
+    try {
+        const response = await fetch('/Home/GetRecentLogins?take=10');
+        const logins = await response.json();
+        
+        const tbody = document.getElementById('recentLoginsTable');
+        if (!tbody) return;
+        
+        if (!logins || logins.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center py-4">
+                        <i class="fa-solid fa-clock-rotate-left fa-2x text-muted mb-2 d-block opacity-50"></i>
+                        <span class="text-muted">Giriş kaydı bulunamadı</span>
+                    </td>
+                </tr>`;
+            return;
+        }
+        
+        let html = '';
+        logins.forEach(function(login) {
+            var initials = login.userFullName 
+                ? login.userFullName.split(' ').filter(function(s) { return s; }).map(function(s) { return s[0]; }).join('').toUpperCase()
+                : login.username[0].toUpperCase();
+            
+            var avatarColors = {
+                'SuperAdmin': 'bg-danger text-white',
+                'CompanyAdmin': 'bg-primary text-white',
+                'Customer': 'bg-success text-white'
+            };
+            var avatarColor = avatarColors[login.roleName] || 'bg-secondary text-white';
+            
+            var roleBadges = {
+                'SuperAdmin': 'role-badge-superadmin',
+                'CompanyAdmin': 'role-badge-companyadmin',
+                'Customer': 'role-badge-customer'
+            };
+            var roleBadge = roleBadges[login.roleName] || 'bg-secondary';
+            
+            var rowClass = login.isSuspicious ? 'login-row suspicious' : 'login-row';
+            var statusBadge = login.isSuspicious 
+                ? '<span class="badge bg-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i>Şüpheli</span>' 
+                : '<span class="badge bg-success"><i class="fa-solid fa-check me-1"></i>Normal</span>';
+            
+            html += '<tr class="' + rowClass + '">' +
+                '<td>' +
+                    '<div class="d-flex align-items-center">' +
+                        '<div class="rounded-circle ' + avatarColor + ' d-flex align-items-center justify-content-center me-2" style="width:32px;height:32px;font-size:12px;font-weight:600;">' + initials + '</div>' +
+                        '<div>' +
+                            '<div class="fw-medium">' + (login.userFullName || login.username) + '</div>' +
+                            '<small class="text-muted">@@' + login.username + '</small>' +
+                        '</div>' +
+                    '</div>' +
+                '</td>' +
+                '<td><span class="badge ' + roleBadge + '">' + (login.roleName || '-') + '</span></td>' +
+                '<td><code class="ip-code">' + login.ipAddress + '</code></td>' +
+                '<td><small>' + login.timeAgo + '</small></td>' +
+                '<td class="text-center">' + statusBadge + '</td>' +
+            '</tr>';
+        });
+        
+        tbody.innerHTML = html;
+        
+    } catch (error) {
+        console.error('Son girişler yüklenirken hata:', error);
+        document.getElementById('recentLoginsTable').innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center py-4 text-danger">
+                    <i class="fa-solid fa-exclamation-circle me-2"></i>Yüklenirken hata oluştu
+                </td>
+            </tr>`;
+    }
+}
+
+async function loadLoginSummary() {
+    try {
+        const response = await fetch('/Home/GetLoginHistorySummary');
+        const summary = await response.json();
+        
+        document.getElementById('todayLoginsCount').textContent = summary.totalLogins || 0;
+        document.getElementById('uniqueUsersCount').textContent = summary.uniqueUsers || 0;
+        document.getElementById('failedLoginsCount').textContent = summary.failedLogins || 0;
+        document.getElementById('suspiciousLoginsCount').textContent = summary.suspiciousLogins || 0;
+        document.getElementById('loginSummaryBadge').textContent = `Bugün: ${summary.totalLogins || 0} giriş`;
+        
+        // Şüpheli giriş varsa kart animasyonu
+        if (summary.suspiciousLogins > 0) {
+            document.getElementById('suspiciousCard')?.classList.add('has-suspicious');
+        }
+        
+    } catch (error) {
+        console.error('Giriş özeti yüklenirken hata:', error);
+    }
+}
+</script>

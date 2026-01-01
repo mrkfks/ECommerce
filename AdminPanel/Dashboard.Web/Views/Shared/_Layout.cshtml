@@ -22,7 +22,42 @@
         .content { margin-left: 260px; }
         .navbar { background: #ffffff; border-bottom: 1px solid #e5e7eb; }
         .card-metric .icon { font-size: 24px; opacity: .8; }
+        
+        /* Notification Center Styles */
+        .notification-bell { position: relative; cursor: pointer; }
+        .notification-badge { 
+            position: absolute; top: -5px; right: -5px; 
+            background: #dc3545; color: #fff; 
+            font-size: 10px; border-radius: 50%; 
+            width: 18px; height: 18px; 
+            display: flex; align-items: center; justify-content: center;
+        }
+        .notification-dropdown { 
+            width: 360px; max-height: 450px; overflow-y: auto; 
+            padding: 0; border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .notification-header { 
+            padding: 12px 16px; background: #f8f9fa; 
+            border-bottom: 1px solid #e5e7eb; 
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .notification-item { 
+            padding: 12px 16px; border-bottom: 1px solid #f0f0f0; 
+            transition: background 0.2s; cursor: pointer;
+        }
+        .notification-item:hover { background: #f8f9fa; }
+        .notification-item.unread { background: #f0f7ff; border-left: 3px solid #0d6efd; }
+        .notification-item.critical { border-left: 3px solid #dc3545; }
+        .notification-item.warning { border-left: 3px solid #ffc107; }
+        .notification-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .notification-icon.danger { background: #fee2e2; color: #dc3545; }
+        .notification-icon.success { background: #d1fae5; color: #10b981; }
+        .notification-icon.warning { background: #fef3c7; color: #f59e0b; }
+        .notification-icon.info { background: #dbeafe; color: #3b82f6; }
+        .notification-time { font-size: 11px; color: #6b7280; }
+        .notification-footer { padding: 10px; text-align: center; background: #f8f9fa; }
     </style>
+    @RenderSection("Styles", required: false)
 </head>
 <body>
     <!-- Sidebar -->
@@ -31,34 +66,64 @@
         <nav class="flex-grow-1">
             @if (User?.Identity?.IsAuthenticated ?? false)
             {
-            <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Home" ? "active" : "")" asp-controller="Home" asp-action="Index">
-                <i class="fa-solid fa-house me-2"></i> Ana Sayfa
-            </a>
-            <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Product" ? "active" : "")" asp-controller="Product" asp-action="Index">
-                <i class="fa-solid fa-warehouse me-2"></i> Envanter Yönetimi
-            </a>
-            <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Order" ? "active" : "")" asp-controller="Order" asp-action="Index">
-                <i class="fa-solid fa-cart-shopping me-2"></i> Siparişler
-            </a>
-            <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Customer" ? "active" : "")" asp-controller="Customer" asp-action="Index">
-                <i class="fa-solid fa-users me-2"></i> Müşteriler
-            </a>
-            <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Review" ? "active" : "")" asp-controller="Review" asp-action="Index">
-                <i class="fa-regular fa-comment-dots me-2"></i> Yorumlar
-            </a>
-            
-            @if (User.IsInRole("CompanyAdmin") || User.IsInRole("SuperAdmin"))
-            {
-                <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="User" ? "active" : "")" asp-controller="User" asp-action="Index">
-                    <i class="fa-solid fa-user-tie me-2"></i> Çalışanlar
+                @* ==================== HERKES İÇİN ==================== *@
+                <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Home" && ViewContext.RouteData.Values["action"]?.ToString()=="Index" ? "active" : "")" asp-controller="Home" asp-action="Index">
+                    <i class="fa-solid fa-house me-2"></i> Ana Sayfa
                 </a>
-            }
-            
-            @if (User.IsInRole("CompanyAdmin"))
-            @if (User.Identity?.IsAuthenticated ?? false)
-            {
-                @if (!User.IsInRole("SuperAdmin"))
+                
+                @* ==================== ADMIN VE COMPANY ADMIN İÇİN ==================== *@
+                @if (User.IsInRole("CompanyAdmin") || User.IsInRole("SuperAdmin"))
                 {
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Home" && ViewContext.RouteData.Values["action"]?.ToString()=="Charts" ? "active" : "")" asp-controller="Home" asp-action="Charts">
+                        <i class="fa-solid fa-chart-line me-2"></i> Grafikler
+                    </a>
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Home" && ViewContext.RouteData.Values["action"]?.ToString()=="Notifications" ? "active" : "")" asp-controller="Home" asp-action="Notifications">
+                        <i class="fa-solid fa-bell me-2"></i> Bildirimler
+                    </a>
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Product" ? "active" : "")" asp-controller="Product" asp-action="Index">
+                        <i class="fa-solid fa-warehouse me-2"></i> Envanter Yönetimi
+                    </a>
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Order" ? "active" : "")" asp-controller="Order" asp-action="Index">
+                        <i class="fa-solid fa-cart-shopping me-2"></i> Siparişler
+                    </a>
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Customer" ? "active" : "")" asp-controller="Customer" asp-action="Index">
+                        <i class="fa-solid fa-users me-2"></i> Müşteriler
+                    </a>
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Review" ? "active" : "")" asp-controller="Review" asp-action="Index">
+                        <i class="fa-regular fa-comment-dots me-2"></i> Yorumlar
+                    </a>
+                    
+                    @* Kullanıcı Yönetimi Bölümü *@
+                    <div class="sidebar-divider" style="border-top: 1px solid rgba(255,255,255,0.1); margin: 0.5rem 1rem;"></div>
+                    <div style="padding: 0.5rem 1.25rem; font-size: 0.7rem; text-transform: uppercase; color: rgba(255,255,255,0.4); letter-spacing: 1px;">
+                        Kullanıcı Yönetimi
+                    </div>
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="User" && ViewContext.RouteData.Values["action"]?.ToString()=="Index" ? "active" : "")" asp-controller="User" asp-action="Index">
+                        <i class="fa-solid fa-user-tie me-2"></i> Çalışanlar
+                    </a>
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="User" && ViewContext.RouteData.Values["action"]?.ToString()=="Management" ? "active" : "")" asp-controller="User" asp-action="Management">
+                        <i class="fa-solid fa-users-gear me-2"></i> Kullanıcı Yönetimi
+                    </a>
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="User" && ViewContext.RouteData.Values["action"]?.ToString()=="LoginHistory" ? "active" : "")" asp-controller="User" asp-action="LoginHistory">
+                        <i class="fa-solid fa-clock-rotate-left me-2"></i> Giriş Geçmişi
+                    </a>
+                }
+                
+                @* ==================== CUSTOMER İÇİN ==================== *@
+                @if (User.IsInRole("Customer") && !User.IsInRole("CompanyAdmin") && !User.IsInRole("SuperAdmin"))
+                {
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Order" ? "active" : "")" asp-controller="Order" asp-action="MyOrders">
+                        <i class="fa-solid fa-shopping-bag me-2"></i> Siparişlerim
+                    </a>
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="User" && ViewContext.RouteData.Values["action"]?.ToString()=="Profile" ? "active" : "")" asp-controller="User" asp-action="Profile">
+                        <i class="fa-solid fa-user me-2"></i> Profilim
+                    </a>
+                }
+                
+                @* ==================== COMPANY ADMIN (NON-SUPERADMIN) İÇİN ==================== *@
+                @if (User.IsInRole("CompanyAdmin") && !User.IsInRole("SuperAdmin"))
+                {
+                    <div class="sidebar-divider" style="border-top: 1px solid rgba(255,255,255,0.1); margin: 0.5rem 1rem;"></div>
                     <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Request" && ViewContext.RouteData.Values["action"]?.ToString()=="Create" ? "active" : "")" asp-controller="Request" asp-action="Create">
                         <i class="fa-solid fa-plus me-2"></i> Talep Oluştur
                     </a>
@@ -66,16 +131,24 @@
                         <i class="fa-solid fa-list-check me-2"></i> Taleplerim
                     </a>
                 }
-            }
-            @if (User.IsInRole("SuperAdmin"))
-            {
-                <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Company" ? "active" : "")" asp-controller="Company" asp-action="Index">
-                    <i class="fa-solid fa-building me-2"></i> Şirketler
-                </a>
-                <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Request" && ViewContext.RouteData.Values["action"]?.ToString()=="Index" ? "active" : "")" asp-controller="Request" asp-action="Index">
-                    <i class="fa-solid fa-envelope-open-text me-2"></i> Talepler
-                </a>
-            }
+                
+                @* ==================== SADECE SUPERADMIN İÇİN ==================== *@
+                @if (User.IsInRole("SuperAdmin"))
+                {
+                    <div class="sidebar-divider" style="border-top: 1px solid rgba(255,255,255,0.1); margin: 0.5rem 1rem;"></div>
+                    <div style="padding: 0.5rem 1.25rem; font-size: 0.7rem; text-transform: uppercase; color: rgba(255,255,255,0.4); letter-spacing: 1px;">
+                        <i class="fa-solid fa-crown me-1" style="color: #ffc107;"></i> SuperAdmin
+                    </div>
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Company" ? "active" : "")" asp-controller="Company" asp-action="Index">
+                        <i class="fa-solid fa-building me-2"></i> Şirketler
+                    </a>
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Request" && ViewContext.RouteData.Values["action"]?.ToString()=="Index" ? "active" : "")" asp-controller="Request" asp-action="Index">
+                        <i class="fa-solid fa-envelope-open-text me-2"></i> Talepler
+                    </a>
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="User" && ViewContext.RouteData.Values["action"]?.ToString()=="SuspiciousLogins" ? "active" : "")" asp-controller="User" asp-action="SuspiciousLogins">
+                        <i class="fa-solid fa-shield-halved me-2 text-warning"></i> Güvenlik
+                    </a>
+                }
             }
             else
             {
@@ -101,7 +174,31 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div id="topNav" class="collapse navbar-collapse justify-content-end">
-                    <ul class="navbar-nav">
+                    <ul class="navbar-nav align-items-center">
+                        @if (User?.Identity?.IsAuthenticated ?? false)
+                        {
+                        <!-- Notification Bell -->
+                        <li class="nav-item dropdown me-3">
+                            <a class="nav-link notification-bell" href="#" data-bs-toggle="dropdown" id="notificationBell">
+                                <i class="fa-regular fa-bell fa-lg"></i>
+                                <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-end notification-dropdown" id="notificationDropdown">
+                                <div class="notification-header">
+                                    <strong><i class="fa-solid fa-bell me-2"></i>Bildirimler</strong>
+                                    <a href="#" class="text-decoration-none small" id="markAllRead">Tümünü okundu işaretle</a>
+                                </div>
+                                <div id="notificationList">
+                                    <div class="text-center py-4 text-muted">
+                                        <i class="fa-solid fa-spinner fa-spin"></i> Yükleniyor...
+                                    </div>
+                                </div>
+                                <div class="notification-footer">
+                                    <a href="/Home/Notifications" class="text-decoration-none">Tüm bildirimleri gör <i class="fa-solid fa-arrow-right ms-1"></i></a>
+                                </div>
+                            </div>
+                        </li>
+                        }
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
                                 <svg class="rounded-circle me-2" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -144,8 +241,149 @@
     <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@4.0.0/jquery.validate.unobtrusive.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Notification Center Script -->
+    <script>
+    (function() {
+        // Notification polling interval (30 seconds)
+        const POLL_INTERVAL = 30000;
+        let pollTimer = null;
+        
+        // Load notifications
+        function loadNotifications() {
+            fetch('/Home/GetNotificationSummary')
+                .then(response => response.json())
+                .then(data => {
+                    updateNotificationBadge(data.unreadCount);
+                    renderNotifications(data.recentNotifications || []);
+                })
+                .catch(err => console.log('Notification load error:', err));
+        }
+        
+        // Update badge count
+        function updateNotificationBadge(count) {
+            const badge = document.getElementById('notificationBadge');
+            if (badge) {
+                if (count > 0) {
+                    badge.style.display = 'flex';
+                    badge.textContent = count > 99 ? '99+' : count;
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+        
+        // Render notification items
+        function renderNotifications(notifications) {
+            const list = document.getElementById('notificationList');
+            if (!list) return;
+            
+            if (notifications.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-4 text-muted">
+                        <i class="fa-regular fa-bell-slash fa-2x mb-2"></i>
+                        <p class="mb-0">Yeni bildirim yok</p>
+                    </div>`;
+                return;
+            }
+            
+            let html = '';
+            notifications.forEach(n => {
+                const iconClass = getIconClass(n.type);
+                const colorClass = getColorClass(n.type, n.priority);
+                const itemClass = !n.isRead ? 'unread' : '';
+                const priorityClass = n.priority >= 3 ? (n.priority === 4 ? 'critical' : 'warning') : '';
+                
+                html += `
+                    <div class="notification-item ${itemClass} ${priorityClass}" 
+                         onclick="handleNotificationClick(${n.id}, '${n.actionUrl || ''}')">
+                        <div class="d-flex align-items-start">
+                            <div class="notification-icon ${colorClass} me-3">
+                                <i class="fa-solid ${iconClass}"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <strong class="d-block">${escapeHtml(n.title)}</strong>
+                                    <span class="notification-time">${n.timeAgo}</span>
+                                </div>
+                                <small class="text-muted">${escapeHtml(n.message)}</small>
+                                ${n.actionText ? `<div class="mt-1"><span class="badge bg-primary">${escapeHtml(n.actionText)}</span></div>` : ''}
+                            </div>
+                        </div>
+                    </div>`;
+            });
+            
+            list.innerHTML = html;
+        }
+        
+        // Get icon class by type
+        function getIconClass(type) {
+            const icons = {
+                1: 'fa-box-open',      // LowStock
+                2: 'fa-shopping-cart', // NewOrder
+                3: 'fa-undo',          // ReturnRequest
+                4: 'fa-credit-card',   // PaymentFailed
+                5: 'fa-truck',         // OrderStatusChanged
+                6: 'fa-bell'           // System
+            };
+            return icons[type] || 'fa-bell';
+        }
+        
+        // Get color class by type and priority
+        function getColorClass(type, priority) {
+            if (priority === 4) return 'danger';  // Critical
+            if (priority === 3) return 'warning'; // High
+            
+            const colors = {
+                1: 'danger',  // LowStock
+                2: 'success', // NewOrder
+                3: 'warning', // ReturnRequest
+                4: 'danger',  // PaymentFailed
+                5: 'info',    // OrderStatusChanged
+                6: 'info'     // System
+            };
+            return colors[type] || 'info';
+        }
+        
+        // Escape HTML
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Handle notification click
+        window.handleNotificationClick = function(id, actionUrl) {
+            // Mark as read
+            fetch(`/Home/MarkNotificationAsRead?id=${id}`, { method: 'POST' })
+                .then(() => {
+                    if (actionUrl) {
+                        window.location.href = actionUrl;
+                    } else {
+                        loadNotifications();
+                    }
+                });
+        };
+        
+        // Mark all as read
+        document.getElementById('markAllRead')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            fetch('/Home/MarkAllNotificationsAsRead', { method: 'POST' })
+                .then(() => loadNotifications());
+        });
+        
+        // Start polling when authenticated
+        if (document.getElementById('notificationBell')) {
+            loadNotifications();
+            pollTimer = setInterval(loadNotifications, POLL_INTERVAL);
+            
+            // Reload on dropdown open
+            document.getElementById('notificationBell')?.addEventListener('click', loadNotifications);
+        }
+    })();
+    </script>
+    
     @RenderSection("Scripts", required: false)
 </body>
 </html>
-
-    

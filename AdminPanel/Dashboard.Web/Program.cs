@@ -55,6 +55,12 @@ builder.Services.AddHttpClient<CustomerApiService>(client =>
     client.Timeout = TimeSpan.FromSeconds(30);
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
+builder.Services.AddHttpClient<DashboardApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
 builder.Services.AddHttpClient<BrandApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
@@ -68,6 +74,12 @@ builder.Services.AddHttpClient<GlobalAttributeApiService>(client =>
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
 builder.Services.AddHttpClient<ModelApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+builder.Services.AddHttpClient<NotificationApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
@@ -115,6 +127,30 @@ builder.Services.AddHttpClient<AuthApiService>(client =>
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 // AuthApiService doesn't need AuthTokenHandler (login/register endpoints)
+
+builder.Services.AddHttpClient<CampaignApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+builder.Services.AddHttpClient<CustomerMessageApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+builder.Services.AddHttpClient<LoginHistoryApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+builder.Services.AddHttpClient<UserManagementApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
 
 // CORS (Angular veya başka frontend bağlanacaksa)
 builder.Services.AddCors(options =>
@@ -182,10 +218,22 @@ builder.Services
 // Authorization + rol bazlı yetkilendirme
 builder.Services.AddAuthorization(options =>
 {
+    // Rol bazlı temel policy'ler
     options.AddPolicy("SuperAdminOnly", policy => policy.RequireRole("SuperAdmin"));
+    options.AddPolicy("CompanyAdminOnly", policy => policy.RequireRole("CompanyAdmin"));
+    options.AddPolicy("CustomerOnly", policy => policy.RequireRole("Customer"));
     options.AddPolicy("CompanyAdminOrSuperAdmin", policy => policy.RequireRole("CompanyAdmin", "SuperAdmin"));
     options.AddPolicy("CompanyAccess", policy => policy.RequireRole("CompanyAdmin", "SuperAdmin", "CompanyStaff"));
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("CompanyAdmin", "SuperAdmin"));
+
+    // Yetki bazlı policy'ler
+    options.AddPolicy("CanManageUsers", policy => policy.RequireRole("SuperAdmin", "CompanyAdmin"));
+    options.AddPolicy("CanViewAllCompanies", policy => policy.RequireRole("SuperAdmin"));
+    options.AddPolicy("CanManageProducts", policy => policy.RequireRole("SuperAdmin", "CompanyAdmin"));
+    options.AddPolicy("CanManageOrders", policy => policy.RequireRole("SuperAdmin", "CompanyAdmin"));
+    options.AddPolicy("CanViewReports", policy => policy.RequireRole("SuperAdmin", "CompanyAdmin"));
+    options.AddPolicy("CanManageCampaigns", policy => policy.RequireRole("SuperAdmin", "CompanyAdmin"));
+    options.AddPolicy("CanViewLoginHistory", policy => policy.RequireRole("SuperAdmin", "CompanyAdmin"));
     // FallbackPolicy removed - Controllers have [Authorize] attributes
 });
 

@@ -1,12 +1,13 @@
+using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Entities;
 using ECommerce.Infrastructure.Data.Configurations;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Infrastructure.Data
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : DbContext, IApplicationDbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options, ECommerce.Application.Interfaces.ITenantService tenantService) : base(options) 
+        public AppDbContext(DbContextOptions<AppDbContext> options, ECommerce.Application.Interfaces.ITenantService tenantService) : base(options)
         {
             CurrentCompanyId = tenantService.GetCompanyId();
         }
@@ -38,6 +39,10 @@ namespace ECommerce.Infrastructure.Data
         public DbSet<GlobalAttributeValue> GlobalAttributeValues { get; set; }
         public DbSet<CategoryGlobalAttribute> CategoryGlobalAttributes { get; set; }
         public DbSet<BrandCategory> BrandCategories { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+        public DbSet<Campaign> Campaigns { get; set; }
+        public DbSet<CustomerMessage> CustomerMessages { get; set; }
+        public DbSet<LoginHistory> LoginHistories { get; set; }
 
         // Tenant context
         public int? CurrentCompanyId { get; private set; }
@@ -70,7 +75,7 @@ namespace ECommerce.Infrastructure.Data
                 .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
             modelBuilder.Entity<ProductVariant>()
                 .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
-            
+
             // Brand ve Model query filters
             modelBuilder.Entity<Brand>()
                 .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
@@ -86,6 +91,22 @@ namespace ECommerce.Infrastructure.Data
                 .HasQueryFilter(e => CurrentCompanyId == null || e.Category.CompanyId == CurrentCompanyId);
             modelBuilder.Entity<BrandCategory>()
                 .HasQueryFilter(e => CurrentCompanyId == null || e.Brand.CompanyId == CurrentCompanyId);
+
+            // Notification query filter
+            modelBuilder.Entity<Notification>()
+                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
+
+            // Campaign query filter
+            modelBuilder.Entity<Campaign>()
+                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
+
+            // CustomerMessage query filter
+            modelBuilder.Entity<CustomerMessage>()
+                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
+
+            // LoginHistory - kullanıcının şirketine göre filtrelenmez (admin tüm girişleri görebilir)
+            modelBuilder.Entity<LoginHistory>()
+                .HasQueryFilter(e => !e.IsDeleted);
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -113,7 +134,7 @@ namespace ECommerce.Infrastructure.Data
                         // CreatedAt ve UpdatedAt'ı reflection ile set et (private setter bypass)
                         entry.Property("CreatedAt").CurrentValue = now;
                         entry.Property("UpdatedAt").CurrentValue = now;
-                        
+
                         // Soft delete için varsayılan değer
                         if (entry.Entity is ISoftDeletable)
                         {
@@ -137,11 +158,11 @@ namespace ECommerce.Infrastructure.Data
                     {
                         var entityType = entry.Entity.GetType();
                         var isActiveProperty = entityType.GetProperty("IsActive");
-                        
+
                         if (isActiveProperty != null)
                         {
                             var currentValue = isActiveProperty.GetValue(entry.Entity);
-                            
+
                             // Eğer IsActive false ise veya henüz set edilmemişse, true yap
                             if (currentValue == null || (currentValue is bool boolValue && !boolValue))
                             {

@@ -22,6 +22,9 @@ public static class DependencyInjection
                 b => b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
             .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
 
+        // IApplicationDbContext for direct query access
+        services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<AppDbContext>());
+
         // Repositories
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         services.AddScoped<IProductRepository, ProductRepository>();
@@ -42,6 +45,7 @@ public static class DependencyInjection
         services.AddScoped<IBrandService, BrandService>();
         services.AddScoped<IModelService, ModelService>();
         services.AddScoped<IGlobalAttributeService, GlobalAttributeService>();
+        services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<ITenantService, TenantService>();
         services.AddScoped<IFileUploadService, FileUploadService>(provider =>
         {

@@ -1,0 +1,568 @@
+@model Dashboard.Web.Models.ChartsViewModel
+@{
+    ViewData["Title"] = "Grafikler ve Görselleştirmeler";
+}
+
+<!-- Başlık ve Filtreler -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1">
+            <i class="fa-solid fa-chart-line text-primary me-2"></i>
+            Grafikler ve Görselleştirmeler
+        </h4>
+        <p class="text-muted mb-0">Satış, sipariş ve müşteri analizleri</p>
+    </div>
+</div>
+
+<!-- Filtre Paneli -->
+<div class="card mb-4 border-0 shadow-sm">
+    <div class="card-body py-3">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-4">
+                <div class="d-flex align-items-center gap-2">
+                    <label class="form-label mb-0 text-nowrap">
+                        <i class="fa-regular fa-calendar me-1"></i> Tarih Aralığı:
+                    </label>
+                    <div class="input-group input-group-sm">
+                        <input type="date" class="form-control" id="startDate" />
+                        <span class="input-group-text">–</span>
+                        <input type="date" class="form-control" id="endDate" />
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3">
+                <div class="btn-group btn-group-sm w-100" role="group">
+                    <button type="button" class="btn btn-outline-primary filter-preset" data-days="7">7 Gün</button>
+                    <button type="button" class="btn btn-outline-primary filter-preset active" data-days="30">30 Gün</button>
+                    <button type="button" class="btn btn-outline-primary filter-preset" data-days="90">90 Gün</button>
+                </div>
+            </div>
+            @if (User.IsInRole("SuperAdmin"))
+            {
+                <div class="col-lg-3">
+                    <select class="form-select form-select-sm" id="companyFilter">
+                        <option value="">Tüm Şirketler</option>
+                        @foreach (var company in Model.Companies)
+                        {
+                            <option value="@company.Id">@company.Name</option>
+                        }
+                    </select>
+                </div>
+            }
+            <div class="col-lg-2 text-end">
+                <button class="btn btn-primary btn-sm" id="applyFilters">
+                    <i class="fa-solid fa-filter me-1"></i> Uygula
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" id="refreshCharts">
+                    <i class="fa-solid fa-sync-alt"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ana Grafikler -->
+<div class="row g-4 mb-4">
+    <!-- 1. Satış Trendi (Line Chart) -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm chart-card">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-0 fw-semibold">
+                        <i class="fa-solid fa-chart-line text-primary me-2"></i>
+                        Satış Trendi
+                    </h6>
+                    <small class="text-muted">Son 30 günün günlük satış tutarları</small>
+                </div>
+                <div class="chart-actions">
+                    <button class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="PNG olarak indir" onclick="downloadChart('salesTrendChart', 'satis-trendi')">
+                        <i class="fa-solid fa-download"></i>
+                    </button>
+                    <button class="btn btn-sm btn-light" data-bs-toggle="tooltip" title="Tam Ekran" onclick="toggleFullscreen('salesTrendContainer')">
+                        <i class="fa-solid fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body" id="salesTrendContainer">
+                <div class="chart-wrapper" style="height: 350px;">
+                    <canvas id="salesTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- 2. Kategori Bazlı Satış Dağılımı (Pie Chart) -->
+    <div class="col-xl-6">
+        <div class="card border-0 shadow-sm chart-card h-100">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-0 fw-semibold">
+                        <i class="fa-solid fa-chart-pie text-success me-2"></i>
+                        Kategori Bazlı Satış Dağılımı
+                    </h6>
+                    <small class="text-muted">Kategorilerin toplam satıştaki payı</small>
+                </div>
+                <div class="chart-actions">
+                    <button class="btn btn-sm btn-light" onclick="downloadChart('categorySalesChart', 'kategori-dagilimi')">
+                        <i class="fa-solid fa-download"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-7">
+                        <div class="chart-wrapper" style="height: 300px;">
+                            <canvas id="categorySalesChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="category-legend mt-3" id="categoryLegend">
+                            <!-- JavaScript ile doldurulacak -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Müşteri Segmentasyonu (Bar Chart) -->
+    <div class="col-xl-6">
+        <div class="card border-0 shadow-sm chart-card h-100">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-0 fw-semibold">
+                        <i class="fa-solid fa-users text-info me-2"></i>
+                        Müşteri Segmentasyonu
+                    </h6>
+                    <small class="text-muted">Yeni vs. tekrar alışveriş yapan müşteriler</small>
+                </div>
+                <div class="chart-actions">
+                    <button class="btn btn-sm btn-light" onclick="downloadChart('customerSegmentChart', 'musteri-segmentasyonu')">
+                        <i class="fa-solid fa-download"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-wrapper" style="height: 300px;">
+                    <canvas id="customerSegmentChart"></canvas>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-6">
+                        <div class="segment-stat p-3 rounded-3 bg-primary bg-opacity-10 text-center">
+                            <div class="h4 fw-bold text-primary mb-0" id="newCustomerCount">0</div>
+                            <small class="text-muted">Yeni Müşteri</small>
+                            <div class="small text-primary fw-semibold" id="newCustomerRevenue">₺0</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="segment-stat p-3 rounded-3 bg-success bg-opacity-10 text-center">
+                            <div class="h4 fw-bold text-success mb-0" id="returningCustomerCount">0</div>
+                            <small class="text-muted">Tekrar Müşteri</small>
+                            <div class="small text-success fw-semibold" id="returningCustomerRevenue">₺0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- 4. Sipariş Durumları (Stacked Bar Chart) -->
+    <div class="col-xl-8">
+        <div class="card border-0 shadow-sm chart-card h-100">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-0 fw-semibold">
+                        <i class="fa-solid fa-layer-group text-warning me-2"></i>
+                        Sipariş Durumları
+                    </h6>
+                    <small class="text-muted">Pending, Shipped, Delivered, Cancelled oranları</small>
+                </div>
+                <div class="d-flex gap-2">
+                    <div class="legend-inline">
+                        <span class="legend-item"><span class="legend-color" style="background:#FCD34D"></span>Beklemede</span>
+                        <span class="legend-item"><span class="legend-color" style="background:#60A5FA"></span>Kargoda</span>
+                        <span class="legend-item"><span class="legend-color" style="background:#34D399"></span>Teslim</span>
+                        <span class="legend-item"><span class="legend-color" style="background:#F87171"></span>İptal</span>
+                    </div>
+                    <button class="btn btn-sm btn-light" onclick="downloadChart('orderStatusChart', 'siparis-durumu')">
+                        <i class="fa-solid fa-download"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-wrapper" style="height: 320px;">
+                    <canvas id="orderStatusChart"></canvas>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-0">
+                <div class="row text-center g-2">
+                    <div class="col-3">
+                        <div class="status-summary">
+                            <span class="badge bg-warning text-dark fs-6" id="totalPending">0</span>
+                            <div class="small text-muted mt-1">Beklemede</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="status-summary">
+                            <span class="badge bg-info fs-6" id="totalShipped">0</span>
+                            <div class="small text-muted mt-1">Kargoda</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="status-summary">
+                            <span class="badge bg-success fs-6" id="totalDelivered">0</span>
+                            <div class="small text-muted mt-1">Teslim Edildi</div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="status-summary">
+                            <span class="badge bg-danger fs-6" id="totalCancelled">0</span>
+                            <div class="small text-muted mt-1">İptal</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Ortalama Sepet Tutarı Trendi (Line Chart) -->
+    <div class="col-xl-4">
+        <div class="card border-0 shadow-sm chart-card h-100">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-0 fw-semibold">
+                        <i class="fa-solid fa-shopping-cart text-purple me-2"></i>
+                        Ortalama Sepet Tutarı
+                    </h6>
+                    <small class="text-muted">Zaman içindeki değişim</small>
+                </div>
+                <button class="btn btn-sm btn-light" onclick="downloadChart('avgCartChart', 'ortalama-sepet')">
+                    <i class="fa-solid fa-download"></i>
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="chart-wrapper" style="height: 280px;">
+                    <canvas id="avgCartChart"></canvas>
+                </div>
+                <div class="text-center mt-3">
+                    <div class="h3 fw-bold text-purple mb-0" id="currentAvgCart">₺0</div>
+                    <small class="text-muted">Güncel Ortalama</small>
+                    <div class="mt-2">
+                        <span class="badge" id="avgCartChange">
+                            <i class="fa-solid fa-arrow-up me-1"></i>0%
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- 5. Coğrafi Dağılım (Heatmap) -->
+    <div class="col-xl-7">
+        <div class="card border-0 shadow-sm chart-card h-100">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-0 fw-semibold">
+                        <i class="fa-solid fa-map-location-dot text-danger me-2"></i>
+                        Coğrafi Dağılım
+                    </h6>
+                    <small class="text-muted">Siparişlerin şehir/bölge bazlı yoğunluğu</small>
+                </div>
+                <div class="intensity-legend">
+                    <span class="intensity-item"><span class="intensity-dot bg-success"></span>Düşük</span>
+                    <span class="intensity-item"><span class="intensity-dot bg-info"></span>Orta</span>
+                    <span class="intensity-item"><span class="intensity-dot bg-warning"></span>Yüksek</span>
+                    <span class="intensity-item"><span class="intensity-dot bg-danger"></span>Kritik</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="geographic-heatmap" id="geographicHeatmap">
+                    <div class="row g-2" id="cityGrid">
+                        <!-- JavaScript ile doldurulacak -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. En Çok Satan 5 Ürün (Horizontal Bar Chart) -->
+    <div class="col-xl-5">
+        <div class="card border-0 shadow-sm chart-card h-100">
+            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-0 fw-semibold">
+                        <i class="fa-solid fa-trophy text-warning me-2"></i>
+                        En Çok Satan 5 Ürün
+                    </h6>
+                    <small class="text-muted">Satış miktarına göre sıralama</small>
+                </div>
+                <button class="btn btn-sm btn-light" onclick="downloadChart('topProductsChart', 'en-cok-satan')">
+                    <i class="fa-solid fa-download"></i>
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="chart-wrapper" style="height: 350px;">
+                    <canvas id="topProductsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay" style="display: none;">
+    <div class="spinner-wrapper">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Yükleniyor...</span>
+        </div>
+        <p class="mt-2 text-muted">Grafikler yükleniyor...</p>
+    </div>
+</div>
+
+@section Styles {
+<style>
+    .chart-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .chart-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+    }
+    .chart-wrapper {
+        position: relative;
+        width: 100%;
+    }
+    .chart-actions .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+    .text-purple { color: #8B5CF6; }
+    .bg-purple { background-color: #8B5CF6; }
+    
+    /* Category Legend */
+    .category-legend {
+        max-height: 280px;
+        overflow-y: auto;
+    }
+    .category-legend-item {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem;
+        border-radius: 0.375rem;
+        margin-bottom: 0.25rem;
+        transition: background-color 0.2s;
+        cursor: pointer;
+    }
+    .category-legend-item:hover {
+        background-color: rgba(0,0,0,0.05);
+    }
+    .category-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+        margin-right: 0.5rem;
+        flex-shrink: 0;
+    }
+    .category-name {
+        flex-grow: 1;
+        font-size: 0.875rem;
+    }
+    .category-value {
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+    .category-percent {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-left: 0.5rem;
+    }
+    
+    /* Inline Legend */
+    .legend-inline {
+        display: flex;
+        gap: 0.75rem;
+        font-size: 0.75rem;
+    }
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    .legend-color {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+    }
+    
+    /* Intensity Legend */
+    .intensity-legend {
+        display: flex;
+        gap: 0.75rem;
+        font-size: 0.75rem;
+    }
+    .intensity-item {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    .intensity-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+    
+    /* Geographic Heatmap */
+    .geographic-heatmap {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    .city-card {
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7));
+        border: 1px solid rgba(0,0,0,0.05);
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    .city-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .city-card.intensity-critical {
+        background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.05));
+        border-color: rgba(239,68,68,0.3);
+    }
+    .city-card.intensity-high {
+        background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05));
+        border-color: rgba(245,158,11,0.3);
+    }
+    .city-card.intensity-medium {
+        background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(59,130,246,0.05));
+        border-color: rgba(59,130,246,0.3);
+    }
+    .city-card.intensity-low {
+        background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05));
+        border-color: rgba(34,197,94,0.3);
+    }
+    
+    /* Segment Stats */
+    .segment-stat {
+        transition: transform 0.2s;
+    }
+    .segment-stat:hover {
+        transform: scale(1.02);
+    }
+    
+    /* Loading Overlay */
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255,255,255,0.9);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .spinner-wrapper {
+        text-align: center;
+    }
+    
+    /* Fullscreen */
+    .chart-fullscreen {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 9998;
+        background: white;
+        padding: 2rem;
+    }
+    .chart-fullscreen .chart-wrapper {
+        height: calc(100vh - 100px) !important;
+    }
+    
+    /* Filter Preset Active */
+    .filter-preset.active {
+        background-color: var(--bs-primary);
+        border-color: var(--bs-primary);
+        color: white;
+    }
+    
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .legend-inline {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .intensity-legend {
+            flex-wrap: wrap;
+        }
+    }
+</style>
+}
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="~/js/dashboard-charts.js" asp-append-version="true"></script>
+<script>
+    // Sayfa yüklendiğinde grafikleri başlat
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tooltip'leri aktifleştir
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // Tarih filtrelerini ayarla
+        initializeDateFilters();
+        
+        // Grafikleri yükle
+        loadAllCharts();
+    });
+    
+    function initializeDateFilters() {
+        const today = new Date();
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(today.getDate() - 30);
+        
+        document.getElementById('endDate').value = today.toISOString().split('T')[0];
+        document.getElementById('startDate').value = thirtyDaysAgo.toISOString().split('T')[0];
+    }
+    
+    // Filter preset buttons
+    document.querySelectorAll('.filter-preset').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filter-preset').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const days = parseInt(this.dataset.days);
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(endDate.getDate() - days);
+            
+            document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+            document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
+        });
+    });
+    
+    // Apply filters
+    document.getElementById('applyFilters')?.addEventListener('click', function() {
+        loadAllCharts();
+    });
+    
+    // Refresh button
+    document.getElementById('refreshCharts')?.addEventListener('click', function() {
+        loadAllCharts();
+    });
+</script>
+}

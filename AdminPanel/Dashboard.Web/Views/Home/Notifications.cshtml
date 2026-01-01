@@ -1,0 +1,549 @@
+@model Dashboard.Web.Models.NotificationsViewModel
+@{
+    ViewData["Title"] = "Bildirimler ve Uyarılar";
+}
+
+@section Styles {
+<style>
+    .notification-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+    .notification-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        transform: translateY(-2px);
+    }
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 16px;
+        padding: 24px;
+    }
+    .stat-card.danger { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .stat-card.success { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .stat-card.warning { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+    .stat-card.info { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #333; }
+    
+    .stat-number { font-size: 2.5rem; font-weight: 700; }
+    .stat-label { font-size: 0.9rem; opacity: 0.9; }
+    
+    .tab-custom .nav-link {
+        border: none;
+        color: #6b7280;
+        padding: 12px 24px;
+        border-radius: 8px 8px 0 0;
+        font-weight: 500;
+    }
+    .tab-custom .nav-link.active {
+        background: #fff;
+        color: #0d6efd;
+        border-bottom: 3px solid #0d6efd;
+    }
+    
+    .notification-item {
+        border-left: 4px solid transparent;
+        padding: 16px;
+        margin-bottom: 8px;
+        background: #fff;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+    .notification-item:hover { background: #f8f9fa; }
+    .notification-item.unread { background: #f0f7ff; font-weight: 500; }
+    .notification-item.critical { border-left-color: #dc3545; }
+    .notification-item.warning { border-left-color: #ffc107; }
+    .notification-item.success { border-left-color: #28a745; }
+    .notification-item.info { border-left-color: #17a2b8; }
+    
+    .icon-circle {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    .icon-circle.danger { background: #fee2e2; color: #dc3545; }
+    .icon-circle.success { background: #d1fae5; color: #10b981; }
+    .icon-circle.warning { background: #fef3c7; color: #f59e0b; }
+    .icon-circle.info { background: #dbeafe; color: #3b82f6; }
+    
+    .stock-bar {
+        height: 8px;
+        border-radius: 4px;
+        background: #e5e7eb;
+        overflow: hidden;
+    }
+    .stock-bar-fill { height: 100%; border-radius: 4px; }
+    .stock-bar-fill.danger { background: #dc3545; }
+    .stock-bar-fill.warning { background: #ffc107; }
+    .stock-bar-fill.success { background: #28a745; }
+    
+    .empty-state {
+        text-align: center;
+        padding: 48px 24px;
+        color: #6b7280;
+    }
+    .empty-state i { font-size: 3rem; margin-bottom: 16px; color: #d1d5db; }
+</style>
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1"><i class="fa-solid fa-bell me-2"></i>Bildirimler ve Uyarılar</h2>
+            <p class="text-muted mb-0">Stok uyarıları, yeni siparişler ve önemli güncellemeler</p>
+        </div>
+        <div>
+            <button class="btn btn-outline-primary me-2" onclick="checkLowStock()">
+                <i class="fa-solid fa-sync me-1"></i> Stok Kontrolü
+            </button>
+            <button class="btn btn-primary" onclick="markAllAsRead()">
+                <i class="fa-solid fa-check-double me-1"></i> Tümünü Okundu İşaretle
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number">@Model.Summary.UnreadCount</div>
+                        <div class="stat-label">Okunmamış Bildirim</div>
+                    </div>
+                    <i class="fa-solid fa-bell fa-2x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card danger">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number">@Model.Summary.LowStockCount</div>
+                        <div class="stat-label">Düşük Stok Uyarısı</div>
+                    </div>
+                    <i class="fa-solid fa-box-open fa-2x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card success">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number">@Model.Summary.NewOrderCount</div>
+                        <div class="stat-label">Yeni Sipariş</div>
+                    </div>
+                    <i class="fa-solid fa-shopping-cart fa-2x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card warning">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number">@(Model.Summary.ReturnRequestCount + Model.Summary.PaymentFailedCount)</div>
+                        <div class="stat-label">Dikkat Gerektiren</div>
+                    </div>
+                    <i class="fa-solid fa-exclamation-triangle fa-2x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Sol Kolon: Ana Bildirimler -->
+        <div class="col-lg-8">
+            <div class="card notification-card">
+                <div class="card-header bg-white">
+                    <!-- Tabs -->
+                    <ul class="nav nav-tabs tab-custom border-0" id="notificationTabs" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#allTab">
+                                <i class="fa-solid fa-list me-1"></i> Tümü
+                                <span class="badge bg-primary ms-1">@Model.AllNotifications.Count</span>
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#lowStockTab">
+                                <i class="fa-solid fa-box-open me-1 text-danger"></i> Düşük Stok
+                                <span class="badge bg-danger ms-1">@Model.LowStockProducts.Count</span>
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#ordersTab">
+                                <i class="fa-solid fa-shopping-cart me-1 text-success"></i> Siparişler
+                                <span class="badge bg-success ms-1">@Model.RecentOrders.Count</span>
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#criticalTab">
+                                <i class="fa-solid fa-exclamation-circle me-1 text-danger"></i> Kritik
+                                <span class="badge bg-danger ms-1">@Model.CriticalNotifications.Count()</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body p-0">
+                    <div class="tab-content">
+                        <!-- Tüm Bildirimler -->
+                        <div class="tab-pane fade show active" id="allTab">
+                            <div class="p-3">
+                                @if (Model.AllNotifications.Any())
+                                {
+                                    @foreach (var notification in Model.AllNotifications.Take(20))
+                                    {
+                                        <div class="notification-item @(!notification.IsRead ? "unread" : "") @notification.TypeColor" 
+                                             id="notification-@notification.Id">
+                                            <div class="d-flex align-items-start">
+                                                <div class="icon-circle @notification.TypeColor me-3">
+                                                    <i class="fa-solid @notification.TypeIcon"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <h6 class="mb-1">@notification.Title</h6>
+                                                        <small class="text-muted">@notification.TimeAgo</small>
+                                                    </div>
+                                                    <p class="text-muted mb-2 small">@notification.Message</p>
+                                                    <div class="d-flex gap-2">
+                                                        @if (!string.IsNullOrEmpty(notification.ActionUrl))
+                                                        {
+                                                            <a href="@notification.ActionUrl" class="btn btn-sm btn-primary">
+                                                                <i class="fa-solid fa-arrow-right me-1"></i>@(notification.ActionText ?? "Görüntüle")
+                                                            </a>
+                                                        }
+                                                        @if (!notification.IsRead)
+                                                        {
+                                                            <button class="btn btn-sm btn-outline-secondary" onclick="markAsRead(@notification.Id)">
+                                                                <i class="fa-solid fa-check"></i> Okundu
+                                                            </button>
+                                                        }
+                                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteNotification(@notification.Id)">
+                                                            <i class="fa-solid fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="empty-state">
+                                        <i class="fa-regular fa-bell-slash"></i>
+                                        <h5>Bildirim Yok</h5>
+                                        <p>Henüz hiç bildiriminiz bulunmuyor.</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Düşük Stok -->
+                        <div class="tab-pane fade" id="lowStockTab">
+                            <div class="p-3">
+                                @if (Model.LowStockProducts.Any())
+                                {
+                                    <div class="table-responsive">
+                                        <table class="table table-hover align-middle">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Ürün</th>
+                                                    <th>Kategori</th>
+                                                    <th>Marka</th>
+                                                    <th>Stok</th>
+                                                    <th>Durum</th>
+                                                    <th>İşlem</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var product in Model.LowStockProducts)
+                                                {
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex align-items-center">
+                                                                @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                                                {
+                                                                    <img src="@product.ImageUrl" alt="" class="rounded me-2" style="width:40px;height:40px;object-fit:cover;">
+                                                                }
+                                                                else
+                                                                {
+                                                                    <div class="bg-light rounded me-2 d-flex align-items-center justify-content-center" style="width:40px;height:40px;">
+                                                                        <i class="fa-solid fa-box text-muted"></i>
+                                                                    </div>
+                                                                }
+                                                                <div>
+                                                                    <strong>@product.ProductName</strong>
+                                                                    <br><small class="text-muted">@product.Price.ToString("C")</small>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>@product.CategoryName</td>
+                                                        <td>@product.BrandName</td>
+                                                        <td>
+                                                            <span class="badge bg-@product.StockStatusColor fs-6">@product.CurrentStock adet</span>
+                                                        </td>
+                                                        <td>
+                                                            <div class="stock-bar" style="width:80px;">
+                                                                <div class="stock-bar-fill @product.StockStatusColor" 
+                                                                     style="width:@(Math.Min(100, product.CurrentStock * 10))%"></div>
+                                                            </div>
+                                                            <small class="text-@product.StockStatusColor">@product.StockStatusText</small>
+                                                        </td>
+                                                        <td>
+                                                            <a href="/Product/Edit/@product.ProductId" class="btn btn-sm btn-warning">
+                                                                <i class="fa-solid fa-edit me-1"></i>Stok Güncelle
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="empty-state">
+                                        <i class="fa-solid fa-check-circle text-success"></i>
+                                        <h5>Stok Durumu İyi</h5>
+                                        <p>Düşük stoklu ürün bulunmuyor.</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Siparişler -->
+                        <div class="tab-pane fade" id="ordersTab">
+                            <div class="p-3">
+                                @if (Model.RecentOrders.Any())
+                                {
+                                    @foreach (var order in Model.RecentOrders)
+                                    {
+                                        <div class="notification-item success">
+                                            <div class="d-flex align-items-start">
+                                                <div class="icon-circle success me-3">
+                                                    <i class="fa-solid fa-shopping-cart"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <h6 class="mb-1">Sipariş #@order.OrderId</h6>
+                                                        <small class="text-muted">@order.TimeAgo</small>
+                                                    </div>
+                                                    <p class="mb-2">
+                                                        <strong>@order.CustomerName</strong> tarafından 
+                                                        <span class="text-success fw-bold">@order.TotalAmount.ToString("C")</span> tutarında sipariş
+                                                        <span class="badge bg-secondary">@order.ItemCount ürün</span>
+                                                    </p>
+                                                    <a href="/Order/Details/@order.OrderId" class="btn btn-sm btn-success">
+                                                        <i class="fa-solid fa-eye me-1"></i>Detayları Gör
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="empty-state">
+                                        <i class="fa-solid fa-shopping-cart"></i>
+                                        <h5>Yeni Sipariş Yok</h5>
+                                        <p>Bekleyen yeni sipariş bulunmuyor.</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Kritik Bildirimler -->
+                        <div class="tab-pane fade" id="criticalTab">
+                            <div class="p-3">
+                                @if (Model.CriticalNotifications.Any())
+                                {
+                                    @foreach (var notification in Model.CriticalNotifications)
+                                    {
+                                        <div class="notification-item critical">
+                                            <div class="d-flex align-items-start">
+                                                <div class="icon-circle danger me-3">
+                                                    <i class="fa-solid fa-exclamation-triangle"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <h6 class="mb-1 text-danger">@notification.Title</h6>
+                                                        <small class="text-muted">@notification.TimeAgo</small>
+                                                    </div>
+                                                    <p class="text-muted mb-2">@notification.Message</p>
+                                                    <div class="d-flex gap-2">
+                                                        @if (!string.IsNullOrEmpty(notification.ActionUrl))
+                                                        {
+                                                            <a href="@notification.ActionUrl" class="btn btn-sm btn-danger">
+                                                                <i class="fa-solid fa-arrow-right me-1"></i>@(notification.ActionText ?? "Hemen İncele")
+                                                            </a>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="empty-state">
+                                        <i class="fa-solid fa-shield-check text-success"></i>
+                                        <h5>Her Şey Yolunda</h5>
+                                        <p>Kritik bildirim bulunmuyor.</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sağ Kolon: Özet Paneller -->
+        <div class="col-lg-4">
+            <!-- Hızlı İstatistikler -->
+            <div class="card notification-card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fa-solid fa-chart-pie me-2"></i>Bildirim Dağılımı</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><i class="fa-solid fa-box-open text-danger me-2"></i>Düşük Stok</span>
+                            <strong>@Model.Summary.LowStockCount</strong>
+                        </div>
+                        <div class="progress" style="height:8px;">
+                            <div class="progress-bar bg-danger" style="width:@(Model.Summary.TotalCount > 0 ? (Model.Summary.LowStockCount * 100 / Model.Summary.TotalCount) : 0)%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><i class="fa-solid fa-shopping-cart text-success me-2"></i>Yeni Sipariş</span>
+                            <strong>@Model.Summary.NewOrderCount</strong>
+                        </div>
+                        <div class="progress" style="height:8px;">
+                            <div class="progress-bar bg-success" style="width:@(Model.Summary.TotalCount > 0 ? (Model.Summary.NewOrderCount * 100 / Model.Summary.TotalCount) : 0)%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><i class="fa-solid fa-undo text-warning me-2"></i>İade Talebi</span>
+                            <strong>@Model.Summary.ReturnRequestCount</strong>
+                        </div>
+                        <div class="progress" style="height:8px;">
+                            <div class="progress-bar bg-warning" style="width:@(Model.Summary.TotalCount > 0 ? (Model.Summary.ReturnRequestCount * 100 / Model.Summary.TotalCount) : 0)%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-0">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><i class="fa-solid fa-credit-card text-danger me-2"></i>Ödeme Hatası</span>
+                            <strong>@Model.Summary.PaymentFailedCount</strong>
+                        </div>
+                        <div class="progress" style="height:8px;">
+                            <div class="progress-bar bg-danger" style="width:@(Model.Summary.TotalCount > 0 ? (Model.Summary.PaymentFailedCount * 100 / Model.Summary.TotalCount) : 0)%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hızlı Eylemler -->
+            <div class="card notification-card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fa-solid fa-bolt me-2"></i>Hızlı Eylemler</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/Product/Index" class="btn btn-outline-primary">
+                            <i class="fa-solid fa-warehouse me-2"></i>Envanter Yönetimi
+                        </a>
+                        <a href="/Order/Index" class="btn btn-outline-success">
+                            <i class="fa-solid fa-cart-shopping me-2"></i>Sipariş Yönetimi
+                        </a>
+                        <button class="btn btn-outline-warning" onclick="checkLowStock()">
+                            <i class="fa-solid fa-sync me-2"></i>Stok Kontrolü Yap
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="markAllAsRead()">
+                            <i class="fa-solid fa-check-double me-2"></i>Tümünü Okundu İşaretle
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // Bildirimi okundu olarak işaretle
+    function markAsRead(id) {
+        fetch(`/Home/MarkNotificationAsRead?id=${id}`, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const el = document.getElementById(`notification-${id}`);
+                    if (el) {
+                        el.classList.remove('unread');
+                        const btn = el.querySelector('.btn-outline-secondary');
+                        if (btn) btn.remove();
+                    }
+                    showToast('Bildirim okundu olarak işaretlendi', 'success');
+                }
+            });
+    }
+
+    // Tüm bildirimleri okundu işaretle
+    function markAllAsRead() {
+        fetch('/Home/MarkAllNotificationsAsRead', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.querySelectorAll('.notification-item.unread').forEach(el => {
+                        el.classList.remove('unread');
+                    });
+                    showToast('Tüm bildirimler okundu olarak işaretlendi', 'success');
+                }
+            });
+    }
+
+    // Bildirimi sil
+    function deleteNotification(id) {
+        if (!confirm('Bu bildirimi silmek istediğinize emin misiniz?')) return;
+
+        fetch(`/Home/DeleteNotification?id=${id}`, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const el = document.getElementById(`notification-${id}`);
+                    if (el) el.remove();
+                    showToast('Bildirim silindi', 'success');
+                }
+            });
+    }
+
+    // Stok kontrolü yap
+    function checkLowStock() {
+        fetch('/Home/CheckLowStock?threshold=10', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Stok kontrolü tamamlandı', 'success');
+                    setTimeout(() => location.reload(), 1000);
+                }
+            });
+    }
+
+    // Toast notification
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} position-fixed`;
+        toast.style.cssText = 'bottom: 20px; right: 20px; z-index: 9999; animation: fadeIn 0.3s;';
+        toast.innerHTML = `<i class="fa-solid fa-${type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i>${message}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+</script>
+}

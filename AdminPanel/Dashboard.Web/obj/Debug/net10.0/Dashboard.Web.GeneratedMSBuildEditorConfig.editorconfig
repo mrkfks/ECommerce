@@ -34,23 +34,15 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXV0aFxSZWdpc3Rlci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-[C:/Users/mrkfk/OneDrive/Desktop/Projelerim/ECommerce/AdminPanel/Dashboard.Web/Views/Category/Attributes.cshtml]
+[D:/Ömer Kafkas/Projects/ECommerce/AdminPanel/Dashboard.Web/Views/Category/Attributes.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2F0ZWdvcnlcQXR0cmlidXRlcy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/mrkfk/OneDrive/Desktop/Projelerim/ECommerce/AdminPanel/Dashboard.Web/Views/Category/Brands.cshtml]
+[D:/Ömer Kafkas/Projects/ECommerce/AdminPanel/Dashboard.Web/Views/Category/Brands.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2F0ZWdvcnlcQnJhbmRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/mrkfk/OneDrive/Desktop/Projelerim/ECommerce/AdminPanel/Dashboard.Web/Views/Category/Create.cshtml]
-=======
 [D:/Ömer Kafkas/Projects/ECommerce/AdminPanel/Dashboard.Web/Views/Category/Create.cshtml]
->>>>>>> Stashed changes
-=======
-[D:/Ömer Kafkas/Projects/ECommerce/AdminPanel/Dashboard.Web/Views/Category/Create.cshtml]
->>>>>>> Stashed changes
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2F0ZWdvcnlcQ3JlYXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
@@ -102,8 +94,16 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ3VzdG9tZXJcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/Ömer Kafkas/Projects/ECommerce/AdminPanel/Dashboard.Web/Views/Home/Charts.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxDaGFydHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/Ömer Kafkas/Projects/ECommerce/AdminPanel/Dashboard.Web/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Ömer Kafkas/Projects/ECommerce/AdminPanel/Dashboard.Web/Views/Home/Notifications.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxOb3RpZmljYXRpb25zLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/Ömer Kafkas/Projects/ECommerce/AdminPanel/Dashboard.Web/Views/Home/Privacy.cshtml]
@@ -142,19 +142,11 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvZHVjdFxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-[C:/Users/mrkfk/OneDrive/Desktop/Projelerim/ECommerce/AdminPanel/Dashboard.Web/Views/Product/List.cshtml]
+[D:/Ömer Kafkas/Projects/ECommerce/AdminPanel/Dashboard.Web/Views/Product/List.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvZHVjdFxMaXN0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/mrkfk/OneDrive/Desktop/Projelerim/ECommerce/AdminPanel/Dashboard.Web/Views/Request/Create.cshtml]
-=======
 [D:/Ömer Kafkas/Projects/ECommerce/AdminPanel/Dashboard.Web/Views/Request/Create.cshtml]
->>>>>>> Stashed changes
-=======
-[D:/Ömer Kafkas/Projects/ECommerce/AdminPanel/Dashboard.Web/Views/Request/Create.cshtml]
->>>>>>> Stashed changes
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVxdWVzdFxDcmVhdGUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
@@ -218,8 +210,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlclxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/Ömer Kafkas/Projects/ECommerce/AdminPanel/Dashboard.Web/Views/User/LoginHistory.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlclxMb2dpbkhpc3RvcnkuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Ömer Kafkas/Projects/ECommerce/AdminPanel/Dashboard.Web/Views/User/Management.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlclxNYW5hZ2VtZW50LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/Ömer Kafkas/Projects/ECommerce/AdminPanel/Dashboard.Web/Views/User/Profile.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlclxQcm9maWxlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Ömer Kafkas/Projects/ECommerce/AdminPanel/Dashboard.Web/Views/User/SuspiciousLogins.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlclxTdXNwaWNpb3VzTG9naW5zLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/Ömer Kafkas/Projects/ECommerce/AdminPanel/Dashboard.Web/Views/_ViewImports.cshtml]

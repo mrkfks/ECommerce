@@ -1,14 +1,6 @@
 {
   "version": 2,
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-  "dgSpecHash": "2BQ68G1HPsU=",
-=======
-  "dgSpecHash": "f45uhGijuL8=",
->>>>>>> Stashed changes
-=======
-  "dgSpecHash": "f45uhGijuL8=",
->>>>>>> Stashed changes
+  "dgSpecHash": "EvxaYcGJUGg=",
   "success": true,
   "projectFilePath": "D:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Presentation\\ECommerce.RestApi\\ECommerce.RestApi.csproj",
   "expectedPackageFiles": [
