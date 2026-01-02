@@ -35,6 +35,7 @@ public class CategoryAttributeConfiguration : IEntityTypeConfiguration<CategoryA
         builder.HasOne(ca => ca.Category)
             .WithMany(c => c.Attributes)
             .HasForeignKey(ca => ca.CategoryId)
+            .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
 
         // Indexes

@@ -107,6 +107,27 @@ namespace ECommerce.Infrastructure.Data
             // LoginHistory - kullanıcının şirketine göre filtrelenmez (admin tüm girişleri görebilir)
             modelBuilder.Entity<LoginHistory>()
                 .HasQueryFilter(e => !e.IsDeleted);
+
+            // Child entity query filters - Parent ile uyumlu olmalı
+            // Address -> Customer ilişkisi için filter
+            modelBuilder.Entity<Address>()
+                .HasQueryFilter(e => e.Customer == null || (!e.Customer.IsDeleted && (CurrentCompanyId == null || e.Customer.CompanyId == CurrentCompanyId)));
+
+            // OrderItem -> Order ilişkisi için filter
+            modelBuilder.Entity<OrderItem>()
+                .HasQueryFilter(e => e.Order == null || (!e.Order.IsDeleted && (CurrentCompanyId == null || e.Order.CompanyId == CurrentCompanyId)));
+
+            // UserRole -> User ilişkisi için filter
+            modelBuilder.Entity<UserRole>()
+                .HasQueryFilter(e => e.User == null || (!e.User.IsDeleted && (CurrentCompanyId == null || e.User.CompanyId == CurrentCompanyId)));
+
+            // CategoryAttribute -> Category ilişkisi için filter
+            modelBuilder.Entity<CategoryAttribute>()
+                .HasQueryFilter(e => e.Category == null || (!e.Category.IsDeleted && (CurrentCompanyId == null || e.Category.CompanyId == CurrentCompanyId)));
+
+            // ProductVariantAttribute -> ProductVariant ilişkisi için filter
+            modelBuilder.Entity<ProductVariantAttribute>()
+                .HasQueryFilter(e => e.ProductVariant == null || (!e.ProductVariant.IsDeleted && (CurrentCompanyId == null || e.ProductVariant.CompanyId == CurrentCompanyId)));
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

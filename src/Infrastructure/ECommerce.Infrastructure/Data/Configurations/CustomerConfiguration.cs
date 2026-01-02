@@ -41,6 +41,12 @@ public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
             .HasForeignKey(c => c.CompanyId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // User ilişkisi - UserConfiguration'da tanımlandığı için burada sadece FK'yı tanımla
+        builder.Property(c => c.UserId)
+            .IsRequired(false);
+
+        builder.HasIndex(c => c.UserId);
+
         // Indexes
         builder.HasIndex(c => c.Email).IsUnique();
         builder.HasIndex(c => c.CompanyId);

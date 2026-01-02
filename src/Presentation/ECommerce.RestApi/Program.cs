@@ -3,6 +3,7 @@ using ECommerce.Infrastructure;
 using ECommerce.Infrastructure.Data;
 using ECommerce.RestApi.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -24,6 +25,19 @@ var builder = WebApplication.CreateBuilder(args);
                   .AllowAnyHeader();
         });
     });
+
+    // Data Protection - Anahtarları kalıcı dizinde sakla
+    var keysDirectory = Environment.GetEnvironmentVariable("DOTNET_DATA_PROTECTION_KEY_DIRECTORY") 
+                        ?? Path.Combine(builder.Environment.ContentRootPath, "keys");
+    
+    if (!Directory.Exists(keysDirectory))
+    {
+        Directory.CreateDirectory(keysDirectory);
+    }
+
+    builder.Services.AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo(keysDirectory))
+        .SetApplicationName("ECommerce");
 
     // Health Checks
     builder.Services.AddHealthChecks()

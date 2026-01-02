@@ -17,7 +17,7 @@ namespace ECommerce.Application.Mappings
                 .ForMember(d => d.CreatedAt, opt => opt.Ignore())
                 .ForMember(d => d.Company, opt => opt.Ignore())
                 .ForMember(d => d.UserRoles, opt => opt.Ignore())
-                .ForMember(d => d.Customer, opt => opt.Ignore());
+                .ForMember(d => d.CustomerProfile, opt => opt.Ignore());
 
             CreateMap<UserUpdateDto, User>()
                 .ForMember(d => d.Id, opt => opt.Ignore())
@@ -26,7 +26,7 @@ namespace ECommerce.Application.Mappings
                 .ForMember(d => d.CreatedAt, opt => opt.Ignore())
                 .ForMember(d => d.Company, opt => opt.Ignore())
                 .ForMember(d => d.UserRoles, opt => opt.Ignore())
-                .ForMember(d => d.Customer, opt => opt.Ignore());
+                .ForMember(d => d.CustomerProfile, opt => opt.Ignore());
 
             // Customer mappings
             CreateMap<Customer, CustomerDto>()

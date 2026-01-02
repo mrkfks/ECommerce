@@ -26,18 +26,18 @@ EXPOSE 8080
 EXPOSE 8081
 
 # Create logs and data directories
-RUN mkdir -p /app/logs /app/data
+RUN mkdir -p /app/logs /app/data /app/keys
 
 # Copy published files
 COPY --from=publish /app/publish .
-
-# Copy wwwroot static files (if exists)
-COPY --from=build /src/wwwroot ./wwwroot
 
 # Set environment variables
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 ENV JWT_ISSUER=ECommerce
 ENV JWT_AUDIENCE=ECommerce.Client
+
+# Data Protection keys directory
+ENV DOTNET_DATA_PROTECTION_KEY_DIRECTORY=/app/keys
 
 ENTRYPOINT ["dotnet", "ECommerce.RestApi.dll"]

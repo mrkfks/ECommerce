@@ -13,7 +13,6 @@ namespace ECommerce.Domain.Entities
         public bool IsActive { get; private set; } = true;
 
         public Company Company { get; private set; } = null!;
-        public virtual Customer? Customer { get; private set; }
         public virtual Customer? CustomerProfile { get; private set; }
         public virtual ICollection<UserRole> UserRoles { get; private set; } = new List<UserRole>();
 
