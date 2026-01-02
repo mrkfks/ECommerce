@@ -30,4 +30,11 @@
     <ProjectReference Include="..\..\Infrastructure\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj" />
   </ItemGroup>
 
+  <!-- Root wwwroot klasöründen statik dosyaları kopyala (css, js, img) -->
+  <ItemGroup>
+    <None Include="..\..\..\wwwroot\css\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="wwwroot\css" />
+    <None Include="..\..\..\wwwroot\js\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="wwwroot\js" />
+    <None Include="..\..\..\wwwroot\img\**\*" CopyToOutputDirectory="PreserveNewest" LinkBase="wwwroot\img" />
+  </ItemGroup>
+
 </Project>

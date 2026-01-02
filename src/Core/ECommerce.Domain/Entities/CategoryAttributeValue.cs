@@ -17,7 +17,7 @@ namespace ECommerce.Domain.Entities
         public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
 
         // Navigation Properties
-        public virtual CategoryAttribute CategoryAttribute { get; private set; } = null!;
+        public virtual CategoryAttribute? CategoryAttribute { get; private set; }
 
         public static CategoryAttributeValue Create(int categoryAttributeId, string value, string? colorCode = null, int displayOrder = 0)
         {

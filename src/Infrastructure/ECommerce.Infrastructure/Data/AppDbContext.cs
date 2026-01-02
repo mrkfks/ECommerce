@@ -128,6 +128,11 @@ namespace ECommerce.Infrastructure.Data
             // ProductVariantAttribute -> ProductVariant ilişkisi için filter
             modelBuilder.Entity<ProductVariantAttribute>()
                 .HasQueryFilter(e => e.ProductVariant == null || (!e.ProductVariant.IsDeleted && (CurrentCompanyId == null || e.ProductVariant.CompanyId == CurrentCompanyId)));
+
+            // CategoryAttributeValue -> CategoryAttribute -> Category ilişkisi için filter
+            modelBuilder.Entity<CategoryAttributeValue>()
+                .HasQueryFilter(e => e.CategoryAttribute == null || e.CategoryAttribute.Category == null || 
+                    (!e.CategoryAttribute.Category.IsDeleted && (CurrentCompanyId == null || e.CategoryAttribute.Category.CompanyId == CurrentCompanyId)));
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
