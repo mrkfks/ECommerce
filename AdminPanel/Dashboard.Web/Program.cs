@@ -10,8 +10,12 @@ using Dashboard.Web.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Base URL config
-var apiBaseUrl = builder.Configuration.GetSection("ApiSettings")["BaseUrl"] ?? throw new InvalidOperationException("API BaseUrl not found");
+// Base URL config - Environment variable veya appsettings'den
+var apiBaseUrl = Environment.GetEnvironmentVariable("API_BASE_URL") 
+    ?? builder.Configuration.GetSection("ApiSettings")["BaseUrl"] 
+    ?? throw new InvalidOperationException("API BaseUrl not found");
+
+Console.WriteLine($"🔗 API Base URL: {apiBaseUrl}");
 
 // Add services to the container
 builder.Services.AddControllersWithViews();

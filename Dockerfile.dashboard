@@ -1,0 +1,31 @@
+# Build Stage
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+
+# Copy csproj files and restore
+COPY ["AdminPanel/Dashboard.Web/Dashboard.Web.csproj", "AdminPanel/Dashboard.Web/"]
+
+RUN dotnet restore "AdminPanel/Dashboard.Web/Dashboard.Web.csproj"
+
+# Copy everything else and build
+COPY . .
+WORKDIR "/src/AdminPanel/Dashboard.Web"
+RUN dotnet build "Dashboard.Web.csproj" -c Release -o /app/build
+
+# Publish Stage
+FROM build AS publish
+RUN dotnet publish "Dashboard.Web.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# Runtime Stage
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+WORKDIR /app
+EXPOSE 8080
+
+# Copy published files
+COPY --from=publish /app/publish .
+
+# Set environment variables
+ENV ASPNETCORE_URLS=http://+:8080
+ENV ASPNETCORE_ENVIRONMENT=Production
+
+ENTRYPOINT ["dotnet", "Dashboard.Web.dll"]
