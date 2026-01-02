@@ -27,7 +27,13 @@ namespace Dashboard.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // Envanter yönetimi ana sayfası - sadece 4 kart gösterilecek
+            // SuperAdmin değilse direkt ürün listesine yönlendir
+            if (!User.IsInRole("SuperAdmin"))
+            {
+                return RedirectToAction("List");
+            }
+            
+            // Envanter yönetimi ana sayfası - sadece SuperAdmin için
             return View();
         }
 
