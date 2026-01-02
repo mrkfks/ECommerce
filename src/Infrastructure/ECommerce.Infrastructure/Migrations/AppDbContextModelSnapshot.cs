@@ -559,9 +559,6 @@ namespace ECommerce.Infrastructure.Migrations
                     b.Property<int?>("UserId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("UserId1")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CompanyId");
@@ -570,9 +567,6 @@ namespace ECommerce.Infrastructure.Migrations
                         .IsUnique();
 
                     b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.HasIndex("UserId1")
                         .IsUnique();
 
                     b.ToTable("Customers");
@@ -1541,10 +1535,6 @@ namespace ECommerce.Infrastructure.Migrations
                         .HasForeignKey("ECommerce.Domain.Entities.Customer", "UserId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("ECommerce.Domain.Entities.User", null)
-                        .WithOne("Customer")
-                        .HasForeignKey("ECommerce.Domain.Entities.Customer", "UserId1");
-
                     b.Navigation("Company");
 
                     b.Navigation("User");
@@ -1914,8 +1904,6 @@ namespace ECommerce.Infrastructure.Migrations
 
             modelBuilder.Entity("ECommerce.Domain.Entities.User", b =>
                 {
-                    b.Navigation("Customer");
-
                     b.Navigation("CustomerProfile");
 
                     b.Navigation("UserRoles");
