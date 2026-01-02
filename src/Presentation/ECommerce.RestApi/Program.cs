@@ -35,6 +35,10 @@ var builder = WebApplication.CreateBuilder(args);
 
     // JWT Authentication
     var jwtConfig = builder.Configuration.GetSection("Jwt");
+    var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") ?? jwtConfig["Key"] ?? throw new InvalidOperationException("JWT Key bulunamadı");
+    var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? jwtConfig["Issuer"];
+    var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? jwtConfig["Audience"];
+    
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(options =>
         {
@@ -44,10 +48,10 @@ var builder = WebApplication.CreateBuilder(args);
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = jwtConfig["Issuer"],
-                ValidAudience = jwtConfig["Audience"],
+                ValidIssuer = jwtIssuer,
+                ValidAudience = jwtAudience,
                 IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(jwtConfig["Key"] ?? throw new InvalidOperationException("JWT Key bulunamadı"))
+                    Encoding.UTF8.GetBytes(jwtKey)
                 ),
                 ClockSkew = TimeSpan.Zero
             };
