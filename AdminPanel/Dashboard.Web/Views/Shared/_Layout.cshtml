@@ -80,9 +80,18 @@
                     <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Home" && ViewContext.RouteData.Values["action"]?.ToString()=="Notifications" ? "active" : "")" asp-controller="Home" asp-action="Notifications">
                         <i class="fa-solid fa-bell me-2"></i> Bildirimler
                     </a>
-                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Product" ? "active" : "")" asp-controller="Product" asp-action="Index">
-                        <i class="fa-solid fa-warehouse me-2"></i> Envanter Yönetimi
-                    </a>
+                    @if (User.IsInRole("SuperAdmin"))
+                    {
+                        <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Product" ? "active" : "")" asp-controller="Product" asp-action="Index">
+                            <i class="fa-solid fa-warehouse me-2"></i> Envanter Yönetimi
+                        </a>
+                    }
+                    else
+                    {
+                        <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Product" ? "active" : "")" asp-controller="Product" asp-action="Index">
+                            <i class="fa-solid fa-boxes-stacked me-2"></i> Ürün Yönetimi
+                        </a>
+                    }
                     <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Order" ? "active" : "")" asp-controller="Order" asp-action="Index">
                         <i class="fa-solid fa-cart-shopping me-2"></i> Siparişler
                     </a>
