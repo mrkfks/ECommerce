@@ -154,13 +154,19 @@ var builder = WebApplication.CreateBuilder(args);
     if (app.Environment.IsDevelopment())
     {
         app.UseDeveloperExceptionPage();
-        app.UseSwagger();
-        app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommerce API V1"));
     }
     else
     {
         app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
     }
+
+    // Swagger - hem Development hem Production'da açık
+    app.UseSwagger();
+    app.UseSwaggerUI(c => 
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommerce API V1");
+        c.RoutePrefix = "swagger";
+    });
 
     app.UseStaticFiles();
     app.UseRouting();
@@ -169,6 +175,38 @@ var builder = WebApplication.CreateBuilder(args);
 
     app.UseAuthentication();
     app.UseAuthorization();
+
+// Ana sayfa - API bilgisi
+app.MapGet("/", () => Results.Content(@"
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ECommerce API</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        h1 { color: #2c3e50; }
+        .link { display: inline-block; margin: 10px 0; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px; }
+        .link:hover { background: #2980b9; }
+        .status { color: #27ae60; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🛒 ECommerce REST API</h1>
+    <p class='status'>✅ API Çalışıyor</p>
+    <p>Bu bir REST API servisidir. Aşağıdaki linkleri kullanabilirsiniz:</p>
+    <a class='link' href='/swagger'>📖 Swagger API Dokümantasyonu</a><br>
+    <a class='link' href='/health'>❤️ Health Check</a><br>
+    <a class='link' href='/api/products'>📦 Ürünler API</a>
+    <h3>Endpoints:</h3>
+    <ul>
+        <li><code>GET /api/products</code> - Ürün listesi</li>
+        <li><code>GET /api/categories</code> - Kategori listesi</li>
+        <li><code>GET /api/brands</code> - Marka listesi</li>
+        <li><code>POST /api/auth/login</code> - Giriş</li>
+    </ul>
+</body>
+</html>
+", "text/html"));
     
 app.MapControllers();
 app.MapHealthChecks("/health");
