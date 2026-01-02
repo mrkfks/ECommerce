@@ -1,0 +1,1 @@
+Bu klasöre statik görsellerinizi (logo, ikon, banner vb.) ekleyebilirsiniz.

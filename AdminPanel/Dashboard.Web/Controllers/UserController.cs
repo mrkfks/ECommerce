@@ -298,7 +298,6 @@ namespace Dashboard.Web.Controllers
 
         // Profil Görüntüleme ve Düzenleme - Herkes Erişebilir
         [AllowAnonymous]
-        [Authorize] // Sadece giriş yapmış kullanıcılar
         [HttpGet]
         public async Task<IActionResult> Profile()
         {
@@ -310,7 +309,6 @@ namespace Dashboard.Web.Controllers
         }
 
         [AllowAnonymous]
-        [Authorize] // Sadece giriş yapmış kullanıcılar
         [HttpPost]
         public async Task<IActionResult> Profile(UserDto user)
         {

@@ -35,7 +35,7 @@ public class GlobalAttributeApiService : ApiService<GlobalAttributeDto>
         }
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public new async Task<bool> DeleteAsync(int id)
     {
         return await base.DeleteAsync(id);
     }

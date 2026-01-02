@@ -192,7 +192,13 @@ public class GetDashboardKpiQueryHandler : IRequestHandler<GetDashboardKpiQuery,
         var topProducts = await orders
             .Where(o => o.OrderDate.Date >= monthStart && o.Status != OrderStatus.Cancelled)
             .SelectMany(o => o.Items)
-            .GroupBy(i => new { i.ProductId, i.Product.Name, i.Product.ImageUrl, CategoryName = i.Product.Category.Name })
+            .Where(i => i.Product != null && i.Product.Category != null)
+            .GroupBy(i => new {
+                i.ProductId,
+                Name = i.Product != null ? i.Product.Name : string.Empty,
+                ImageUrl = i.Product != null ? i.Product.ImageUrl : string.Empty,
+                CategoryName = i.Product != null && i.Product.Category != null ? i.Product.Category.Name : string.Empty
+            })
             .Select(g => new TopProductDto
             {
                 ProductId = g.Key.ProductId,
@@ -225,7 +231,7 @@ public class GetDashboardKpiQueryHandler : IRequestHandler<GetDashboardKpiQuery,
                 p.Name,
                 p.ImageUrl,
                 p.StockQuantity,
-                CategoryName = p.Category.Name
+                CategoryName = p.Category != null ? p.Category.Name : string.Empty
             })
             .ToListAsync(ct);
 
@@ -247,7 +253,7 @@ public class GetDashboardKpiQueryHandler : IRequestHandler<GetDashboardKpiQuery,
                 ProductName = p.Name,
                 ImageUrl = p.ImageUrl,
                 CurrentStock = p.StockQuantity,
-                CategoryName = p.CategoryName,
+                CategoryName = p.CategoryName ?? string.Empty,
                 DailyAverageSales = dailyAvg,
                 DaysUntilOutOfStock = dailyAvg > 0 ? (int)(p.StockQuantity / dailyAvg) : 999
             };
@@ -337,7 +343,11 @@ public class GetDashboardKpiQueryHandler : IRequestHandler<GetDashboardKpiQuery,
         var categorySales = await orders
             .Where(o => o.OrderDate.Date >= monthStart && o.Status != OrderStatus.Cancelled)
             .SelectMany(o => o.Items)
-            .GroupBy(i => new { i.Product.CategoryId, CategoryName = i.Product.Category.Name })
+            .Where(i => i.Product != null && i.Product.Category != null)
+            .GroupBy(i => new {
+                CategoryId = i.Product != null ? i.Product.CategoryId : 0,
+                CategoryName = i.Product != null && i.Product.Category != null ? i.Product.Category.Name : string.Empty
+            })
             .Select(g => new
             {
                 g.Key.CategoryId,
@@ -345,24 +355,27 @@ public class GetDashboardKpiQueryHandler : IRequestHandler<GetDashboardKpiQuery,
                 TotalSales = g.Sum(i => i.Quantity * i.UnitPrice),
                 TotalQuantity = g.Sum(i => i.Quantity)
             })
-            .OrderByDescending(c => c.TotalSales)
-            .Take(10)
-            .ToListAsync(ct);
+                .ToListAsync(ct);
+
+            categorySales = categorySales
+                .OrderByDescending(c => c.TotalSales)
+                .Take(10)
+                .ToList();
 
         var grandTotal = categorySales.Sum(c => c.TotalSales);
 
         // Modern renk paleti
         var colors = new[] { "#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#06B6D4", "#84CC16", "#F97316", "#6366F1" };
 
-        return categorySales.Select((c, index) => new CategorySalesDto
-        {
-            CategoryId = c.CategoryId,
-            CategoryName = c.CategoryName,
-            TotalSales = c.TotalSales,
-            TotalQuantity = c.TotalQuantity,
-            Percentage = grandTotal > 0 ? (c.TotalSales / grandTotal) * 100 : 0,
-            Color = colors[index % colors.Length]
-        }).ToList();
+            return categorySales.Select((c, index) => new CategorySalesDto
+            {
+                CategoryId = c.CategoryId,
+                CategoryName = c.CategoryName ?? string.Empty,
+                TotalSales = c.TotalSales,
+                TotalQuantity = c.TotalQuantity,
+                Percentage = grandTotal > 0 ? (c.TotalSales / grandTotal) * 100 : 0,
+                Color = colors[index % colors.Length]
+            }).ToList();
     }
 
     /// <summary>
@@ -387,7 +400,7 @@ public class GetDashboardKpiQueryHandler : IRequestHandler<GetDashboardKpiQuery,
             .Take(20)
             .ToListAsync(ct);
 
-        var maxOrders = distribution.Max(d => d.OrderCount);
+        var maxOrders = distribution.Any() ? distribution.Max(d => d.OrderCount) : 0;
         var totalOrders = distribution.Sum(d => d.OrderCount);
 
         return distribution.Select(d =>
