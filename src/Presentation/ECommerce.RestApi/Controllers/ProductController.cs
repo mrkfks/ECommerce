@@ -1,4 +1,5 @@
 using ECommerce.Application.DTOs;
+using ECommerce.Application.DTOs.Common;
 using ECommerce.Application.Features.Products.Commands;
 using ECommerce.Application.Features.Products.Queries;
 using MediatR;
@@ -123,10 +124,10 @@ public class ProductController : ControllerBase
     [Authorize(Roles = "CompanyAdmin,User,SuperAdmin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateStock(int id, [FromBody] int stockQuantity)
+    public async Task<IActionResult> UpdateStock(int id, [FromBody] StockUpdateDto dto)
     {
-        _logger.LogInformation("Updating stock for product {ProductId} to {StockQuantity}", id, stockQuantity);
-        var command = new UpdateStockCommand { ProductId = id, StockQuantity = stockQuantity };
+        _logger.LogInformation("Updating stock for product {ProductId} to {StockQuantity}", id, dto.StockQuantity);
+        var command = new UpdateStockCommand { ProductId = id, StockQuantity = dto.StockQuantity };
         var result = await _mediator.Send(command);
         return Ok(result);
     }

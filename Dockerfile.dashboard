@@ -28,4 +28,12 @@ COPY --from=publish /app/publish .
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
+# API Base URL - Render'da API servisinin URL'ini buraya koy
+# Bu değer Render Dashboard'da environment variable olarak ayarlanmalı
+ENV API_BASE_URL=https://ecommerce-hov4.onrender.com
+
+# JWT settings - API ile aynı olmalı
+ENV JWT_ISSUER=ECommerce
+ENV JWT_AUDIENCE=ECommerce.Client
+
 ENTRYPOINT ["dotnet", "Dashboard.Web.dll"]

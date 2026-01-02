@@ -123,6 +123,10 @@ var builder = WebApplication.CreateBuilder(args);
                 Array.Empty<string>()
             }
         });
+
+        // Swagger için ek ayarlar
+        c.UseInlineDefinitionsForEnums();
+        c.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
     });
 
     // Application & Infrastructure Services

@@ -1,4 +1,5 @@
 using ECommerce.Application.DTOs;
+using ECommerce.Application.DTOs.Common;
 using ECommerce.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -122,9 +123,9 @@ public class UserController : ControllerBase
         // ROLE ASSIGNMENT
         [HttpPost("{id}/assign-role")]
         [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
-        public async Task<IActionResult> AssignRole(int id, [FromBody] string roleName)
+        public async Task<IActionResult> AssignRole(int id, [FromBody] RoleAssignmentDto dto)
         {
-            await _userService.AddRoleAsync(id, roleName);
+            await _userService.AddRoleAsync(id, dto.RoleName);
             return Ok(new { message = "Rol atama işlemi tamamlandı." });
         }
 

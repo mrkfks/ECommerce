@@ -1,4 +1,5 @@
 using ECommerce.Application.DTOs;
+using ECommerce.Application.DTOs.Common;
 using ECommerce.Domain.Entities;
 using ECommerce.Domain.Enums;
 using ECommerce.Infrastructure.Data;
@@ -116,13 +117,13 @@ public class OrderController : ControllerBase
     }
 
     [HttpPut("{id}/status")]
-    public async Task<IActionResult> UpdateStatus(int id, [FromBody] OrderStatus status)
+    public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateOrderStatusDto dto)
     {
         var order = await _context.Orders.FindAsync(id);
         if (order == null)
             return NotFound(new { message = "Sipariş Bulunamadı" });
             
-        switch (status)
+        switch (dto.Status)
         {
             case OrderStatus.Processing:
                 order.Confirm();
