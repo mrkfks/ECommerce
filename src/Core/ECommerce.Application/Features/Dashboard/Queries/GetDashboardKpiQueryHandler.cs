@@ -31,9 +31,20 @@ public class GetDashboardKpiQueryHandler : IRequestHandler<GetDashboardKpiQuery,
 
         var companyId = request.CompanyId ?? _tenantService.GetCompanyId();
 
-        // Temel sorgular
-        var ordersQuery = _context.Orders.AsNoTracking();
-        var productsQuery = _context.Products.AsNoTracking();
+        // Temel sorgular - Include ile ilişkili verileri de yükle
+        var ordersQuery = _context.Orders
+            .AsNoTracking()
+            .Include(o => o.Address)
+            .Include(o => o.Items)
+                .ThenInclude(i => i.Product)
+                    .ThenInclude(p => p!.Category)
+            .AsQueryable();
+
+        var productsQuery = _context.Products
+            .AsNoTracking()
+            .Include(p => p.Category)
+            .AsQueryable();
+
         var customersQuery = _context.Customers.AsNoTracking();
 
         // Company filtresi
@@ -193,7 +204,8 @@ public class GetDashboardKpiQueryHandler : IRequestHandler<GetDashboardKpiQuery,
             .Where(o => o.OrderDate.Date >= monthStart && o.Status != OrderStatus.Cancelled)
             .SelectMany(o => o.Items)
             .Where(i => i.Product != null && i.Product.Category != null)
-            .GroupBy(i => new {
+            .GroupBy(i => new
+            {
                 i.ProductId,
                 Name = i.Product != null ? i.Product.Name : string.Empty,
                 ImageUrl = i.Product != null ? i.Product.ImageUrl : string.Empty,
@@ -344,7 +356,8 @@ public class GetDashboardKpiQueryHandler : IRequestHandler<GetDashboardKpiQuery,
             .Where(o => o.OrderDate.Date >= monthStart && o.Status != OrderStatus.Cancelled)
             .SelectMany(o => o.Items)
             .Where(i => i.Product != null && i.Product.Category != null)
-            .GroupBy(i => new {
+            .GroupBy(i => new
+            {
                 CategoryId = i.Product != null ? i.Product.CategoryId : 0,
                 CategoryName = i.Product != null && i.Product.Category != null ? i.Product.Category.Name : string.Empty
             })
@@ -357,25 +370,25 @@ public class GetDashboardKpiQueryHandler : IRequestHandler<GetDashboardKpiQuery,
             })
                 .ToListAsync(ct);
 
-            categorySales = categorySales
-                .OrderByDescending(c => c.TotalSales)
-                .Take(10)
-                .ToList();
+        categorySales = categorySales
+            .OrderByDescending(c => c.TotalSales)
+            .Take(10)
+            .ToList();
 
         var grandTotal = categorySales.Sum(c => c.TotalSales);
 
         // Modern renk paleti
         var colors = new[] { "#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#06B6D4", "#84CC16", "#F97316", "#6366F1" };
 
-            return categorySales.Select((c, index) => new CategorySalesDto
-            {
-                CategoryId = c.CategoryId,
-                CategoryName = c.CategoryName ?? string.Empty,
-                TotalSales = c.TotalSales,
-                TotalQuantity = c.TotalQuantity,
-                Percentage = grandTotal > 0 ? (c.TotalSales / grandTotal) * 100 : 0,
-                Color = colors[index % colors.Length]
-            }).ToList();
+        return categorySales.Select((c, index) => new CategorySalesDto
+        {
+            CategoryId = c.CategoryId,
+            CategoryName = c.CategoryName ?? string.Empty,
+            TotalSales = c.TotalSales,
+            TotalQuantity = c.TotalQuantity,
+            Percentage = grandTotal > 0 ? (c.TotalSales / grandTotal) * 100 : 0,
+            Color = colors[index % colors.Length]
+        }).ToList();
     }
 
     /// <summary>

@@ -429,3 +429,6 @@ C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\src\Presentation\ECommerce.
 C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\src\Presentation\ECommerce.RestApi\bin\Debug\net10.0\wwwroot\css\site.css
 C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\src\Presentation\ECommerce.RestApi\bin\Debug\net10.0\wwwroot\js\site.js
 C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\src\Presentation\ECommerce.RestApi\bin\Debug\net10.0\wwwroot\img\readme.txt
+D:\Ömer Kafkas\Projects\ECommerce\src\Presentation\ECommerce.RestApi\bin\Debug\net10.0\wwwroot\css\site.css
+D:\Ömer Kafkas\Projects\ECommerce\src\Presentation\ECommerce.RestApi\bin\Debug\net10.0\wwwroot\js\site.js
+D:\Ömer Kafkas\Projects\ECommerce\src\Presentation\ECommerce.RestApi\bin\Debug\net10.0\wwwroot\img\readme.txt

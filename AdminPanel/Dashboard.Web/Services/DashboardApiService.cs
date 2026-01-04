@@ -54,23 +54,6 @@ public class DashboardApiService
     }
 
     /// <summary>
-    /// En çok satan ürünleri getirir
-    /// </summary>
-    public async Task<List<TopProductVm>?> GetTopProductsAsync(int? companyId = null)
-    {
-        try
-        {
-            var query = companyId.HasValue ? $"?companyId={companyId}" : "";
-            return await _httpClient.GetFromJsonAsync<List<TopProductVm>>($"api/Dashboard/top-products{query}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[DashboardApiService] Error fetching top products: {ex.Message}");
-            return null;
-        }
-    }
-
-    /// <summary>
     /// Kritik stok ürünlerini getirir
     /// </summary>
     public async Task<List<LowStockProductVm>?> GetLowStockProductsAsync(int? companyId = null)
@@ -107,11 +90,15 @@ public class DashboardApiService
     /// <summary>
     /// Kategori bazlı satış dağılımını getirir
     /// </summary>
-    public async Task<List<CategorySalesVm>?> GetCategorySalesAsync(int? companyId = null)
+    public async Task<List<CategorySalesVm>?> GetCategorySalesAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
     {
         try
         {
-            var query = companyId.HasValue ? $"?companyId={companyId}" : "";
+            var queryParams = new List<string>();
+            if (startDate.HasValue) queryParams.Add($"startDate={startDate:yyyy-MM-dd}");
+            if (endDate.HasValue) queryParams.Add($"endDate={endDate:yyyy-MM-dd}");
+            if (companyId.HasValue) queryParams.Add($"companyId={companyId}");
+            var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
             return await _httpClient.GetFromJsonAsync<List<CategorySalesVm>>($"api/Dashboard/category-sales{query}");
         }
         catch (Exception ex)
@@ -124,11 +111,15 @@ public class DashboardApiService
     /// <summary>
     /// Coğrafi dağılım verilerini getirir
     /// </summary>
-    public async Task<List<GeographicDistributionVm>?> GetGeographicDistributionAsync(int? companyId = null)
+    public async Task<List<GeographicDistributionVm>?> GetGeographicDistributionAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
     {
         try
         {
-            var query = companyId.HasValue ? $"?companyId={companyId}" : "";
+            var queryParams = new List<string>();
+            if (startDate.HasValue) queryParams.Add($"startDate={startDate:yyyy-MM-dd}");
+            if (endDate.HasValue) queryParams.Add($"endDate={endDate:yyyy-MM-dd}");
+            if (companyId.HasValue) queryParams.Add($"companyId={companyId}");
+            var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
             return await _httpClient.GetFromJsonAsync<List<GeographicDistributionVm>>($"api/Dashboard/geographic-distribution{query}");
         }
         catch (Exception ex)
@@ -141,11 +132,15 @@ public class DashboardApiService
     /// <summary>
     /// Ortalama sepet tutarı trendini getirir
     /// </summary>
-    public async Task<List<AverageCartTrendVm>?> GetAverageCartTrendAsync(int? companyId = null)
+    public async Task<List<AverageCartTrendVm>?> GetAverageCartTrendAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
     {
         try
         {
-            var query = companyId.HasValue ? $"?companyId={companyId}" : "";
+            var queryParams = new List<string>();
+            if (startDate.HasValue) queryParams.Add($"startDate={startDate:yyyy-MM-dd}");
+            if (endDate.HasValue) queryParams.Add($"endDate={endDate:yyyy-MM-dd}");
+            if (companyId.HasValue) queryParams.Add($"companyId={companyId}");
+            var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
             return await _httpClient.GetFromJsonAsync<List<AverageCartTrendVm>>($"api/Dashboard/average-cart-trend{query}");
         }
         catch (Exception ex)
@@ -158,16 +153,41 @@ public class DashboardApiService
     /// <summary>
     /// Sipariş durumu dağılımını zaman bazlı getirir
     /// </summary>
-    public async Task<List<OrderStatusDistributionVm>?> GetOrderStatusDistributionAsync(int? companyId = null)
+    public async Task<List<OrderStatusDistributionVm>?> GetOrderStatusDistributionAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
     {
         try
         {
-            var query = companyId.HasValue ? $"?companyId={companyId}" : "";
+            var queryParams = new List<string>();
+            if (startDate.HasValue) queryParams.Add($"startDate={startDate:yyyy-MM-dd}");
+            if (endDate.HasValue) queryParams.Add($"endDate={endDate:yyyy-MM-dd}");
+            if (companyId.HasValue) queryParams.Add($"companyId={companyId}");
+            var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
             return await _httpClient.GetFromJsonAsync<List<OrderStatusDistributionVm>>($"api/Dashboard/order-status-distribution{query}");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"[DashboardApiService] Error fetching order status distribution: {ex.Message}");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// En çok satan ürünleri getirir
+    /// </summary>
+    public async Task<List<TopProductVm>?> GetTopProductsAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
+    {
+        try
+        {
+            var queryParams = new List<string>();
+            if (startDate.HasValue) queryParams.Add($"startDate={startDate:yyyy-MM-dd}");
+            if (endDate.HasValue) queryParams.Add($"endDate={endDate:yyyy-MM-dd}");
+            if (companyId.HasValue) queryParams.Add($"companyId={companyId}");
+            var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
+            return await _httpClient.GetFromJsonAsync<List<TopProductVm>>($"api/Dashboard/top-products{query}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DashboardApiService] Error fetching top products: {ex.Message}");
             return null;
         }
     }

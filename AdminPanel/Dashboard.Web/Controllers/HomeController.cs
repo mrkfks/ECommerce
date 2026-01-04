@@ -224,12 +224,12 @@ public class HomeController : Controller
     /// Kategori bazlı satış dağılımını getirir (Pie Chart)
     /// </summary>
     [HttpGet]
-    public async Task<IActionResult> GetCategorySales(int? companyId)
+    public async Task<IActionResult> GetCategorySales(DateTime? startDate, DateTime? endDate, int? companyId)
     {
         companyId = ResolveCompanyId(companyId);
-        var data = await _dashboardService.GetCategorySalesAsync(companyId);
+        var kpiData = await _dashboardService.GetKpiAsync(startDate, endDate, companyId);
 
-        return Json(data?.Select(c => new
+        return Json(kpiData?.CategorySales?.Select(c => new
         {
             categoryId = c.CategoryId,
             name = c.CategoryName,
@@ -244,10 +244,10 @@ public class HomeController : Controller
     /// Müşteri segmentasyonu verilerini getirir (Bar Chart)
     /// </summary>
     [HttpGet]
-    public async Task<IActionResult> GetCustomerSegmentation(int? companyId)
+    public async Task<IActionResult> GetCustomerSegmentation(DateTime? startDate, DateTime? endDate, int? companyId)
     {
         companyId = ResolveCompanyId(companyId);
-        var kpiData = await _dashboardService.GetKpiAsync(companyId: companyId);
+        var kpiData = await _dashboardService.GetKpiAsync(startDate, endDate, companyId);
 
         var segment = kpiData?.CustomerSegmentation;
         return Json(new
@@ -265,12 +265,12 @@ public class HomeController : Controller
     /// Sipariş durumu dağılımını getirir (Stacked Bar Chart)
     /// </summary>
     [HttpGet]
-    public async Task<IActionResult> GetOrderStatusDistribution(int? companyId)
+    public async Task<IActionResult> GetOrderStatusDistribution(DateTime? startDate, DateTime? endDate, int? companyId)
     {
         companyId = ResolveCompanyId(companyId);
-        var data = await _dashboardService.GetOrderStatusDistributionAsync(companyId);
+        var kpiData = await _dashboardService.GetKpiAsync(startDate, endDate, companyId);
 
-        return Json(data?.Select(d => new
+        return Json(kpiData?.OrderStatusDistribution?.Select(d => new
         {
             date = d.Date.ToString("dd MMM"),
             pending = d.PendingCount,
@@ -285,12 +285,12 @@ public class HomeController : Controller
     /// Coğrafi dağılım verilerini getirir (Heatmap)
     /// </summary>
     [HttpGet]
-    public async Task<IActionResult> GetGeographicDistribution(int? companyId)
+    public async Task<IActionResult> GetGeographicDistribution(DateTime? startDate, DateTime? endDate, int? companyId)
     {
         companyId = ResolveCompanyId(companyId);
-        var data = await _dashboardService.GetGeographicDistributionAsync(companyId);
+        var kpiData = await _dashboardService.GetKpiAsync(startDate, endDate, companyId);
 
-        return Json(data?.Select(g => new
+        return Json(kpiData?.GeographicDistribution?.Select(g => new
         {
             city = g.City,
             state = g.State,
@@ -305,12 +305,12 @@ public class HomeController : Controller
     /// Ortalama sepet tutarı trendini getirir (Line Chart)
     /// </summary>
     [HttpGet]
-    public async Task<IActionResult> GetAverageCartTrend(int? companyId)
+    public async Task<IActionResult> GetAverageCartTrend(DateTime? startDate, DateTime? endDate, int? companyId)
     {
         companyId = ResolveCompanyId(companyId);
-        var data = await _dashboardService.GetAverageCartTrendAsync(companyId);
+        var kpiData = await _dashboardService.GetKpiAsync(startDate, endDate, companyId);
 
-        return Json(data?.Select(a => new
+        return Json(kpiData?.AverageCartTrend?.Select(a => new
         {
             date = a.Date.ToString("dd MMM"),
             value = a.AverageCartValue,
@@ -322,12 +322,12 @@ public class HomeController : Controller
     /// En çok satan ürünleri getirir (Horizontal Bar Chart)
     /// </summary>
     [HttpGet]
-    public async Task<IActionResult> GetTopProducts(int? companyId)
+    public async Task<IActionResult> GetTopProducts(DateTime? startDate, DateTime? endDate, int? companyId)
     {
         companyId = ResolveCompanyId(companyId);
-        var data = await _dashboardService.GetTopProductsAsync(companyId);
+        var kpiData = await _dashboardService.GetKpiAsync(startDate, endDate, companyId);
 
-        return Json(data?.Select(p => new
+        return Json(kpiData?.TopProducts?.Select(p => new
         {
             id = p.ProductId,
             name = p.ProductName,
