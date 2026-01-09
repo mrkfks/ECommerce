@@ -105,28 +105,37 @@ namespace ECommerce.Infrastructure.Services
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // CompanyId zorunlu - sadece mevcut şirketlere kullanıcı ekleyebilir
+                int companyId;
+                string roleName;
+
+                // CompanyId 0 veya negatifse genel müşteri kaydı
                 if (registerDto.CompanyId <= 0)
                 {
-                    throw new ArgumentException("Şirket ID'si gereklidir. Yeni şirket kaydı için /api/Company/register endpoint'ini kullanın.");
+                    // Müşteri kaydı için varsayılan şirketi veya null kullan
+                    // Varsayılan olarak CompanyId = 1 (Platform şirketi) kullanılabilir
+                    // ya da Customer rolü ile CompanyId = 0 
+                    companyId = 0; // Müşteri için CompanyId yok
+                    roleName = "Customer";
                 }
-
-                // Şirketin mevcut ve onaylı olduğunu kontrol et
-                var company = await _context.Companies
-                    .FirstOrDefaultAsync(c => c.Id == registerDto.CompanyId);
-                
-                if (company == null)
+                else
                 {
-                    throw new NotFoundException("Belirtilen şirket bulunamadı.");
-                }
+                    // Şirketin mevcut ve onaylı olduğunu kontrol et
+                    var company = await _context.Companies
+                        .FirstOrDefaultAsync(c => c.Id == registerDto.CompanyId);
+                    
+                    if (company == null)
+                    {
+                        throw new NotFoundException("Belirtilen şirket bulunamadı.");
+                    }
 
-                if (!company.IsApproved)
-                {
-                    throw new ForbiddenException("Bu şirket henüz onaylanmamış. Kullanıcı eklenemez.");
-                }
+                    if (!company.IsApproved)
+                    {
+                        throw new ForbiddenException("Bu şirket henüz onaylanmamış. Kullanıcı eklenemez.");
+                    }
 
-                int companyId = registerDto.CompanyId;
-                //bool isNewCompany = false;
+                    companyId = registerDto.CompanyId;
+                    roleName = "User";
+                }
 
                 var user = User.Create(
                     companyId,
@@ -140,8 +149,7 @@ namespace ECommerce.Infrastructure.Services
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
 
-                // Assign Role - sadece User rolü (çünkü mevcut şirkete ekleniyor)
-                var roleName = "User";
+                // Assign Role
                 var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == roleName);
                 var roles = new List<string>();
 
@@ -155,7 +163,6 @@ namespace ECommerce.Infrastructure.Services
 
                 await transaction.CommitAsync();
 
-                // Onaylı şirkete kullanıcı eklendi, token ver
                 var token = GenerateJwtToken(user.Id, user.Username, user.Email, user.CompanyId, roles);
                 var refreshToken = GenerateRefreshToken();
 

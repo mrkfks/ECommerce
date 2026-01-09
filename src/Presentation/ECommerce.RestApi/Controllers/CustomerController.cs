@@ -40,7 +40,7 @@ public class CustomerController : ControllerBase
     }
 
     [HttpGet]
-    [AllowAnonymous]
+    [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
     public async Task<IActionResult> GetAll()
     {
         var customers = await _context.Customers

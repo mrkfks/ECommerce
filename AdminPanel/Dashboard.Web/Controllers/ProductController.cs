@@ -148,7 +148,7 @@ namespace Dashboard.Web.Controllers
 
             var success = await _productService.UpdateAsync(product.Id, product);
             if (success)
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(List));
 
             ModelState.AddModelError("", "Ürün güncellenirken hata oluştu.");
             return View(product);
@@ -172,7 +172,7 @@ namespace Dashboard.Web.Controllers
         {
             var success = await _productService.DeleteAsync(id);
             if (success)
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(List));
 
             ModelState.AddModelError("", "Ürün silinirken hata oluştu.");
             var product = await _productService.GetByIdAsync(id);

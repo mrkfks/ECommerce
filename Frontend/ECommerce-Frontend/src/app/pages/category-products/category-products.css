@@ -1,0 +1,16 @@
+.category-products-page {
+  min-height: 80vh;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+  content: "›";
+}
+
+.breadcrumb a {
+  text-decoration: none;
+  color: var(--bs-primary);
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}

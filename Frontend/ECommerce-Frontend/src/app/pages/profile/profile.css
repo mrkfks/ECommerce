@@ -1,0 +1,21 @@
+.profile-page {
+  min-height: 80vh;
+}
+
+.avatar-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.list-group-item.active {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
+.list-group-item:not(.active):hover {
+  background-color: #f8f9fa;
+}

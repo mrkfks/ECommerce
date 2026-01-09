@@ -1,0 +1,209 @@
+// User & Auth Models
+export interface User {
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  companyId?: number;
+  createdAt: Date;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  companyId?: number;
+}
+
+export interface AuthResponse {
+  token: string;
+  refreshToken: string;
+  user: User;
+  expiresAt: Date;
+}
+
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+// Product Models
+export interface Product {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  originalPrice?: number;
+  imageUrl: string;
+  categoryId: number;
+  categoryName?: string;
+  brandId: number;
+  brandName?: string;
+  companyId: number;
+  stockQuantity: number;
+  rating: number;
+  reviewCount: number;
+  isNew?: boolean;
+  discount?: number;
+  inStock: boolean;
+  createdAt: Date;
+  updatedAt?: Date;
+}
+
+export interface ProductCreateRequest {
+  name: string;
+  description: string;
+  price: number;
+  categoryId: number;
+  brandId: number;
+  companyId: number;
+  stockQuantity: number;
+  imageUrl?: string;
+}
+
+export interface ProductUpdateRequest extends ProductCreateRequest {
+  id: number;
+}
+
+// Category Models
+export interface Category {
+  id: number;
+  name: string;
+  description?: string;
+  icon?: string;
+  parentId?: number;
+  productCount?: number;
+  createdAt: Date;
+}
+
+export interface CategoryCreateRequest {
+  name: string;
+  description?: string;
+  parentId?: number;
+}
+
+// Order Models
+export interface Order {
+  id: number;
+  customerId: number;
+  customerName: string;
+  addressId: number;
+  companyId: number;
+  companyName: string;
+  orderDate: Date;
+  totalAmount: number;
+  status: OrderStatus;
+  statusText: string;
+  items: OrderItem[];
+}
+
+export interface OrderItem {
+  id: number;
+  productId: number;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+export interface OrderCreateRequest {
+  customerId: number;
+  addressId: number;
+  companyId: number;
+  items: OrderItemCreateRequest[];
+}
+
+export interface OrderItemCreateRequest {
+  productId: number;
+  quantity: number;
+}
+
+export enum OrderStatus {
+  Pending = 0,
+  Processing = 1,
+  Shipped = 2,
+  Delivered = 3,
+  Cancelled = 4
+}
+
+// Cart Models
+export interface CartItem {
+  product: Product;
+  quantity: number;
+}
+
+export interface Cart {
+  items: CartItem[];
+  totalItems: number;
+  totalPrice: number;
+}
+
+// Brand Model
+export interface Brand {
+  id: number;
+  name: string;
+  description?: string;
+  logoUrl?: string;
+}
+
+// Review Model
+export interface Review {
+  id: number;
+  productId: number;
+  customerId: number;
+  customerName: string;
+  rating: number;
+  comment: string;
+  createdAt: Date;
+}
+
+export interface ReviewCreateRequest {
+  productId: number;
+  rating: number;
+  comment: string;
+}
+
+// Customer Model
+export interface Customer {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  companyId?: number;
+}
+
+export interface Address {
+  id: number;
+  customerId: number;
+  title: string;
+  addressLine: string;
+  city: string;
+  district: string;
+  postalCode: string;
+  isDefault: boolean;
+}
+
+// API Response Models
+export interface ApiResponse<T> {
+  data: T;
+  success: boolean;
+  message?: string;
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  totalCount: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+}

@@ -1,11 +1,42 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { CartService } from '../../core/services';
 
 @Component({
   selector: 'app-cart',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './cart.html',
   styleUrl: './cart.css',
 })
 export class Cart {
+  private cartService = inject(CartService);
 
+  items = this.cartService.items;
+  totalItems = this.cartService.totalItems;
+  totalPrice = this.cartService.totalPrice;
+
+  updateQuantity(productId: number, quantity: number): void {
+    this.cartService.updateQuantity(productId, quantity);
+  }
+
+  removeItem(productId: number): void {
+    this.cartService.removeFromCart(productId);
+  }
+
+  clearCart(): void {
+    if (confirm('Sepeti temizlemek istediğinize emin misiniz?')) {
+      this.cartService.clearCart();
+    }
+  }
+
+  get shippingCost(): number {
+    return this.totalPrice() >= 500 ? 0 : 29.99;
+  }
+
+  get grandTotal(): number {
+    return this.totalPrice() + this.shippingCost;
+  }
 }

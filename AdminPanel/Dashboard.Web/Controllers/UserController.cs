@@ -296,8 +296,8 @@ namespace Dashboard.Web.Controllers
             return View(user);
         }
 
-        // Profil Görüntüleme ve Düzenleme - Herkes Erişebilir
-        [AllowAnonymous]
+        // Profil Görüntüleme ve Düzenleme - Giriş yapmış kullanıcılar erişebilir
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> Profile()
         {
@@ -308,7 +308,7 @@ namespace Dashboard.Web.Controllers
             return View(user);
         }
 
-        [AllowAnonymous]
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Profile(UserDto user)
         {

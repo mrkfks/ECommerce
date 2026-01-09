@@ -33,7 +33,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpGet]
-    [AllowAnonymous]
+    [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
     public async Task<IActionResult> GetAll()
     {
         var orders = await _context.Orders

@@ -213,12 +213,19 @@ public class LoginHistoryController : ControllerBase
     }
 
     /// <summary>
-    /// Giriş kaydı oluştur (Login sırasında çağrılır)
+    /// Giriş kaydı oluştur (Login sırasında çağrılır) - Sadece internal kullanım için
     /// </summary>
     [HttpPost]
-    [AllowAnonymous]
+    [Authorize]
     public async Task<IActionResult> Create([FromBody] LoginHistoryCreateDto dto)
     {
+        // Sadece kendi user ID'si ile kayıt oluşturabilir
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId != dto.UserId && !User.IsInRole("SuperAdmin"))
+        {
+            return Forbid();
+        }
+
         // Son başarılı girişi al
         var lastLogin = await _context.LoginHistories
             .Where(lh => lh.UserId == dto.UserId && lh.IsSuccessful)
@@ -267,6 +274,16 @@ public class LoginHistoryController : ControllerBase
         await _context.SaveChangesAsync();
 
         return Ok(new { message = "Şüpheli işareti kaldırıldı." });
+    }
+
+    private int GetCurrentUserId()
+    {
+        var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+        {
+            return userId;
+        }
+        return 0;
     }
 
     private int? GetCurrentUserCompanyId()

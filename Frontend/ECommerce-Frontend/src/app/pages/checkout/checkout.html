@@ -1,1 +1,245 @@
-<p>checkout works!</p>
+<div class="checkout-page py-4">
+  <div class="container">
+    <h2 class="fw-bold mb-4"><i class="bi bi-credit-card me-2"></i>Ödeme</h2>
+
+    <!-- Adımlar -->
+    <div class="checkout-steps mb-4">
+      <div class="row">
+        <div class="col-4">
+          <div class="step" [class.active]="currentStep >= 1" [class.completed]="currentStep > 1">
+            <div class="step-number">1</div>
+            <div class="step-title">Teslimat</div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="step" [class.active]="currentStep >= 2" [class.completed]="currentStep > 2">
+            <div class="step-number">2</div>
+            <div class="step-title">Ödeme</div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="step" [class.active]="currentStep >= 3">
+            <div class="step-number">3</div>
+            <div class="step-title">Onay</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- Form Alanı -->
+      <div class="col-lg-8">
+        <!-- Adım 1: Teslimat Bilgileri -->
+        @if (currentStep === 1) {
+          <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+              <h5 class="mb-0">Teslimat Bilgileri</h5>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Ad *</label>
+                  <input type="text" class="form-control" [(ngModel)]="shippingInfo.firstName" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Soyad *</label>
+                  <input type="text" class="form-control" [(ngModel)]="shippingInfo.lastName" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">E-posta *</label>
+                  <input type="email" class="form-control" [(ngModel)]="shippingInfo.email" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Telefon *</label>
+                  <input type="tel" class="form-control" [(ngModel)]="shippingInfo.phone" required>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Adres *</label>
+                  <textarea class="form-control" rows="2" [(ngModel)]="shippingInfo.address" required></textarea>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">İl *</label>
+                  <input type="text" class="form-control" [(ngModel)]="shippingInfo.city" required>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">İlçe</label>
+                  <input type="text" class="form-control" [(ngModel)]="shippingInfo.district">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Posta Kodu</label>
+                  <input type="text" class="form-control" [(ngModel)]="shippingInfo.postalCode">
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Sipariş Notu</label>
+                  <textarea class="form-control" rows="2" [(ngModel)]="shippingInfo.notes"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer bg-white">
+              <div class="d-flex justify-content-between">
+                <a routerLink="/cart" class="btn btn-outline-secondary">Sepete Dön</a>
+                <button class="btn btn-primary" [disabled]="!isShippingValid()" (click)="nextStep()">
+                  Devam Et <i class="bi bi-arrow-right ms-2"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Adım 2: Ödeme Bilgileri -->
+        @if (currentStep === 2) {
+          <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+              <h5 class="mb-0">Ödeme Yöntemi</h5>
+            </div>
+            <div class="card-body">
+              <div class="payment-methods mb-4">
+                <div class="form-check mb-3">
+                  <input class="form-check-input" type="radio" name="paymentMethod" id="creditCard" 
+                         value="credit-card" [(ngModel)]="paymentInfo.method">
+                  <label class="form-check-label" for="creditCard">
+                    <i class="bi bi-credit-card me-2"></i>Kredi/Banka Kartı
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="paymentMethod" id="cashOnDelivery"
+                         value="cash-on-delivery" [(ngModel)]="paymentInfo.method">
+                  <label class="form-check-label" for="cashOnDelivery">
+                    <i class="bi bi-cash me-2"></i>Kapıda Ödeme
+                  </label>
+                </div>
+              </div>
+
+              @if (paymentInfo.method === 'credit-card') {
+                <div class="row g-3">
+                  <div class="col-12">
+                    <label class="form-label">Kart Numarası *</label>
+                    <input type="text" class="form-control" placeholder="1234 5678 9012 3456" 
+                           [(ngModel)]="paymentInfo.cardNumber" maxlength="19">
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">Kart Üzerindeki İsim *</label>
+                    <input type="text" class="form-control" [(ngModel)]="paymentInfo.cardName">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Son Kullanma *</label>
+                    <input type="text" class="form-control" placeholder="AA/YY" 
+                           [(ngModel)]="paymentInfo.expiryDate" maxlength="5">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">CVV *</label>
+                    <input type="password" class="form-control" placeholder="***" 
+                           [(ngModel)]="paymentInfo.cvv" maxlength="3">
+                  </div>
+                </div>
+              }
+            </div>
+            <div class="card-footer bg-white">
+              <div class="d-flex justify-content-between">
+                <button class="btn btn-outline-secondary" (click)="prevStep()">
+                  <i class="bi bi-arrow-left me-2"></i>Geri
+                </button>
+                <button class="btn btn-primary" [disabled]="!isPaymentValid()" (click)="nextStep()">
+                  Devam Et <i class="bi bi-arrow-right ms-2"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Adım 3: Onay -->
+        @if (currentStep === 3) {
+          <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+              <h5 class="mb-0">Sipariş Özeti</h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6 mb-4">
+                  <h6 class="fw-bold">Teslimat Adresi</h6>
+                  <p class="mb-0">{{ shippingInfo.firstName }} {{ shippingInfo.lastName }}</p>
+                  <p class="mb-0">{{ shippingInfo.address }}</p>
+                  <p class="mb-0">{{ shippingInfo.district }}, {{ shippingInfo.city }} {{ shippingInfo.postalCode }}</p>
+                  <p class="mb-0">{{ shippingInfo.phone }}</p>
+                </div>
+                <div class="col-md-6 mb-4">
+                  <h6 class="fw-bold">Ödeme Yöntemi</h6>
+                  @if (paymentInfo.method === 'credit-card') {
+                    <p class="mb-0"><i class="bi bi-credit-card me-2"></i>Kredi/Banka Kartı</p>
+                    <p class="text-muted mb-0">**** **** **** {{ paymentInfo.cardNumber.slice(-4) }}</p>
+                  } @else {
+                    <p class="mb-0"><i class="bi bi-cash me-2"></i>Kapıda Ödeme</p>
+                  }
+                </div>
+              </div>
+
+              <hr>
+
+              <h6 class="fw-bold mb-3">Ürünler</h6>
+              @for (item of cartItems; track item.product.id) {
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                  <div class="d-flex align-items-center">
+                    <img [src]="item.product.imageUrl" [alt]="item.product.name" 
+                         class="rounded" width="50" height="50" style="object-fit: cover;">
+                    <div class="ms-3">
+                      <p class="mb-0 fw-medium">{{ item.product.name }}</p>
+                      <small class="text-muted">Adet: {{ item.quantity }}</small>
+                    </div>
+                  </div>
+                  <span class="fw-bold">{{ item.product.price * item.quantity | number:'1.2-2' }} ₺</span>
+                </div>
+              }
+            </div>
+            <div class="card-footer bg-white">
+              <div class="d-flex justify-content-between">
+                <button class="btn btn-outline-secondary" (click)="prevStep()">
+                  <i class="bi bi-arrow-left me-2"></i>Geri
+                </button>
+                <button class="btn btn-success btn-lg" [disabled]="isLoading" (click)="placeOrder()">
+                  @if (isLoading) {
+                    <span class="spinner-border spinner-border-sm me-2"></span>İşleniyor...
+                  } @else {
+                    <i class="bi bi-check-circle me-2"></i>Siparişi Onayla
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Sipariş Özeti -->
+      <div class="col-lg-4">
+        <div class="card shadow-sm sticky-top" style="top: 100px;">
+          <div class="card-header bg-white">
+            <h5 class="mb-0">Sipariş Özeti</h5>
+          </div>
+          <div class="card-body">
+            <div class="d-flex justify-content-between mb-2">
+              <span>Ara Toplam</span>
+              <span>{{ subtotal | number:'1.2-2' }} ₺</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span>Kargo</span>
+              <span [class.text-success]="shippingCost === 0">
+                {{ shippingCost === 0 ? 'Ücretsiz' : (shippingCost | number:'1.2-2') + ' ₺' }}
+              </span>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between fw-bold fs-5">
+              <span>Toplam</span>
+              <span class="text-primary">{{ total | number:'1.2-2' }} ₺</span>
+            </div>
+
+            @if (subtotal < 500) {
+              <div class="alert alert-info mt-3 mb-0 small">
+                <i class="bi bi-info-circle me-1"></i>
+                {{ 500 - subtotal | number:'1.2-2' }} ₺ daha ekleyin, kargo bedava!
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

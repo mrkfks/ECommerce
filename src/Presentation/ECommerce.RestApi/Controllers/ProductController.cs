@@ -112,7 +112,7 @@ public class ProductController : ControllerBase
             return BadRequest(new { message = "Id mismatch" });
         
         _logger.LogInformation("Updating product: {ProductId}", id);
-        var command = new UpdateProductCommand { Product = dto };
+        var command = new UpdateProductCommand { Id = id, Product = dto };
         var result = await _mediator.Send(command);
         return Ok(result);
     }

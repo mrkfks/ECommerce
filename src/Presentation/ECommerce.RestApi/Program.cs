@@ -207,6 +207,16 @@ var builder = WebApplication.CreateBuilder(args);
                 logger.LogInformation("✅ CompanyAdmin role created");
             }
 
+            // Customer rolü var mı kontrol et (Genel müşteri kaydı için gerekli)
+            var customerRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Customer");
+            if (customerRole == null)
+            {
+                customerRole = ECommerce.Domain.Entities.Role.Create("Customer", "Genel müşteri - alışveriş yapabilir");
+                context.Roles.Add(customerRole);
+                await context.SaveChangesAsync();
+                logger.LogInformation("✅ Customer role created");
+            }
+
             // SuperAdmin kullanıcısı var mı kontrol et
             var superAdminEmail = "superadmin@ecommerce.com";
             var existingSuperAdmin = await context.Users.FirstOrDefaultAsync(u => u.Email == superAdminEmail);

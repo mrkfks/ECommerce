@@ -30,10 +30,7 @@ public class RegisterDtoValidator : AbstractValidator<RegisterDto>
 
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("Şifre zorunludur")
-            .MinimumLength(6).WithMessage("Şifre en az 6 karakter olmalıdır")
-            .Matches(@"[A-Z]").WithMessage("Şifre en az bir büyük harf içermelidir")
-            .Matches(@"[a-z]").WithMessage("Şifre en az bir küçük harf içermelidir")
-            .Matches(@"[0-9]").WithMessage("Şifre en az bir rakam içermelidir");
+            .MinimumLength(6).WithMessage("Şifre en az 6 karakter olmalıdır");
 
         RuleFor(x => x.ConfirmPassword)
             .Equal(x => x.Password).WithMessage("Şifreler eşleşmiyor");

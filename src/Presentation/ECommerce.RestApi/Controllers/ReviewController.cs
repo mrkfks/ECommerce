@@ -90,7 +90,7 @@ public class ReviewController : ControllerBase
     }
 
     [HttpGet("product/{productId}")]
-    public async Task<IActionResult> GEtByProduct(int productId)
+    public async Task<IActionResult> GetByProduct(int productId)
     {
         var reviews = await _context.Reviews
             .Include(r => r.Product)

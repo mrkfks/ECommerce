@@ -11,6 +11,7 @@ namespace Dashboard.Web.Infrastructure
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IServiceProvider _serviceProvider;
+        private const string RefreshAttemptedHeader = "X-Token-Refresh-Attempted";
 
         public AuthTokenHandler(IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider)
         {
@@ -31,7 +32,9 @@ namespace Dashboard.Web.Infrastructure
             var response = await base.SendAsync(request, cancellationToken);
 
             // Token expired (401) - refresh token'ı kullanarak yeni token al
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            // Sonsuz döngüyü önlemek için refresh zaten denenmişse tekrar deneme
+            if (response.StatusCode == HttpStatusCode.Unauthorized && 
+                !request.Headers.Contains(RefreshAttemptedHeader))
             {
                 var refreshToken = context?.Request.Cookies["RefreshToken"];
                 if (!string.IsNullOrWhiteSpace(refreshToken))
@@ -45,15 +48,57 @@ namespace Dashboard.Web.Infrastructure
                             // Yeni token'ları ayarla
                             authService.SetAuthCookies(newAuthResponse);
 
-                            // Request'i yeni token ile tekrar dene
-                            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", newAuthResponse.AccessToken);
-                            return await base.SendAsync(request, cancellationToken);
+                            // Yeni request oluştur (orijinali tekrar kullanılamaz)
+                            var newRequest = await CloneHttpRequestMessageAsync(request);
+                            newRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", newAuthResponse.AccessToken);
+                            newRequest.Headers.Add(RefreshAttemptedHeader, "true");
+                            
+                            return await base.SendAsync(newRequest, cancellationToken);
                         }
                     }
                 }
             }
 
             return response;
+        }
+
+        private static async Task<HttpRequestMessage> CloneHttpRequestMessageAsync(HttpRequestMessage request)
+        {
+            var clone = new HttpRequestMessage(request.Method, request.RequestUri);
+
+            // Content'i kopyala
+            if (request.Content != null)
+            {
+                var ms = new MemoryStream();
+                await request.Content.CopyToAsync(ms);
+                ms.Position = 0;
+                clone.Content = new StreamContent(ms);
+
+                // Content headers'ı kopyala
+                foreach (var header in request.Content.Headers)
+                {
+                    clone.Content.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                }
+            }
+
+            // Headers'ı kopyala (Authorization hariç, onu sonra ayarlayacağız)
+            foreach (var header in request.Headers)
+            {
+                if (header.Key != "Authorization")
+                {
+                    clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                }
+            }
+
+            // Options'ı kopyala
+            foreach (var option in request.Options)
+            {
+                clone.Options.TryAdd(option.Key, option.Value);
+            }
+
+            clone.Version = request.Version;
+
+            return clone;
         }
     }
 }
