@@ -26,11 +26,12 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           errorMessage = 'Oturum süreniz doldu. Lütfen tekrar giriş yapın.';
           // Clear tokens (only in browser)
           if (isBrowser && typeof localStorage !== 'undefined') {
-            localStorage.removeItem('token');
-            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user');
           }
           if (isBrowser) {
-            router.navigate(['/auth/login']);
+            router.navigate(['/login']);
           }
         } else if (error.status === 403) {
           errorMessage = 'Bu işlem için yetkiniz yok.';

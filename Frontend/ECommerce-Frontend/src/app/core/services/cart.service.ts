@@ -1,106 +1,97 @@
-import { Injectable, signal, computed } from '@angular/core';
-import { Cart, CartItem, Product } from '../models';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable, tap, map } from 'rxjs';
+import { Product, ApiResponse } from '../models';
+
+export interface CartItem {
+  id: number;
+  productId: number;
+  productName: string;
+  productImage: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+export interface Cart {
+  id: number;
+  totalAmount: number;
+  items: CartItem[];
+}
+
+export interface AddToCartRequest {
+  productId: number;
+  quantity: number;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class CartService {
-  private readonly CART_KEY = 'shopping_cart';
+  private readonly basePath = '/cart';
+  private cartSubject = new BehaviorSubject<Cart | null>(null);
+  public cart$ = this.cartSubject.asObservable();
 
-  private _cart = signal<Cart>(this.loadCartFromStorage());
+  constructor(private http: HttpClient) {
+    this.loadCart();
+  }
 
-  // Public signals
-  public cart = this._cart.asReadonly();
-  public totalItems = computed(() => this._cart().totalItems);
-  public totalPrice = computed(() => this._cart().totalPrice);
-  public items = computed(() => this._cart().items);
+  private getSessionId(): string {
+    let sessionId = localStorage.getItem('cart_session_id');
+    if (!sessionId) {
+      sessionId = crypto.randomUUID();
+      localStorage.setItem('cart_session_id', sessionId);
+    }
+    return sessionId;
+  }
 
-  constructor() {}
-
-  addToCart(product: Product, quantity: number = 1): void {
-    const cart = this._cart();
-    const existingItemIndex = cart.items.findIndex(item => item.product.id === product.id);
-
-    let updatedItems: CartItem[];
-
-    if (existingItemIndex > -1) {
-      // Ürün zaten sepette, miktarı güncelle
-      updatedItems = cart.items.map((item, index) => {
-        if (index === existingItemIndex) {
-          return { ...item, quantity: item.quantity + quantity };
+  loadCart(): void {
+    const sessionId = this.getSessionId();
+    this.http.get<ApiResponse<Cart>>(`${this.basePath}?sessionId=${sessionId}`).pipe(
+      map(response => response.data)
+    ).subscribe({
+      next: (cart) => {
+        if (cart) {
+          this.cartSubject.next(cart);
         }
-        return item;
-      });
-    } else {
-      // Yeni ürün ekle
-      updatedItems = [...cart.items, { product, quantity }];
-    }
-
-    this.updateCart(updatedItems);
-  }
-
-  removeFromCart(productId: number): void {
-    const cart = this._cart();
-    const updatedItems = cart.items.filter(item => item.product.id !== productId);
-    this.updateCart(updatedItems);
-  }
-
-  updateQuantity(productId: number, quantity: number): void {
-    if (quantity <= 0) {
-      this.removeFromCart(productId);
-      return;
-    }
-
-    const cart = this._cart();
-    const updatedItems = cart.items.map(item => {
-      if (item.product.id === productId) {
-        return { ...item, quantity };
-      }
-      return item;
+      },
+      error: (err) => console.error('Failed to load cart', err)
     });
-
-    this.updateCart(updatedItems);
   }
 
-  clearCart(): void {
-    this.updateCart([]);
+  addToCart(productId: number, quantity: number = 1): Observable<any> {
+    const sessionId = this.getSessionId();
+    const request: AddToCartRequest = { productId, quantity };
+    return this.http.post(`${this.basePath}/items?sessionId=${sessionId}`, request).pipe(
+      tap(() => this.loadCart())
+    );
   }
 
-  getItemQuantity(productId: number): number {
-    const item = this._cart().items.find(item => item.product.id === productId);
-    return item?.quantity || 0;
+  removeFromCart(itemId: number): Observable<any> {
+    return this.http.delete(`${this.basePath}/items/${itemId}`).pipe(
+      tap(() => this.loadCart())
+    );
   }
 
-  isInCart(productId: number): boolean {
-    return this._cart().items.some(item => item.product.id === productId);
+  updateQuantity(itemId: number, quantity: number): Observable<any> {
+    return this.http.put(`${this.basePath}/items/${itemId}`, { quantity }).pipe(
+      tap(() => this.loadCart())
+    );
   }
 
-  private updateCart(items: CartItem[]): void {
-    const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-    const totalPrice = items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
-
-    const cart: Cart = { items, totalItems, totalPrice };
-    this._cart.set(cart);
-    this.saveCartToStorage(cart);
+  clearCart(): Observable<any> {
+    return this.http.delete(`${this.basePath}`).pipe(
+      tap(() => this.loadCart())
+    );
   }
 
-  private loadCartFromStorage(): Cart {
-    if (typeof window !== 'undefined') {
-      const cartJson = localStorage.getItem(this.CART_KEY);
-      if (cartJson) {
-        try {
-          return JSON.parse(cartJson);
-        } catch {
-          // Invalid JSON
-        }
-      }
-    }
-    return { items: [], totalItems: 0, totalPrice: 0 };
-  }
-
-  private saveCartToStorage(cart: Cart): void {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(this.CART_KEY, JSON.stringify(cart));
-    }
+  mergeCart(): Observable<any> {
+    const sessionId = this.getSessionId();
+    return this.http.post(`${this.basePath}/merge`, { sessionId }).pipe(
+      tap(() => {
+        // After merge, maybe clear session ID or just reload cart (which will now be user cart)
+        this.loadCart();
+      })
+    );
   }
 }

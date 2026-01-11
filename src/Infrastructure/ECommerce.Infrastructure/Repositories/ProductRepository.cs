@@ -107,9 +107,13 @@ namespace ECommerce.Infrastructure.Repositories
                  query = query.Where(p => p.CompanyId == currentCompanyId.Value);
              }
              
-             return await query
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
+        }
+
+        public new async Task<IReadOnlyList<Product>> GetPagedAsync(int pageNumber, int pageSize)
+        {
+            return await GetPageAsync(pageNumber, pageSize, null, null, null);
         }
     }
 }

@@ -46,6 +46,8 @@ namespace ECommerce.Infrastructure.Data
         public DbSet<Campaign> Campaigns { get; set; }
         public DbSet<CustomerMessage> CustomerMessages { get; set; }
         public DbSet<LoginHistory> LoginHistories { get; set; }
+        public DbSet<Cart> Carts { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
 
         // Tenant context - TEST: sabit değer döndür
         public int? CurrentCompanyId => 2;  // TEST için sabit CompanyId=2
@@ -109,6 +111,10 @@ namespace ECommerce.Infrastructure.Data
 
             // CustomerMessage query filter
             modelBuilder.Entity<CustomerMessage>()
+                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
+
+            // Cart query filter
+            modelBuilder.Entity<Cart>()
                 .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
 
             // LoginHistory - kullanıcının şirketine göre filtrelenmez (admin tüm girişleri görebilir)

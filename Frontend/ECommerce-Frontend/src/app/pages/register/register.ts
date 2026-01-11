@@ -43,14 +43,16 @@ export class Register {
       return;
     }
 
-    // Email ve username validation kontrolü
-    if (!this.emailValid) {
-      this.error = 'Lütfen geçerli ve benzersiz bir email adresi kullanın.';
+    // Regex validations
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(this.formData.email)) {
+      this.error = 'Geçerli bir email adresi girin.';
       return;
     }
 
-    if (!this.usernameValid) {
-      this.error = 'Lütfen geçerli ve benzersiz bir kullanıcı adı kullanın.';
+    const usernameRegex = /^[a-zA-Z0-9_]{3,}$/;
+    if (!usernameRegex.test(this.formData.username)) {
+      this.error = 'Kullanıcı adı en az 3 karakter olmalı ve sadece harf, rakam ve alt çizgi içerebilir.';
       return;
     }
 
@@ -76,23 +78,24 @@ export class Register {
     this.authService.register(this.formData).subscribe({
       next: () => {
         console.log('Register successful');
-        this.router.navigate(['/home']);
+        this.router.navigate(['/login']); // Redirect to login after registration
       },
       error: (err) => {
         console.error('Register error:', err);
         this.isLoading = false;
+
         // Backend returns GlobalExceptionHandlerMiddleware format: { status, title, detail, ... }
         // For 409 Conflict, typically means email or username already exists
         let errorMessage = 'Kayıt başarısız. Lütfen tekrar deneyin.';
-        
+
         if (err.status === 409) {
-          errorMessage = err.error?.detail || 'Bu email adresi veya kullanıcı adı zaten kullanılıyor.';
+          // Backend message usually is specific enough, e.g. "Bu email adresi zaten kullanılıyor."
+          errorMessage = err.error?.detail || err.error?.message || 'Bu email adresi veya kullanıcı adı zaten kullanılıyor.';
         } else {
           errorMessage = err.error?.detail || err.error?.message || errorMessage;
         }
-        
+
         this.error = errorMessage;
-        console.error('Detailed error response:', err.error);
       }
     });
   }

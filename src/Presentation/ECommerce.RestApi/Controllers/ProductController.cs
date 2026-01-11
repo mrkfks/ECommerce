@@ -61,15 +61,15 @@ public class ProductController : ControllerBase
     /// </summary>
     [HttpGet]
     [AllowAnonymous]
-    [ResponseCache(Duration = 30)]
+    [ResponseCache(Duration = 30, VaryByQueryKeys = new[] { "pageNumber", "pageSize" })]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
         var currentCompanyId = _tenantService.GetCompanyId();
-        _logger.LogInformation("Fetching all products - Current CompanyId from TenantService: {CompanyId}", currentCompanyId?.ToString() ?? "NULL");
-        var query = new GetAllProductsQuery();
+        _logger.LogInformation("Fetching products (Page {Page}, Size {Size}) - Current CompanyId: {CompanyId}", pageNumber, pageSize, currentCompanyId?.ToString() ?? "NULL");
+        var query = new GetAllProductsQuery { PageNumber = pageNumber, PageSize = pageSize };
         var result = await _mediator.Send(query);
-        _logger.LogInformation("Products returned: {Count}", result?.Data?.Count ?? 0);
+        // Result is now ApiResponseDto<PaginatedResult<ProductDto>>
         return Ok(result);
     }
 

@@ -9,19 +9,15 @@ import { Product, ProductCreateRequest, ProductUpdateRequest, PaginatedResponse,
 export class ProductService {
   private readonly basePath = '/product';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
-  getAll(): Observable<Product[]> {
-    return this.http.get<Product[] | ApiResponse<Product[]>>(this.basePath).pipe(
-      map((response: any) => {
-        if (Array.isArray(response)) return response;
-        if (response?.data?.data && Array.isArray(response.data.data)) return response.data.data;
-        if (response?.data && Array.isArray(response.data)) return response.data;
-        if (response?.items && Array.isArray(response.items)) return response.items;
-        if (response?.products && Array.isArray(response.products)) return response.products;
-        console.warn('Unexpected product API response format:', response);
-        return [];
-      })
+  getAll(pageNumber: number = 1, pageSize: number = 10): Observable<PaginatedResponse<Product>> {
+    const params = new HttpParams()
+      .set('pageNumber', pageNumber)
+      .set('pageSize', pageSize);
+
+    return this.http.get<ApiResponse<PaginatedResponse<Product>>>(this.basePath, { params }).pipe(
+      map(response => response.data!)
     );
   }
 

@@ -38,79 +38,51 @@ public class GlobalExceptionHandlerMiddleware
     {
         context.Response.ContentType = "application/json";
         
-        var response = new ErrorResponse
+        var response = new ECommerce.Application.DTOs.Common.ApiResponseDto<object>
         {
-            TraceId = context.TraceIdentifier,
-            Instance = context.Request.Path
+            Success = false
         };
 
         switch (exception)
         {
             case Application.Exceptions.ValidationException validationEx:
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                response.Status = (int)HttpStatusCode.BadRequest;
-                response.Title = "Validation Error";
-                response.Detail = "One or more validation errors occurred.";
-                response.Errors = validationEx.Errors.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                response.Message = "Validation Error";
+                response.Data = validationEx.Errors;
                 break;
 
             case AppException appEx when appEx.StatusCode.HasValue:
                 context.Response.StatusCode = appEx.StatusCode.Value;
-                response.Status = appEx.StatusCode.Value;
-                response.Title = appEx switch
-                {
-                    UnauthorizedException => "Unauthorized",
-                    ForbiddenException => "Forbidden",
-                    NotFoundException => "Resource Not Found",
-                    ConflictException => "Conflict",
-                    BusinessException => "Bad Request",
-                    _ => "Error"
-                };
-                response.Detail = appEx.Message;
+                response.Message = appEx.Message;
                 break;
 
             case UnauthorizedAccessException:
                 context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                response.Status = (int)HttpStatusCode.Unauthorized;
-                response.Title = "Unauthorized";
-                response.Detail = "You are not authorized to access this resource.";
+                response.Message = "You are not authorized to access this resource.";
                 break;
 
             case KeyNotFoundException:
                 context.Response.StatusCode = (int)HttpStatusCode.NotFound;
-                response.Status = (int)HttpStatusCode.NotFound;
-                response.Title = "Resource Not Found";
-                response.Detail = exception.Message;
+                response.Message = exception.Message;
                 break;
 
             case InvalidOperationException:
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                response.Status = (int)HttpStatusCode.BadRequest;
-                response.Title = "Invalid Operation";
-                response.Detail = exception.Message;
+                response.Message = exception.Message;
                 break;
 
             case ArgumentException:
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                response.Status = (int)HttpStatusCode.BadRequest;
-                response.Title = "Bad Request";
-                response.Detail = exception.Message;
+                response.Message = exception.Message;
                 break;
 
             default:
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                response.Status = (int)HttpStatusCode.InternalServerError;
-                response.Title = "Internal Server Error";
-                response.Detail = _env.IsDevelopment() 
-                    ? exception.Message 
-                    : "An error occurred while processing your request.";
+                response.Message = _env.IsDevelopment() ? exception.Message : "An error occurred while processing your request.";
                 
                 if (_env.IsDevelopment())
                 {
-                    response.Errors = new Dictionary<string, string[]>
-                    {
-                        { "StackTrace", new[] { exception.StackTrace ?? string.Empty } }
-                    };
+                    response.Data = new { StackTrace = exception.StackTrace };
                 }
                 break;
         }
@@ -122,14 +94,4 @@ public class GlobalExceptionHandlerMiddleware
 
         await context.Response.WriteAsync(jsonResponse);
     }
-}
-
-public class ErrorResponse
-{
-    public int Status { get; set; }
-    public string Title { get; set; } = string.Empty;
-    public string Detail { get; set; } = string.Empty;
-    public string Instance { get; set; } = string.Empty;
-    public string TraceId { get; set; } = string.Empty;
-    public Dictionary<string, string[]>? Errors { get; set; }
 }

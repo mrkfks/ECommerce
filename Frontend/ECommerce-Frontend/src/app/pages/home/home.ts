@@ -34,7 +34,7 @@ export class Home implements OnInit, OnDestroy {
   currentBannerIndex = 0;
   isLoading = true;
   error: string | null = null;
-  
+
   private bannerInterval: any;
 
   ngOnInit(): void {
@@ -96,8 +96,9 @@ export class Home implements OnInit, OnDestroy {
 
   loadProducts(): void {
     this.isLoading = true;
-    this.productService.getAll().subscribe({
-      next: (products) => {
+    this.productService.getAll(1, 10).subscribe({
+      next: (response) => {
+        const products = response.items;
         if (!Array.isArray(products)) {
           console.error('Products is not an array:', products);
           this.error = 'Ürünler yüklenirken bir hata oluştu.';
@@ -213,8 +214,10 @@ export class Home implements OnInit, OnDestroy {
   }
 
   onAddToCart(product: Product): void {
-    this.cartService.addToCart(product);
-    console.log('Sepete eklendi:', product.name);
+    this.cartService.addToCart(product.id, 1).subscribe({
+      next: () => console.log('Sepete eklendi:', product.name),
+      error: (err) => console.error('Sepete eklenemedi:', err)
+    });
   }
 
   onAddToWishlist(product: Product): void {

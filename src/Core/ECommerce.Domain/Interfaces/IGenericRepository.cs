@@ -16,5 +16,8 @@ namespace ECommerce.Domain.Interfaces
 
         void Remove(T entity);
         void RemoveRange(IEnumerable<T> entities);
+
+        Task<int> CountAsync();
+        Task<IReadOnlyList<T>> GetPagedAsync(int pageNumber, int pageSize);
     }
 }

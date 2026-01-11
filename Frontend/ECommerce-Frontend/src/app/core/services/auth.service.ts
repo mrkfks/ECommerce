@@ -1,13 +1,14 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, BehaviorSubject } from 'rxjs';
+import { Observable, tap, BehaviorSubject, map } from 'rxjs';
 import { Router } from '@angular/router';
-import { 
-  User, 
-  LoginRequest, 
-  RegisterRequest, 
-  AuthResponse, 
-  RefreshTokenRequest 
+import {
+  User,
+  LoginRequest,
+  RegisterRequest,
+  AuthResponse,
+  RefreshTokenRequest,
+  ApiResponse
 } from '../models';
 
 @Injectable({
@@ -33,14 +34,16 @@ export class AuthService {
   }
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>('/auth/login', credentials).pipe(
+    return this.http.post<ApiResponse<AuthResponse>>('/auth/login', credentials).pipe(
+      map(response => response.data),
       tap(response => this.handleAuthResponse(response))
     );
   }
 
   register(data: RegisterRequest): Observable<AuthResponse> {
     console.log('Register request data:', data);
-    return this.http.post<AuthResponse>('/auth/register', data).pipe(
+    return this.http.post<ApiResponse<AuthResponse>>('/auth/register', data).pipe(
+      map(response => response.data),
       tap(response => {
         console.log('Register response:', response);
         this.handleAuthResponse(response);
@@ -49,11 +52,15 @@ export class AuthService {
   }
 
   checkEmailAvailable(email: string): Observable<{ isAvailable: boolean; message: string }> {
-    return this.http.post<{ isAvailable: boolean; message: string }>('/auth/check-email', { email });
+    return this.http.post<any>('/auth/check-email', { email }).pipe(
+      map(response => response.data || response)
+    );
   }
 
   checkUsernameAvailable(username: string): Observable<{ isAvailable: boolean; message: string }> {
-    return this.http.post<{ isAvailable: boolean; message: string }>('/auth/check-username', { username });
+    return this.http.post<any>('/auth/check-username', { username }).pipe(
+      map(response => response.data || response)
+    );
   }
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
@@ -67,8 +74,9 @@ export class AuthService {
   refreshToken(): Observable<AuthResponse> {
     const refreshToken = this.getRefreshToken();
     const request: RefreshTokenRequest = { refreshToken: refreshToken || '' };
-    
-    return this.http.post<AuthResponse>('/auth/refresh', request).pipe(
+
+    return this.http.post<ApiResponse<AuthResponse>>('/auth/refresh', request).pipe(
+      map(response => response.data),
       tap(response => this.handleAuthResponse(response))
     );
   }
@@ -98,17 +106,36 @@ export class AuthService {
   private handleAuthResponse(response: AuthResponse): void {
     localStorage.setItem(this.TOKEN_KEY, response.accessToken);
     localStorage.setItem(this.REFRESH_TOKEN_KEY, response.refreshToken);
-    
+
     // Backend'den gelen username ve roles'ü User objesine dönüştür
-    const user: User = {
-      id: 0, // Backend userID döndürmüyor, JWT'den decode edebilirsiniz
-      email: '', // Backend email döndürmüyor
+    // Backend'den gelen username ve roles'ü User objesine dönüştür
+    let user: User = {
+      id: 0,
+      email: '',
       firstName: '',
       lastName: '',
+      username: '',
       role: response.roles?.[0] || 'User',
-      createdAt: new Date()
+      createdAt: new Date(),
+      companyId: 0
     };
-    
+
+    try {
+      if (response.accessToken) {
+        const payload = JSON.parse(atob(response.accessToken.split('.')[1]));
+        user.id = payload.userId ? parseInt(payload.userId) : (payload.nameid ? parseInt(payload.nameid) : 0);
+        user.email = payload.email || '';
+        user.username = payload.unique_name || payload.sub || response.username || '';
+        user.companyId = payload.CompanyId ? parseInt(payload.CompanyId) : 0;
+        // First/Last name might not be in token, leave empty or infer
+      }
+    } catch (e) {
+      console.error('Token decode error:', e);
+    }
+
+    // Update simple fields if available in response (override token if better)
+    if (response.username) user.username = response.username;
+
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
     this.currentUserSubject.next(user);
     this._isAuthenticated.set(true);

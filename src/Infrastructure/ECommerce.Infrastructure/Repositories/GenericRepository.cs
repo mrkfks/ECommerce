@@ -51,5 +51,18 @@ namespace ECommerce.Infrastructure.Repositories
         {
             _dbSet.RemoveRange(entities);
         }
+
+        public async Task<int> CountAsync()
+        {
+            return await _dbSet.CountAsync();
+        }
+
+        public async Task<IReadOnlyList<T>> GetPagedAsync(int pageNumber, int pageSize)
+        {
+            return await _dbSet
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
     }
 }
