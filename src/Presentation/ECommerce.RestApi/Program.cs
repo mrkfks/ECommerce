@@ -9,6 +9,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,6 +52,35 @@ var builder = WebApplication.CreateBuilder(args);
     // Caching
     builder.Services.AddResponseCaching();
     builder.Services.AddMemoryCache();
+
+    // API Versioning
+    builder.Services.AddApiVersioning(options =>
+    {
+        options.DefaultApiVersion = new Microsoft.AspNetCore.Mvc.ApiVersion(1, 0);
+        options.AssumeDefaultVersionWhenUnspecified = true;
+        options.ReportApiVersions = true;
+    });
+
+    // Rate Limiting
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.GlobalLimiter = System.Threading.RateLimiting.PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+            System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: httpContext.User.Identity?.Name ?? httpContext.Request.Headers.Host.ToString(),
+                factory: partition => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+                {
+                    AutoReplenishment = true,
+                    PermitLimit = 1000,
+                    QueueLimit = 2,
+                    Window = TimeSpan.FromMinutes(1)
+                }));
+        
+        options.OnRejected = async (context, token) =>
+        {
+            context.HttpContext.Response.StatusCode = 429;
+            await context.HttpContext.Response.WriteAsync("Too many requests. Please try again later.", cancellationToken: token);
+        };
+    });
 
     // JWT Authentication
     var jwtConfig = builder.Configuration.GetSection("Jwt");
@@ -260,14 +295,9 @@ var builder = WebApplication.CreateBuilder(args);
     }
 
     // Middleware Pipeline
-    if (app.Environment.IsDevelopment())
-    {
-        app.UseDeveloperExceptionPage();
-    }
-    else
-    {
-        app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
-    }
+    // Always use our global exception handler so AppException status codes (e.g., 409 Conflict) surface correctly.
+    // DeveloperExceptionPage masks custom status codes with 500, so we keep a single handler across environments.
+    app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
     // Swagger - hem Development hem Production'da açık
     app.UseSwagger();
@@ -280,6 +310,7 @@ var builder = WebApplication.CreateBuilder(args);
     app.UseStaticFiles();
     app.UseRouting();
     app.UseCors("AllowAll");
+    app.UseRateLimiter();
     app.UseResponseCaching();
 
     app.UseAuthentication();

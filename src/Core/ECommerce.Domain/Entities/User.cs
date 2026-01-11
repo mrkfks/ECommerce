@@ -10,13 +10,14 @@ namespace ECommerce.Domain.Entities
         public string PasswordHash { get; private set; } = string.Empty;
         public string? FirstName { get; private set; }
         public string? LastName { get; private set; }
+        public string? PhoneNumber { get; private set; }
         public bool IsActive { get; private set; } = true;
 
         public Company Company { get; private set; } = null!;
         public virtual Customer? CustomerProfile { get; private set; }
         public virtual ICollection<UserRole> UserRoles { get; private set; } = new List<UserRole>();
 
-        public static User Create(int companyId, string username, string email, string passwordHash, string? firstName = null, string? lastName = null)
+        public static User Create(int companyId, string username, string email, string passwordHash, string? firstName = null, string? lastName = null, string? phoneNumber = null)
         {
             if (string.IsNullOrWhiteSpace(username))
                 throw new ArgumentException("Kullanıcı adı boş olamaz.", nameof(username));
@@ -35,11 +36,12 @@ namespace ECommerce.Domain.Entities
                 PasswordHash = passwordHash,
                 FirstName = firstName,
                 LastName = lastName,
+                PhoneNumber = phoneNumber,
                 IsActive = true
             };
         }
 
-        public void UpdateProfile(string? firstName, string? lastName, string email, string? username = null)
+        public void UpdateProfile(string? firstName, string? lastName, string email, string? username = null, string? phoneNumber = null)
         {
             if (string.IsNullOrWhiteSpace(email) || !email.Contains("@"))
                 throw new ArgumentException("Geçerli bir e-posta adresi girin.", nameof(email));
@@ -54,6 +56,7 @@ namespace ECommerce.Domain.Entities
             FirstName = firstName;
             LastName = lastName;
             Email = email;
+            PhoneNumber = phoneNumber;
             MarkAsModified();
         }
 

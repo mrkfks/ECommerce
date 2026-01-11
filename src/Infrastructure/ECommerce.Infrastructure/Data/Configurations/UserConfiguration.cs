@@ -28,6 +28,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.LastName)
             .HasMaxLength(100);
 
+        builder.Property(u => u.PhoneNumber)
+            .HasMaxLength(20);
+
         builder.Property(u => u.IsActive)
             .IsRequired()
             .HasDefaultValue(true);

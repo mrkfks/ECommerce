@@ -91,6 +91,55 @@ public class OrderController : ControllerBase
         return Ok(order);
     }
 
+    [HttpGet("my-orders")]
+    public async Task<IActionResult> GetMyOrders()
+    {
+        var userId = User.FindFirst("userId")?.Value;
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized(new { message = "Kullanıcı kimliği bulunamadı" });
+        }
+
+        var orders = await _context.Orders
+            .Include(o => o.Customer)
+            .Include(o => o.Company)
+            .Include(o => o.Address)
+            .Include(o => o.Items)
+                .ThenInclude(i => i.Product)
+            .Where(o => o.Customer!.UserId == int.Parse(userId))
+            .AsNoTracking()
+            .Select(o => new OrderDto
+            {
+                Id = o.Id,
+                CustomerId = o.CustomerId,
+                CustomerName = o.Customer != null ? o.Customer.FirstName + " " + o.Customer.LastName : "",
+                AddressId = o.AddressId,
+                CompanyId = o.CompanyId,
+                CompanyName = o.Company != null ? o.Company.Name : "",
+                OrderDate = o.OrderDate,
+                TotalAmount = o.TotalAmount,
+                Status = o.Status,
+                StatusText = o.Status.ToString(),
+                Items = o.Items.Select(i => new OrderItemDto
+                {
+                    Id = i.Id,
+                    ProductId = i.ProductId,
+                    ProductName = i.Product != null ? i.Product.Name : "",
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice,
+                    TotalPrice = i.TotalPrice
+                }).ToList()
+            })
+            .ToListAsync();
+
+        return Ok(new ApiResponseDto<List<OrderDto>>
+        {
+            Success = true,
+            Data = orders,
+            Message = "Siparişler başarıyla getirildi"
+        });
+    }
+
     [HttpGet("customer/{customerId}")]
     public async Task<IActionResult> GetByCustomer(int customerId)
     {

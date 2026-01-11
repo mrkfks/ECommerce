@@ -12,38 +12,38 @@ export class OrderService {
   constructor(private http: HttpClient) {}
 
   getAll(): Observable<Order[]> {
-    return this.http.get<ApiResponse<Order[]>>(this.basePath).pipe(
-      map(response => response.data || [])
+    return this.http.get<Order[] | ApiResponse<Order[]>>(this.basePath).pipe(
+      map((response: any) => (Array.isArray(response) ? response : (response?.data || [])))
     );
   }
 
   getById(id: number): Observable<Order> {
-    return this.http.get<ApiResponse<Order>>(`${this.basePath}/${id}`).pipe(
-      map(response => response.data)
+    return this.http.get<Order | ApiResponse<Order>>(`${this.basePath}/${id}`).pipe(
+      map((response: any) => ('data' in response ? response.data : response))
     );
   }
 
   getByCustomer(customerId: number): Observable<Order[]> {
-    return this.http.get<ApiResponse<Order[]>>(`${this.basePath}/customer/${customerId}`).pipe(
-      map(response => response.data || [])
+    return this.http.get<Order[] | ApiResponse<Order[]>>(`${this.basePath}/customer/${customerId}`).pipe(
+      map((response: any) => (Array.isArray(response) ? response : (response?.data || [])))
     );
   }
 
   getMyOrders(): Observable<Order[]> {
-    return this.http.get<ApiResponse<Order[]>>(`${this.basePath}/my-orders`).pipe(
-      map(response => response.data || [])
+    return this.http.get<Order[] | ApiResponse<Order[]>>(`${this.basePath}/my-orders`).pipe(
+      map((response: any) => (Array.isArray(response) ? response : (response?.data || [])))
     );
   }
 
   create(order: OrderCreateRequest): Observable<Order> {
-    return this.http.post<ApiResponse<Order>>(this.basePath, order).pipe(
-      map(response => response.data)
+    return this.http.post<Order | ApiResponse<Order>>(this.basePath, order).pipe(
+      map((response: any) => ('data' in response ? response.data : response))
     );
   }
 
   updateStatus(id: number, status: number): Observable<Order> {
-    return this.http.patch<ApiResponse<Order>>(`${this.basePath}/${id}/status`, { status }).pipe(
-      map(response => response.data)
+    return this.http.patch<Order | ApiResponse<Order>>(`${this.basePath}/${id}/status`, { status }).pipe(
+      map((response: any) => ('data' in response ? response.data : response))
     );
   }
 

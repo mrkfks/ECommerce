@@ -2,6 +2,7 @@ using ECommerce.Application.DTOs;
 using ECommerce.Application.DTOs.Common;
 using ECommerce.Application.Features.Products.Commands;
 using ECommerce.Application.Features.Products.Queries;
+using ECommerce.Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,11 +16,13 @@ public class ProductController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly ILogger<ProductController> _logger;
+    private readonly ITenantService _tenantService;
 
-    public ProductController(IMediator mediator, ILogger<ProductController> logger)
+    public ProductController(IMediator mediator, ILogger<ProductController> logger, ITenantService tenantService)
     {
         _mediator = mediator;
         _logger = logger;
+        _tenantService = tenantService;
     }
     
     /// <summary>
@@ -62,9 +65,11 @@ public class ProductController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll()
     {
-        _logger.LogInformation("Fetching all products");
+        var currentCompanyId = _tenantService.GetCompanyId();
+        _logger.LogInformation("Fetching all products - Current CompanyId from TenantService: {CompanyId}", currentCompanyId?.ToString() ?? "NULL");
         var query = new GetAllProductsQuery();
         var result = await _mediator.Send(query);
+        _logger.LogInformation("Products returned: {Count}", result?.Data?.Count ?? 0);
         return Ok(result);
     }
 

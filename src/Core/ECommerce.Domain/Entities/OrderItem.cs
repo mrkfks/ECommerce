@@ -9,6 +9,7 @@ namespace ECommerce.Domain.Entities
         public virtual Product? Product { get; private set; }
         public int Quantity { get; private set; }
         public decimal UnitPrice { get; private set; }
+        public decimal TotalPrice => Quantity * UnitPrice;
         public int OrderId { get; private set; }
         public virtual Order? Order { get; private set; }
 

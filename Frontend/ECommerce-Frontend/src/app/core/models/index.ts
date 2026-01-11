@@ -10,24 +10,27 @@ export interface User {
 }
 
 export interface LoginRequest {
-  email: string;
+  usernameOrEmail: string;
   password: string;
 }
 
 export interface RegisterRequest {
   email: string;
   password: string;
+  confirmPassword: string;
   firstName: string;
   lastName: string;
   username: string;
+  phoneNumber: string;
   companyId?: number;
 }
 
 export interface AuthResponse {
-  token: string;
+  accessToken: string;
   refreshToken: string;
-  user: User;
   expiresAt: Date;
+  username: string;
+  roles?: string[];
 }
 
 export interface RefreshTokenRequest {

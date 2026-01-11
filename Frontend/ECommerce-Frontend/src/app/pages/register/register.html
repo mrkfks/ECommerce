@@ -47,19 +47,53 @@
               </div>
 
               <div class="mb-3">
+                <label for="phoneNumber" class="form-label">Telefon</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                  <input 
+                    type="tel" 
+                    class="form-control" 
+                    id="phoneNumber" 
+                    [(ngModel)]="formData.phoneNumber"
+                    name="phoneNumber"
+                    placeholder="05xx xxx xx xx"
+                    required>
+                </div>
+              </div>
+
+              <div class="mb-3">
                 <label for="username" class="form-label">Kullanıcı Adı</label>
                 <div class="input-group">
                   <span class="input-group-text"><i class="bi bi-person"></i></span>
                   <input 
                     type="text" 
                     class="form-control" 
+                    [class.is-invalid]="usernameError ? true : false"
+                    [class.is-valid]="usernameValid ? true : false"
                     id="username" 
                     [(ngModel)]="formData.username"
+                    (blur)="onUsernameBlur()"
                     name="username"
                     placeholder="kullanici_adi"
                     required>
+                  @if (usernameChecking) {
+                    <span class="input-group-text">
+                      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    </span>
+                  }
+                  @if (usernameValid) {
+                    <span class="input-group-text text-success">
+                      <i class="bi bi-check-circle-fill"></i>
+                    </span>
+                  }
                 </div>
-                <small class="text-muted">Sadece harf, rakam ve alt çizgi kullanabilirsiniz</small>
+                @if (usernameError) {
+                  <div class="invalid-feedback d-block">
+                    {{ usernameError }}
+                  </div>
+                } @else {
+                  <small class="text-muted">Sadece harf, rakam ve alt çizgi (3+ karakter)</small>
+                }
               </div>
 
               <div class="mb-3">
@@ -69,12 +103,30 @@
                   <input 
                     type="email" 
                     class="form-control" 
+                    [class.is-invalid]="emailError ? true : false"
+                    [class.is-valid]="emailValid ? true : false"
                     id="email" 
                     [(ngModel)]="formData.email"
+                    (blur)="onEmailBlur()"
                     name="email"
                     placeholder="ornek&#64;email.com"
                     required>
+                  @if (emailChecking) {
+                    <span class="input-group-text">
+                      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    </span>
+                  }
+                  @if (emailValid) {
+                    <span class="input-group-text text-success">
+                      <i class="bi bi-check-circle-fill"></i>
+                    </span>
+                  }
                 </div>
+                @if (emailError) {
+                  <div class="invalid-feedback d-block">
+                    {{ emailError }}
+                  </div>
+                }
               </div>
 
               <div class="mb-3">

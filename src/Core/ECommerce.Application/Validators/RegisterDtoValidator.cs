@@ -34,5 +34,9 @@ public class RegisterDtoValidator : AbstractValidator<RegisterDto>
 
         RuleFor(x => x.ConfirmPassword)
             .Equal(x => x.Password).WithMessage("Şifreler eşleşmiyor");
+
+        RuleFor(x => x.PhoneNumber)
+            .NotEmpty().WithMessage("Telefon numarası zorunludur")
+            .MaximumLength(20).WithMessage("Telefon numarası 20 karakteri geçemez");
     }
 }

@@ -1,5 +1,6 @@
 using ECommerce.Application.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
 namespace ECommerce.Infrastructure.Services;
@@ -7,19 +8,48 @@ namespace ECommerce.Infrastructure.Services;
 public class TenantService : ITenantService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ILogger<TenantService> _logger;
 
-    public TenantService(IHttpContextAccessor httpContextAccessor)
+    public TenantService(IHttpContextAccessor httpContextAccessor, ILogger<TenantService> logger)
     {
         _httpContextAccessor = httpContextAccessor;
+        _logger = logger;
     }
 
     public int? GetCompanyId()
     {
         var context = _httpContextAccessor.HttpContext;
-        if (context == null) return null;
+        if (context == null)
+        {
+            _logger.LogWarning("HttpContext is null in TenantService");
+            return null;
+        }
 
         var user = context.User;
-        if (user == null || !user.Identity?.IsAuthenticated == true) return null;
+        var isAuthenticated = user?.Identity?.IsAuthenticated == true;
+
+        // 1) Eğer header'da şirket kimliği varsa, bunu öncelikli kullan
+        // Bu sayede anonim ziyaretçiler için de tenant bağlamı sağlanır
+        if (context.Request?.Headers != null && context.Request.Headers.TryGetValue("X-Company-Id", out var headerValues))
+        {
+            var headerVal = headerValues.ToString();
+            _logger.LogInformation("X-Company-Id header found: '{HeaderValue}'", headerVal);
+            if (!string.IsNullOrWhiteSpace(headerVal) && int.TryParse(headerVal, out int headerCompanyId))
+            {
+                _logger.LogInformation("Returning CompanyId from header: {CompanyId}", headerCompanyId);
+                return headerCompanyId;
+            }
+        }
+        else
+        {
+            _logger.LogWarning("X-Company-Id header NOT found");
+        }
+
+        if (!isAuthenticated)
+        {
+            _logger.LogInformation("User not authenticated, returning null");
+            return null;
+        }
 
         // SuperAdmin ise her şeyi görebilsin (null dönerek filtreyi devre dışı bırak)
         if (user.IsInRole("SuperAdmin"))

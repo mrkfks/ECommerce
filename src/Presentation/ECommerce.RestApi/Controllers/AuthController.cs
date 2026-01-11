@@ -63,6 +63,38 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Check if email is available for registration
+    /// </summary>
+    [HttpPost("check-email")]
+    [AllowAnonymous]
+    public async Task<IActionResult> CheckEmail([FromBody] CheckEmailRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Email))
+        {
+            return BadRequest(new { isAvailable = false, message = "Email adresi boş olamaz" });
+        }
+
+        var result = await _authService.IsEmailAvailableAsync(request.Email);
+        return Ok(new { isAvailable = result, message = result ? "Bu email adresini kullanabilirsiniz" : "Bu email adresi zaten kayıtlı" });
+    }
+
+    /// <summary>
+    /// Check if username is available for registration
+    /// </summary>
+    [HttpPost("check-username")]
+    [AllowAnonymous]
+    public async Task<IActionResult> CheckUsername([FromBody] CheckUsernameRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Username))
+        {
+            return BadRequest(new { isAvailable = false, message = "Kullanıcı adı boş olamaz" });
+        }
+
+        var result = await _authService.IsUsernameAvailableAsync(request.Username);
+        return Ok(new { isAvailable = result, message = result ? "Bu kullanıcı adını kullanabilirsiniz" : "Bu kullanıcı adı zaten kayıtlı" });
+    }
+
+    /// <summary>
     /// Refresh access token using refresh token
     /// </summary>
     [HttpPost("refresh")]

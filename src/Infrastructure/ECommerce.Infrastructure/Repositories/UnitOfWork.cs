@@ -8,11 +8,13 @@ namespace ECommerce.Infrastructure.Repositories
     public class UnitOfWork : IUnitOfWork
     {
         private readonly AppDbContext _context;
+        private readonly ITenantService _tenantService;
 
-        public UnitOfWork(AppDbContext context)
+        public UnitOfWork(AppDbContext context, ITenantService tenantService)
         {
             _context = context;
-            Products = new ProductRepository(_context);
+            _tenantService = tenantService;
+            Products = new ProductRepository(_context, _tenantService);
             Orders = new OrderRepository(_context);
             Customers = new CustomerRepository(_context);
             Addresses = new AddressRepository(_context);

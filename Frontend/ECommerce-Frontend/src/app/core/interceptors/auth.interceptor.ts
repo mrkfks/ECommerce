@@ -32,6 +32,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         console.error('Yetkisiz erişim denemesi');
       }
 
+      if (error.status === 404) {
+        // 404 hatalarında logout yapma
+        console.warn('Endpoint bulunamadı:', req.url);
+      }
+
       return throwError(() => error);
     })
   );

@@ -12,26 +12,26 @@ export class CategoryService {
   constructor(private http: HttpClient) {}
 
   getAll(): Observable<Category[]> {
-    return this.http.get<ApiResponse<Category[]>>(this.basePath).pipe(
-      map(response => response.data || [])
+    return this.http.get<Category[] | ApiResponse<Category[]>>(this.basePath).pipe(
+      map((response) => Array.isArray(response) ? response : (response.data || []))
     );
   }
 
   getById(id: number): Observable<Category> {
-    return this.http.get<ApiResponse<Category>>(`${this.basePath}/${id}`).pipe(
-      map(response => response.data)
+    return this.http.get<Category | ApiResponse<Category>>(`${this.basePath}/${id}`).pipe(
+      map((response: any) => ('data' in response ? response.data : response))
     );
   }
 
   create(category: CategoryCreateRequest): Observable<Category> {
-    return this.http.post<ApiResponse<Category>>(this.basePath, category).pipe(
-      map(response => response.data)
+    return this.http.post<Category | ApiResponse<Category>>(this.basePath, category).pipe(
+      map((response: any) => ('data' in response ? response.data : response))
     );
   }
 
   update(id: number, category: Category): Observable<Category> {
-    return this.http.put<ApiResponse<Category>>(`${this.basePath}/${id}`, category).pipe(
-      map(response => response.data)
+    return this.http.put<Category | ApiResponse<Category>>(`${this.basePath}/${id}`, category).pipe(
+      map((response: any) => ('data' in response ? response.data : response))
     );
   }
 

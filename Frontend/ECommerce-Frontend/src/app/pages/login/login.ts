@@ -17,7 +17,7 @@ export class Login {
   private router = inject(Router);
 
   credentials: LoginRequest = {
-    email: '',
+    usernameOrEmail: '',
     password: ''
   };
 
@@ -26,7 +26,7 @@ export class Login {
   showPassword = false;
 
   onSubmit(): void {
-    if (!this.credentials.email || !this.credentials.password) {
+    if (!this.credentials.usernameOrEmail || !this.credentials.password) {
       this.error = 'Lütfen tüm alanları doldurun.';
       return;
     }
@@ -40,7 +40,8 @@ export class Login {
       },
       error: (err) => {
         this.isLoading = false;
-        this.error = err.error?.message || 'Giriş başarısız. Lütfen bilgilerinizi kontrol edin.';
+        // Backend returns 'detail' for custom exceptions
+        this.error = err.error?.detail || err.error?.message || 'Giriş başarısız. Lütfen bilgilerinizi kontrol edin.';
       }
     });
   }

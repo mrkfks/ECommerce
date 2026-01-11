@@ -362,6 +362,7 @@ namespace ECommerce.Infrastructure.Migrations
                     PasswordHash = table.Column<string>(type: "TEXT", maxLength: 500, nullable: false),
                     FirstName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
                     LastName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
+                    PhoneNumber = table.Column<string>(type: "TEXT", maxLength: 20, nullable: true),
                     IsActive = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: true),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),

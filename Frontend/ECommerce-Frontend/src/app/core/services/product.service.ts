@@ -12,39 +12,39 @@ export class ProductService {
   constructor(private http: HttpClient) {}
 
   getAll(): Observable<Product[]> {
-    return this.http.get<ApiResponse<Product[]>>(this.basePath).pipe(
-      map(response => response.data || [])
+    return this.http.get<Product[] | ApiResponse<Product[]>>(this.basePath).pipe(
+      map((response: any) => (Array.isArray(response) ? response : (response?.data || [])))
     );
   }
 
   getById(id: number): Observable<Product> {
-    return this.http.get<ApiResponse<Product>>(`${this.basePath}/${id}`).pipe(
-      map(response => response.data)
+    return this.http.get<Product | ApiResponse<Product>>(`${this.basePath}/${id}`).pipe(
+      map((response: any) => ('data' in response ? response.data : response))
     );
   }
 
   getByCategory(categoryId: number): Observable<Product[]> {
-    return this.http.get<ApiResponse<Product[]>>(`${this.basePath}/category/${categoryId}`).pipe(
-      map(response => response.data || [])
+    return this.http.get<Product[] | ApiResponse<Product[]>>(`${this.basePath}/category/${categoryId}`).pipe(
+      map((response: any) => (Array.isArray(response) ? response : (response?.data || [])))
     );
   }
 
   search(searchTerm: string): Observable<Product[]> {
     const params = new HttpParams().set('searchTerm', searchTerm);
-    return this.http.get<ApiResponse<Product[]>>(`${this.basePath}/search`, { params }).pipe(
-      map(response => response.data || [])
+    return this.http.get<Product[] | ApiResponse<Product[]>>(`${this.basePath}/search`, { params }).pipe(
+      map((response: any) => (Array.isArray(response) ? response : (response?.data || [])))
     );
   }
 
   create(product: ProductCreateRequest): Observable<Product> {
-    return this.http.post<ApiResponse<Product>>(this.basePath, product).pipe(
-      map(response => response.data)
+    return this.http.post<Product | ApiResponse<Product>>(this.basePath, product).pipe(
+      map((response: any) => ('data' in response ? response.data : response))
     );
   }
 
   update(id: number, product: ProductUpdateRequest): Observable<Product> {
-    return this.http.put<ApiResponse<Product>>(`${this.basePath}/${id}`, product).pipe(
-      map(response => response.data)
+    return this.http.put<Product | ApiResponse<Product>>(`${this.basePath}/${id}`, product).pipe(
+      map((response: any) => ('data' in response ? response.data : response))
     );
   }
 
@@ -53,20 +53,20 @@ export class ProductService {
   }
 
   getFeatured(): Observable<Product[]> {
-    return this.http.get<ApiResponse<Product[]>>(`${this.basePath}/featured`).pipe(
-      map(response => response.data || [])
+    return this.http.get<Product[] | ApiResponse<Product[]>>(`${this.basePath}/featured`).pipe(
+      map((response: any) => (Array.isArray(response) ? response : (response?.data || [])))
     );
   }
 
   getNewArrivals(): Observable<Product[]> {
-    return this.http.get<ApiResponse<Product[]>>(`${this.basePath}/new`).pipe(
-      map(response => response.data || [])
+    return this.http.get<Product[] | ApiResponse<Product[]>>(`${this.basePath}/new`).pipe(
+      map((response: any) => (Array.isArray(response) ? response : (response?.data || [])))
     );
   }
 
   getBestSellers(): Observable<Product[]> {
-    return this.http.get<ApiResponse<Product[]>>(`${this.basePath}/bestsellers`).pipe(
-      map(response => response.data || [])
+    return this.http.get<Product[] | ApiResponse<Product[]>>(`${this.basePath}/bestsellers`).pipe(
+      map((response: any) => (Array.isArray(response) ? response : (response?.data || [])))
     );
   }
 }

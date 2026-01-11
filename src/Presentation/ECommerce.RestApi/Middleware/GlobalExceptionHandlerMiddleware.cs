@@ -54,6 +54,21 @@ public class GlobalExceptionHandlerMiddleware
                 response.Errors = validationEx.Errors.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
                 break;
 
+            case AppException appEx when appEx.StatusCode.HasValue:
+                context.Response.StatusCode = appEx.StatusCode.Value;
+                response.Status = appEx.StatusCode.Value;
+                response.Title = appEx switch
+                {
+                    UnauthorizedException => "Unauthorized",
+                    ForbiddenException => "Forbidden",
+                    NotFoundException => "Resource Not Found",
+                    ConflictException => "Conflict",
+                    BusinessException => "Bad Request",
+                    _ => "Error"
+                };
+                response.Detail = appEx.Message;
+                break;
+
             case UnauthorizedAccessException:
                 context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                 response.Status = (int)HttpStatusCode.Unauthorized;

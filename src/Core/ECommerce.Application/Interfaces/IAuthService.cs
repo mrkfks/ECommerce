@@ -15,6 +15,10 @@ namespace ECommerce.Application.Interfaces
         Task<bool> ValidateTokenAsync(string token);
 
         Task<UserDto?> GetUserByIdAsync(int userId);
+
+        Task<bool> IsEmailAvailableAsync(string email);
+
+        Task<bool> IsUsernameAvailableAsync(string username);
     }
 }
 

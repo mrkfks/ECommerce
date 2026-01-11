@@ -124,4 +124,90 @@ using (var connection = new SqliteConnection(connectionString))
                 reader.GetBoolean(4));
         }
     }
+
+    // Products summary
+    Console.WriteLine("\n=== Products Summary ===");
+    var cmdProductCount = connection.CreateCommand();
+    cmdProductCount.CommandText = @"
+        SELECT 
+            COUNT(*) as Total,
+            SUM(CASE WHEN IsActive = 1 AND IsDeleted = 0 THEN 1 ELSE 0 END) as Active,
+            SUM(CASE WHEN IsDeleted = 1 THEN 1 ELSE 0 END) as Deleted
+        FROM Products";
+
+    using (var reader = cmdProductCount.ExecuteReader())
+    {
+        if (reader.Read())
+        {
+            Console.WriteLine($"Total Products: {reader.GetInt64(0)}");
+            Console.WriteLine($"Active Products: {reader.GetInt64(1)}");
+            Console.WriteLine($"Deleted Products: {reader.GetInt64(2)}");
+        }
+    }
+
+    // List active products
+    Console.WriteLine("\n=== Active Products ===");
+    var cmdProducts = connection.CreateCommand();
+    cmdProducts.CommandText = @"
+        SELECT Id, Name, Price, StockQuantity, CompanyId, IsActive 
+        FROM Products 
+        WHERE IsDeleted = 0 
+        ORDER BY Id 
+        LIMIT 10";
+
+    using (var reader = cmdProducts.ExecuteReader())
+    {
+        Console.WriteLine("{0,-5} {1,-30} {2,-12} {3,-10} {4,-10} {5,-8}", "ID", "Name", "Price", "Stock", "Company", "Active");
+        Console.WriteLine(new string('-', 85));
+
+        while (reader.Read())
+        {
+            Console.WriteLine("{0,-5} {1,-30} {2,-12} {3,-10} {4,-10} {5,-8}",
+                reader.GetInt32(0),
+                reader.GetString(1).Length > 28 ? reader.GetString(1).Substring(0, 28) + ".." : reader.GetString(1),
+                reader.GetDecimal(2).ToString("F2"),
+                reader.GetInt32(3),
+                reader.GetInt32(4),
+                reader.GetBoolean(5));
+        }
+    }
+
+    // Test specific company filter
+    Console.WriteLine("\n=== Products for Company 2 (Direct SQL) ===");
+    var cmdCompany2Products = connection.CreateCommand();
+    cmdCompany2Products.CommandText = @"
+        SELECT Id, Name, Price, StockQuantity, CompanyId, IsActive, IsDeleted
+        FROM Products 
+        WHERE CompanyId = 2 AND IsActive = 1 AND IsDeleted = 0";
+
+    using (var reader = cmdCompany2Products.ExecuteReader())
+    {
+        Console.WriteLine("{0,-5} {1,-20} {2,-10} {3,-8} {4,-8} {5,-8} {6,-8}", "ID", "Name", "Price", "Stock", "Company", "Active", "Deleted");
+        Console.WriteLine(new string('-', 75));
+
+        while (reader.Read())
+        {
+            Console.WriteLine("{0,-5} {1,-20} {2,-10} {3,-8} {4,-8} {5,-8} {6,-8}",
+                reader.GetInt32(0),
+                reader.GetString(1).Length > 18 ? reader.GetString(1).Substring(0, 18) + ".." : reader.GetString(1),
+                reader.GetDecimal(2).ToString("F2"),
+                reader.GetInt32(3),
+                reader.GetInt32(4),
+                reader.GetBoolean(5),
+                reader.GetBoolean(6));
+        }
+    }
+
+    // Categories summary
+    Console.WriteLine("\n=== Categories Summary ===");
+    var cmdCategoryCount = connection.CreateCommand();
+    cmdCategoryCount.CommandText = "SELECT COUNT(*) FROM Categories WHERE IsDeleted = 0";
+
+    using (var reader = cmdCategoryCount.ExecuteReader())
+    {
+        if (reader.Read())
+        {
+            Console.WriteLine($"Total Active Categories: {reader.GetInt64(0)}");
+        }
+    }
 }

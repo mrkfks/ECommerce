@@ -22,16 +22,16 @@
             <!-- Login Form -->
             <form (ngSubmit)="onSubmit()">
               <div class="mb-3">
-                <label for="email" class="form-label">E-posta</label>
+                <label for="usernameOrEmail" class="form-label">Kullanıcı Adı veya E-posta</label>
                 <div class="input-group">
-                  <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                  <span class="input-group-text"><i class="bi bi-person"></i></span>
                   <input 
-                    type="email" 
+                    type="text" 
                     class="form-control" 
-                    id="email" 
-                    [(ngModel)]="credentials.email"
-                    name="email"
-                    placeholder="ornek@email.com"
+                    id="usernameOrEmail" 
+                    [(ngModel)]="credentials.usernameOrEmail"
+                    name="usernameOrEmail"
+                    placeholder="Kullanıcı adı veya e-posta"
                     required>
                 </div>
               </div>

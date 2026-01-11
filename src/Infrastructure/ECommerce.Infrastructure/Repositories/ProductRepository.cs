@@ -1,3 +1,4 @@
+using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Entities;
 using ECommerce.Domain.Interfaces;
 using ECommerce.Infrastructure.Data;
@@ -9,9 +10,12 @@ namespace ECommerce.Infrastructure.Repositories
     public class ProductRepository : GenericRepository<Product>, IProductRepository
     {
         private readonly AppDbContext _context;
-        public ProductRepository(AppDbContext context) : base(context)
+        private readonly ITenantService _tenantService;
+
+        public ProductRepository(AppDbContext context, ITenantService tenantService) : base(context)
         {
             _context = context;
+            _tenantService = tenantService;
         }
         
         public async Task<IReadOnlyList<Product>> GetPageAsync(int page, int pageSize, int? categoryId, int? BrandId, string? search)
@@ -87,10 +91,23 @@ namespace ECommerce.Infrastructure.Repositories
 
         public async Task<IReadOnlyList<Product>> GetAllWithDetailsAsync()
         {
-             return await _context.Products
+             // Query filter'ı bypass edip manuel filtreleme
+             var currentCompanyId = _tenantService.GetCompanyId();
+             
+             var query = _context.Products
+                .IgnoreQueryFilters()  // Global filter'ı kapat
                 .Include(p => p.Category)
                 .Include(p => p.Brand)
                 .Include(p => p.Company)
+                .Where(p => !p.IsDeleted && p.IsActive);
+
+             // Eğer company context varsa, ona göre filtrele
+             if (currentCompanyId.HasValue)
+             {
+                 query = query.Where(p => p.CompanyId == currentCompanyId.Value);
+             }
+             
+             return await query
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
         }

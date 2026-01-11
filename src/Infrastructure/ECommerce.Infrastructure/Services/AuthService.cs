@@ -111,10 +111,8 @@ namespace ECommerce.Infrastructure.Services
                 // CompanyId 0 veya negatifse genel müşteri kaydı
                 if (registerDto.CompanyId <= 0)
                 {
-                    // Müşteri kaydı için varsayılan şirketi veya null kullan
-                    // Varsayılan olarak CompanyId = 1 (Platform şirketi) kullanılabilir
-                    // ya da Customer rolü ile CompanyId = 0 
-                    companyId = 0; // Müşteri için CompanyId yok
+                    // FK hatasını önlemek için varsayılan/ortak şirketi oluştur veya kullan
+                    companyId = await EnsureDefaultCompanyIdAsync();
                     roleName = "Customer";
                 }
                 else
@@ -143,7 +141,8 @@ namespace ECommerce.Infrastructure.Services
                     registerDto.Email,
                     BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
                     registerDto.FirstName,
-                    registerDto.LastName
+                    registerDto.LastName,
+                    registerDto.PhoneNumber
                 );
 
                 _context.Users.Add(user);
@@ -255,6 +254,38 @@ namespace ECommerce.Infrastructure.Services
             return !string.IsNullOrEmpty(token);
         }
 
+        private async Task<int> EnsureDefaultCompanyIdAsync()
+        {
+            // Varsayılan ya da mevcut ilk şirketi kullan; yoksa oluştur
+            var company = await _context.Companies
+                .IgnoreQueryFilters()
+                .OrderBy(c => c.Id)
+                .FirstOrDefaultAsync();
+
+            if (company == null)
+            {
+                company = Company.Create(
+                    "Default Company",
+                    "N/A",
+                    "0000000000",
+                    "default@company.local",
+                    "TAX-DEFAULT",
+                    "System",
+                    "0000000000",
+                    "system@company.local");
+                company.Approve();
+                _context.Companies.Add(company);
+                await _context.SaveChangesAsync();
+            }
+            else if (!company.IsApproved)
+            {
+                company.Approve();
+                await _context.SaveChangesAsync();
+            }
+
+            return company.Id;
+        }
+
         private string GenerateJwtToken(int userId, string username, string email, int companyId, IEnumerable<string> roles)
         {
             var jwtSettings = _configuration.GetSection("Jwt");
@@ -336,6 +367,22 @@ namespace ECommerce.Infrastructure.Services
                 IsActive = user.IsActive,
                 CreatedAt = user.CreatedAt
             };
+        }
+
+        public async Task<bool> IsEmailAvailableAsync(string email)
+        {
+            var existingUser = await _context.Users
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(u => u.Email == email);
+            return existingUser == null;
+        }
+
+        public async Task<bool> IsUsernameAvailableAsync(string username)
+        {
+            var existingUser = await _context.Users
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(u => u.Username == username);
+            return existingUser == null;
         }
     }
 }

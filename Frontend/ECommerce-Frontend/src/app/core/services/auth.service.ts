@@ -39,11 +39,22 @@ export class AuthService {
   }
 
   register(data: RegisterRequest): Observable<AuthResponse> {
+    console.log('Register request data:', data);
     return this.http.post<AuthResponse>('/auth/register', data).pipe(
-      tap(response => this.handleAuthResponse(response))
+      tap(response => {
+        console.log('Register response:', response);
+        this.handleAuthResponse(response);
+      })
     );
   }
 
+  checkEmailAvailable(email: string): Observable<{ isAvailable: boolean; message: string }> {
+    return this.http.post<{ isAvailable: boolean; message: string }>('/auth/check-email', { email });
+  }
+
+  checkUsernameAvailable(username: string): Observable<{ isAvailable: boolean; message: string }> {
+    return this.http.post<{ isAvailable: boolean; message: string }>('/auth/check-username', { username });
+  }
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
@@ -85,17 +96,37 @@ export class AuthService {
   }
 
   private handleAuthResponse(response: AuthResponse): void {
-    localStorage.setItem(this.TOKEN_KEY, response.token);
+    localStorage.setItem(this.TOKEN_KEY, response.accessToken);
     localStorage.setItem(this.REFRESH_TOKEN_KEY, response.refreshToken);
-    localStorage.setItem(this.USER_KEY, JSON.stringify(response.user));
-    this.currentUserSubject.next(response.user);
+    
+    // Backend'den gelen username ve roles'ü User objesine dönüştür
+    const user: User = {
+      id: 0, // Backend userID döndürmüyor, JWT'den decode edebilirsiniz
+      email: '', // Backend email döndürmüyor
+      firstName: '',
+      lastName: '',
+      role: response.roles?.[0] || 'User',
+      createdAt: new Date()
+    };
+    
+    localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+    this.currentUserSubject.next(user);
     this._isAuthenticated.set(true);
   }
 
   private getUserFromStorage(): User | null {
     if (typeof window !== 'undefined') {
       const userJson = localStorage.getItem(this.USER_KEY);
-      return userJson ? JSON.parse(userJson) : null;
+      if (!userJson || userJson === 'undefined') {
+        return null;
+      }
+      try {
+        return JSON.parse(userJson);
+      } catch (err) {
+        // Bozuk veri varsa temizle ki parse hatası tekrar etmesin
+        localStorage.removeItem(this.USER_KEY);
+        return null;
+      }
     }
     return null;
   }
