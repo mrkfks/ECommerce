@@ -25,6 +25,12 @@ public class TenantService : ITenantService
             return null;
         }
 
+        if (context.Items.TryGetValue("CompanyId", out var itemCompany) && itemCompany is int companyFromItems)
+        {
+            _logger.LogInformation("CompanyId found in HttpContext.Items: {CompanyId}", companyFromItems);
+            return companyFromItems;
+        }
+
         var user = context.User;
         var isAuthenticated = user?.Identity?.IsAuthenticated == true;
 
@@ -48,6 +54,12 @@ public class TenantService : ITenantService
         if (!isAuthenticated)
         {
             _logger.LogInformation("User not authenticated, returning null");
+            return null;
+        }
+
+        if (user == null)
+        {
+            _logger.LogWarning("User principal is null in TenantService");
             return null;
         }
 

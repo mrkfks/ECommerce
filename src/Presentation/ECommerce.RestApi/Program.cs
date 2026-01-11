@@ -1,7 +1,9 @@
 using ECommerce.Application;
 using ECommerce.Infrastructure;
 using ECommerce.Infrastructure.Data;
+using ECommerce.RestApi.Filters;
 using ECommerce.RestApi.Middleware;
+using ECommerce.RestApi.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -19,7 +21,10 @@ using Microsoft.AspNetCore.Mvc;
 var builder = WebApplication.CreateBuilder(args);
 
 // Controllers
-    builder.Services.AddControllers();
+    builder.Services.AddControllers(options =>
+    {
+        options.Filters.Add<ApiResponseFilter>();
+    });
 
     // CORS
     builder.Services.AddCors(options =>
@@ -52,6 +57,9 @@ var builder = WebApplication.CreateBuilder(args);
     // Caching
     builder.Services.AddResponseCaching();
     builder.Services.AddMemoryCache();
+
+    // API Key Options
+    builder.Services.Configure<ApiKeyOptions>(builder.Configuration.GetSection("ApiKeys"));
 
     // API Versioning
     builder.Services.AddApiVersioning(options =>
@@ -310,6 +318,7 @@ var builder = WebApplication.CreateBuilder(args);
     app.UseStaticFiles();
     app.UseRouting();
     app.UseCors("AllowAll");
+    app.UseMiddleware<ApiKeyMiddleware>();
     app.UseRateLimiter();
     app.UseResponseCaching();
 
