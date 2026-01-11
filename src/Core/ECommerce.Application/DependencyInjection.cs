@@ -2,6 +2,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using ECommerce.Application.Behaviors;
+using ECommerce.Application.Services;
 using System.Reflection;
 
 namespace ECommerce.Application;
@@ -22,6 +23,9 @@ public static class DependencyInjection
         // Pipeline Behaviors
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+
+        // Application Services
+        services.AddScoped<IBannerService, BannerService>();
 
         return services;
     }

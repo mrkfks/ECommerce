@@ -104,22 +104,48 @@ namespace ECommerce.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("ImageUrl")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("RedirectUrl")
-                        .IsRequired()
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Link")
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CompanyId", "Order");
 
                     b.ToTable("Banners");
                 });
@@ -1099,6 +1125,47 @@ namespace ECommerce.Infrastructure.Migrations
                     b.ToTable("Attributes", (string)null);
                 });
 
+            modelBuilder.Entity("ECommerce.Domain.Entities.ProductImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId", "IsPrimary");
+
+                    b.HasIndex("ProductId", "Order");
+
+                    b.ToTable("ProductImage");
+                });
+
             modelBuilder.Entity("ECommerce.Domain.Entities.ProductSpecification", b =>
                 {
                     b.Property<int>("Id")
@@ -1445,6 +1512,17 @@ namespace ECommerce.Infrastructure.Migrations
                     b.Navigation("Attribute");
                 });
 
+            modelBuilder.Entity("ECommerce.Domain.Entities.Banner", b =>
+                {
+                    b.HasOne("ECommerce.Domain.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
             modelBuilder.Entity("ECommerce.Domain.Entities.BrandCategory", b =>
                 {
                     b.HasOne("ECommerce.Domain.Entities.Brand", "Brand")
@@ -1693,6 +1771,17 @@ namespace ECommerce.Infrastructure.Migrations
                     b.Navigation("Model");
                 });
 
+            modelBuilder.Entity("ECommerce.Domain.Entities.ProductImage", b =>
+                {
+                    b.HasOne("ECommerce.Domain.Entities.Product", "Product")
+                        .WithMany("Images")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("ECommerce.Domain.Entities.ProductSpecification", b =>
                 {
                     b.HasOne("ECommerce.Domain.Entities.Product", "Product")
@@ -1882,6 +1971,8 @@ namespace ECommerce.Infrastructure.Migrations
 
             modelBuilder.Entity("ECommerce.Domain.Entities.Product", b =>
                 {
+                    b.Navigation("Images");
+
                     b.Navigation("OrderItems");
 
                     b.Navigation("Reviews");

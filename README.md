@@ -17,6 +17,61 @@ Modern, scalable ve production-ready full-stack e-ticaret platformu. Clean Archi
 
 ## 🏗️ Mimari
 
+```
+┌─────────────────────────────────────────────────────────────┐
+│                       Client Layer                          │
+│  ┌─────────────────────┐      ┌─────────────────────┐      │
+│  │  Angular Frontend   │      │   Admin Dashboard   │      │
+│  │   (Port: 4200)      │      │    (Port: 5001)     │      │
+│  └──────────┬──────────┘      └──────────┬──────────┘      │
+└─────────────┼───────────────────────────┼──────────────────┘
+              │                            │
+              └────────────┬───────────────┘
+                           │ HTTP/HTTPS
+              ┌────────────▼───────────────┐
+              │      REST API Layer         │
+              │     (Port: 5000)            │
+              │  ┌──────────────────────┐  │
+              │  │  Controllers         │  │
+              │  │  Filters/Middleware  │  │
+              │  │  API Response Format │  │
+              │  └──────────┬───────────┘  │
+              └─────────────┼───────────────┘
+                            │
+              ┌─────────────▼───────────────┐
+              │   Application Layer         │
+              │  ┌──────────────────────┐  │
+              │  │  CQRS Commands       │  │
+              │  │  MediatR Handlers    │  │
+              │  │  FluentValidation    │  │
+              │  └──────────┬───────────┘  │
+              └─────────────┼───────────────┘
+                            │
+              ┌─────────────▼───────────────┐
+              │    Domain Layer             │
+              │  ┌──────────────────────┐  │
+              │  │  Entities            │  │
+              │  │  Value Objects       │  │
+              │  │  Domain Events       │  │
+              │  └──────────┬───────────┘  │
+              └─────────────┼───────────────┘
+                            │
+              ┌─────────────▼───────────────┐
+              │  Infrastructure Layer       │
+              │  ┌──────────────────────┐  │
+              │  │  EF Core             │  │
+              │  │  Repository Pattern  │  │
+              │  │  Unit of Work        │  │
+              │  └──────────┬───────────┘  │
+              └─────────────┼───────────────┘
+                            │
+              ┌─────────────▼───────────────┐
+              │     Database Layer          │
+              │     SQLite / SQL Server     │
+              └─────────────────────────────┘
+```
+
+### Mimari Prensipleri
 - **Clean Architecture** (Domain, Application, Infrastructure, Presentation)
 - **CQRS + MediatR** Pattern
 - **Domain-Driven Design** (DDD)
@@ -54,6 +109,48 @@ Her şirket kendi verilerine erişir (Company-based isolation):
 - Automatic filtering through Global Query Filters
 - Tenant context injection
 - Same-company authorization policies
+- **API Key Authentication** - X-Api-Key header ile şirkete özel erişim
+
+### 🆕 Son Eklenen Özellikler
+
+#### Standard API Response Format
+Tüm API yanıtları standart formatta:
+```json
+{
+  "success": true,
+  "message": "İşlem başarılı",
+  "data": { ... }
+}
+```
+
+#### API Key Authentication
+`X-Api-Key` header ile company-scoped erişim:
+```bash
+GET /api/v1/product
+X-Api-Key: demo-key-123
+# Otomatik olarak ilgili şirketin verilerini döner
+```
+
+#### Rich Text Editor (Banner Yönetimi)
+Admin Panel'de Summernote entegrasyonu ile zengin metin editörü:
+- Banner açıklamalarında HTML formatı
+- Resim yükleme desteği
+- Link ekleme
+- Liste ve formatlandırma araçları
+
+#### Product Image Management
+Çoklu ürün resmi desteği:
+- Her ürün için birden fazla resim
+- Primary/ana resim belirleme
+- Sıralama (Order) özelliği
+- `/api/product/{id}/images` endpoint'leri ile yönetim
+
+#### Angular Frontend
+- Global error interceptor (SSR uyumlu)
+- Loading spinner (HTTP isteklerinde otomatik)
+- Custom email validators
+- 404/500 error pages
+- Interceptor zinciri (loading → api → auth → error)
 
 ## 📦 Kurulum
 
@@ -180,8 +277,55 @@ Cors__AllowedOrigins__0=https://yourapp.com
 - `GET /health` - Sistem sağlığı kontrolü
 
 Tüm endpoint'ler için Swagger UI: `/swagger`
+## 📮 Postman Collection
 
-## 🔐 Güvenlik
+Projeyi test etmek için Postman collection'ı hazır:
+
+1. **Collection'ı İçe Aktar**: `ECommerce.postman_collection.json`
+2. **Environment Ayarla**: 
+   - `base_url`: `http://localhost:5000`
+   - `jwt_token`: (otomatik doldurulur)
+3. **Test Senaryosu**:
+   - Authentication → Login - SuperAdmin (token otomatik set edilir)
+   - Products → Get All Products (JWT ile)
+   - Products → Get All Products (API Key) (X-Api-Key header ile)
+   - Product Images → Add Product Image
+   - Banners → Create Banner
+
+**Not**: Login request'i otomatik olarak JWT token'ı environment'a kaydeder.
+## � Demo Kullanıcılar
+
+Seed data ile yüklenmiş test kullanıcıları:
+
+| Rol | Email | Şifre | Açıklama |
+|-----|-------|-------|----------|
+| **SuperAdmin** | superadmin@system.com | Admin123! | Tüm şirketlere tam erişim |
+| **Admin** | admin@techshop.com | Admin123! | TechShop yöneticisi |
+| **User** | user@techshop.com | User123! | TechShop müşterisi |
+| **Admin** | admin@fashionstore.com | Admin123! | FashionStore yöneticisi |
+
+### Şirketler (Companies)
+- **TechShop** (ID: 1) - Teknoloji ürünleri
+- **FashionStore** (ID: 2) - Giyim ve aksesuar
+
+### Test için
+```bash
+# SuperAdmin ile giriş (tüm şirketlere erişim)
+POST /api/v1/auth/login
+{
+  "email": "superadmin@system.com",
+  "password": "Admin123!"
+}
+
+# TechShop Admin ile giriş
+POST /api/v1/auth/login
+{
+  "email": "admin@techshop.com",
+  "password": "Admin123!"
+}
+```
+
+## �🔐 Güvenlik
 
 ### JWT Authentication
 ```bash

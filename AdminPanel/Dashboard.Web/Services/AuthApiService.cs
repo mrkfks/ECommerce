@@ -20,18 +20,18 @@ namespace Dashboard.Web.Services
         {
             try
             {
-                _logger.LogInformation("Login attempt for: {UsernameOrEmail}", loginDto.UsernameOrEmail);
                 var response = await _httpClient.PostAsJsonAsync("api/Auth/login", loginDto);
-                
-                _logger.LogInformation("API Response Status: {StatusCode}", response.StatusCode);
-                
+
                 if (response.IsSuccessStatusCode)
                 {
-                    var result = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
-                    _logger.LogInformation("Login successful, token received: {HasToken}", !string.IsNullOrEmpty(result?.AccessToken));
+                    // API returns wrapped response: { success, data: AuthResponseDto, message }
+                    var wrappedResponse = await response.Content.ReadFromJsonAsync<ApiResponse<AuthResponseDto>>();
+                    var result = wrappedResponse?.Data;
+
+                    _logger.LogInformation("Login successful for: {Username}", result?.Username);
                     return result;
                 }
-                
+
                 var errorContent = await response.Content.ReadAsStringAsync();
                 _logger.LogWarning("Login failed: {StatusCode} - {Content}", response.StatusCode, errorContent);
                 return null;
@@ -48,13 +48,13 @@ namespace Dashboard.Web.Services
             try
             {
                 var response = await _httpClient.PostAsJsonAsync("api/Company/register", registerDto);
-                
+
                 if (response.IsSuccessStatusCode)
                 {
                     // Kayıt başarılı ama token dönmüyor, sadece success döndür
                     return new AuthResponseDto(); // Boş response, sadece success kontrolü için
                 }
-                
+
                 return null;
             }
             catch
@@ -81,12 +81,12 @@ namespace Dashboard.Web.Services
             {
                 var request = new RefreshTokenRequest { RefreshToken = refreshToken };
                 var response = await _httpClient.PostAsJsonAsync("api/Auth/refresh", request);
-                
+
                 if (response.IsSuccessStatusCode)
                 {
                     return await response.Content.ReadFromJsonAsync<AuthResponseDto>();
                 }
-                
+
                 return null;
             }
             catch

@@ -23,6 +23,7 @@ namespace ECommerce.Infrastructure.Repositories
             Brands = new GenericRepository<Brand>(_context);
             Reviews = new GenericRepository<Review>(_context);
             Banners = new GenericRepository<Banner>(_context);
+            ProductImages = new GenericRepository<ProductImage>(_context);
             Users = new GenericRepository<User>(_context);
             Roles = new GenericRepository<Role>(_context);
             Requests = new GenericRepository<Request>(_context);
@@ -37,6 +38,7 @@ namespace ECommerce.Infrastructure.Repositories
         public IGenericRepository<Brand> Brands { get; }
         public IGenericRepository<Review> Reviews { get; }
         public IGenericRepository<Banner> Banners { get; }
+        public IGenericRepository<ProductImage> ProductImages { get; }
         public IGenericRepository<User> Users { get; }
         public IGenericRepository<Role> Roles { get; }
         public IGenericRepository<Request> Requests { get; }

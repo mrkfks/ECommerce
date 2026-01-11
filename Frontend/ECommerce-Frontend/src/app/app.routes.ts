@@ -9,6 +9,8 @@ import { OrderHistory } from './pages/order-history/order-history';
 import { Profile } from './pages/profile/profile';
 import { Login } from './pages/login/login';
 import { Register } from './pages/register/register';
+import { NotFoundComponent } from './pages/error/not-found/not-found.component';
+import { ServerErrorComponent } from './pages/error/server-error/server-error.component';
 
 
 export const routes: Routes = [
@@ -27,6 +29,8 @@ export const routes: Routes = [
   { path: 'login', component: Login },
   { path: 'register', component: Register },
 
-  { path: '**', redirectTo: 'home' }
+  { path: 'error', component: ServerErrorComponent },
+  { path: '404', component: NotFoundComponent },
+  { path: '**', component: NotFoundComponent }
 ];
 

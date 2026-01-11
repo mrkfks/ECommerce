@@ -13,7 +13,12 @@ export class CategoryService {
 
   getAll(): Observable<Category[]> {
     return this.http.get<Category[] | ApiResponse<Category[]>>(this.basePath).pipe(
-      map((response) => Array.isArray(response) ? response : (response.data || []))
+      map((response: any) => {
+        if (Array.isArray(response)) return response;
+        if (response?.data?.data && Array.isArray(response.data.data)) return response.data.data;
+        if (response?.data && Array.isArray(response.data)) return response.data;
+        return [];
+      })
     );
   }
 

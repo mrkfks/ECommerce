@@ -40,7 +40,7 @@ namespace ECommerce.Application.Features.Banner.Handlers
                     };
                 }
 
-                banner.Update(banner.Title, imageUrl, banner.RedirectUrl);
+                banner.Update(banner.Title, imageUrl, banner.Description, banner.Link, banner.Order);
                 _unitOfWork.Banners.Update(banner);
                 await _unitOfWork.SaveChangesAsync();
 

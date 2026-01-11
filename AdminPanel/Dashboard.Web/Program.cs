@@ -156,6 +156,12 @@ builder.Services.AddHttpClient<UserManagementApiService>(client =>
     client.Timeout = TimeSpan.FromSeconds(30);
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
+builder.Services.AddHttpClient<BannerApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
 // CORS (Angular veya başka frontend bağlanacaksa)
 builder.Services.AddCors(options =>
 {

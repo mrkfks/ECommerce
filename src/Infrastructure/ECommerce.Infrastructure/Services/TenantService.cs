@@ -1,7 +1,7 @@
+using System.Security.Claims;
 using ECommerce.Application.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 
 namespace ECommerce.Infrastructure.Services;
 
@@ -35,7 +35,7 @@ public class TenantService : ITenantService
         var isAuthenticated = user?.Identity?.IsAuthenticated == true;
 
         // 1) Eğer header'da şirket kimliği varsa, bunu öncelikli kullan
-        // Bu sayede anonim ziyaretçiler için de tenant bağlamı sağlanır
+        // Bu sayede hem anonim ziyaretçiler hem de SuperAdmin için tenant bağlamı sağlanır
         if (context.Request?.Headers != null && context.Request.Headers.TryGetValue("X-Company-Id", out var headerValues))
         {
             var headerVal = headerValues.ToString();
@@ -63,16 +63,12 @@ public class TenantService : ITenantService
             return null;
         }
 
-        // SuperAdmin ise her şeyi görebilsin (null dönerek filtreyi devre dışı bırak)
-        if (user.IsInRole("SuperAdmin"))
-        {
-            return null;
-        }
-
-        // "CompanyId" claim'ini ara
+        // SuperAdmin için JWT'den CompanyId al - header yoksa
+        // Artık SuperAdmin için de null dönmüyoruz, JWT'deki company ID'yi kullanıyoruz
         var companyClaim = user.FindFirst("CompanyId")?.Value;
         if (!string.IsNullOrEmpty(companyClaim) && int.TryParse(companyClaim, out int companyId))
         {
+            _logger.LogInformation("Returning CompanyId from JWT: {CompanyId}", companyId);
             return companyId;
         }
 
@@ -84,7 +80,7 @@ public class TenantService : ITenantService
         var companyId = GetCompanyId();
         if (companyId.HasValue)
             return companyId.Value;
-        
+
         // Eğer null ise (SuperAdmin gibi), varsayılan olarak 1 dön (veya hata fırlat)
         return 1;
     }

@@ -4,12 +4,105 @@ Bu dosya, ECommerce API'yi farklı platformlardan nasıl kullanacağınızı gö
 
 ## 📋 İçindekiler
 
-1. [JavaScript/TypeScript (Fetch API)](#javascript-fetch)
-2. [React Örneği](#react)
-3. [Vue.js Örneği](#vuejs)
-4. [Angular Örneği](#angular)
-5. [cURL Örnekleri](#curl)
-6. [Postman Collection](#postman)
+1. [Standard Response Format](#response-format)
+2. [Authentication Methods](#authentication)
+3. [JavaScript/TypeScript (Fetch API)](#javascript-fetch)
+4. [React Örneği](#react)
+5. [Vue.js Örneği](#vuejs)
+6. [Angular Örneği](#angular)
+7. [cURL Örnekleri](#curl)
+8. [Postman Collection](#postman)
+
+---
+
+## 📦 Standard Response Format {#response-format}
+
+Tüm API endpoint'leri standart formatta yanıt döner:
+
+### Başarılı Yanıt
+```json
+{
+  "success": true,
+  "message": "İşlem başarılı",
+  "data": {
+    "id": 1,
+    "name": "Gaming Laptop",
+    "price": 1499.99
+  }
+}
+```
+
+### Hata Yanıtı
+```json
+{
+  "success": false,
+  "message": "Ürün bulunamadı",
+  "data": null
+}
+```
+
+### Liste Yanıtı
+```json
+{
+  "success": true,
+  "data": [
+    { "id": 1, "name": "Product 1" },
+    { "id": 2, "name": "Product 2" }
+  ]
+}
+```
+
+---
+
+## 🔐 Authentication Methods {#authentication}
+
+API, 3 farklı authentication yöntemini destekler (öncelik sırasına göre):
+
+### 1. API Key Authentication (En Yüksek Öncelik)
+Company-scoped erişim için API anahtarı kullanın:
+
+```bash
+curl -H "X-Api-Key: demo-key-123" \
+  http://localhost:5000/api/v1/product
+```
+
+**Özellikler:**
+- Kullanıcı girişi gerektirmez
+- Şirkete özel veri filtreleme
+- appsettings.json'da yapılandırma
+- Public endpoint'lerde kullanılabilir
+
+**Yapılandırma (appsettings.json):**
+```json
+{
+  "ApiKeys": {
+    "demo-key-123": 2,
+    "techshop-key-456": 1
+  }
+}
+```
+
+### 2. Company Header (Orta Öncelik)
+JWT token ile birlikte şirket ID'si belirtme:
+
+```bash
+curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+     -H "X-Company-Id: 2" \
+  http://localhost:5000/api/v1/product
+```
+
+### 3. JWT Claims (En Düşük Öncelik)
+Standart JWT authentication (token'daki CompanyId claim'i kullanılır):
+
+```bash
+curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  http://localhost:5000/api/v1/product
+```
+
+**Öncelik Sistemi:**
+```
+API Key (X-Api-Key) > Company Header (X-Company-Id) > JWT Claims (CompanyId)
+```
 
 ---
 
@@ -44,10 +137,47 @@ async function apiRequest(endpoint, options = {}) {
     try {
         const response = await fetch(url, config);
         
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.detail || 'API isteği başarısız');
+        // Standard response format kontrolü
+        const result = await response.json();
+        
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || 'API isteği başarısız');
         }
+        
+        return result.data; // Sadece data'yı döndür
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+    }
+}
+
+// API Key ile istek (authentication olmadan)
+async function apiRequestWithKey(endpoint, apiKey, options = {}) {
+    const url = `${API_BASE_URL}${endpoint}`;
+    
+    const config = {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Api-Key': apiKey,
+            ...options.headers,
+        },
+    };
+    
+    try {
+        const response = await fetch(url, config);
+        const result = await response.json();
+        
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || 'API isteği başarısız');
+        }
+        
+        return result.data;
+    } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+    }
+}
         
         return await response.json();
     } catch (error) {
@@ -128,6 +258,60 @@ const newProduct = {
 
 createProduct(newProduct)
     .then(result => console.log('Ürün oluşturuldu:', result))
+    .catch(err => console.error('Hata:', err));
+```
+
+### Product Image Management
+
+```javascript
+// Get product images
+async function getProductImages(productId) {
+    return await apiRequest(`/product/${productId}/images`);
+}
+
+// Add product image
+async function addProductImage(productId, imageData) {
+    return await apiRequest(`/product/${productId}/images`, {
+        method: 'POST',
+        body: JSON.stringify(imageData)
+    });
+}
+
+// Update product image
+async function updateProductImage(productId, imageId, imageData) {
+    return await apiRequest(`/product/${productId}/images/${imageId}`, {
+        method: 'PUT',
+        body: JSON.stringify(imageData)
+    });
+}
+
+// Delete product image
+async function deleteProductImage(productId, imageId) {
+    return await apiRequest(`/product/${productId}/images/${imageId}`, {
+        method: 'DELETE'
+    });
+}
+
+// Kullanım örnekleri
+getProductImages(1)
+    .then(images => console.log('Ürün resimleri:', images));
+
+addProductImage(1, {
+    imageUrl: 'https://example.com/image1.jpg',
+    order: 1,
+    isPrimary: true
+})
+    .then(result => console.log('Resim eklendi:', result));
+
+updateProductImage(1, 5, {
+    imageUrl: 'https://example.com/image-updated.jpg',
+    order: 2,
+    isPrimary: false
+})
+    .then(result => console.log('Resim güncellendi:', result));
+
+deleteProductImage(1, 5)
+    .then(() => console.log('Resim silindi'));
     .catch(err => console.error('Hata:', err));
 ```
 

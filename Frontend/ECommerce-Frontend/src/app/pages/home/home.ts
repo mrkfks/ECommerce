@@ -98,7 +98,12 @@ export class Home implements OnInit, OnDestroy {
     this.isLoading = true;
     this.productService.getAll().subscribe({
       next: (products) => {
-        // API'den gelen ürünleri dönüştür
+        if (!Array.isArray(products)) {
+          console.error('Products is not an array:', products);
+          this.error = 'Ürünler yüklenirken bir hata oluştu.';
+          this.isLoading = false;
+          return;
+        }
         const mappedProducts = products.map(p => this.mapProduct(p));
         this.featuredProducts = mappedProducts.slice(0, 4);
         this.newProducts = mappedProducts.filter(p => p.isNew).slice(0, 4);

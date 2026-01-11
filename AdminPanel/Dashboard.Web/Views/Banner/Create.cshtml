@@ -1,0 +1,133 @@
+@model Dashboard.Web.Models.BannerViewModel
+
+@{
+    ViewData["Title"] = "Banner Ekle";
+}
+
+<div class="container-fluid">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Banner Yönetimi</a></li>
+            <li class="breadcrumb-item active">Yeni Banner</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Yeni Banner Ekle</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label">Başlık *</label>
+                            <input asp-for="Title" class="form-control" placeholder="Banner başlığı" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Açıklama</label>
+                            <textarea asp-for="Description" class="form-control richtext" rows="4" placeholder="Banner açıklaması (opsiyonel)"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ImageUrl" class="form-label">Resim URL *</label>
+                            <input asp-for="ImageUrl" class="form-control" placeholder="https://example.com/image.jpg" />
+                            <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                            <small class="form-text text-muted">
+                                Önerilen boyut: 1920x600 piksel
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Link" class="form-label">Yönlendirme Linki</label>
+                            <input asp-for="Link" class="form-control" placeholder="https://example.com (opsiyonel)" />
+                            <span asp-validation-for="Link" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Order" class="form-label">Sıra</label>
+                                <input asp-for="Order" type="number" class="form-control" value="0" />
+                                <span asp-validation-for="Order" class="text-danger"></span>
+                                <small class="form-text text-muted">Küçük numara önce gösterilir</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label d-block">Durum</label>
+                                <div class="form-check form-switch">
+                                    <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                                    <label asp-for="IsActive" class="form-check-label">Aktif</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-1"></i>Kaydet
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="bi bi-x-circle me-1"></i>İptal
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0">Önizleme</h6>
+                </div>
+                <div class="card-body">
+                    <div id="previewArea" class="text-center">
+                        <img id="previewImage" src="https://via.placeholder.com/400x150?text=Banner+Preview" class="img-fluid rounded" alt="Preview" />
+                        <p id="previewTitle" class="mt-2 fw-bold">Banner Başlığı</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <!-- Summernote CSS & JS -->
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // Summernote Rich Text Editor
+            $('.richtext').summernote({
+                height: 150,
+                toolbar: [
+                    ['style', ['bold', 'italic', 'underline']],
+                    ['para', ['ul', 'ol']],
+                    ['insert', ['link']]
+                ],
+                placeholder: 'Banner açıklaması girin...'
+            });
+
+            // Real-time preview
+            $('#Title').on('input', function() {
+                $('#previewTitle').text($(this).val() || 'Banner Başlığı');
+            });
+
+            $('#ImageUrl').on('input', function() {
+                var url = $(this).val();
+                if (url) {
+                    $('#previewImage').attr('src', url).on('error', function() {
+                        $(this).attr('src', 'https://via.placeholder.com/400x150?text=Invalid+URL');
+                    });
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,120 @@
+@model Dashboard.Web.Models.BannerViewModel
+
+@{
+    ViewData["Title"] = "Banner Düzenle";
+}
+
+<div class="container-fluid">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Banner Yönetimi</a></li>
+            <li class="breadcrumb-item active">Düzenle</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-pencil me-2"></i>Banner Düzenle</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="CompanyId" />
+                        <input type="hidden" asp-for="CreatedAt" />
+                        
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label">Başlık *</label>
+                            <input asp-for="Title" class="form-control" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Açıklama</label>
+                            <textarea asp-for="Description" class="form-control richtext" rows="4"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ImageUrl" class="form-label">Resim URL *</label>
+                            <input asp-for="ImageUrl" class="form-control" />
+                            <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Link" class="form-label">Yönlendirme Linki</label>
+                            <input asp-for="Link" class="form-control" />
+                            <span asp-validation-for="Link" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Order" class="form-label">Sıra</label>
+                                <input asp-for="Order" type="number" class="form-control" />
+                                <span asp-validation-for="Order" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label d-block">Durum</label>
+                                <div class="form-check form-switch">
+                                    <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                                    <label asp-for="IsActive" class="form-check-label">Aktif</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-1"></i>Güncelle
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="bi bi-x-circle me-1"></i>İptal
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0">Mevcut Banner</h6>
+                </div>
+                <div class="card-body text-center">
+                    <img src="@Model.ImageUrl" class="img-fluid rounded mb-2" alt="@Model.Title" />
+                    <p class="fw-bold">@Model.Title</p>
+                    @if (!string.IsNullOrEmpty(Model.Link))
+                    {
+                        <a href="@Model.Link" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-box-arrow-up-right me-1"></i>Linke Git
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            $('.richtext').summernote({
+                height: 150,
+                toolbar: [
+                    ['style', ['bold', 'italic', 'underline']],
+                    ['para', ['ul', 'ol']],
+                    ['insert', ['link']]
+                ]
+            });
+        });
+    </script>
+}

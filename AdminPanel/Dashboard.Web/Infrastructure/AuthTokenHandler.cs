@@ -1,9 +1,11 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Dashboard.Web.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace Dashboard.Web.Infrastructure
 {
@@ -27,13 +29,30 @@ namespace Dashboard.Web.Infrastructure
             if (!string.IsNullOrWhiteSpace(token))
             {
                 request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                // JWT'den Company ID'yi al ve header'a ekle
+                try
+                {
+                    var handler = new JwtSecurityTokenHandler();
+                    var jwtToken = handler.ReadJwtToken(token);
+                    var companyId = jwtToken.Claims.FirstOrDefault(c => c.Type == "CompanyId")?.Value;
+
+                    if (!string.IsNullOrEmpty(companyId))
+                    {
+                        request.Headers.Add("X-Company-Id", companyId);
+                    }
+                }
+                catch
+                {
+                    // JWT parse hatası - devam et
+                }
             }
 
             var response = await base.SendAsync(request, cancellationToken);
 
             // Token expired (401) - refresh token'ı kullanarak yeni token al
             // Sonsuz döngüyü önlemek için refresh zaten denenmişse tekrar deneme
-            if (response.StatusCode == HttpStatusCode.Unauthorized && 
+            if (response.StatusCode == HttpStatusCode.Unauthorized &&
                 !request.Headers.Contains(RefreshAttemptedHeader))
             {
                 var refreshToken = context?.Request.Cookies["RefreshToken"];
@@ -52,7 +71,7 @@ namespace Dashboard.Web.Infrastructure
                             var newRequest = await CloneHttpRequestMessageAsync(request);
                             newRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", newAuthResponse.AccessToken);
                             newRequest.Headers.Add(RefreshAttemptedHeader, "true");
-                            
+
                             return await base.SendAsync(newRequest, cancellationToken);
                         }
                     }

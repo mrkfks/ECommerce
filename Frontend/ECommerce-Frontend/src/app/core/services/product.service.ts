@@ -13,7 +13,15 @@ export class ProductService {
 
   getAll(): Observable<Product[]> {
     return this.http.get<Product[] | ApiResponse<Product[]>>(this.basePath).pipe(
-      map((response: any) => (Array.isArray(response) ? response : (response?.data || [])))
+      map((response: any) => {
+        if (Array.isArray(response)) return response;
+        if (response?.data?.data && Array.isArray(response.data.data)) return response.data.data;
+        if (response?.data && Array.isArray(response.data)) return response.data;
+        if (response?.items && Array.isArray(response.items)) return response.items;
+        if (response?.products && Array.isArray(response.products)) return response.products;
+        console.warn('Unexpected product API response format:', response);
+        return [];
+      })
     );
   }
 

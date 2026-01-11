@@ -20,6 +20,7 @@ namespace ECommerce.Infrastructure.Data
         public DbSet<Brand> Brands { get; set; }
         public DbSet<Model> Models { get; set; }
         public DbSet<ProductSpecification> ProductSpecifications { get; set; }
+        public DbSet<ProductImage> ProductImages { get; set; }
         public DbSet<ProductAttribute> Attributes { get; set; }
         public DbSet<AttributeValue> AttributeValues { get; set; }
         public DbSet<ProductVariant> ProductVariants { get; set; }

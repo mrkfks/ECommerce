@@ -24,6 +24,7 @@ namespace ECommerce.Domain.Entities
         public virtual ICollection<OrderItem> OrderItems { get; private set; } = new List<OrderItem>();
         public virtual ICollection<ProductSpecification> Specifications { get; private set; } = new List<ProductSpecification>();
         public virtual ICollection<ProductVariant> Variants { get; private set; } = new List<ProductVariant>();
+        public virtual ICollection<ProductImage> Images { get; private set; } = new List<ProductImage>();
         
         [System.ComponentModel.DataAnnotations.ConcurrencyCheck]
         public Guid Version { get; private set; } = Guid.NewGuid();

@@ -14,6 +14,7 @@ public interface IUnitOfWork : IDisposable
     IGenericRepository<Brand> Brands { get; }
     IGenericRepository<Review> Reviews { get; }
     IGenericRepository<Banner> Banners { get; }
+    IGenericRepository<ProductImage> ProductImages { get; }
     IGenericRepository<User> Users { get; }
     IGenericRepository<Role> Roles { get; }
     IGenericRepository<Request> Requests { get; }

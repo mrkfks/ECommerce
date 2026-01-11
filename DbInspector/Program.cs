@@ -210,4 +210,29 @@ using (var connection = new SqliteConnection(connectionString))
             Console.WriteLine($"Total Active Categories: {reader.GetInt64(0)}");
         }
     }
+
+    // List all categories with company
+    Console.WriteLine("\n=== All Categories ===");
+    var cmdAllCategories = connection.CreateCommand();
+    cmdAllCategories.CommandText = @"
+        SELECT Id, Name, CompanyId, IsActive, IsDeleted, DisplayOrder
+        FROM Categories 
+        ORDER BY CompanyId, DisplayOrder, Name";
+
+    using (var reader = cmdAllCategories.ExecuteReader())
+    {
+        Console.WriteLine("{0,-5} {1,-30} {2,-10} {3,-8} {4,-8} {5,-8}", "ID", "Name", "Company", "Active", "Deleted", "Order");
+        Console.WriteLine(new string('-', 75));
+
+        while (reader.Read())
+        {
+            Console.WriteLine("{0,-5} {1,-30} {2,-10} {3,-8} {4,-8} {5,-8}",
+                reader.GetInt32(0),
+                reader.GetString(1).Length > 28 ? reader.GetString(1).Substring(0, 28) + ".." : reader.GetString(1),
+                reader.GetInt32(2),
+                reader.GetBoolean(3),
+                reader.GetBoolean(4),
+                reader.GetInt32(5));
+        }
+    }
 }

@@ -1,0 +1,144 @@
+@model List<Dashboard.Web.Models.BannerViewModel>
+
+@{
+    ViewData["Title"] = "Banner Yönetimi";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-image me-2"></i>Banner Yönetimi</h2>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Yeni Banner
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Resim</th>
+                                <th>Başlık</th>
+                                <th>Açıklama</th>
+                                <th>Link</th>
+                                <th>Sıra</th>
+                                <th>Durum</th>
+                                <th>Oluşturma</th>
+                                <th class="text-end">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var banner in Model.OrderBy(b => b.Order))
+                            {
+                                <tr>
+                                    <td>
+                                        <img src="@banner.ImageUrl" alt="@banner.Title" class="img-thumbnail" style="max-width: 100px; max-height: 60px;">
+                                    </td>
+                                    <td>@banner.Title</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(banner.Description))
+                                        {
+                                            <span class="text-muted small">@(banner.Description.Length > 50 ? banner.Description.Substring(0, 50) + "..." : banner.Description)</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(banner.Link))
+                                        {
+                                            <a href="@banner.Link" target="_blank" class="text-decoration-none small">
+                                                <i class="bi bi-box-arrow-up-right me-1"></i>Link
+                                            </a>
+                                        }
+                                    </td>
+                                    <td><span class="badge bg-secondary">@banner.Order</span></td>
+                                    <td>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" @(banner.IsActive ? "checked" : "") 
+                                                   onchange="toggleBannerStatus(@banner.Id, this)">
+                                            <label class="form-check-label small @(banner.IsActive ? "text-success" : "text-muted")">
+                                                @(banner.IsActive ? "Aktif" : "Pasif")
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td><small class="text-muted">@banner.CreatedAt.ToString("dd.MM.yyyy")</small></td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-action="Edit" asp-route-id="@banner.Id" class="btn btn-outline-primary" title="Düzenle">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-danger" onclick="deleteBanner(@banner.Id)" title="Sil">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
+                    <p class="text-muted mt-3">Henüz banner eklenmemiş</p>
+                    <a asp-action="Create" class="btn btn-primary">İlk Banner'ı Ekle</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<form id="deleteForm" method="post" asp-action="Delete">
+    <input type="hidden" name="id" id="deleteId" />
+    @Html.AntiForgeryToken()
+</form>
+
+@section Scripts {
+    <script>
+        function deleteBanner(id) {
+            if (confirm('Bu banner\'ı silmek istediğinizden emin misiniz?')) {
+                document.getElementById('deleteId').value = id;
+                document.getElementById('deleteForm').submit();
+            }
+        }
+
+        function toggleBannerStatus(id, checkbox) {
+            fetch('@Url.Action("ToggleActive")?id=' + id, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': '@Html.AntiForgeryToken()'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    alert('Durum değiştirilemedi: ' + data.message);
+                    checkbox.checked = !checkbox.checked;
+                }
+            })
+            .catch(error => {
+                alert('Hata oluştu');
+                checkbox.checked = !checkbox.checked;
+            });
+        }
+    </script>
+}
