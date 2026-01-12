@@ -122,6 +122,16 @@ export interface OrderCreateRequest {
   addressId: number;
   companyId: number;
   items: OrderItemCreateRequest[];
+  shippingAddress?: AddressCreateRequest;
+}
+
+export interface AddressCreateRequest {
+  customerId: number;
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
 }
 
 export interface OrderItemCreateRequest {

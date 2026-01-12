@@ -4,6 +4,7 @@ using ECommerce.Application.Features.Products.Queries;
 using ECommerce.Application.Interfaces;
 using ECommerce.Application.Responses;
 using MediatR;
+using ECommerce.Application.DTOs.Common;
 
 namespace ECommerce.Application.Features.Products.Handlers;
 

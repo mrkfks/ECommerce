@@ -11,6 +11,7 @@ export interface CartItem {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
+  companyId: number;
 }
 
 export interface Cart {

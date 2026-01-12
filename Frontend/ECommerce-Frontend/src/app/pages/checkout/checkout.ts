@@ -2,8 +2,8 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { CartService, OrderService, AuthService } from '../../core/services';
-import { CartItem } from '../../core/models';
+import { CartService, CartItem } from '../../core/services/cart.service';
+import { OrderService, AuthService } from '../../core/services';
 
 @Component({
   selector: 'app-checkout',
@@ -45,10 +45,12 @@ export class Checkout implements OnInit {
   };
 
   ngOnInit(): void {
-    this.cartItems = this.cartService.items();
-    if (this.cartItems.length === 0) {
-      this.router.navigate(['/cart']);
-    }
+    // Subscribe to cart changes
+    this.cartService.cart$.subscribe(cart => {
+      this.cartItems = cart ? cart.items : [];
+      // Cart boşsa yönlendirme yapılabilir ancak ilk yüklemede boş gelebilir, dikkatli olunmalı.
+      // if (cart && cart.items.length === 0) { ... }
+    });
 
     // Giriş yapmış kullanıcı bilgilerini al
     const user = this.authService.currentUserValue;
@@ -60,7 +62,7 @@ export class Checkout implements OnInit {
   }
 
   get subtotal(): number {
-    return this.cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+    return this.cartItems.reduce((sum, item) => sum + item.totalPrice, 0);
   }
 
   get shippingCost(): number {
@@ -111,14 +113,57 @@ export class Checkout implements OnInit {
       return;
     }
 
+    const user = this.authService.currentUserValue;
+    if (!user) {
+      alert('Lütfen önce giriş yapın');
+      this.router.navigate(['/login']);
+      return;
+    }
+
     this.isLoading = true;
 
-    // Gerçek API çağrısı yerine simülasyon
-    setTimeout(() => {
-      const orderId = Math.floor(Math.random() * 1000000);
-      this.cartService.clearCart();
-      this.isLoading = false;
-      this.router.navigate(['/order', orderId]);
-    }, 1500);
+    // Şirket ID'sini ilk üründen al (Varsayım: Tek satıcı veya marketplace yapısında sipariş bazında ayrıştırma)
+    // Eğer cartItems boşsa 1 varsayıyoruz ama sepette ürün yoksa zaten buraya gelinmemeli.
+    const companyId = this.cartItems.length > 0 ? this.cartItems[0].companyId : 1;
+
+    // Order Request Hazırla
+    const orderRequest = {
+      customerId: user.id,
+      addressId: 0, // Yeni adres
+      companyId: companyId,
+      items: this.cartItems.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity
+      })),
+      shippingAddress: {
+        customerId: user.id,
+        street: this.shippingInfo.address,
+        city: this.shippingInfo.city,
+        state: this.shippingInfo.district,
+        zipCode: this.shippingInfo.postalCode,
+        country: 'Turkey'
+      }
+    };
+
+    this.orderService.create(orderRequest).subscribe({
+      next: (order) => {
+        this.isLoading = false;
+        this.cartService.clearCart();
+
+        // API Response yapısına göre ID alımı
+        // @ts-ignore
+        const orderId = order.id || (order as any).data?.id;
+
+        alert('Siparişiniz başarıyla alındı!');
+        this.router.navigate(['/order-history']);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error('Sipariş hatası:', err);
+        // Hata mesajını daha kullanıcı dostu göster
+        const msg = err.error?.message || err.message || 'Bilinmeyen bir hata oluştu';
+        alert('Sipariş oluşturulurken bir hata oluştu: ' + msg);
+      }
+    });
   }
 }

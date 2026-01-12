@@ -74,6 +74,8 @@ namespace ECommerce.Application.Mappings
                 .ForMember(d => d.ReviewCount, opt => opt.MapFrom(s => s.Reviews != null ? s.Reviews.Count : 0))
                 .ForMember(d => d.AverageRating, opt => opt.MapFrom(s => s.Reviews != null && s.Reviews.Any() ? s.Reviews.Average(r => r.Rating) : 0));
 
+            CreateMap<ProductImage, ProductImageDto>();
+
             CreateMap<ProductCreateDto, Product>()
                 .ForMember(d => d.CreatedAt, opt => opt.Ignore())
                 .ForMember(d => d.UpdatedAt, opt => opt.Ignore())

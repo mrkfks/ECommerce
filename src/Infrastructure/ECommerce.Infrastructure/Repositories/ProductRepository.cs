@@ -107,6 +107,7 @@ namespace ECommerce.Infrastructure.Repositories
                  query = query.Where(p => p.CompanyId == currentCompanyId.Value);
              }
              
+             return await query
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
         }

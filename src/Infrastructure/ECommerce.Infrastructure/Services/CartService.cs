@@ -197,7 +197,8 @@ public class CartService : ICartService
                 ProductImage = i.Product?.ImageUrl ?? "", // Simplified
                 Quantity = i.Quantity,
                 UnitPrice = i.UnitPrice,
-                TotalPrice = i.TotalPrice
+                TotalPrice = i.TotalPrice,
+                CompanyId = i.Product?.CompanyId ?? 0
             }).ToList()
         };
     }

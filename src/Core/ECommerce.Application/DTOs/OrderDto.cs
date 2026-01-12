@@ -1,4 +1,5 @@
 using ECommerce.Domain.Enums;
+using System.Collections.Generic;
 
 namespace ECommerce.Application.DTOs
 {

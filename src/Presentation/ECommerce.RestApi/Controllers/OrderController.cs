@@ -24,12 +24,67 @@ public class OrderController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(OrderCreateDto dto)
     {
-        var order = Order.Create(dto.CustomerId, dto.AddressId, dto.CompanyId);
-        
-        _context.Orders.Add(order);
-        await _context.SaveChangesAsync();
-        
-        return Ok(new { id = order.Id, message = "Sipariş oluşturuldu" });
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            // 1. Adres İşlemleri
+            int addressId = dto.AddressId;
+            if (addressId <= 0 && dto.ShippingAddress != null)
+            {
+                var newAddress = Address.Create(
+                    dto.CustomerId,
+                    dto.ShippingAddress.Street,
+                    dto.ShippingAddress.City,
+                    dto.ShippingAddress.State,
+                    dto.ShippingAddress.ZipCode,
+                    dto.ShippingAddress.Country
+                );
+                _context.Set<Address>().Add(newAddress);
+                await _context.SaveChangesAsync();
+                addressId = newAddress.Id;
+            }
+
+            if (addressId <= 0)
+            {
+                return BadRequest(new { message = "Geçerli bir teslimat adresi gereklidir." });
+            }
+
+            // 2. Sipariş Oluşturma
+            var order = Order.Create(dto.CustomerId, addressId, dto.CompanyId);
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+
+            // 3. Kalemleri Ekle ve Stok Düş
+            foreach (var itemDto in dto.Items)
+            {
+                var product = await _context.Products.FindAsync(itemDto.ProductId);
+                if (product == null)
+                    throw new Exception($"Ürün bulunamadı: {itemDto.ProductId}");
+
+                if (!product.IsActive)
+                    throw new Exception($"Ürün satışa kapalı: {product.Name}");
+
+                if (product.StockQuantity < itemDto.Quantity)
+                    throw new Exception($"Yetersiz stok: {product.Name}");
+
+                // Stok düş
+                product.UpdateStock(product.StockQuantity - itemDto.Quantity);
+                
+                // OrderItem oluştur
+                var orderItem = OrderItem.Create(product.Id, itemDto.Quantity, product.Price);
+                order.AddItem(orderItem);
+            }
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return Ok(new { id = order.Id, message = "Sipariş başarıyla oluşturuldu." });
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpGet]

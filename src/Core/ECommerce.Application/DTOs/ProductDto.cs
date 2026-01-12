@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace ECommerce.Application.DTOs
 {
     public class ProductDto
@@ -19,6 +21,7 @@ namespace ECommerce.Application.DTOs
         public DateTime UpdatedAt { get; set; }
         public int ReviewCount { get; set; }
         public double AverageRating { get; set; }
+        public List<ProductImageDto> Images { get; set; } = new();
     }
 }
 

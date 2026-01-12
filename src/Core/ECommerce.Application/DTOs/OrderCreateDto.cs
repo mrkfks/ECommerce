@@ -6,5 +6,6 @@ namespace ECommerce.Application.DTOs
         public int AddressId { get; set; }
         public int CompanyId { get; set; }
         public List<OrderItemCreateDto> Items { get; set; } = new();
+        public AddressCreateDto? ShippingAddress { get; set; }
     }
 }

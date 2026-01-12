@@ -3,6 +3,7 @@ using ECommerce.Domain.Interfaces;
 using ECommerce.Infrastructure.Data;
 using ECommerce.Infrastructure.Repositories;
 using ECommerce.Infrastructure.Services;
+using ECommerce.Application.Interfaces.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -48,6 +49,7 @@ public static class DependencyInjection
         services.AddScoped<ICartService, CartService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<ITenantService, TenantService>();
+        services.AddScoped<IImageService, ImageService>();
         services.AddScoped<IFileUploadService, FileUploadService>(provider =>
         {
             var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");

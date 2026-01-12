@@ -1,4 +1,4 @@
-using ECommerce.Application.Features.Product.Commands;
+
 using ECommerce.Application.Features.Category.Commands;
 using ECommerce.Application.Features.Brand.Commands;
 using ECommerce.Application.Features.Banner.Commands;
@@ -33,17 +33,14 @@ namespace ECommerce.RestApi.Controllers
 
             try
             {
-                // IFormFile'ı byte array'e dönüştür
-                using (var memoryStream = new MemoryStream())
+                using (var stream = file.OpenReadStream())
                 {
-                    await file.CopyToAsync(memoryStream);
-                    var fileBytes = memoryStream.ToArray();
-
-                    var command = new UploadProductImageCommand
+                    var command = new ECommerce.Application.Features.Products.Commands.UploadProductImageCommand
                     {
                         ProductId = productId,
-                        ImageFileBytes = fileBytes,
-                        FileName = file.FileName
+                        FileStream = stream,
+                        FileName = file.FileName,
+                        IsPrimary = false // Default
                     };
 
                     var result = await _mediator.Send(command);

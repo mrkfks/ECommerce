@@ -2,6 +2,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using ECommerce.Application.DTOs.Common;
+using ECommerce.Application.Responses;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -56,6 +57,10 @@ namespace ECommerce.RestApi.Filters
             if (value is null) return false;
             var type = value.GetType();
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ApiResponseDto<>))
+            {
+                return true;
+            }
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ApiResponse<>))
             {
                 return true;
             }

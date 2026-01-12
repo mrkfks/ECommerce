@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace ECommerce.Application.DTOs
 {
     public class CustomerDto
