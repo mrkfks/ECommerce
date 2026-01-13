@@ -1,4 +1,5 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, BehaviorSubject, map } from 'rxjs';
 import { Router } from '@angular/router';
@@ -18,6 +19,8 @@ export class AuthService {
   private readonly TOKEN_KEY = 'auth_token';
   private readonly REFRESH_TOKEN_KEY = 'refresh_token';
   private readonly USER_KEY = 'user';
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser: boolean;
 
   private currentUserSubject = new BehaviorSubject<User | null>(this.getUserFromStorage());
   public currentUser$ = this.currentUserSubject.asObservable();
@@ -30,7 +33,10 @@ export class AuthService {
     private http: HttpClient,
     private router: Router
   ) {
-    this.checkTokenExpiration();
+    this.isBrowser = isPlatformBrowser(this.platformId);
+    if (this.isBrowser) {
+      this.checkTokenExpiration();
+    }
   }
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
@@ -63,12 +69,16 @@ export class AuthService {
     );
   }
   logout(): void {
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
-    localStorage.removeItem(this.USER_KEY);
+    if (this.isBrowser) {
+      localStorage.removeItem(this.TOKEN_KEY);
+      localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+      localStorage.removeItem(this.USER_KEY);
+    }
     this.currentUserSubject.next(null);
     this._isAuthenticated.set(false);
-    this.router.navigate(['/login']);
+    if (this.isBrowser) {
+      this.router.navigate(['/login']);
+    }
   }
 
   refreshToken(): Observable<AuthResponse> {
@@ -86,14 +96,14 @@ export class AuthService {
   }
 
   getToken(): string | null {
-    if (typeof window !== 'undefined') {
+    if (this.isBrowser) {
       return localStorage.getItem(this.TOKEN_KEY);
     }
     return null;
   }
 
   getRefreshToken(): string | null {
-    if (typeof window !== 'undefined') {
+    if (this.isBrowser) {
       return localStorage.getItem(this.REFRESH_TOKEN_KEY);
     }
     return null;
@@ -104,8 +114,10 @@ export class AuthService {
   }
 
   private handleAuthResponse(response: AuthResponse): void {
-    localStorage.setItem(this.TOKEN_KEY, response.accessToken);
-    localStorage.setItem(this.REFRESH_TOKEN_KEY, response.refreshToken);
+    if (this.isBrowser) {
+      localStorage.setItem(this.TOKEN_KEY, response.accessToken);
+      localStorage.setItem(this.REFRESH_TOKEN_KEY, response.refreshToken);
+    }
 
     // Backend'den gelen username ve roles'ü User objesine dönüştür
     // Backend'den gelen username ve roles'ü User objesine dönüştür
@@ -136,13 +148,15 @@ export class AuthService {
     // Update simple fields if available in response (override token if better)
     if (response.username) user.username = response.username;
 
-    localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+    if (this.isBrowser) {
+      localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+    }
     this.currentUserSubject.next(user);
     this._isAuthenticated.set(true);
   }
 
   private getUserFromStorage(): User | null {
-    if (typeof window !== 'undefined') {
+    if (this.isBrowser) {
       const userJson = localStorage.getItem(this.USER_KEY);
       if (!userJson || userJson === 'undefined') {
         return null;

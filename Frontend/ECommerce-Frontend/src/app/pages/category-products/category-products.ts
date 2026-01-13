@@ -73,8 +73,8 @@ export class CategoryProducts implements OnInit {
     this.category = { id: 0, name: 'Tüm Ürünler', createdAt: new Date() };
     this.isLoading = true;
     this.productService.getAll().subscribe({
-      next: (products) => {
-        this.products = products.map(p => this.mapProduct(p));
+      next: (response) => {
+        this.products = response.items.map(p => this.mapProduct(p));
         this.applyFilters();
         this.isLoading = false;
       },
@@ -124,14 +124,14 @@ export class CategoryProducts implements OnInit {
     // Arama filtresi
     if (this.searchTerm) {
       const term = this.searchTerm.toLowerCase();
-      filtered = filtered.filter(p => 
-        p.name.toLowerCase().includes(term) || 
+      filtered = filtered.filter(p =>
+        p.name.toLowerCase().includes(term) ||
         p.description.toLowerCase().includes(term)
       );
     }
 
     // Fiyat filtresi
-    filtered = filtered.filter(p => 
+    filtered = filtered.filter(p =>
       p.price >= this.priceRange.min && p.price <= this.priceRange.max
     );
 
@@ -155,7 +155,7 @@ export class CategoryProducts implements OnInit {
   }
 
   onAddToCart(product: Product): void {
-    this.cartService.addToCart(product);
+    this.cartService.addToCart(product.id);
   }
 
   onAddToWishlist(product: Product): void {

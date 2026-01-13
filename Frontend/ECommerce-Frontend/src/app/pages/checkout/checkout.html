@@ -176,17 +176,17 @@
               <hr>
 
               <h6 class="fw-bold mb-3">Ürünler</h6>
-              @for (item of cartItems; track item.product.id) {
+              @for (item of cartItems; track item.productId) {
                 <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                   <div class="d-flex align-items-center">
-                    <img [src]="item.product.imageUrl" [alt]="item.product.name" 
+                    <img [src]="item.productImage" [alt]="item.productName" 
                          class="rounded" width="50" height="50" style="object-fit: cover;">
                     <div class="ms-3">
-                      <p class="mb-0 fw-medium">{{ item.product.name }}</p>
+                      <p class="mb-0 fw-medium">{{ item.productName }}</p>
                       <small class="text-muted">Adet: {{ item.quantity }}</small>
                     </div>
                   </div>
-                  <span class="fw-bold">{{ item.product.price * item.quantity | number:'1.2-2' }} ₺</span>
+                  <span class="fw-bold">{{ item.unitPrice * item.quantity | number:'1.2-2' }} ₺</span>
                 </div>
               }
             </div>

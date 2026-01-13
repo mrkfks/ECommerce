@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.yourdomain.com/api',
-  apiVersion: 'v1'
+  apiUrl: '/api',
+  apiVersion: 'v1',
+  defaultCompanyId: 1
 };

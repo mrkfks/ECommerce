@@ -43,6 +43,7 @@ export class Profile implements OnInit {
         email: 'demo@example.com',
         firstName: 'Demo',
         lastName: 'Kullanıcı',
+        username: 'demo',
         role: 'user',
         createdAt: new Date()
       };

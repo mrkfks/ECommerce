@@ -111,8 +111,10 @@ export class ProductDetail implements OnInit {
 
   addToCart(): void {
     if (this.product) {
-      this.cartService.addToCart(this.product, this.quantity);
-      alert(`${this.product.name} sepete eklendi!`);
+      this.cartService.addToCart(this.product.id, this.quantity).subscribe({
+        next: () => alert(`${this.product!.name} sepete eklendi!`),
+        error: (err) => console.error('Sepete eklenirken hata:', err)
+      });
     }
   }
 
