@@ -64,11 +64,13 @@ namespace ECommerce.Infrastructure.Services
                     if (!product.IsActive)
                         throw new Exception($"Ürün satışa kapalı: {product.Name}");
 
-                    if (product.StockQuantity < itemDto.Quantity)
-                        throw new Exception($"Yetersiz stok: {product.Name}");
+                    // Safe Atomic Stock Update (Concurrency Safe)
+                    var affectedRows = await _context.Products
+                        .Where(p => p.Id == product.Id && p.StockQuantity >= itemDto.Quantity)
+                        .ExecuteUpdateAsync(s => s.SetProperty(p => p.StockQuantity, p => p.StockQuantity - itemDto.Quantity));
 
-                    // Stok düş
-                    product.UpdateStock(product.StockQuantity - itemDto.Quantity);
+                    if (affectedRows == 0)
+                        throw new Exception($"Yetersiz stok veya eşzamanlı işlem hatası: {product.Name}");
                     
                     // OrderItem oluştur
                     var orderItem = OrderItem.Create(product.Id, itemDto.Quantity, product.Price);

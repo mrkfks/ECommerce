@@ -8,16 +8,21 @@ namespace ECommerce.Infrastructure.Services.Storage
     {
         private readonly IWebHostEnvironment _env;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ITenantService _tenantService;
 
-        public LocalStorageService(IWebHostEnvironment env, IHttpContextAccessor httpContextAccessor)
+        public LocalStorageService(IWebHostEnvironment env, IHttpContextAccessor httpContextAccessor, ITenantService tenantService)
         {
             _env = env;
             _httpContextAccessor = httpContextAccessor;
+            _tenantService = tenantService;
         }
 
         public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string folder)
         {
-            var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", folder);
+            var companyId = _tenantService.GetCompanyId();
+            var tenantPathFragment = companyId.HasValue ? companyId.Value.ToString() : "global";
+            
+            var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", tenantPathFragment, folder);
             if (!Directory.Exists(uploadsFolder))
                 Directory.CreateDirectory(uploadsFolder);
 
@@ -31,7 +36,7 @@ namespace ECommerce.Infrastructure.Services.Storage
 
             var request = _httpContextAccessor.HttpContext?.Request;
             var baseUrl = $"{request?.Scheme}://{request?.Host}";
-            return $"{baseUrl}/uploads/{folder}/{uniqueFileName}";
+            return $"{baseUrl}/uploads/{tenantPathFragment}/{folder}/{uniqueFileName}";
         }
 
         public Task DeleteFileAsync(string fileUrl)

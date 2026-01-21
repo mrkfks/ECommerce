@@ -2,6 +2,7 @@ using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Entities;
 using ECommerce.Infrastructure.Data.Configurations;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 
 namespace ECommerce.Infrastructure.Data
 {
@@ -67,85 +68,32 @@ namespace ECommerce.Infrastructure.Data
             // Seed data - Not: Seed data manuel olarak veya ayrı bir DbInitializer ile eklenecek
             // Seed.DataSeeder.SeedData(modelBuilder);
 
-            // Global Query Filters (tenant izolasyonu + soft delete)
-            modelBuilder.Entity<User>()
-                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
-            modelBuilder.Entity<Customer>()
-                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
-            modelBuilder.Entity<Order>()
-                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
-            modelBuilder.Entity<Product>()
-                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
-            modelBuilder.Entity<Category>()
-                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
-            modelBuilder.Entity<Review>()
-                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
-            modelBuilder.Entity<ProductSpecification>()
-                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
-            modelBuilder.Entity<ProductVariant>()
-                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
+            // Apply Global Query Filters automatically for all ITenantEntity and ISoftDeletable
+            var entityTypes = modelBuilder.Model.GetEntityTypes();
 
-            // Brand ve Model query filters
-            modelBuilder.Entity<Brand>()
-                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
-            modelBuilder.Entity<Model>()
-                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
+            foreach (var entityType in entityTypes)
+            {
+                var clrType = entityType.ClrType;
 
-            // Global attribute entities
-            modelBuilder.Entity<GlobalAttribute>()
-                .HasQueryFilter(e => CurrentCompanyId == null || e.CompanyId == CurrentCompanyId);
-            modelBuilder.Entity<GlobalAttributeValue>()
-                .HasQueryFilter(e => e.GlobalAttribute == null || CurrentCompanyId == null || e.GlobalAttribute.CompanyId == CurrentCompanyId);
-            modelBuilder.Entity<CategoryGlobalAttribute>()
-                .HasQueryFilter(e => CurrentCompanyId == null || e.Category.CompanyId == CurrentCompanyId);
-            modelBuilder.Entity<BrandCategory>()
-                .HasQueryFilter(e => CurrentCompanyId == null || e.Brand.CompanyId == CurrentCompanyId);
-
-            // Notification query filter
-            modelBuilder.Entity<Notification>()
-                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
-
-            // Campaign query filter
-            modelBuilder.Entity<Campaign>()
-                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
-
-            // CustomerMessage query filter
-            modelBuilder.Entity<CustomerMessage>()
-                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
-
-            // Cart query filter
-            modelBuilder.Entity<Cart>()
-                .HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
-
-            // LoginHistory - kullanıcının şirketine göre filtrelenmez (admin tüm girişleri görebilir)
-            modelBuilder.Entity<LoginHistory>()
-                .HasQueryFilter(e => !e.IsDeleted);
-
-            // Child entity query filters - Parent ile uyumlu olmalı
-            // Address -> Customer ilişkisi için filter
-            modelBuilder.Entity<Address>()
-                .HasQueryFilter(e => e.Customer == null || (!e.Customer.IsDeleted && (CurrentCompanyId == null || e.Customer.CompanyId == CurrentCompanyId)));
-
-            // OrderItem -> Order ilişkisi için filter
-            modelBuilder.Entity<OrderItem>()
-                .HasQueryFilter(e => e.Order == null || (!e.Order.IsDeleted && (CurrentCompanyId == null || e.Order.CompanyId == CurrentCompanyId)));
-
-            // UserRole -> User ilişkisi için filter
-            modelBuilder.Entity<UserRole>()
-                .HasQueryFilter(e => e.User == null || (!e.User.IsDeleted && (CurrentCompanyId == null || e.User.CompanyId == CurrentCompanyId)));
-
-            // CategoryAttribute -> Category ilişkisi için filter
-            modelBuilder.Entity<CategoryAttribute>()
-                .HasQueryFilter(e => e.Category == null || (!e.Category.IsDeleted && (CurrentCompanyId == null || e.Category.CompanyId == CurrentCompanyId)));
-
-            // ProductVariantAttribute -> ProductVariant ilişkisi için filter
-            modelBuilder.Entity<ProductVariantAttribute>()
-                .HasQueryFilter(e => e.ProductVariant == null || (!e.ProductVariant.IsDeleted && (CurrentCompanyId == null || e.ProductVariant.CompanyId == CurrentCompanyId)));
-
-            // CategoryAttributeValue -> CategoryAttribute -> Category ilişkisi için filter
-            modelBuilder.Entity<CategoryAttributeValue>()
-                .HasQueryFilter(e => e.CategoryAttribute == null || e.CategoryAttribute.Category == null || 
-                    (!e.CategoryAttribute.Category.IsDeleted && (CurrentCompanyId == null || e.CategoryAttribute.Category.CompanyId == CurrentCompanyId)));
+                // ITenantEntity ve ISoftDeletable filtresi
+                if (typeof(ITenantEntity).IsAssignableFrom(clrType) && typeof(ISoftDeletable).IsAssignableFrom(clrType))
+                {
+                    var method = SetGlobalQueryFilterMethod.MakeGenericMethod(clrType);
+                    method.Invoke(this, new object[] { modelBuilder });
+                }
+                // Sadece ITenantEntity filtresi
+                else if (typeof(ITenantEntity).IsAssignableFrom(clrType))
+                {
+                    var method = SetTenantQueryFilterMethod.MakeGenericMethod(clrType);
+                    method.Invoke(this, new object[] { modelBuilder });
+                }
+                // Sadece ISoftDeletable filtresi
+                else if (typeof(ISoftDeletable).IsAssignableFrom(clrType))
+                {
+                    var method = SetSoftDeleteQueryFilterMethod.MakeGenericMethod(clrType);
+                    method.Invoke(this, new object[] { modelBuilder });
+                }
+            }
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -224,6 +172,37 @@ namespace ECommerce.Infrastructure.Data
 
             return base.SaveChangesAsync(cancellationToken);
         }
+
+        #region Global Query Filter Helpers
+
+        private static readonly MethodInfo SetGlobalQueryFilterMethod = typeof(AppDbContext)
+            .GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
+            .Single(t => t.IsGenericMethod && t.Name == nameof(SetGlobalQueryFilter));
+
+        private static readonly MethodInfo SetTenantQueryFilterMethod = typeof(AppDbContext)
+            .GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
+            .Single(t => t.IsGenericMethod && t.Name == nameof(SetTenantQueryFilter));
+
+        private static readonly MethodInfo SetSoftDeleteQueryFilterMethod = typeof(AppDbContext)
+            .GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
+            .Single(t => t.IsGenericMethod && t.Name == nameof(SetSoftDeleteQueryFilter));
+
+        private void SetGlobalQueryFilter<T>(ModelBuilder modelBuilder) where T : class, ITenantEntity, ISoftDeletable
+        {
+            modelBuilder.Entity<T>().HasQueryFilter(e => !e.IsDeleted && (CurrentCompanyId == null || e.CompanyId == CurrentCompanyId));
+        }
+
+        private void SetTenantQueryFilter<T>(ModelBuilder modelBuilder) where T : class, ITenantEntity
+        {
+            modelBuilder.Entity<T>().HasQueryFilter(e => CurrentCompanyId == null || e.CompanyId == CurrentCompanyId);
+        }
+
+        private void SetSoftDeleteQueryFilter<T>(ModelBuilder modelBuilder) where T : class, ISoftDeletable
+        {
+            modelBuilder.Entity<T>().HasQueryFilter(e => !e.IsDeleted);
+        }
+
+        #endregion
     }
 }
 

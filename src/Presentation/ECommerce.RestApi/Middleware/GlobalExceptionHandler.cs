@@ -1,4 +1,5 @@
 using ECommerce.Application.Exceptions;
+using ECommerce.Application.Interfaces;
 using System.Net;
 using System.Text.Json;
 
@@ -15,16 +16,21 @@ public class GlobalExceptionHandler
         _logger = logger;
     }
 
-    public async Task InvokeAsync(HttpContext context)
+    public async Task InvokeAsync(HttpContext context, ITenantService tenantService)
     {
-        try
+        var tenantId = tenantService.GetCompanyId();
+
+        using (_logger.BeginScope(new Dictionary<string, object> { { "TenantId", tenantId ?? 0 } }))
         {
-            await _next(context);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "An unhandled exception occurred");
-            await HandleExceptionAsync(context, ex);
+            try
+            {
+                await _next(context);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An unhandled exception occurred for TenantId: {TenantId}", tenantId);
+                await HandleExceptionAsync(context, ex);
+            }
         }
     }
 
