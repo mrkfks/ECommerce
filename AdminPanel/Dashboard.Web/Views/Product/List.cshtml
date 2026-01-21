@@ -120,53 +120,5 @@
 </div>
 
 @section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const selectAll = document.getElementById('selectAll');
-            const checks = document.querySelectorAll('.product-check');
-            const btnBulk = document.getElementById('btnBulkUpdate');
-            const selectedCountSpan = document.getElementById('selectedCount');
-            
-            function updateBulkBtn() {
-                const count = document.querySelectorAll('.product-check:checked').length;
-                selectedCountSpan.textContent = count;
-                btnBulk.style.display = count > 0 ? 'block' : 'none';
-            }
-
-            selectAll.addEventListener('change', function() {
-                checks.forEach(c => c.checked = this.checked);
-                updateBulkBtn();
-            });
-
-            checks.forEach(c => {
-                c.addEventListener('change', updateBulkBtn);
-            });
-
-            document.getElementById('confirmBulkUpdate').addEventListener('click', function() {
-                const ids = Array.from(document.querySelectorAll('.product-check:checked')).map(c => parseInt(c.value));
-                const percentage = parseFloat(document.getElementById('pricePercentage').value);
-
-                if (ids.length === 0) return;
-
-                // Call MVC Action which proxies to API
-                fetch('/Product/BulkUpdate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ productIds: ids, priceIncreasePercentage: percentage })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert('Hata: ' + data.message);
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert('Bir hata oluştu.');
-                });
-            });
-        });
-    </script>
+    <script type="module" src="~/js/modules/product-management.js"></script>
 }

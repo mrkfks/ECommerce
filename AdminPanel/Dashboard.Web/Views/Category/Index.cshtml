@@ -68,10 +68,7 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        @if (!string.IsNullOrEmpty(category.ImageUrl))
-                        {
-                            <img src="@category.ImageUrl" alt="@category.Name" class="img-fluid rounded mb-3" style="max-height: 150px; width: 100%; object-fit: cover;" />
-                        }
+                        <img ecommerce-src="@category.ImageUrl" alt="@category.Name" class="img-fluid rounded mb-3" style="max-height: 150px; width: 100%; object-fit: cover;" />
                         <p class="text-muted small mb-3">@category.Description</p>
                         
                         <div class="mb-3">
