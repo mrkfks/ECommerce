@@ -5,7 +5,7 @@ namespace Dashboard.Web.Services
 {
     public class ModelApiService : ApiService<ModelDto>
     {
-        public ModelApiService(HttpClient httpClient) : base(httpClient, "Model")
+        public ModelApiService(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
         }
 

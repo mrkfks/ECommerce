@@ -19,8 +19,8 @@ public class HomeController : Controller
     private readonly NotificationApiService _notificationService;
     private readonly CampaignApiService _campaignService;
     private readonly CustomerMessageApiService _messageService;
-    private readonly CategoryApiService _categoryService;
-    private readonly BrandApiService _brandService;
+    private readonly IApiService<CategoryDto> _categoryService;
+    private readonly IApiService<BrandDto> _brandService;
     private readonly LoginHistoryApiService _loginHistoryService;
     private readonly UserManagementApiService _userManagementService;
 
@@ -34,8 +34,8 @@ public class HomeController : Controller
         NotificationApiService notificationService,
         CampaignApiService campaignService,
         CustomerMessageApiService messageService,
-        CategoryApiService categoryService,
-        BrandApiService brandService,
+        IApiService<CategoryDto> categoryService,
+        IApiService<BrandDto> brandService,
         LoginHistoryApiService loginHistoryService,
         UserManagementApiService userManagementService)
     {

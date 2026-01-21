@@ -4,8 +4,6 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Dashboard.Web.Infrastructure;
 using Dashboard.Web.Services;
-using Dashboard.Web.Services.Contracts;
-using Dashboard.Web.Services.Implementations;
 using Dashboard.Web.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,7 +39,16 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped(typeof(IApiService<>), typeof(ApiService<>));
 
 // Custom Services for special logic (inheriting from ApiService or standalone)
-builder.Services.AddScoped<ProductApiService>(); // Uses IHttpClientFactory internally if updated, or we need to update it.
+// Custom Services for special logic (inheriting from ApiService or standalone)
+builder.Services.AddScoped<ProductApiService>();
+builder.Services.AddScoped<OrderApiService>();
+builder.Services.AddScoped<ModelApiService>();
+builder.Services.AddScoped<GlobalAttributeApiService>();
+builder.Services.AddScoped<CompanyApiService>();
+builder.Services.AddScoped<CustomerApiService>();
+builder.Services.AddScoped<UserApiService>();
+builder.Services.AddScoped<ReviewApiService>();
+builder.Services.AddScoped<RequestApiService>();
 // Wait, ProductApiService inherits ApiService<ProductDto>. If I updated ApiService constructor, ProductApiService breaks!
 // I must update ProductApiService too.
 

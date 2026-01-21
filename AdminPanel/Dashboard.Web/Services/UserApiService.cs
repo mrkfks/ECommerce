@@ -4,7 +4,7 @@ namespace Dashboard.Web.Services
 {
     public class UserApiService : ApiService<UserDto>
     {
-        public UserApiService(HttpClient httpClient) : base(httpClient, "User")
+        public UserApiService(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
         }
 

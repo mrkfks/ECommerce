@@ -9,14 +9,14 @@ namespace Dashboard.Web.Controllers
     public class ProductController : Controller
     {
         private readonly ProductApiService _productService;
-        private readonly CategoryApiService _categoryService;
-        private readonly BrandApiService _brandService;
+        private readonly IApiService<CategoryDto> _categoryService;
+        private readonly IApiService<BrandDto> _brandService;
         private readonly CompanyApiService _companyService;
 
         public ProductController(
             ProductApiService productService,
-            CategoryApiService categoryService,
-            BrandApiService brandService,
+            IApiService<CategoryDto> categoryService,
+            IApiService<BrandDto> brandService,
             CompanyApiService companyService)
         {
             _productService = productService;

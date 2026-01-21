@@ -4,7 +4,7 @@ namespace Dashboard.Web.Services
 {
     public class ReviewApiService : ApiService<ReviewDto>
     {
-        public ReviewApiService(HttpClient httpClient) : base(httpClient, "Review")
+        public ReviewApiService(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
         }
     }

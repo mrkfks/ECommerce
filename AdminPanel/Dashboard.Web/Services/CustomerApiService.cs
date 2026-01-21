@@ -4,8 +4,8 @@ namespace Dashboard.Web.Services;
 
 public class CustomerApiService : ApiService<CustomerDto>
 {
-    public CustomerApiService(HttpClient httpClient) 
-        : base(httpClient, "Customer")
+    public CustomerApiService(IHttpClientFactory httpClientFactory) 
+        : base(httpClientFactory)
     {
     }
 }

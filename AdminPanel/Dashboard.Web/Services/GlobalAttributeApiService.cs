@@ -4,8 +4,8 @@ namespace Dashboard.Web.Services;
 
 public class GlobalAttributeApiService : ApiService<GlobalAttributeDto>
 {
-    public GlobalAttributeApiService(HttpClient httpClient)
-        : base(httpClient, "GlobalAttribute")
+    public GlobalAttributeApiService(IHttpClientFactory httpClientFactory)
+        : base(httpClientFactory)
     {
     }
 

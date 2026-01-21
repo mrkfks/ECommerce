@@ -4,7 +4,7 @@ namespace Dashboard.Web.Services
 {
     public class RequestApiService : ApiService<RequestDto>
     {
-        public RequestApiService(HttpClient httpClient) : base(httpClient, "Request")
+        public RequestApiService(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
         {
         }
 

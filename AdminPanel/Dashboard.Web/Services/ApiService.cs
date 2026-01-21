@@ -68,6 +68,26 @@ public class ApiService<T> : IApiService<T> where T : class
         }
     }
 
+    public async Task<ECommerce.Application.Responses.PagedResult<T>> GetPagedListAsync(int pageNumber, int pageSize)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync($"api/{_endpoint}?pageNumber={pageNumber}&pageSize={pageSize}");
+            if (!response.IsSuccessStatusCode)
+            {
+                return new ECommerce.Application.Responses.PagedResult<T>();
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<ECommerce.Application.Responses.PagedResult<T>>(content, _jsonOptions);
+            return result ?? new ECommerce.Application.Responses.PagedResult<T>();
+        }
+        catch
+        {
+            return new ECommerce.Application.Responses.PagedResult<T>();
+        }
+    }
+
     public async Task<T?> GetByIdAsync(int id)
     {
         try

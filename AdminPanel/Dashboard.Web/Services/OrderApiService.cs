@@ -6,8 +6,8 @@ namespace Dashboard.Web.Services;
 
 public class OrderApiService : ApiService<OrderDto>
 {
-    public OrderApiService(HttpClient httpClient)
-        : base(httpClient, "Order")
+    public OrderApiService(IHttpClientFactory httpClientFactory)
+        : base(httpClientFactory)
     {
     }
 
