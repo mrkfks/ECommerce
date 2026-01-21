@@ -153,92 +153,7 @@ namespace Dashboard.Web.Controllers
             
                 return RedirectToAction(nameof(Index));
             }
-        /* ESKİ KOMPLİKE METHOD - KULLANIMDA DEĞİL
-        // Recursive kategori oluşturma
-        private async Task<int?> CreateCategoryRecursive(CategoryTreeNode node, int? parentId)
-        {
-            // Ana kategoriyi oluştur
-            var categoryDto = new CategoryDto
-            {
-                Name = node.Name,
-                Description = node.Description,
-                ImageUrl = node.ImageUrl,
-                ParentCategoryId = parentId,
-                DisplayOrder = node.DisplayOrder,
-                IsActive = node.IsActive
-            };
-
-            var success = await _categoryService.CreateAsync(categoryDto);
-            
-            if (!success)
-                return null;
-
-            // Oluşturulan kategorinin ID'sini al (son eklenen)
-            var categories = await _categoryService.GetAllAsync();
-            var createdCategory = categories
-                .Where(c => c.Name == node.Name && c.ParentCategoryId == parentId)
-                .OrderByDescending(c => c.CreatedAt)
-                .FirstOrDefault();
-
-            if (createdCategory == null)
-                return null;
-
-        /* ESKİ RECURSIVE METHODLAR - KULLANIMDA DEĞİL
-        // Recursive kategori oluşturma
-        private async Task<int?> CreateCategoryRecursive(CategoryTreeNode node, int? parentId)
-        {
-            // Ana kategoriyi oluştur
-            var categoryDto = new CategoryDto
-            {
-                Name = node.Name,
-                Description = node.Description,
-                ImageUrl = node.ImageUrl,
-                ParentCategoryId = parentId,
-                DisplayOrder = node.DisplayOrder,
-                IsActive = node.IsActive
-            };
-
-            var success = await _categoryService.CreateAsync(categoryDto);
-            
-            if (!success)
-                return null;
-
-            // Oluşturulan kategorinin ID'sini al (son eklenen)
-            var categories = await _categoryService.GetAllAsync();
-            var createdCategory = categories
-                .Where(c => c.Name == node.Name && c.ParentCategoryId == parentId)
-                .OrderByDescending(c => c.CreatedAt)
-                .FirstOrDefault();
-
-            if (createdCategory == null)
-                return null;
-
-            // Alt kategorileri oluştur
-            if (node.SubCategories != null && node.SubCategories.Any())
-            {
-                foreach (var subCategory in node.SubCategories)
-                {
-                    await CreateCategoryRecursive(subCategory, createdCategory.Id);
-                }
-            }
-
-            return createdCategory.Id;
-        }
-
-        // Kategori sayısını hesapla (recursive)
-        private int CountCategories(List<CategoryTreeNode> categories)
-        {
-            int count = categories.Count;
-            foreach (var cat in categories)
-            {
-                if (cat.SubCategories != null && cat.SubCategories.Any())
-                {
-                    count += CountCategories(cat.SubCategories);
-                }
-            }
-            return count;
-        }
-        */
+        // Recursive kategori oluşturma methodları kaldırıldı (Eski kodlar temizlendi)
 
         // Düzenleme - GET
         [HttpGet]
@@ -433,40 +348,22 @@ namespace Dashboard.Web.Controllers
         {
             try
             {
-                System.Console.WriteLine($"\n========== CreateModel Başladı ==========");
-                System.Console.WriteLine($"BrandId (URL): {brandId}");
-                System.Console.WriteLine($"ModelDto alındı: {modelDto != null}");
-                
-                if (modelDto != null)
-                {
-                    System.Console.WriteLine($"  Name: {modelDto.Name}");
-                    System.Console.WriteLine($"  Description: {modelDto.Description}");
-                    System.Console.WriteLine($"  BrandId (DTO): {modelDto.BrandId}");
-                    System.Console.WriteLine($"  IsActive: {modelDto.IsActive}");
-                }
-                
                 if (modelDto == null)
                 {
-                    System.Console.WriteLine("❌ ModelDto null!");
                     return Json(new { success = false, message = "Model bilgileri boş" });
                 }
                 
                 modelDto.BrandId = brandId;
-                System.Console.WriteLine($"BrandId set edildi: {modelDto.BrandId}");
-                System.Console.WriteLine($"API'ye gönderiliyor...");
                 
                 var success = await _modelService.CreateAsync<ModelCreateDto>(modelDto);
-                System.Console.WriteLine($"API Sonucu: {success}");
-                System.Console.WriteLine($"========== CreateModel Bitti ==========\n");
                 
-                // AJAX isteği ise sadece JSON döndür, TempData set etme
+                // AJAX isteği ise sadece JSON döndür
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || 
                     Request.Headers["Accept"].ToString().Contains("application/json"))
                 {
                     return Json(new { success, message = success ? "Model başarıyla eklendi." : "Model eklenirken hata oluştu." });
                 }
                 
-                // Normal form POST için TempData kullan
                 TempData[success ? "Success" : "Error"] = success
                     ? "Model başarıyla eklendi."
                     : "Model eklenirken hata oluştu.";
@@ -474,18 +371,13 @@ namespace Dashboard.Web.Controllers
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine($"❌ Exception: {ex.Message}");
-                System.Console.WriteLine($"Stack: {ex.StackTrace}");
-                System.Console.WriteLine($"========== CreateModel Hata ==========\n");
-                
-                // AJAX isteği ise sadece JSON döndür, TempData set etme
+                // AJAX isteği ise sadece JSON döndür
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || 
                     Request.Headers["Accept"].ToString().Contains("application/json"))
                 {
                     return Json(new { success = false, message = $"Hata: {ex.Message}" });
                 }
                 
-                // Normal form POST için TempData kullan
                 TempData["Error"] = $"Hata: {ex.Message}";
                 return RedirectToAction(nameof(Brands));
             }
@@ -497,38 +389,27 @@ namespace Dashboard.Web.Controllers
         {
             try
             {
-                System.Console.WriteLine($"\n========== DeleteModel Başladı ==========");
-                System.Console.WriteLine($"Model ID: {id}");
-                
                 await _modelService.DeleteAsync(id);
-                System.Console.WriteLine($"Model başarıyla silindi");
-                System.Console.WriteLine($"========== DeleteModel Bitti ==========\n");
                 
-                // AJAX isteği ise sadece JSON döndür, TempData set etme
+                // AJAX isteği ise sadece JSON döndür
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || 
                     Request.Headers["Accept"].ToString().Contains("application/json"))
                 {
                     return Json(new { success = true, message = "Model başarıyla silindi." });
                 }
                 
-                // Normal form POST için TempData kullan
                 TempData["Success"] = "Model başarıyla silindi.";
                 return RedirectToAction(nameof(Brands));
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine($"❌ Exception: {ex.Message}");
-                System.Console.WriteLine($"Stack: {ex.StackTrace}");
-                System.Console.WriteLine($"========== DeleteModel Hata ==========\n");
-                
-                // AJAX isteği ise sadece JSON döndür, TempData set etme
+                // AJAX isteği ise sadece JSON döndür
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || 
                     Request.Headers["Accept"].ToString().Contains("application/json"))
                 {
                     return Json(new { success = false, message = $"Hata: {ex.Message}" });
                 }
                 
-                // Normal form POST için TempData kullan
                 TempData["Error"] = $"Hata: {ex.Message}";
                 return RedirectToAction(nameof(Brands));
             }
