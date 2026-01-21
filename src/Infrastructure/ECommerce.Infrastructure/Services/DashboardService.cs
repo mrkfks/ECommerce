@@ -48,11 +48,27 @@ public class DashboardService : IDashboardService
 
     public async Task<DashboardKpiDto> GetDashboardKpiAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
     {
-        return new DashboardKpiDto
+        var tenantId = companyId ?? _tenantService.GetCompanyId() ?? 0;
+        var cacheKey = $"stats_{tenantId}";
+
+        try
+        {
+            var cachedStats = await _cacheService.GetAsync<DashboardKpiDto>(cacheKey);
+            if (cachedStats != null)
+            {
+                return cachedStats;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Dashboard cache read error");
+        }
+
+        var stats = new DashboardKpiDto
         {
             Sales = await GetSalesKpiAsync(startDate, endDate, companyId),
             Orders = await GetOrdersKpiAsync(startDate, endDate, companyId),
-            Customers = new CustomerKpiDto(), // Simplify for now or implement
+            Customers = new CustomerKpiDto(), // Placeholder
             TopProducts = await GetTopProductsAsync(startDate, endDate, companyId),
             LowStockProducts = await GetLowStockProductsAsync(companyId),
             RevenueTrend = await GetRevenueTrendAsync(startDate, endDate, companyId),
@@ -62,6 +78,17 @@ public class DashboardService : IDashboardService
             AverageCartTrend = await GetAverageCartTrendAsync(startDate, endDate, companyId),
             OrderStatusDistribution = await GetOrderStatusDistributionAsync(startDate, endDate, companyId)
         };
+
+        try
+        {
+            await _cacheService.SetAsync(cacheKey, stats, TimeSpan.FromMinutes(15));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Dashboard cache write error");
+        }
+
+        return stats;
     }
 
     public async Task<SalesKpiDto> GetSalesKpiAsync(DateTime? startDate, DateTime? endDate, int? companyId)

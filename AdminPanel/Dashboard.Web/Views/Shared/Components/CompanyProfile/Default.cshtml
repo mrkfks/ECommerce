@@ -1,0 +1,18 @@
+@model ECommerce.Application.DTOs.CompanyDto
+
+<div class="company-profile d-flex align-items-center px-3 py-2 border-bottom border-secondary mb-3">
+    @if (Model != null)
+    {
+        <div class="company-logo me-2">
+            <img ecommerce-src="@Model.LogoUrl" alt="@Model.Name" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover; background: #fff;" onerror="this.src='/assets/img/default-company.png'" />
+        </div>
+        <div class="company-info overflow-hidden">
+            <div class="text-white fw-bold text-truncate" style="font-size: 0.9rem;">@Model.Name</div>
+            <div class="text-white-50 small text-truncate" style="font-size: 0.75rem;">@Model.Domain</div>
+        </div>
+    }
+    else
+    {
+        <div class="text-white-50 small fst-italic">Şirket bilgisi bulunamadı</div>
+    }
+</div>

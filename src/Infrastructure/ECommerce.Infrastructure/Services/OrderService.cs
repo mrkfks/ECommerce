@@ -263,20 +263,17 @@ namespace ECommerce.Infrastructure.Services
 
         private async Task InvalidateDashboardStatsAsync(int companyId)
         {
-            // Invalidating default views (where args are null or empty).
-            // Keys follow pattern: dashboard_stats_{tenantId}_{keyName}_{companyId}_{start}_{end}
+            // Ana dashboard istatistiklerini temizle
+            await _cacheService.RemoveAsync($"stats_{companyId}");
             
-            // We invalidate the "Defaults" (null dates)
+            // Ayrıca alt detayları da temizleyebiliriz (opsiyonel, eski yapıdan kalanlar)
             var keys = new[]
             {
                 $"dashboard_stats_{companyId}_SalesKpi_{companyId}__",
                 $"dashboard_stats_{companyId}_OrdersKpi_{companyId}__",
-                $"dashboard_stats_{companyId}_TopProducts_{companyId}__",
+                $"dashboard_stats_{companyId}_TopProducts_{companyId}__", 
                 $"dashboard_stats_{companyId}_LowStock_{companyId}",
-                $"dashboard_stats_{companyId}_RevenueTrend_{companyId}__",
-                $"dashboard_stats_{companyId}_CategorySales_{companyId}__",
-                $"dashboard_stats_{companyId}_AverageCartTrend_{companyId}__",
-                $"dashboard_stats_{companyId}_OrderStatusDistribution_{companyId}__"
+                $"dashboard_stats_{companyId}_RevenueTrend_{companyId}__"
             };
 
             foreach (var key in keys)

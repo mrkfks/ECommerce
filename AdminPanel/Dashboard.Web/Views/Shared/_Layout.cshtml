@@ -63,6 +63,8 @@
     <!-- Sidebar -->
     <aside class="sidebar d-flex flex-column">
         <div class="brand">DASHBOARD</div>
+        <!-- Şirket Bilgisi -->
+        <vc:company-profile />
         <nav class="flex-grow-1">
             @if (User?.Identity?.IsAuthenticated ?? false)
             {

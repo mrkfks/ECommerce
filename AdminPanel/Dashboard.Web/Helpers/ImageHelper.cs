@@ -16,16 +16,18 @@ public static class ImageHelper
     public static string GetImageUrl(string? imagePath)
     {
         if (string.IsNullOrEmpty(imagePath))   
-            return "/assets/img/default-product.png"; // Varsayılan resim
+            return "/assets/img/default-product.png";
 
         if (imagePath.StartsWith("http", StringComparison.OrdinalIgnoreCase))
             return imagePath;
 
-        // Ensure proper slash handling
         var cleanPath = imagePath.TrimStart('~', '/');
         
-        // Return absolute URL from API (Resource Url)
-        return $"{_apiResourceUrl?.TrimEnd('/')}/{cleanPath}";
+        // _apiBaseUrl appsettings.json'dan geliyor
+        // Eğer resource url ayrı tanımlanmamışsa base url kullanılır
+        var baseUrl = _apiResourceUrl ?? _apiBaseUrl;
+        
+        return $"{baseUrl?.TrimEnd('/')}/{cleanPath}";
     }
 
     // Extension method support (optional)
