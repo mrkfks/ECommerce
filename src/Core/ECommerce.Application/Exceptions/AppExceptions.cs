@@ -16,6 +16,14 @@ public class AppException : Exception
 }
 
 /// <summary>
+/// Geçersiz istek durumunda fırlatılan exception (400)
+/// </summary>
+public class BadRequestException : AppException
+{
+    public BadRequestException(string message) : base(message, 400) { }
+}
+
+/// <summary>
 /// Doğrulama hatalarında fırlatılan exception (400)
 /// </summary>
 public class ValidationException : AppException

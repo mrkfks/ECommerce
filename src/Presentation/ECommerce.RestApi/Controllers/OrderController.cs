@@ -62,32 +62,13 @@ public class OrderController : ControllerBase
             return Unauthorized(new { message = "Kullanıcı kimliği bulunamadı" });
         }
 
-        // We need to cast to concrete service to access extended method if not in interface
-        // Or update interface. I updated interface? No, I implemented it in class.
-        // Let's check IOrderService definition again. It does NOT have GetMyOrdersAsync.
-        // I should stick to GetByCustomerIdAsync if useful, but userId != customerId.
-        // Customers are linked to Users.
-        // I need to look up Customer by UserId first?
-        // Or blindly cast. Casting is ugly.
-        // Better: I will assume IOrderService doesn't have it and I should add it to Interface.
-        // BUT I can't edit IOrderService easily if it's in Core.
-        // I CAN edit it.
-        
-        // However, looking at the code I wrote for OrderService, I added `GetMyOrdersAsync`.
-        // I should update IOrderService interface to include it.
-        
-        if (_orderService is OrderService service)
+        var orders = await _orderService.GetMyOrdersAsync(int.Parse(userId));
+        return Ok(new ApiResponseDto<IReadOnlyList<OrderDto>>
         {
-             var orders = await service.GetMyOrdersAsync(int.Parse(userId));
-             return Ok(new ApiResponseDto<IReadOnlyList<OrderDto>>
-            {
-                Success = true,
-                Data = orders,
-                Message = "Siparişler başarıyla getirildi"
-            });
-        }
-        
-        return BadRequest("Service not compatible");
+            Success = true,
+            Data = orders,
+            Message = "Siparişler başarıyla getirildi"
+        });
     }
 
     [HttpGet("customer/{customerId}")]

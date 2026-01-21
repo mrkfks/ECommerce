@@ -349,28 +349,7 @@ public class DashboardService : IDashboardService
                 .ToListAsync();
         }, companyId);
     }
-    public async Task<List<CategoryStockDto>> GetCategoryStockDistributionAsync(int? companyId)
-    {
-        return await GetCachedDataAsync($"CategoryStock_{companyId ?? 0}", async () =>
-        {
-            IQueryable<Product> query = _context.Products.AsNoTracking().Include(p => p.Category);
-            query = FilterProducts(query, companyId);
-            
-            var totalStock = await query.SumAsync(p => p.StockQuantity);
-            if (totalStock == 0) totalStock = 1;
 
-            return await query
-                .GroupBy(p => p.CategoryId)
-                .Select(g => new CategoryStockDto
-                {
-                    CategoryId = g.Key,
-                    CategoryName = g.First().Category.Name,
-                    StockQuantity = g.Sum(p => p.StockQuantity),
-                    Percentage = (decimal)g.Sum(p => p.StockQuantity) / totalStock * 100
-                })
-                .ToListAsync();
-        }, companyId);
-    }
 
     private async Task<T> GetCachedDataAsync<T>(string key, Func<Task<T>> factory, int? companyId)
     {

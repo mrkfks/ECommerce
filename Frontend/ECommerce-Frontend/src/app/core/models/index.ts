@@ -36,6 +36,7 @@ export interface AuthResponse {
 
 export interface RefreshTokenRequest {
   refreshToken: string;
+}
 
 export interface UserProfileUpdateRequest {
   username: string;

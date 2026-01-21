@@ -208,9 +208,19 @@ public class DashboardKpiVm
     public List<RevenueTrendVm> RevenueTrend { get; set; } = new();
     public CustomerSegmentationVm CustomerSegmentation { get; set; } = new();
     public List<CategorySalesVm> CategorySales { get; set; } = new();
+    public List<CategoryStockVm> CategoryStock { get; set; } = new();
     public List<GeographicDistributionVm> GeographicDistribution { get; set; } = new();
     public List<AverageCartTrendVm> AverageCartTrend { get; set; } = new();
     public List<OrderStatusDistributionVm> OrderStatusDistribution { get; set; } = new();
+}
+
+public class CategoryStockVm
+{
+    public int CategoryId { get; set; }
+    public string CategoryName { get; set; } = string.Empty;
+    public int StockQuantity { get; set; }
+    public decimal Percentage { get; set; }
+    public string Color { get; set; } = string.Empty;
 }
 
 public class SalesKpiVm

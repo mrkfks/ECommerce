@@ -397,19 +397,16 @@ namespace ECommerce.Infrastructure.Services
             {
                 var emailExists = await _context.Users.AnyAsync(u => u.Email == dto.Email && u.Id != userId);
                 if (emailExists) throw new ConflictException("Bu email adresi zaten kullanılıyor.");
-                user.Email = dto.Email;
             }
             
             if (user.Username != dto.Username)
             {
                 var usernameExists = await _context.Users.AnyAsync(u => u.Username == dto.Username && u.Id != userId);
                 if (usernameExists) throw new ConflictException("Bu kullanıcı adı zaten kullanılıyor.");
-                user.Username = dto.Username;
             }
 
-            user.FirstName = dto.FirstName;
-            user.LastName = dto.LastName;
-
+            user.UpdateProfile(dto.FirstName, dto.LastName, dto.Email, dto.Username);
+            
             await _context.SaveChangesAsync();
 
             return await GetUserByIdAsync(userId) ?? throw new Exception("Updated user not found");

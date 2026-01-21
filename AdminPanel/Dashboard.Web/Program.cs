@@ -9,14 +9,17 @@ using Dashboard.Web.Middleware;
 var builder = WebApplication.CreateBuilder(args);
 
 // Base URL config - Environment variable veya appsettings'den
-var apiBaseUrl = Environment.GetEnvironmentVariable("API_BASE_URL") 
-    ?? builder.Configuration.GetSection("ApiSettings")["BaseUrl"] 
+var apiBaseUrl = Environment.GetEnvironmentVariable("API_BASE_URL")
+    ?? builder.Configuration.GetSection("ApiSettings")["BaseUrl"]
     ?? throw new InvalidOperationException("API BaseUrl not found");
 
 Console.WriteLine($"🔗 API Base URL: {apiBaseUrl}");
 
 // Add services to the container
 builder.Services.AddControllersWithViews();
+
+// Response Caching for VaryByQueryKeys support
+builder.Services.AddResponseCaching();
 
 // HttpClient for API calls
 builder.Services.AddHttpClient("ECommerceApi", client =>
@@ -40,6 +43,15 @@ builder.Services.AddScoped(typeof(IApiService<>), typeof(ApiService<>));
 
 // Custom Services for special logic (inheriting from ApiService or standalone)
 builder.Services.AddScoped<UserApiService>();
+builder.Services.AddScoped<ReviewApiService>();
+builder.Services.AddScoped<ProductApiService>();
+builder.Services.AddScoped<OrderApiService>();
+builder.Services.AddScoped<CustomerApiService>();
+builder.Services.AddScoped<CompanyApiService>();
+builder.Services.AddScoped<NotificationApiService>();
+builder.Services.AddScoped<CampaignApiService>();
+builder.Services.AddScoped<CustomerMessageApiService>();
+builder.Services.AddScoped<LoginHistoryApiService>();
 
 
 
@@ -76,14 +88,14 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<AuthTokenHandler>();
 
 // JWT Authentication - Environment variable'dan veya appsettings'den oku
-var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") 
-    ?? builder.Configuration["Jwt:Key"] 
+var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY")
+    ?? builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("JWT Key not configured");
-var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") 
-    ?? builder.Configuration["Jwt:Issuer"] 
+var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER")
+    ?? builder.Configuration["Jwt:Issuer"]
     ?? "ECommerce";
-var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") 
-    ?? builder.Configuration["Jwt:Audience"] 
+var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE")
+    ?? builder.Configuration["Jwt:Audience"]
     ?? "ECommerce.Client";
 
 Console.WriteLine($"🔐 JWT configured - Issuer: {jwtIssuer}, Audience: {jwtAudience}");
@@ -182,6 +194,7 @@ if (!app.Environment.IsDevelopment())
 app.UseStaticFiles(); // wwwroot için gerekli
 app.UseRouting();
 
+app.UseResponseCaching(); // VaryByQueryKeys desteği
 app.UseCors("AllowDashboard"); // CORS aktif
 app.UseAuthentication();       // JWT aktif
 app.UseAuthorization();        // Authorize attribute aktif

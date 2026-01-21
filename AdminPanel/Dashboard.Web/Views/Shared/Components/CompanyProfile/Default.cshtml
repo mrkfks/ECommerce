@@ -4,11 +4,26 @@
     @if (Model != null)
     {
         <div class="company-logo me-2">
-            <img ecommerce-src="@Model.LogoUrl" alt="@Model.Name" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover; background: #fff;" onerror="this.src='/assets/img/default-company.png'" />
+            @if (!string.IsNullOrEmpty(Model.LogoUrl))
+            {
+                <img ecommerce-src="@Model.LogoUrl" alt="@Model.Name" class="rounded-circle" style="width: 32px; height: 32px; object-fit: cover; background: #fff;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold" style="width: 32px; height: 32px; display: none; font-size: 14px;">
+                    @Model.Name?.Substring(0, 1).ToUpper()
+                </div>
+            }
+            else
+            {
+                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold" style="width: 32px; height: 32px; font-size: 14px;">
+                    @Model.Name?.Substring(0, 1).ToUpper()
+                </div>
+            }
         </div>
         <div class="company-info overflow-hidden">
             <div class="text-white fw-bold text-truncate" style="font-size: 0.9rem;">@Model.Name</div>
-            <div class="text-white-50 small text-truncate" style="font-size: 0.75rem;">@Model.Domain</div>
+            @if (!string.IsNullOrEmpty(Model.Domain))
+            {
+                <div class="text-white-50 small text-truncate" style="font-size: 0.75rem;">@Model.Domain</div>
+            }
         </div>
     }
     else
