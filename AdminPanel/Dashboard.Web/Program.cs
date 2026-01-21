@@ -39,22 +39,13 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped(typeof(IApiService<>), typeof(ApiService<>));
 
 // Custom Services for special logic (inheriting from ApiService or standalone)
-// Custom Services for special logic (inheriting from ApiService or standalone)
-builder.Services.AddScoped<OrderApiService>();
-// builder.Services.AddScoped<ModelApiService>(); // Removed - Generic
-// builder.Services.AddScoped<GlobalAttributeApiService>(); // Removed - Generic
 builder.Services.AddScoped<CompanyApiService>();
 builder.Services.AddScoped<CustomerApiService>();
 builder.Services.AddScoped<UserApiService>();
-builder.Services.AddScoped<ReviewApiService>();
 builder.Services.AddScoped<RequestApiService>();
-// Wait, ProductApiService inherits ApiService<ProductDto>. If I updated ApiService constructor, ProductApiService breaks!
-// I must update ProductApiService too.
+builder.Services.AddScoped<OrderApiService>(); 
+// Note: OrderApiService has UpdateStatusAsync. To fully remove, OrderController needs refactor.
 
-// Let's re-add ProductApiService as Scoped (it will use the new base constructor)
-// But I need to check ProductApiService constructor. It was: public ProductApiService(HttpClient httpClient) : base(httpClient, "Product")
-// The base constructor CHANGED. So ProductApiService IS BROKEN.
-// I must fix ProductApiService constructor in next step. For now I register it as Scoped.
 
 // Other services that might need custom logic (Dashboard, Auth are different)
 builder.Services.AddHttpClient<DashboardApiService>(client =>
