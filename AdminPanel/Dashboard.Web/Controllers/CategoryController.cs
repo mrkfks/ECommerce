@@ -12,14 +12,14 @@ namespace Dashboard.Web.Controllers
     {
         private readonly IApiService<CategoryDto> _categoryService;
         private readonly IApiService<BrandDto> _brandService;
-        private readonly ModelApiService _modelService;
-        private readonly GlobalAttributeApiService _globalAttributeService;
+        private readonly IApiService<ModelDto> _modelService;
+        private readonly IApiService<GlobalAttributeDto> _globalAttributeService;
 
         public CategoryController(
             IApiService<CategoryDto> categoryService,
             IApiService<BrandDto> brandService,
-            ModelApiService modelService,
-            GlobalAttributeApiService globalAttributeService)
+            IApiService<ModelDto> modelService,
+            IApiService<GlobalAttributeDto> globalAttributeService)
         {
             _categoryService = categoryService;
             _brandService = brandService;
@@ -363,7 +363,7 @@ namespace Dashboard.Web.Controllers
             if (brand == null)
                 return NotFound();
             
-            var models = await _modelService.GetByBrandIdAsync(id);
+            var models = await _modelService.GetListAsync($"brand/{id}");
             return Json(new { brand, models });
         }
 
@@ -455,7 +455,7 @@ namespace Dashboard.Web.Controllers
                 System.Console.WriteLine($"BrandId set edildi: {modelDto.BrandId}");
                 System.Console.WriteLine($"API'ye gönderiliyor...");
                 
-                var success = await _modelService.CreateModelAsync(modelDto);
+                var success = await _modelService.CreateAsync<ModelCreateDto>(modelDto);
                 System.Console.WriteLine($"API Sonucu: {success}");
                 System.Console.WriteLine($"========== CreateModel Bitti ==========\n");
                 
@@ -545,7 +545,7 @@ namespace Dashboard.Web.Controllers
         public async Task<IActionResult> CreateAttribute(GlobalAttributeCreateDto dto)
         {
             dto.Values = dto.Values.Where(v => !string.IsNullOrWhiteSpace(v.Value)).ToList();
-            var success = await _globalAttributeService.CreateAsync(dto);
+            var success = await _globalAttributeService.CreateAsync<GlobalAttributeCreateDto>(dto);
             TempData[success ? "Success" : "Error"] = success ? "Özellik eklendi." : "Özellik eklenemedi.";
             return RedirectToAction(nameof(Attributes));
         }

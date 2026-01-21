@@ -23,35 +23,57 @@ public class ApiService<T> : IApiService<T> where T : class
     public ApiService(IHttpClientFactory httpClientFactory)
     {
         _httpClient = httpClientFactory.CreateClient("ECommerceApi");
-        _endpoint = typeof(T).Name.Replace("Dto", "");
+        // Remove Dto/ViewModel and simple pluralization could be added if needed, 
+        // but for now relying on strict naming or manual override would be better if we weren't fully generic.
+        // Assuming API endpoints are consistently named after the entity.
+        var name = typeof(T).Name;
+        if (name.EndsWith("Dto")) name = name[..^3];
+        else if (name.EndsWith("ViewModel")) name = name[..^9];
+        
+        _endpoint = name;
     }
 
     public async Task<List<T>> GetAllAsync()
     {
+        return await GetListAsync($"api/{_endpoint}");
+    }
+
+    public async Task<List<T>> GetListAsync(string subUrl)
+    {
         try
         {
-            var response = await _httpClient.GetAsync($"api/{_endpoint}");
+            // If subUrl is relative (e.g. "brand/5"), prepend "api/{endpoint}/" ?
+            // The interface says GetListAsync(subUrl).
+            // If user passes "brand/5", intention is "api/Model/brand/5".
+            // If user passes "api/Items", intention is "api/Items".
+            // Let's standardise: Helper method calls usually target the entity endpoint.
+            
+            // If call is internal GetAllAsync, we passed full path.
+            // If call is external like GetListAsync("brand/5"), we probably want "api/{_endpoint}/brand/5".
+            
+            string url = subUrl.StartsWith("api/") ? subUrl : $"api/{_endpoint}/{subUrl}";
+
+            var response = await _httpClient.GetAsync(url);
             if (!response.IsSuccessStatusCode)
             {
-                Console.WriteLine($"[ApiService] GetAllAsync failed: {response.StatusCode}");
+                // Console.WriteLine($"[ApiService] GetListAsync failed: {url} {response.StatusCode}");
                 return new List<T>();
             }
 
             var content = await response.Content.ReadAsStringAsync();
             
-            // Önce ApiResponse<List<T>> olarak dene
+            // Try ApiResponse<List<T>>
             try
             {
                 var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<T>>>(content, _jsonOptions);
                 if (apiResponse?.Success == true && apiResponse.Data != null)
                 {
-                    Console.WriteLine($"[ApiService] GetAllAsync: {apiResponse.Data.Count} items");
                     return apiResponse.Data;
                 }
             }
             catch { }
 
-            // Düz List<T> olarak dene
+            // Try List<T>
             try
             {
                 var result = JsonSerializer.Deserialize<List<T>>(content, _jsonOptions);
@@ -63,7 +85,7 @@ public class ApiService<T> : IApiService<T> where T : class
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[ApiService] GetAllAsync exception: {ex.Message}");
+            Console.WriteLine($"[ApiService] GetListAsync exception: {ex.Message}");
             return new List<T>();
         }
     }
@@ -148,6 +170,19 @@ public class ApiService<T> : IApiService<T> where T : class
         }
     }
 
+    public async Task<bool> UpdateAsync<TUpdate>(int id, TUpdate entity)
+    {
+        try
+        {
+            var response = await _httpClient.PutAsJsonAsync($"api/{_endpoint}/{id}", entity);
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public async Task<bool> DeleteAsync(int id)
     {
         try
@@ -171,6 +206,21 @@ public class ApiService<T> : IApiService<T> where T : class
         }
         catch
         {
+            return false;
+        }
+    }
+
+    public async Task<bool> PostActionAsync<TPayload>(string subUrl, TPayload payload)
+    {
+        try
+        {
+            var url = subUrl.StartsWith("api/") ? subUrl : $"api/{_endpoint}/{subUrl}";
+            var response = await _httpClient.PostAsJsonAsync(url, payload);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ApiService] PostActionAsync exception: {ex.Message}");
             return false;
         }
     }

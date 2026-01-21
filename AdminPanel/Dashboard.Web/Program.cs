@@ -40,10 +40,9 @@ builder.Services.AddScoped(typeof(IApiService<>), typeof(ApiService<>));
 
 // Custom Services for special logic (inheriting from ApiService or standalone)
 // Custom Services for special logic (inheriting from ApiService or standalone)
-builder.Services.AddScoped<ProductApiService>();
 builder.Services.AddScoped<OrderApiService>();
-builder.Services.AddScoped<ModelApiService>();
-builder.Services.AddScoped<GlobalAttributeApiService>();
+// builder.Services.AddScoped<ModelApiService>(); // Removed - Generic
+// builder.Services.AddScoped<GlobalAttributeApiService>(); // Removed - Generic
 builder.Services.AddScoped<CompanyApiService>();
 builder.Services.AddScoped<CustomerApiService>();
 builder.Services.AddScoped<UserApiService>();

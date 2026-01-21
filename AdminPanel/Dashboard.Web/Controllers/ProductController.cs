@@ -8,16 +8,16 @@ namespace Dashboard.Web.Controllers
     [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
     public class ProductController : Controller
     {
-        private readonly ProductApiService _productService;
+        private readonly IApiService<ProductDto> _productService;
         private readonly IApiService<CategoryDto> _categoryService;
         private readonly IApiService<BrandDto> _brandService;
-        private readonly CompanyApiService _companyService;
+        private readonly IApiService<CompanyDto> _companyService;
 
         public ProductController(
-            ProductApiService productService,
+            IApiService<ProductDto> productService,
             IApiService<CategoryDto> categoryService,
             IApiService<BrandDto> brandService,
-            CompanyApiService companyService)
+            IApiService<CompanyDto> companyService)
         {
             _productService = productService;
             _categoryService = categoryService;
@@ -106,7 +106,7 @@ namespace Dashboard.Web.Controllers
                 return View(product);
             }
 
-            var success = await _productService.CreateAsync(product);
+            var success = await _productService.CreateAsync<ProductCreateDto>(product);
             if (success)
             {
                 TempData["SuccessMessage"] = "Ürün başarıyla eklendi.";
@@ -183,7 +183,8 @@ namespace Dashboard.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> BulkUpdate([FromBody] ProductBulkUpdateDto dto)
         {
-            var success = await _productService.BulkUpdateAsync(dto.ProductIds, dto.PriceIncreasePercentage);
+            // var success = await _productService.BulkUpdateAsync(dto.ProductIds, dto.PriceIncreasePercentage);
+            var success = await _productService.PostActionAsync("bulk-price-update", dto);
             return Json(new { success = success, message = success ? "Fiyatlar güncellendi" : "Hata oluştu" });
         }
     }
