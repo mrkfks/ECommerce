@@ -7,9 +7,9 @@ namespace Dashboard.Web.Controllers
 {
     public class RequestController : Controller
     {
-        private readonly RequestApiService _requestService;
+        private readonly IApiService<RequestDto> _requestService;
 
-        public RequestController(RequestApiService requestService)
+        public RequestController(IApiService<RequestDto> requestService)
         {
             _requestService = requestService;
         }
@@ -57,7 +57,7 @@ namespace Dashboard.Web.Controllers
                 }
 
                 dto.CompanyId = companyId;
-                var success = await _requestService.CreateAsync(dto);
+                var success = await _requestService.CreateAsync<RequestCreateDto>(dto);
 
                 if (success)
                 {
@@ -139,7 +139,7 @@ namespace Dashboard.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Approve(int id, string? feedback)
         {
-            var success = await _requestService.ApproveAsync(id);
+            var success = await _requestService.PostActionAsync($"{id}/approve", new { });
 
             if (success)
                 return RedirectToAction(nameof(Index));
@@ -152,7 +152,7 @@ namespace Dashboard.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Reject(int id, string? feedback)
         {
-            var success = await _requestService.RejectAsync(id);
+            var success = await _requestService.PostActionAsync($"{id}/reject", new { });
 
             if (success)
                 return RedirectToAction(nameof(Index));

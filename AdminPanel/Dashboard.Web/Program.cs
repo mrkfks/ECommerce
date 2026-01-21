@@ -40,7 +40,6 @@ builder.Services.AddScoped(typeof(IApiService<>), typeof(ApiService<>));
 
 // Custom Services for special logic (inheriting from ApiService or standalone)
 builder.Services.AddScoped<UserApiService>();
-builder.Services.AddScoped<RequestApiService>();
 
 
 
@@ -63,14 +62,6 @@ builder.Services.AddHttpClient<UserManagementApiService>(client =>
     client.Timeout = TimeSpan.FromSeconds(30);
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
-// Registering simple services as just generic usage or if they are still classes:
-// If CategoryController asks for CategoryApiService (class), it will fail if not registered.
-// I need to change CategoryController to ask for IApiService<CategoryDto>.
-// Or I can keep CategoryApiService class but update it to inherit new base and register it.
-// Assuming I will update controllers to use IApiService<T>, I don't need to register CategoryApiService if I delete it.
-
-// But wait, existing code uses CategoryApiService class. I should update ProductController and CategoryController.
-// For safety, let's stick to the plan: Generic Service structure.
 
 // Keep DashboardApService as Typed Client because it's not following CRUD pattern entirely (GetDashboardKpiAsync etc)
 builder.Services.AddCors(options =>
