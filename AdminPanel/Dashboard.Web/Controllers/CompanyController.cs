@@ -9,9 +9,9 @@ namespace Dashboard.Web.Controllers
     [Authorize(Roles = "SuperAdmin")]
     public class CompanyController : Controller
     {
-        private readonly CompanyApiService _companyService;
+        private readonly IApiService<CompanyDto> _companyService;
 
-        public CompanyController(CompanyApiService companyService)
+        public CompanyController(IApiService<CompanyDto> companyService)
         {
             _companyService = companyService;
         }
@@ -122,7 +122,7 @@ namespace Dashboard.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Approve(int id)
         {
-            var success = await _companyService.ApproveAsync(id);
+            var success = await _companyService.PostActionAsync($"{id}/approve", new { });
             TempData[success ? "Success" : "Error"] = success ? "Şirket onaylandı" : "Onay işlemi başarısız";
             return RedirectToAction(nameof(Index));
         }
@@ -130,7 +130,7 @@ namespace Dashboard.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Deactivate(int id)
         {
-            var success = await _companyService.DeactivateAsync(id);
+            var success = await _companyService.PostActionAsync($"{id}/deactivate", new { });
             TempData[success ? "Success" : "Error"] = success ? "Şirket pasifleştirildi" : "Pasifleştirme başarısız";
             return RedirectToAction(nameof(Index));
         }
@@ -138,7 +138,7 @@ namespace Dashboard.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Activate(int id)
         {
-            var success = await _companyService.ActivateAsync(id);
+            var success = await _companyService.PostActionAsync($"{id}/activate", new { });
             TempData[success ? "Success" : "Error"] = success ? "Şirket aktif hale getirildi" : "Aktivasyon başarısız";
             return RedirectToAction(nameof(Index));
         }

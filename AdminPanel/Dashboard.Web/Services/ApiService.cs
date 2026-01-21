@@ -224,4 +224,19 @@ public class ApiService<T> : IApiService<T> where T : class
             return false;
         }
     }
+
+    public async Task<bool> PutActionAsync<TPayload>(string subUrl, TPayload payload)
+    {
+        try
+        {
+            var url = subUrl.StartsWith("api/") ? subUrl : $"api/{_endpoint}/{subUrl}";
+            var response = await _httpClient.PutAsJsonAsync(url, payload);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ApiService] PutActionAsync exception: {ex.Message}");
+            return false;
+        }
+    }
 }

@@ -8,9 +8,9 @@ namespace Dashboard.Web.Controllers
     [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
     public class OrderController : Controller
     {
-        private readonly OrderApiService _orderService;
+        private readonly IApiService<OrderDto> _orderService;
 
-        public OrderController(OrderApiService orderService)
+        public OrderController(IApiService<OrderDto> orderService)
         {
             _orderService = orderService;
         }

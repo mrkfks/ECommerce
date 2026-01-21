@@ -39,12 +39,9 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped(typeof(IApiService<>), typeof(ApiService<>));
 
 // Custom Services for special logic (inheriting from ApiService or standalone)
-builder.Services.AddScoped<CompanyApiService>();
-builder.Services.AddScoped<CustomerApiService>();
 builder.Services.AddScoped<UserApiService>();
 builder.Services.AddScoped<RequestApiService>();
-builder.Services.AddScoped<OrderApiService>(); 
-// Note: OrderApiService has UpdateStatusAsync. To fully remove, OrderController needs refactor.
+
 
 
 // Other services that might need custom logic (Dashboard, Auth are different)

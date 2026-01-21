@@ -12,4 +12,5 @@ public interface IApiService<T> where T : class
     Task<bool> UpdateAsync<TUpdate>(int id, TUpdate entity);
     Task<bool> DeleteAsync(int id);
     Task<bool> PostActionAsync<TPayload>(string subUrl, TPayload payload);
+    Task<bool> PutActionAsync<TPayload>(string subUrl, TPayload payload);
 }

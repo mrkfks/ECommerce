@@ -8,9 +8,9 @@ namespace Dashboard.Web.Controllers
     [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
     public class CustomerController : Controller
     {
-        private readonly CustomerApiService _customerService;
+        private readonly IApiService<CustomerDto> _customerService;
 
-        public CustomerController(CustomerApiService customerService)
+        public CustomerController(IApiService<CustomerDto> customerService)
         {
             _customerService = customerService;
         }
