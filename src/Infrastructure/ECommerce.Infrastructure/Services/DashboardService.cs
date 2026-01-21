@@ -100,56 +100,62 @@ public class DashboardService : IDashboardService
 
     public async Task<OrderKpiDto> GetOrdersKpiAsync(DateTime? startDate, DateTime? endDate, int? companyId)
     {
-         IQueryable<Order> query = _context.Orders.AsNoTracking();
-         query = FilterOrders(query, startDate, endDate, companyId);
-         
-         var totalOrders = await query.CountAsync();
-         // Count by status
-         var pending = await query.CountAsync(o => o.Status == OrderStatus.Pending);
-         var shipped = await query.CountAsync(o => o.Status == OrderStatus.Shipped);
-         var delivered = await query.CountAsync(o => o.Status == OrderStatus.Delivered);
-         var cancelled = await query.CountAsync(o => o.Status == OrderStatus.Cancelled);
-         
-         return new OrderKpiDto
-         {
-             TotalOrders = totalOrders,
-             PendingCount = pending,
-             ShippedCount = shipped,
-             DeliveredCount = delivered,
-             ReturnedCount = 0, // Not tracked
-             CancelledCount = cancelled,
-             PendingPercent = totalOrders > 0 ? (decimal)pending / totalOrders * 100 : 0,
-             ShippedPercent = totalOrders > 0 ? (decimal)shipped / totalOrders * 100 : 0,
-             DeliveredPercent = totalOrders > 0 ? (decimal)delivered / totalOrders * 100 : 0,
-             ReturnedPercent = 0,
-             CancelledPercent = totalOrders > 0 ? (decimal)cancelled / totalOrders * 100 : 0
-         };
+        return await GetCachedDataAsync($"OrdersKpi_{companyId ?? 0}_{startDate}_{endDate}", async () =>
+        {
+             IQueryable<Order> query = _context.Orders.AsNoTracking();
+             query = FilterOrders(query, startDate, endDate, companyId);
+             
+             var totalOrders = await query.CountAsync();
+             // Count by status
+             var pending = await query.CountAsync(o => o.Status == OrderStatus.Pending);
+             var shipped = await query.CountAsync(o => o.Status == OrderStatus.Shipped);
+             var delivered = await query.CountAsync(o => o.Status == OrderStatus.Delivered);
+             var cancelled = await query.CountAsync(o => o.Status == OrderStatus.Cancelled);
+             
+             return new OrderKpiDto
+             {
+                 TotalOrders = totalOrders,
+                 PendingCount = pending,
+                 ShippedCount = shipped,
+                 DeliveredCount = delivered,
+                 ReturnedCount = 0, // Not tracked
+                 CancelledCount = cancelled,
+                 PendingPercent = totalOrders > 0 ? (decimal)pending / totalOrders * 100 : 0,
+                 ShippedPercent = totalOrders > 0 ? (decimal)shipped / totalOrders * 100 : 0,
+                 DeliveredPercent = totalOrders > 0 ? (decimal)delivered / totalOrders * 100 : 0,
+                 ReturnedPercent = 0,
+                 CancelledPercent = totalOrders > 0 ? (decimal)cancelled / totalOrders * 100 : 0
+             };
+        }, companyId);
     }
 
     public async Task<List<TopProductDto>> GetTopProductsAsync(DateTime? startDate, DateTime? endDate, int? companyId)
     {
-        // Need OrderItems for this. Assuming Order has Items.
-        IQueryable<Order> query = _context.Orders.AsNoTracking().Include(o => o.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Images);
-        query = FilterOrders(query, startDate, endDate, companyId);
+        return await GetCachedDataAsync($"TopProducts_{companyId ?? 0}_{startDate}_{endDate}", async () =>
+        {
+            // Need OrderItems for this. Assuming Order has Items.
+            IQueryable<Order> query = _context.Orders.AsNoTracking().Include(o => o.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Images);
+            query = FilterOrders(query, startDate, endDate, companyId);
 
-        // Flatten items
-        var items = query.SelectMany(o => o.Items);
-        
-        return await items
-            .GroupBy(i => i.ProductId)
-            .Select(g => new TopProductDto
-            {
-                ProductId = g.Key,
-                ProductName = g.First().Product.Name,
-                QuantitySold = g.Sum(i => i.Quantity),
-                Revenue = g.Sum(i => i.UnitPrice * i.Quantity),
-                ImageUrl = g.First().Product.Images.FirstOrDefault(img => img.IsPrimary) != null 
-                    ? g.First().Product.Images.FirstOrDefault(img => img.IsPrimary).ImageUrl 
-                    : null
-            })
-            .OrderByDescending(x => x.Revenue)
-            .Take(5)
-            .ToListAsync();
+            // Flatten items
+            var items = query.SelectMany(o => o.Items);
+            
+            return await items
+                .GroupBy(i => i.ProductId)
+                .Select(g => new TopProductDto
+                {
+                    ProductId = g.Key,
+                    ProductName = g.First().Product.Name,
+                    QuantitySold = g.Sum(i => i.Quantity),
+                    Revenue = g.Sum(i => i.UnitPrice * i.Quantity),
+                    ImageUrl = g.First().Product.Images.FirstOrDefault(img => img.IsPrimary) != null 
+                        ? g.First().Product.Images.FirstOrDefault(img => img.IsPrimary).ImageUrl 
+                        : null
+                })
+                .OrderByDescending(x => x.Revenue)
+                .Take(5)
+                .ToListAsync();
+        }, companyId);
     }
 
     public async Task<List<LowStockProductDto>> GetLowStockProductsAsync(int? companyId)
@@ -220,25 +226,28 @@ public class DashboardService : IDashboardService
 
     public async Task<List<CategorySalesDto>> GetCategorySalesAsync(DateTime? startDate, DateTime? endDate, int? companyId)
     {
-        IQueryable<Order> query = _context.Orders.AsNoTracking().Include(o => o.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Category);
-        query = FilterOrders(query, startDate, endDate, companyId);
-        
-        var totalSales = await query.SumAsync(o => o.TotalAmount);
-        if (totalSales == 0) totalSales = 1;
+        return await GetCachedDataAsync($"CategorySales_{companyId ?? 0}_{startDate}_{endDate}", async () =>
+        {
+            IQueryable<Order> query = _context.Orders.AsNoTracking().Include(o => o.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Category);
+            query = FilterOrders(query, startDate, endDate, companyId);
+            
+            var totalSales = await query.SumAsync(o => o.TotalAmount);
+            if (totalSales == 0) totalSales = 1;
 
-        var items = query.SelectMany(o => o.Items);
-        
-        return await items
-            .GroupBy(i => i.Product.CategoryId)
-            .Select(g => new CategorySalesDto
-            {
-                CategoryId = g.Key,
-                CategoryName = g.First().Product.Category.Name,
-                TotalSales = g.Sum(i => i.Quantity * i.UnitPrice),
-                TotalQuantity = g.Sum(i => i.Quantity),
-                Percentage = (g.Sum(i => i.Quantity * i.UnitPrice) / totalSales) * 100
-            })
-            .ToListAsync();
+            var items = query.SelectMany(o => o.Items);
+            
+            return await items
+                .GroupBy(i => i.Product.CategoryId)
+                .Select(g => new CategorySalesDto
+                {
+                    CategoryId = g.Key,
+                    CategoryName = g.First().Product.Category.Name,
+                    TotalSales = g.Sum(i => i.Quantity * i.UnitPrice),
+                    TotalQuantity = g.Sum(i => i.Quantity),
+                    Percentage = (g.Sum(i => i.Quantity * i.UnitPrice) / totalSales) * 100
+                })
+                .ToListAsync();
+        }, companyId);
     }
 
     public async Task<List<GeographicDistributionDto>> GetGeographicDistributionAsync(DateTime? startDate, DateTime? endDate, int? companyId)
@@ -249,39 +258,45 @@ public class DashboardService : IDashboardService
 
     public async Task<List<AverageCartTrendDto>> GetAverageCartTrendAsync(DateTime? startDate, DateTime? endDate, int? companyId)
     {
-         IQueryable<Order> query = _context.Orders.AsNoTracking();
-        query = FilterOrders(query, startDate, endDate, companyId);
-        
-        return await query
-            .GroupBy(o => o.OrderDate.Date)
-            .Select(g => new AverageCartTrendDto
-            {
-                Date = g.Key,
-                AverageCartValue = g.Average(o => o.TotalAmount),
-                OrderCount = g.Count()
-            })
-            .OrderBy(r => r.Date)
-            .ToListAsync();
+        return await GetCachedDataAsync($"AverageCartTrend_{companyId ?? 0}_{startDate}_{endDate}", async () =>
+        {
+             IQueryable<Order> query = _context.Orders.AsNoTracking();
+            query = FilterOrders(query, startDate, endDate, companyId);
+            
+            return await query
+                .GroupBy(o => o.OrderDate.Date)
+                .Select(g => new AverageCartTrendDto
+                {
+                    Date = g.Key,
+                    AverageCartValue = g.Average(o => o.TotalAmount),
+                    OrderCount = g.Count()
+                })
+                .OrderBy(r => r.Date)
+                .ToListAsync();
+        }, companyId);
     }
 
     public async Task<List<OrderStatusDistributionDto>> GetOrderStatusDistributionAsync(DateTime? startDate, DateTime? endDate, int? companyId)
     {
-        IQueryable<Order> query = _context.Orders.AsNoTracking();
-        query = FilterOrders(query, startDate, endDate, companyId);
+        return await GetCachedDataAsync($"OrderStatusDistribution_{companyId ?? 0}_{startDate}_{endDate}", async () =>
+        {
+            IQueryable<Order> query = _context.Orders.AsNoTracking();
+            query = FilterOrders(query, startDate, endDate, companyId);
 
-        return await query
-            .GroupBy(o => o.OrderDate.Date)
-            .Select(g => new OrderStatusDistributionDto
-            {
-                Date = g.Key,
-                PendingCount = g.Count(o => o.Status == OrderStatus.Pending),
-                ShippedCount = g.Count(o => o.Status == OrderStatus.Shipped),
-                DeliveredCount = g.Count(o => o.Status == OrderStatus.Delivered),
-                ReturnedCount = 0,
-                CancelledCount = g.Count(o => o.Status == OrderStatus.Cancelled)
-            })
-            .OrderBy(r => r.Date)
-            .ToListAsync();
+            return await query
+                .GroupBy(o => o.OrderDate.Date)
+                .Select(g => new OrderStatusDistributionDto
+                {
+                    Date = g.Key,
+                    PendingCount = g.Count(o => o.Status == OrderStatus.Pending),
+                    ShippedCount = g.Count(o => o.Status == OrderStatus.Shipped),
+                    DeliveredCount = g.Count(o => o.Status == OrderStatus.Delivered),
+                    ReturnedCount = 0,
+                    CancelledCount = g.Count(o => o.Status == OrderStatus.Cancelled)
+                })
+                .OrderBy(r => r.Date)
+                .ToListAsync();
+        }, companyId);
     }
     private async Task<T> GetCachedDataAsync<T>(string key, Func<Task<T>> factory, int? companyId)
     {
