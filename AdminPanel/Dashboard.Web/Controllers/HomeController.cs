@@ -54,6 +54,7 @@ public class HomeController : Controller
         _userManagementService = userManagementService;
     }
 
+    [ResponseCache(Duration = 120, VaryByQueryKeys = new[] { "companyId" })]
     public async Task<IActionResult> Index()
     {
         var isSuperAdmin = User.IsInRole("SuperAdmin");
@@ -137,6 +138,7 @@ public class HomeController : Controller
     /// AJAX ile KPI verilerini getirir
     /// </summary>
     [HttpGet]
+    [ResponseCache(Duration = 120, VaryByQueryKeys = new[] { "startDate", "endDate", "companyId" })]
     public async Task<IActionResult> GetKpiData(DateTime? startDate, DateTime? endDate, int? companyId)
     {
         var isSuperAdmin = User.IsInRole("SuperAdmin");

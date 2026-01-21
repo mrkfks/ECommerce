@@ -17,7 +17,7 @@ namespace ECommerce.Infrastructure.Services
         private readonly ILogger<OrderService> _logger;
         private readonly IProductService _productService;
         private readonly Microsoft.AspNetCore.SignalR.IHubContext<ECommerce.Infrastructure.Hubs.NotificationHub> _hubContext;
-        private readonly Microsoft.Extensions.Caching.Distributed.IDistributedCache _cache;
+        private readonly ICacheService _cacheService;
 
 
         public OrderService(
@@ -26,14 +26,14 @@ namespace ECommerce.Infrastructure.Services
             IProductService productService,
             ILogger<OrderService> logger, 
             Microsoft.AspNetCore.SignalR.IHubContext<ECommerce.Infrastructure.Hubs.NotificationHub> hubContext,
-            Microsoft.Extensions.Caching.Distributed.IDistributedCache cache)
+            ICacheService cacheService)
         {
             _context = context;
             _tenantService = tenantService;
             _productService = productService;
             _logger = logger;
             _hubContext = hubContext;
-            _cache = cache;
+            _cacheService = cacheService;
         }
 
         public async Task<OrderDto> CreateAsync(OrderCreateDto dto)
@@ -263,29 +263,25 @@ namespace ECommerce.Infrastructure.Services
 
         private async Task InvalidateDashboardStatsAsync(int companyId)
         {
-            // We assume standard Dashboard keys. Date-specific keys might remain stale for 15 mins which is acceptable.
             // Invalidating default views (where args are null or empty).
-            // Keys follow pattern: Stats_{tenantId}_{keyName}_{companyId}_{start}_{end}
-            // Note: The DashboardService implementation uses `Stats_{tenantId}_{keyName}` as base, but inside GetCachedDataAsync
-            // it passes keys like `SalesKpi_{companyId}_{startDate}_{endDate}`.
-            // So full key is `Stats_{tenantId}_SalesKpi_{companyId}_{startDate}_{endDate}`.
+            // Keys follow pattern: dashboard_stats_{tenantId}_{keyName}_{companyId}_{start}_{end}
             
             // We invalidate the "Defaults" (null dates)
             var keys = new[]
             {
-                $"Stats_{companyId}_SalesKpi_{companyId}__",
-                $"Stats_{companyId}_OrdersKpi_{companyId}__",
-                $"Stats_{companyId}_TopProducts_{companyId}__",
-                $"Stats_{companyId}_LowStock_{companyId}",
-                $"Stats_{companyId}_RevenueTrend_{companyId}__",
-                $"Stats_{companyId}_CategorySales_{companyId}__",
-                $"Stats_{companyId}_AverageCartTrend_{companyId}__",
-                $"Stats_{companyId}_OrderStatusDistribution_{companyId}__"
+                $"dashboard_stats_{companyId}_SalesKpi_{companyId}__",
+                $"dashboard_stats_{companyId}_OrdersKpi_{companyId}__",
+                $"dashboard_stats_{companyId}_TopProducts_{companyId}__",
+                $"dashboard_stats_{companyId}_LowStock_{companyId}",
+                $"dashboard_stats_{companyId}_RevenueTrend_{companyId}__",
+                $"dashboard_stats_{companyId}_CategorySales_{companyId}__",
+                $"dashboard_stats_{companyId}_AverageCartTrend_{companyId}__",
+                $"dashboard_stats_{companyId}_OrderStatusDistribution_{companyId}__"
             };
 
             foreach (var key in keys)
             {
-                await _cache.RemoveAsync(key);
+                await _cacheService.RemoveAsync(key);
             }
         }
 

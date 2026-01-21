@@ -15,14 +15,14 @@ public class DashboardService : IDashboardService
     private readonly ITenantService _tenantService;
     private readonly ILogger<DashboardService> _logger;
 
-    private readonly IDistributedCache _cache;
+    private readonly ICacheService _cacheService;
 
-    public DashboardService(AppDbContext context, ITenantService tenantService, ILogger<DashboardService> logger, IDistributedCache cache)
+    public DashboardService(AppDbContext context, ITenantService tenantService, ILogger<DashboardService> logger, ICacheService cacheService)
     {
         _context = context;
         _tenantService = tenantService;
         _logger = logger;
-        _cache = cache;
+        _cacheService = cacheService;
     }
 
     private IQueryable<Order> FilterOrders(IQueryable<Order> query, DateTime? startDate, DateTime? endDate, int? companyId)
@@ -301,22 +301,31 @@ public class DashboardService : IDashboardService
     private async Task<T> GetCachedDataAsync<T>(string key, Func<Task<T>> factory, int? companyId)
     {
          var tenantId = companyId ?? _tenantService.GetCompanyId() ?? 0;
-         var cacheKey = $"Stats_{tenantId}_{key}";
+         var cacheKey = $"dashboard_stats_{tenantId}_{key}";
          
-         var cachedBytes = await _cache.GetAsync(cacheKey);
-         if (cachedBytes != null)
+         try 
          {
-             var json = System.Text.Encoding.UTF8.GetString(cachedBytes);
-             return System.Text.Json.JsonSerializer.Deserialize<T>(json);
+             var cachedData = await _cacheService.GetAsync<T>(cacheKey);
+             if (cachedData != null)
+             {
+                 return cachedData;
+             }
+         }
+         catch (Exception ex)
+         {
+             _logger.LogError(ex, "Cache read error for key {Key}", cacheKey);
          }
          
          var data = await factory();
          
-         var options = new DistributedCacheEntryOptions()
-            .SetAbsoluteExpiration(TimeSpan.FromMinutes(15));
-            
-         var serialized = System.Text.Json.JsonSerializer.Serialize(data);
-         await _cache.SetAsync(cacheKey, System.Text.Encoding.UTF8.GetBytes(serialized), options);
+         try
+         {
+             await _cacheService.SetAsync(cacheKey, data, TimeSpan.FromMinutes(15));
+         }
+         catch (Exception ex)
+         {
+             _logger.LogError(ex, "Cache write error for key {Key}", cacheKey);
+         }
          
          return data;
     }
