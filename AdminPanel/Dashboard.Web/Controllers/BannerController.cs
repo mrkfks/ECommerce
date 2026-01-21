@@ -9,10 +9,10 @@ namespace Dashboard.Web.Controllers
     [Authorize]
     public class BannerController : Controller
     {
-        private readonly BannerApiService _bannerService;
+        private readonly IApiService<BannerViewModel> _bannerService;
         private readonly ILogger<BannerController> _logger;
 
-        public BannerController(BannerApiService bannerService, ILogger<BannerController> logger)
+        public BannerController(IApiService<BannerViewModel> bannerService, ILogger<BannerController> logger)
         {
             _bannerService = bannerService ?? throw new ArgumentNullException(nameof(bannerService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
