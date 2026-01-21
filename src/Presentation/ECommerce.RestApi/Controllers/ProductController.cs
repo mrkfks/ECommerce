@@ -158,6 +158,26 @@ public class ProductController : ControllerBase
              return NotFound(new { message = ex.Message });
         }
     }
+
+    /// <summary>
+    /// Toplu fiyat güncelleme
+    /// </summary>
+    [HttpPost("bulk-price-update")]
+    [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> BulkPriceUpdate([FromBody] ProductBulkUpdateDto dto)
+    {
+        try
+        {
+            _logger.LogInformation("Bulk updating prices for {Count} products by {Percentage}%", dto.ProductIds.Count, dto.PriceIncreasePercentage);
+            await _productService.BulkUpdatePriceAsync(dto.ProductIds, dto.PriceIncreasePercentage);
+            return Ok(new { message = "Fiyatlar güncellendi", Success = true });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
     
     /// <summary>
     /// Ürün siler

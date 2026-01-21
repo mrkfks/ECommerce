@@ -1,5 +1,6 @@
 using ECommerce.Application.DTOs.Dashboard;
 using ECommerce.Application.Interfaces;
+using Microsoft.Extensions.Caching.Distributed;
 using ECommerce.Domain.Entities;
 using ECommerce.Domain.Enums;
 using ECommerce.Infrastructure.Data;
@@ -14,11 +15,14 @@ public class DashboardService : IDashboardService
     private readonly ITenantService _tenantService;
     private readonly ILogger<DashboardService> _logger;
 
-    public DashboardService(AppDbContext context, ITenantService tenantService, ILogger<DashboardService> logger)
+    private readonly IDistributedCache _cache;
+
+    public DashboardService(AppDbContext context, ITenantService tenantService, ILogger<DashboardService> logger, IDistributedCache cache)
     {
         _context = context;
         _tenantService = tenantService;
         _logger = logger;
+        _cache = cache;
     }
 
     private IQueryable<Order> FilterOrders(IQueryable<Order> query, DateTime? startDate, DateTime? endDate, int? companyId)
@@ -62,18 +66,36 @@ public class DashboardService : IDashboardService
 
     public async Task<SalesKpiDto> GetSalesKpiAsync(DateTime? startDate, DateTime? endDate, int? companyId)
     {
-        IQueryable<Order> query = _context.Orders.AsNoTracking();
-        query = FilterOrders(query, startDate, endDate, companyId);
-        
-        var totalSales = await query.SumAsync(o => o.TotalAmount);
-        var count = await query.CountAsync();
-        
-        // Simple logic for daily/weekly - simplified for this refactor to avoid complexity issues
-        return new SalesKpiDto
+        return await GetCachedDataAsync($"SalesKpi_{companyId ?? 0}_{startDate}_{endDate}", async () => 
         {
-            DailySales = totalSales, // Placeholder logic
-            AverageOrderValue = count > 0 ? totalSales / count : 0
-        };
+            var today = DateTime.UtcNow.Date;
+            var yesterday = today.AddDays(-1);
+
+            IQueryable<Order> query = _context.Orders.AsNoTracking();
+            query = FilterOrders(query, null, null, companyId);
+            
+            var todaySales = await query.Where(o => o.OrderDate >= today).SumAsync(o => o.TotalAmount);
+            var yesterdaySales = await query.Where(o => o.OrderDate >= yesterday && o.OrderDate < today).SumAsync(o => o.TotalAmount);
+            
+            var totalSalesQuery = FilterOrders(_context.Orders.AsNoTracking(), startDate, endDate, companyId);
+            var totalSales = await totalSalesQuery.SumAsync(o => o.TotalAmount);
+            var count = await totalSalesQuery.CountAsync();
+            
+            decimal change = 0;
+            if (yesterdaySales > 0)
+                change = ((todaySales - yesterdaySales) / yesterdaySales) * 100;
+            else if (todaySales > 0)
+                change = 100;
+
+            return new SalesKpiDto
+            {
+                DailySales = todaySales,
+                YesterdaySales = yesterdaySales,
+                DailySalesChange = Math.Round(change, 2),
+                AverageOrderValue = count > 0 ? totalSales / count : 0,
+                MonthlySales = totalSales // Contextual to full range passed or total
+            };
+        }, companyId);
     }
 
     public async Task<OrderKpiDto> GetOrdersKpiAsync(DateTime? startDate, DateTime? endDate, int? companyId)
@@ -132,49 +154,68 @@ public class DashboardService : IDashboardService
 
     public async Task<List<LowStockProductDto>> GetLowStockProductsAsync(int? companyId)
     {
-        IQueryable<Product> query = _context.Products.AsNoTracking().Include(p => p.Category).Include(p => p.Images);
-        query = FilterProducts(query, companyId);
-        
-        return await query
-            .Where(p => p.StockQuantity < 10) // Threshold 10
-            .Select(p => new LowStockProductDto
-            {
-                ProductId = p.Id,
-                ProductName = p.Name,
-                CurrentStock = p.StockQuantity,
-                CategoryName = p.Category.Name,
-                ImageUrl = p.Images.FirstOrDefault(i => i.IsPrimary) != null 
-                    ? p.Images.FirstOrDefault(i => i.IsPrimary).ImageUrl 
-                    : null
-            })
-            .ToListAsync();
+        return await GetCachedDataAsync($"LowStock_{companyId ?? 0}", async () => 
+        {
+            IQueryable<Product> query = _context.Products.AsNoTracking().Include(p => p.Category).Include(p => p.Images);
+            query = FilterProducts(query, companyId);
+            
+            return await query
+                .Where(p => p.StockQuantity < 5) // Threshold 5 as requested
+                .Select(p => new LowStockProductDto
+                {
+                    ProductId = p.Id,
+                    ProductName = p.Name,
+                    CurrentStock = p.StockQuantity,
+                    CategoryName = p.Category.Name,
+                    ImageUrl = p.Images.FirstOrDefault(i => i.IsPrimary) != null 
+                        ? p.Images.FirstOrDefault(i => i.IsPrimary).ImageUrl 
+                        : null,
+                    DaysUntilOutOfStock = 0 // Complex calc omitted for brevity
+                })
+                .ToListAsync();
+        }, companyId);
     }
 
     public async Task<List<RevenueTrendDto>> GetRevenueTrendAsync(DateTime? startDate, DateTime? endDate, int? companyId)
     {
-        IQueryable<Order> query = _context.Orders.AsNoTracking();
-        query = FilterOrders(query, startDate, endDate, companyId);
-        
-        // Group by Date (only Date part)
-        // Accessing Date property in EF might need .Date
-        // SQLite supports it.
-        
-        return await query
-            .GroupBy(o => o.OrderDate.Date)
-            .Select(g => new RevenueTrendDto
+        return await GetCachedDataAsync($"RevenueTrend_{companyId ?? 0}_{startDate}_{endDate}", async () =>
+        {
+            var end = endDate ?? DateTime.UtcNow.Date;
+            var start = startDate ?? end.AddDays(-29); // Last 30 days including today
+
+            IQueryable<Order> query = _context.Orders.AsNoTracking();
+            query = FilterOrders(query, start, end, companyId);
+            
+            var dailyData = await query
+                .GroupBy(o => o.OrderDate.Date)
+                .Select(g => new 
+                {
+                    Date = g.Key,
+                    Revenue = g.Sum(o => o.TotalAmount),
+                    Count = g.Count()
+                })
+                .ToListAsync();
+
+            var result = new List<RevenueTrendDto>();
+            for (var date = start; date <= end; date = date.AddDays(1))
             {
-                Date = g.Key,
-                Revenue = g.Sum(o => o.TotalAmount),
-                OrderCount = g.Count()
-            })
-            .OrderBy(r => r.Date)
-            .ToListAsync();
+                var dayData = dailyData.FirstOrDefault(d => d.Date == date);
+                result.Add(new RevenueTrendDto
+                {
+                    Date = date,
+                    Revenue = dayData?.Revenue ?? 0,
+                    OrderCount = dayData?.Count ?? 0
+                });
+            }
+            
+            return result;
+        }, companyId);
     }
 
     public async Task<CustomerSegmentationDto> GetCustomerSegmentsAsync(DateTime? startDate, DateTime? endDate, int? companyId)
     {
          // Placeholder
-         return new CustomerSegmentationDto();
+         return await Task.FromResult(new CustomerSegmentationDto());
     }
 
     public async Task<List<CategorySalesDto>> GetCategorySalesAsync(DateTime? startDate, DateTime? endDate, int? companyId)
@@ -241,5 +282,27 @@ public class DashboardService : IDashboardService
             })
             .OrderBy(r => r.Date)
             .ToListAsync();
+    }
+    private async Task<T> GetCachedDataAsync<T>(string key, Func<Task<T>> factory, int? companyId)
+    {
+         var tenantId = companyId ?? _tenantService.GetCompanyId() ?? 0;
+         var cacheKey = $"Stats_{tenantId}_{key}";
+         
+         var cachedBytes = await _cache.GetAsync(cacheKey);
+         if (cachedBytes != null)
+         {
+             var json = System.Text.Encoding.UTF8.GetString(cachedBytes);
+             return System.Text.Json.JsonSerializer.Deserialize<T>(json);
+         }
+         
+         var data = await factory();
+         
+         var options = new DistributedCacheEntryOptions()
+            .SetAbsoluteExpiration(TimeSpan.FromMinutes(15));
+            
+         var serialized = System.Text.Json.JsonSerializer.Serialize(data);
+         await _cache.SetAsync(cacheKey, System.Text.Encoding.UTF8.GetBytes(serialized), options);
+         
+         return data;
     }
 }

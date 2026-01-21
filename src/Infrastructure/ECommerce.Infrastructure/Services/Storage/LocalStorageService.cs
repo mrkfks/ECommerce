@@ -41,8 +41,43 @@ namespace ECommerce.Infrastructure.Services.Storage
 
         public Task DeleteFileAsync(string fileUrl)
         {
-            // Extract local path from URL logic here...
-            // Simplified:
+            if (string.IsNullOrEmpty(fileUrl)) return Task.CompletedTask;
+
+            try 
+            {
+                // URL örnek: http://localhost:5000/uploads/1/products/abc.jpg
+                // WebRootPath: .../wwwroot
+                
+                // 1. URL'den path kısmını al
+                Uri uri;
+                if (!Uri.TryCreate(fileUrl, UriKind.Absolute, out uri))
+                {
+                    // Belki relative path gelmiştir (/uploads/...)
+                    if (fileUrl.StartsWith("/")) 
+                        uri = new Uri("http://dummy" + fileUrl);
+                    else
+                        return Task.CompletedTask; // Geçersiz format
+                }
+                
+                var localPath = uri.LocalPath; // /uploads/1/products/abc.jpg
+                
+                // 2. Başındaki /'ı kaldır ve sistem seperatorüne çevir
+                var relativePath = localPath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+                
+                // 3. Full path oluştur
+                var fullPath = Path.Combine(_env.WebRootPath, relativePath);
+                
+                if (File.Exists(fullPath))
+                {
+                    File.Delete(fullPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log and swallow - dosya silinememesi süreci kırmamalı
+                 // _logger.LogError(ex, "File delete failed: {Url}", fileUrl); (Logger yoksa yut)
+            }
+            
             return Task.CompletedTask;
         }
     }

@@ -30,6 +30,9 @@ namespace ECommerce.Application.Interfaces
 
         // Stok güncelle
         Task UpdateStockAsync(int productId, int newQuantity);
+        
+        // Güvenli stok düşümü (Atomik)
+        Task DecreaseStockAsync(int productId, int quantity);
 
         // Ürün arama (isim veya açıklama üzerinden)
         Task<IReadOnlyList<ProductDto>> SearchAsync(string keyword);
@@ -38,7 +41,10 @@ namespace ECommerce.Application.Interfaces
         Task<ProductImageDto> AddImageAsync(int productId, string imageUrl, int order, bool isPrimary);
         Task UpdateImageAsync(int productId, int imageId, string imageUrl, int order, bool isPrimary);
         Task RemoveImageAsync(int productId, int imageId);
-        Task<IReadOnlyList<ProductImageDto>> GetImagesAsync(int productId);
+        Task<List<ProductImageDto>> GetImagesAsync(int productId);
+
+        // Toplu Fiyat Güncelleme
+        Task BulkUpdatePriceAsync(List<int> productIds, decimal percentage);
     }
 }
 

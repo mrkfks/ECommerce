@@ -178,5 +178,13 @@ namespace Dashboard.Web.Controllers
             var product = await _productService.GetByIdAsync(id);
             return View(product);
         }
+
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+        [HttpPost]
+        public async Task<IActionResult> BulkUpdate([FromBody] ProductBulkUpdateDto dto)
+        {
+            var success = await _productService.BulkUpdateAsync(dto.ProductIds, dto.PriceIncreasePercentage);
+            return Json(new { success = success, message = success ? "Fiyatlar güncellendi" : "Hata oluştu" });
+        }
     }
 }

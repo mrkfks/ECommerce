@@ -1,6 +1,7 @@
 using ECommerce.Application.Exceptions;
 using ECommerce.Application.Interfaces;
 using System.Net;
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace ECommerce.RestApi.Middleware;
@@ -19,8 +20,13 @@ public class GlobalExceptionHandler
     public async Task InvokeAsync(HttpContext context, ITenantService tenantService)
     {
         var tenantId = tenantService.GetCompanyId();
+        var userId = context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        using (_logger.BeginScope(new Dictionary<string, object> { { "TenantId", tenantId ?? 0 } }))
+        using (_logger.BeginScope(new Dictionary<string, object> 
+        { 
+            { "TenantId", tenantId ?? 0 },
+            { "UserId", userId ?? "Anonymous" }
+        }))
         {
             try
             {
@@ -28,7 +34,7 @@ public class GlobalExceptionHandler
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An unhandled exception occurred for TenantId: {TenantId}", tenantId);
+                _logger.LogError(ex, "An unhandled exception occurred. Tenant: {TenantId}, User: {UserId}", tenantId, userId);
                 await HandleExceptionAsync(context, ex);
             }
         }

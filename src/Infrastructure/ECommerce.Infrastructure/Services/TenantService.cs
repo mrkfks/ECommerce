@@ -66,6 +66,32 @@ public class TenantService : ITenantService
         // SuperAdmin için JWT'den CompanyId al - header yoksa
         // Artık SuperAdmin için de null dönmüyoruz, JWT'deki company ID'yi kullanıyoruz
         var companyClaim = user.FindFirst("CompanyId")?.Value;
+        
+        // SECURITY CHECK: Eğer header'da company ID varsa ve kullanıcı authenticated ise,
+        // Token'daki Company Id ile Header'daki uyuşuyor mu diye kontrol et.
+        // Not: SuperAdmin veya platform admin değilse bu kontrol önemlidir.
+        // Eğer kullanıcı bir Company'ye bağlıysa (CompanyId claim'i varsa), 
+        // Header'da farklı bir CompanyId ile işlem yapmasına izin verilmemeli.
+        
+        if (isAuthenticated && !string.IsNullOrEmpty(companyClaim) && int.TryParse(companyClaim, out int tokenCompanyId))
+        {
+             // Eğer header'dan bir company ID geldiyse ve token ile uyuşmuyorsa
+             if (context.Request?.Headers != null && 
+                 context.Request.Headers.TryGetValue("X-Company-Id", out var hVal) &&
+                 int.TryParse(hVal.ToString(), out int hCompanyId))
+             {
+                 if (hCompanyId != tokenCompanyId && !IsSuperAdmin()) // SuperAdmin her yerine girebilir varsayımı
+                 {
+                     _logger.LogWarning("Tenant Mismatch! Token: {TokenCompanyId}, Header: {HeaderCompanyId}", tokenCompanyId, hCompanyId);
+                     throw new UnauthorizedAccessException("Tenant mismatch: You cannot access this company's data.");
+                 }
+             }
+
+             // Header yoksa veya eşleşiyorsa token'dakini kullanabiliriz (öncelik header idi ama aynıysa fark etmez)
+             // Ancak GetCompanyId mantığı yukarıda header varsa dönüyordu.
+             // Burada sadece güvenlik kontrolü yaptık.
+        }
+
         if (!string.IsNullOrEmpty(companyClaim) && int.TryParse(companyClaim, out int companyId))
         {
             _logger.LogInformation("Returning CompanyId from JWT: {CompanyId}", companyId);

@@ -1151,11 +1151,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Ömer Kafkas\\Projects\\ECommerce\\AdminPanel\\Dashboard.Web\\Dashboard.Web.csproj",
+      "projectUniqueName": "d:\\Ömer Kafkas\\Projects\\ECommerce\\AdminPanel\\Dashboard.Web\\Dashboard.Web.csproj",
       "projectName": "Dashboard.Web",
-      "projectPath": "D:\\Ömer Kafkas\\Projects\\ECommerce\\AdminPanel\\Dashboard.Web\\Dashboard.Web.csproj",
+      "projectPath": "d:\\Ömer Kafkas\\Projects\\ECommerce\\AdminPanel\\Dashboard.Web\\Dashboard.Web.csproj",
       "packagesPath": "C:\\Users\\mrkfks\\.nuget\\packages\\",
-      "outputPath": "D:\\Ömer Kafkas\\Projects\\ECommerce\\AdminPanel\\Dashboard.Web\\obj\\",
+      "outputPath": "d:\\Ömer Kafkas\\Projects\\ECommerce\\AdminPanel\\Dashboard.Web\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -1177,8 +1177,8 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "D:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Core\\ECommerce.Application\\ECommerce.Application.csproj": {
-              "projectPath": "D:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Core\\ECommerce.Application\\ECommerce.Application.csproj"
+            "d:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Core\\ECommerce.Application\\ECommerce.Application.csproj": {
+              "projectPath": "d:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Core\\ECommerce.Application\\ECommerce.Application.csproj"
             }
           }
         }

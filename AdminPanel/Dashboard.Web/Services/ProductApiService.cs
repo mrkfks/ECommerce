@@ -33,4 +33,18 @@ public class ProductApiService : ApiService<ProductDto>
             return false;
         }
     }
+    public async Task<bool> BulkUpdateAsync(List<int> productIds, decimal percentage)
+    {
+        try
+        {
+            var dto = new ProductBulkUpdateDto { ProductIds = productIds, PriceIncreasePercentage = percentage };
+            var response = await _httpClient.PostAsJsonAsync($"api/{_endpoint}/bulk-price-update", dto);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ProductApiService] Exception: {ex.Message}");
+            return false;
+        }
+    }
 }

@@ -6,6 +6,7 @@ using ECommerce.Domain.Enums;
 using ECommerce.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.SignalR;
 
 namespace ECommerce.Infrastructure.Services
 {
@@ -14,12 +15,14 @@ namespace ECommerce.Infrastructure.Services
         private readonly AppDbContext _context;
         private readonly ITenantService _tenantService;
         private readonly ILogger<OrderService> _logger;
+        private readonly Microsoft.AspNetCore.SignalR.IHubContext<ECommerce.Infrastructure.Hubs.NotificationHub> _hubContext;
 
-        public OrderService(AppDbContext context, ITenantService tenantService, ILogger<OrderService> logger)
+        public OrderService(AppDbContext context, ITenantService tenantService, ILogger<OrderService> logger, Microsoft.AspNetCore.SignalR.IHubContext<ECommerce.Infrastructure.Hubs.NotificationHub> hubContext)
         {
             _context = context;
             _tenantService = tenantService;
             _logger = logger;
+            _hubContext = hubContext;
         }
 
         public async Task<OrderDto> CreateAsync(OrderCreateDto dto)
@@ -77,8 +80,35 @@ namespace ECommerce.Infrastructure.Services
                     order.AddItem(orderItem);
                 }
 
+                // 4. Sepeti Temizle (Varsa)
+                // Müşterinin bu şirketteki aktif sepetini bul ve temizle
+                if (dto.CustomerId > 0)
+                {
+                     // Sepet kalemlerini sil (CartItem -> Cart -> CustomerId == dto.CustomerId && CompanyId == dto.CompanyId)
+                     // Not: CartItem üzerinde doğrudan CustomerId yok, Cart üzerinden gidiyoruz.
+                     // Performans için ExecuteDeleteAsync kullanıyoruz.
+                     await _context.CartItems
+                         .Where(ci => ci.Cart.CustomerId == dto.CustomerId && ci.Cart.CompanyId == dto.CompanyId)
+                         .ExecuteDeleteAsync();
+                         
+                     // Opsiyonel: Sepeti de pasife çekebiliriz veya boş bırakabiliriz.
+                }
+
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
+
+                // 5. Send Real-Time Notification
+                try
+                {
+                    // Tenant-specific group 'Tenant_{CompanyId}'
+                    var notificationMessage = $"Yeni Sipariş Alındı! Sipariş No: {order.Id}, Tutar: {order.TotalAmount:C2}";
+                    await _hubContext.Clients.Group($"Tenant_{order.CompanyId}").SendAsync("ReceiveNotification", notificationMessage);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to send real-time notification for Order {OrderId}", order.Id);
+                    // Do not throw, order is already committed
+                }
 
                 return await GetByIdAsync(order.Id) ?? throw new Exception("Order created but not found");
             }
@@ -108,6 +138,7 @@ namespace ECommerce.Infrastructure.Services
                 .Include(o => o.Company)
                 .Include(o => o.Address)
                 .Include(o => o.Items)
+                    .ThenInclude(i => i.Product)
                 .AsNoTracking()
                 .Where(o => !companyId.HasValue || o.CompanyId == companyId.Value)
                 .OrderByDescending(o => o.OrderDate)
@@ -124,6 +155,7 @@ namespace ECommerce.Infrastructure.Services
                 .Include(o => o.Company)
                 .Include(o => o.Address)
                 .Include(o => o.Items)
+                    .ThenInclude(i => i.Product)
                 .AsNoTracking()
                 .Where(o => o.CustomerId == customerId)
                 .OrderByDescending(o => o.OrderDate)

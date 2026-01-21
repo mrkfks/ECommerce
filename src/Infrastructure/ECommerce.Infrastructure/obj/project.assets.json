@@ -5005,11 +5005,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Infrastructure\\ECommerce.Infrastructure\\ECommerce.Infrastructure.csproj",
+      "projectUniqueName": "d:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Infrastructure\\ECommerce.Infrastructure\\ECommerce.Infrastructure.csproj",
       "projectName": "ECommerce.Infrastructure",
-      "projectPath": "D:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Infrastructure\\ECommerce.Infrastructure\\ECommerce.Infrastructure.csproj",
+      "projectPath": "d:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Infrastructure\\ECommerce.Infrastructure\\ECommerce.Infrastructure.csproj",
       "packagesPath": "C:\\Users\\mrkfks\\.nuget\\packages\\",
-      "outputPath": "D:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Infrastructure\\ECommerce.Infrastructure\\obj\\",
+      "outputPath": "d:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Infrastructure\\ECommerce.Infrastructure\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -5031,11 +5031,11 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "D:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Core\\ECommerce.Application\\ECommerce.Application.csproj": {
-              "projectPath": "D:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Core\\ECommerce.Application\\ECommerce.Application.csproj"
+            "d:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Core\\ECommerce.Application\\ECommerce.Application.csproj": {
+              "projectPath": "d:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Core\\ECommerce.Application\\ECommerce.Application.csproj"
             },
-            "D:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Core\\ECommerce.Domain\\ECommerce.Domain.csproj": {
-              "projectPath": "D:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Core\\ECommerce.Domain\\ECommerce.Domain.csproj"
+            "d:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Core\\ECommerce.Domain\\ECommerce.Domain.csproj": {
+              "projectPath": "d:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Core\\ECommerce.Domain\\ECommerce.Domain.csproj"
             }
           }
         }

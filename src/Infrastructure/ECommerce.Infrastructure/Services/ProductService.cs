@@ -14,13 +14,15 @@ namespace ECommerce.Infrastructure.Services
         private readonly ITenantService _tenantService;
         private readonly IMapper _mapper;
         private readonly ILogger<ProductService> _logger;
+        private readonly IStorageService _storageService;
 
-        public ProductService(AppDbContext context, ITenantService tenantService, IMapper mapper, ILogger<ProductService> logger)
+        public ProductService(AppDbContext context, ITenantService tenantService, IMapper mapper, ILogger<ProductService> logger, IStorageService storageService)
         {
             _context = context;
             _tenantService = tenantService;
             _mapper = mapper;
             _logger = logger;
+            _storageService = storageService;
         }
 
         public async Task<ProductDto> CreateAsync(ProductCreateDto dto)
@@ -58,8 +60,21 @@ namespace ECommerce.Infrastructure.Services
 
         public async Task DeleteAsync(int id)
         {
-            var product = await _context.Products.FindAsync(id);
+            var product = await _context.Products
+                .Include(p => p.Images)
+                .FirstOrDefaultAsync(p => p.Id == id);
+                
             if (product == null) throw new Exception("Product not found");
+
+            // Delete physical images
+            if (product.Images != null && product.Images.Any())
+            {
+                foreach (var img in product.Images)
+                {
+                    if (!string.IsNullOrEmpty(img.ImageUrl))
+                        await _storageService.DeleteFileAsync(img.ImageUrl);
+                }
+            }
             
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
@@ -182,6 +197,16 @@ namespace ECommerce.Infrastructure.Services
             product.UpdateStock(newQuantity);
             await _context.SaveChangesAsync();
         }
+
+        public async Task DecreaseStockAsync(int productId, int quantity)
+        {
+            var affectedRows = await _context.Products
+                .Where(p => p.Id == productId && p.StockQuantity >= quantity)
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.StockQuantity, p => p.StockQuantity - quantity));
+
+            if (affectedRows == 0)
+                throw new Exception($"Yetersiz stok veya ürün bulunamadı. ProductId: {productId}");
+        }
         
         // Image Methods
         public async Task<ProductImageDto> AddImageAsync(int productId, string imageUrl, int order, bool isPrimary)
@@ -247,15 +272,20 @@ namespace ECommerce.Infrastructure.Services
             var image = product.Images.FirstOrDefault(i => i.Id == imageId);
             if (image == null) throw new KeyNotFoundException("Image not found");
 
-            product.Images.Remove(image); // Verify if this removes from DB or just from collection. 
-            // In EF Core with cascade delete (usually), removing from collection and saving deletes orphan.
-            // If not configured, we might need _context.Set<ProductImage>().Remove(image).
-            _context.Set<ProductImage>().Remove(image);
+            // Delete physical file
+            if (!string.IsNullOrEmpty(image.ImageUrl))
+            {
+                await _storageService.DeleteFileAsync(image.ImageUrl);
+            }
+
+            product.Images.Remove(image); 
+            // Also explicitly remove from context to be safe if cascade isn't enough or for soft delete logic
+            _context.ProductImages.Remove(image);
             
             await _context.SaveChangesAsync();
         }
 
-        public async Task<IReadOnlyList<ProductImageDto>> GetImagesAsync(int productId)
+        public async Task<List<ProductImageDto>> GetImagesAsync(int productId)
         {
             var product = await _context.Products.AsNoTracking().Include(p => p.Images).FirstOrDefaultAsync(p => p.Id == productId);
             if (product == null) throw new KeyNotFoundException("Product not found");
@@ -270,6 +300,30 @@ namespace ECommerce.Infrastructure.Services
                 Order = i.Order,
                 IsPrimary = i.IsPrimary
             }).ToList();
+        }
+
+        public async Task BulkUpdatePriceAsync(List<int> productIds, decimal percentage)
+        {
+             if (productIds == null || !productIds.Any()) return;
+
+             var companyId = _tenantService.GetCompanyId();
+             
+             // Base query filtered by tenant
+             var query = _context.Products.Where(p => productIds.Contains(p.Id));
+             if (companyId.HasValue)
+                 query = query.Where(p => p.CompanyId == companyId.Value);
+
+             // Calculate multiplier: e.g. 10% -> 1.10
+             // ExecuteUpdateAsync with expression tree might be tricky with decimal math in all providers, but usually works in modern EF Core.
+             // Price = Price * (1 + percentage/100)
+             
+             // Note: EF Core 7+ ExecuteUpdate supports math operations.
+             // We need to be careful about precision. 
+             // Let's assume Price is decimal(18,2).
+             
+             decimal multiplier = 1 + (percentage / 100m);
+
+             await query.ExecuteUpdateAsync(s => s.SetProperty(p => p.Price, p => p.Price * multiplier));
         }
         
         private static ProductDto MapToDto(Product p)
