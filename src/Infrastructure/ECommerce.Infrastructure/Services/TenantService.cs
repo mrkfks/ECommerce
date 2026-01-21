@@ -19,83 +19,32 @@ public class TenantService : ITenantService
     public int? GetCompanyId()
     {
         var context = _httpContextAccessor.HttpContext;
-        if (context == null)
-        {
-            _logger.LogWarning("HttpContext is null in TenantService");
-            return null;
-        }
-
-        if (context.Items.TryGetValue("CompanyId", out var itemCompany) && itemCompany is int companyFromItems)
-        {
-            _logger.LogInformation("CompanyId found in HttpContext.Items: {CompanyId}", companyFromItems);
-            return companyFromItems;
-        }
+        if (context == null) return null;
 
         var user = context.User;
         var isAuthenticated = user?.Identity?.IsAuthenticated == true;
 
-        // 1) Eğer header'da şirket kimliği varsa, bunu öncelikli kullan
-        // Bu sayede hem anonim ziyaretçiler hem de SuperAdmin için tenant bağlamı sağlanır
-        if (context.Request?.Headers != null && context.Request.Headers.TryGetValue("X-Company-Id", out var headerValues))
+        // 1. JWT Claim'den TenantId (CompanyId) Okuma - Öncelikli
+        if (isAuthenticated)
         {
-            var headerVal = headerValues.ToString();
-            _logger.LogInformation("X-Company-Id header found: '{HeaderValue}'", headerVal);
-            if (!string.IsNullOrWhiteSpace(headerVal) && int.TryParse(headerVal, out int headerCompanyId))
+            // İstenen özel claim veya standart primarysid
+            var tenantClaim = user.FindFirst("http://schemas.microsoft.com/ws/2008/06/identity/claims/primarysid") 
+                              ?? user.FindFirst("TenantId")
+                              ?? user.FindFirst("CompanyId");
+
+            if (tenantClaim != null && int.TryParse(tenantClaim.Value, out int claimCompanyId))
             {
-                _logger.LogInformation("Returning CompanyId from header: {CompanyId}", headerCompanyId);
-                return headerCompanyId;
+                return claimCompanyId;
             }
         }
-        else
-        {
-            _logger.LogWarning("X-Company-Id header NOT found");
-        }
 
-        if (!isAuthenticated)
+        // 2. HTTP Header'dan Okuma (Fallback veya Anonim testler için)
+        if (context.Request.Headers.TryGetValue("X-Company-Id", out var headerValue))
         {
-            _logger.LogInformation("User not authenticated, returning null");
-            return null;
-        }
-
-        if (user == null)
-        {
-            _logger.LogWarning("User principal is null in TenantService");
-            return null;
-        }
-
-        // SuperAdmin için JWT'den CompanyId al - header yoksa
-        // Artık SuperAdmin için de null dönmüyoruz, JWT'deki company ID'yi kullanıyoruz
-        var companyClaim = user.FindFirst("CompanyId")?.Value;
-        
-        // SECURITY CHECK: Eğer header'da company ID varsa ve kullanıcı authenticated ise,
-        // Token'daki Company Id ile Header'daki uyuşuyor mu diye kontrol et.
-        // Not: SuperAdmin veya platform admin değilse bu kontrol önemlidir.
-        // Eğer kullanıcı bir Company'ye bağlıysa (CompanyId claim'i varsa), 
-        // Header'da farklı bir CompanyId ile işlem yapmasına izin verilmemeli.
-        
-        if (isAuthenticated && !string.IsNullOrEmpty(companyClaim) && int.TryParse(companyClaim, out int tokenCompanyId))
-        {
-             // Eğer header'dan bir company ID geldiyse ve token ile uyuşmuyorsa
-             if (context.Request?.Headers != null && 
-                 context.Request.Headers.TryGetValue("X-Company-Id", out var hVal) &&
-                 int.TryParse(hVal.ToString(), out int hCompanyId))
-             {
-                 if (hCompanyId != tokenCompanyId && !IsSuperAdmin()) // SuperAdmin her yerine girebilir varsayımı
-                 {
-                     _logger.LogWarning("Tenant Mismatch! Token: {TokenCompanyId}, Header: {HeaderCompanyId}", tokenCompanyId, hCompanyId);
-                     throw new UnauthorizedAccessException("Tenant mismatch: You cannot access this company's data.");
-                 }
-             }
-
-             // Header yoksa veya eşleşiyorsa token'dakini kullanabiliriz (öncelik header idi ama aynıysa fark etmez)
-             // Ancak GetCompanyId mantığı yukarıda header varsa dönüyordu.
-             // Burada sadece güvenlik kontrolü yaptık.
-        }
-
-        if (!string.IsNullOrEmpty(companyClaim) && int.TryParse(companyClaim, out int companyId))
-        {
-            _logger.LogInformation("Returning CompanyId from JWT: {CompanyId}", companyId);
-            return companyId;
+            if (int.TryParse(headerValue.ToString(), out int headerCompanyId))
+            {
+                return headerCompanyId;
+            }
         }
 
         return null;
@@ -103,12 +52,7 @@ public class TenantService : ITenantService
 
     public int GetCurrentCompanyId()
     {
-        var companyId = GetCompanyId();
-        if (companyId.HasValue)
-            return companyId.Value;
-
-        // Eğer null ise (SuperAdmin gibi), varsayılan olarak 1 dön (veya hata fırlat)
-        return 1;
+        return GetCompanyId() ?? 0; // 0 veya varsayılan değer
     }
 
     public bool IsSuperAdmin()

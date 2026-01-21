@@ -200,9 +200,10 @@ namespace ECommerce.Infrastructure.Services
 
         public async Task DecreaseStockAsync(int productId, int quantity)
         {
-            var affectedRows = await _context.Products
-                .Where(p => p.Id == productId && p.StockQuantity >= quantity)
-                .ExecuteUpdateAsync(s => s.SetProperty(p => p.StockQuantity, p => p.StockQuantity - quantity));
+            // Atomik Stok Güncelleme (SQL)
+            // Stok miktarını güvenli bir şekilde düşür ve sonucunu kontrol et
+            var affectedRows = await _context.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE Products SET StockQuantity = StockQuantity - {quantity} WHERE Id = {productId} AND StockQuantity >= {quantity}");
 
             if (affectedRows == 0)
                 throw new Exception($"Yetersiz stok veya ürün bulunamadı. ProductId: {productId}");

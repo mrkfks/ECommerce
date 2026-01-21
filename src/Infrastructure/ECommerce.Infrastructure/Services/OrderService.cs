@@ -15,12 +15,19 @@ namespace ECommerce.Infrastructure.Services
         private readonly AppDbContext _context;
         private readonly ITenantService _tenantService;
         private readonly ILogger<OrderService> _logger;
+        private readonly IProductService _productService;
         private readonly Microsoft.AspNetCore.SignalR.IHubContext<ECommerce.Infrastructure.Hubs.NotificationHub> _hubContext;
 
-        public OrderService(AppDbContext context, ITenantService tenantService, ILogger<OrderService> logger, Microsoft.AspNetCore.SignalR.IHubContext<ECommerce.Infrastructure.Hubs.NotificationHub> hubContext)
+        public OrderService(
+            AppDbContext context, 
+            ITenantService tenantService, 
+            IProductService productService,
+            ILogger<OrderService> logger, 
+            Microsoft.AspNetCore.SignalR.IHubContext<ECommerce.Infrastructure.Hubs.NotificationHub> hubContext)
         {
             _context = context;
             _tenantService = tenantService;
+            _productService = productService;
             _logger = logger;
             _hubContext = hubContext;
         }
@@ -67,13 +74,10 @@ namespace ECommerce.Infrastructure.Services
                     if (!product.IsActive)
                         throw new Exception($"Ürün satışa kapalı: {product.Name}");
 
-                    // Safe Atomic Stock Update (Concurrency Safe)
-                    var affectedRows = await _context.Products
-                        .Where(p => p.Id == product.Id && p.StockQuantity >= itemDto.Quantity)
-                        .ExecuteUpdateAsync(s => s.SetProperty(p => p.StockQuantity, p => p.StockQuantity - itemDto.Quantity));
-
-                    if (affectedRows == 0)
-                        throw new Exception($"Yetersiz stok veya eşzamanlı işlem hatası: {product.Name}");
+                    // Safe Atomic Stock Update via ProductService (SQL based)
+                    await _productService.DecreaseStockAsync(product.Id, itemDto.Quantity);
+                    
+                    // OrderItem oluştur
                     
                     // OrderItem oluştur
                     var orderItem = OrderItem.Create(product.Id, itemDto.Quantity, product.Price);
