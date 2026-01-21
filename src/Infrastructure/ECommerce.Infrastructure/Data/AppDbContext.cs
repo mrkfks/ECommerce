@@ -49,12 +49,12 @@ namespace ECommerce.Infrastructure.Data
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
 
-        // Tenant context - TEST: sabit değer döndür
-        public int? CurrentCompanyId => 2;  // TEST için sabit CompanyId=2
+        // Tenant context
+        public int? CurrentCompanyId => _tenantService.GetCompanyId();
+
         public void SetCompanyContext(int companyId)
         {
             // Not: CurrentCompanyId artık dinamik bir property olduğu için bu metod kullanılmıyor
-            // Ancak IApplicationDbContext interface'i için tanımlanmış olabilir
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

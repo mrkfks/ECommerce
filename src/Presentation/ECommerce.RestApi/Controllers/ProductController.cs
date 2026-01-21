@@ -1,9 +1,7 @@
 using ECommerce.Application.DTOs;
 using ECommerce.Application.DTOs.Common;
-using ECommerce.Application.Features.Products.Commands;
-using ECommerce.Application.Features.Products.Queries;
+
 using ECommerce.Application.Interfaces;
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,13 +12,13 @@ namespace ECommerce.RestApi.Controllers;
 [Authorize(Policy = "SameCompanyOrSuperAdmin")]
 public class ProductController : ControllerBase
 {
-    private readonly IMediator _mediator;
+    private readonly IProductService _productService;
     private readonly ILogger<ProductController> _logger;
     private readonly ITenantService _tenantService;
 
-    public ProductController(IMediator mediator, ILogger<ProductController> logger, ITenantService tenantService)
+    public ProductController(IProductService productService, ILogger<ProductController> logger, ITenantService tenantService)
     {
-        _mediator = mediator;
+        _productService = productService;
         _logger = logger;
         _tenantService = tenantService;
     }
@@ -34,10 +32,16 @@ public class ProductController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create(ProductCreateDto dto)
     {
-        _logger.LogInformation("Creating new product: {ProductName}", dto.Name);
-        var command = new CreateProductCommand { Product = dto };
-        var result = await _mediator.Send(command);
-        return Ok(result);
+        try
+        {
+            _logger.LogInformation("Creating new product: {ProductName}", dto.Name);
+            var result = await _productService.CreateAsync(dto);
+            return Ok(new { Data = result, Message = "Ürün oluşturuldu", Success = true });
+        }
+        catch (Exception ex)
+        {
+             return BadRequest(new { message = ex.Message });
+        }
     }
     
     /// <summary>
@@ -51,9 +55,9 @@ public class ProductController : ControllerBase
     public async Task<IActionResult> Get(int id)
     {
         _logger.LogInformation("Fetching product with ID: {ProductId}", id);
-        var query = new GetProductByIdQuery { Id = id };
-        var result = await _mediator.Send(query);
-        return Ok(result);
+        var result = await _productService.GetByIdAsync(id);
+        if (result == null) return NotFound(new { message = "Ürün bulunamadı" });
+        return Ok(new { Data = result, Success = true });
     }
     
     /// <summary>
@@ -67,10 +71,18 @@ public class ProductController : ControllerBase
     {
         var currentCompanyId = _tenantService.GetCompanyId();
         _logger.LogInformation("Fetching products (Page {Page}, Size {Size}) - Current CompanyId: {CompanyId}", pageNumber, pageSize, currentCompanyId?.ToString() ?? "NULL");
-        var query = new GetAllProductsQuery { PageNumber = pageNumber, PageSize = pageSize };
-        var result = await _mediator.Send(query);
-        // Result is now ApiResponseDto<PaginatedResult<ProductDto>>
-        return Ok(result);
+        
+        var products = await _productService.GetAllAsync();
+        var paged = products.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+        
+        return Ok(new 
+        { 
+            Data = paged,
+            TotalCount = products.Count,
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            Success = true
+        });
     }
 
     /// <summary>
@@ -83,9 +95,8 @@ public class ProductController : ControllerBase
     public async Task<IActionResult> GetByCategory(int categoryId)
     {
         _logger.LogInformation("Fetching products for category: {CategoryId}", categoryId);
-        var query = new GetProductsByCategoryQuery { CategoryId = categoryId };
-        var result = await _mediator.Send(query);
-        return Ok(result);
+        var result = await _productService.GetByCategoryIdAsync(categoryId);
+         return Ok(new { Data = result, Success = true });
     }
 
     /// <summary>
@@ -98,9 +109,8 @@ public class ProductController : ControllerBase
     public async Task<IActionResult> Search([FromQuery] string searchTerm)
     {
         _logger.LogInformation("Searching products with term: {SearchTerm}", searchTerm);
-        var query = new SearchProductsQuery { SearchTerm = searchTerm };
-        var result = await _mediator.Send(query);
-        return Ok(result);
+        var result = await _productService.SearchAsync(searchTerm);
+        return Ok(new { Data = result, Success = true });
     }
     
     /// <summary>
@@ -116,10 +126,16 @@ public class ProductController : ControllerBase
         if (id != dto.Id) 
             return BadRequest(new { message = "Id mismatch" });
         
-        _logger.LogInformation("Updating product: {ProductId}", id);
-        var command = new UpdateProductCommand { Id = id, Product = dto };
-        var result = await _mediator.Send(command);
-        return Ok(result);
+        try
+        {
+            _logger.LogInformation("Updating product: {ProductId}", id);
+            await _productService.UpdateAsync(dto);
+            return Ok(new { message = "Ürün güncellendi", Success = true });
+        }
+        catch (Exception ex)
+        {
+             return NotFound(new { message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -131,10 +147,16 @@ public class ProductController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateStock(int id, [FromBody] StockUpdateDto dto)
     {
-        _logger.LogInformation("Updating stock for product {ProductId} to {StockQuantity}", id, dto.StockQuantity);
-        var command = new UpdateStockCommand { ProductId = id, StockQuantity = dto.StockQuantity };
-        var result = await _mediator.Send(command);
-        return Ok(result);
+        try
+        {
+             _logger.LogInformation("Updating stock for product {ProductId} to {StockQuantity}", id, dto.StockQuantity);
+             await _productService.UpdateStockAsync(id, dto.StockQuantity);
+             return Ok(new { message = "Stok güncellendi", Success = true });
+        }
+        catch (Exception ex)
+        {
+             return NotFound(new { message = ex.Message });
+        }
     }
     
     /// <summary>
@@ -146,9 +168,20 @@ public class ProductController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
-        _logger.LogInformation("Deleting product: {ProductId}", id);
-        var command = new DeleteProductCommand { Id = id };
-        var result = await _mediator.Send(command);
-        return Ok(result);
+        try
+        {
+            _logger.LogInformation("Deleting product: {ProductId}", id);
+            await _productService.DeleteAsync(id);
+             return Ok(new { message = "Ürün silindi", Success = true });
+        }
+        catch (Exception ex)
+        {
+             return NotFound(new { message = ex.Message });
+        }
     }
+}
+
+public class StockUpdateDto
+{
+    public int StockQuantity { get; set; }
 }

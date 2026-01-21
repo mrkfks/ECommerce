@@ -8,6 +8,7 @@ namespace ECommerce.Application.Interfaces
         Task<BrandDto?> GetByIdAsync(int id);
         Task<BrandDto> CreateAsync(BrandCreateDto dto);
         Task UpdateAsync(BrandUpdateDto dto);
+        Task UpdateImageAsync(int id, string imageUrl);
         Task DeleteAsync(int id);
     }
 }

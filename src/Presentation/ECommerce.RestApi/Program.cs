@@ -141,6 +141,13 @@ builder.Host.UseSerilog();
                 context.User.HasClaim(c => c.Type == "CompanyId")));
     });
 
+    // SignalR
+    builder.Services.AddSignalR();
+
+    // Cache (Default to Memory, change to Redis for prod)
+    builder.Services.AddDistributedMemoryCache();
+    // builder.Services.AddStackExchangeRedisCache(options => { options.Configuration = "localhost"; });
+
     builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, 
         ECommerce.RestApi.Authorization.SameCompanyAuthorizationHandler>();
 
@@ -191,127 +198,11 @@ builder.Host.UseSerilog();
 
     var app = builder.Build();
 
-    // Database Migration & SuperAdmin Seed
+    // Database Migration & Seed
     using (var scope = app.Services.CreateScope())
     {
-        var services = scope.ServiceProvider;
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        
-        try
-        {
-            var context = services.GetRequiredService<AppDbContext>();
-            await context.Database.MigrateAsync();
-            logger.LogInformation("✅ Database migrations completed");
-
-            // ========== SUPER ADMIN SEED ==========
-            // Önce Company var mı kontrol et, yoksa oluştur
-            var systemCompany = await context.Companies.FirstOrDefaultAsync(c => c.Name == "System");
-            if (systemCompany == null)
-            {
-                systemCompany = ECommerce.Domain.Entities.Company.Create(
-                    name: "System",
-                    address: "System Address",
-                    phoneNumber: "0000000000",
-                    email: "system@ecommerce.com",
-                    taxNumber: "0000000000"
-                );
-                // Şirketi aktif ve onaylı yap
-                systemCompany.Approve();
-                context.Companies.Add(systemCompany);
-                await context.SaveChangesAsync();
-                logger.LogInformation("✅ System company created with ID: {CompanyId}", systemCompany.Id);
-            }
-
-            // SuperAdmin rolü var mı kontrol et
-            var superAdminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "SuperAdmin");
-            if (superAdminRole == null)
-            {
-                superAdminRole = ECommerce.Domain.Entities.Role.Create("SuperAdmin", "Sistem yöneticisi - tüm yetkilere sahip");
-                context.Roles.Add(superAdminRole);
-                await context.SaveChangesAsync();
-                logger.LogInformation("✅ SuperAdmin role created");
-            }
-
-            // Admin rolü var mı kontrol et
-            var adminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
-            if (adminRole == null)
-            {
-                adminRole = ECommerce.Domain.Entities.Role.Create("Admin", "Şirket yöneticisi");
-                context.Roles.Add(adminRole);
-                await context.SaveChangesAsync();
-                logger.LogInformation("✅ Admin role created");
-            }
-
-            // User rolü var mı kontrol et
-            var userRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "User");
-            if (userRole == null)
-            {
-                userRole = ECommerce.Domain.Entities.Role.Create("User", "Standart kullanıcı");
-                context.Roles.Add(userRole);
-                await context.SaveChangesAsync();
-                logger.LogInformation("✅ User role created");
-            }
-
-            // CompanyAdmin rolü var mı kontrol et (Şirket kayıt için gerekli)
-            var companyAdminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "CompanyAdmin");
-            if (companyAdminRole == null)
-            {
-                companyAdminRole = ECommerce.Domain.Entities.Role.Create("CompanyAdmin", "Şirket yöneticisi - kendi şirketinin tüm yetkilerine sahip");
-                context.Roles.Add(companyAdminRole);
-                await context.SaveChangesAsync();
-                logger.LogInformation("✅ CompanyAdmin role created");
-            }
-
-            // Customer rolü var mı kontrol et (Genel müşteri kaydı için gerekli)
-            var customerRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Customer");
-            if (customerRole == null)
-            {
-                customerRole = ECommerce.Domain.Entities.Role.Create("Customer", "Genel müşteri - alışveriş yapabilir");
-                context.Roles.Add(customerRole);
-                await context.SaveChangesAsync();
-                logger.LogInformation("✅ Customer role created");
-            }
-
-            // SuperAdmin kullanıcısı var mı kontrol et
-            var superAdminEmail = "superadmin@ecommerce.com";
-            var existingSuperAdmin = await context.Users.FirstOrDefaultAsync(u => u.Email == superAdminEmail);
-            
-            if (existingSuperAdmin == null)
-            {
-                var passwordHash = BCrypt.Net.BCrypt.HashPassword("SuperAdmin123!");
-                var superAdminUser = ECommerce.Domain.Entities.User.Create(
-                    companyId: systemCompany.Id,
-                    username: "superadmin",
-                    email: superAdminEmail,
-                    passwordHash: passwordHash,
-                    firstName: "Super",
-                    lastName: "Admin"
-                );
-                
-                context.Users.Add(superAdminUser);
-                await context.SaveChangesAsync();
-
-                // Kullanıcıya SuperAdmin rolü ata
-                var superAdminUserRole = ECommerce.Domain.Entities.UserRole.Create(
-                    userId: superAdminUser.Id,
-                    roleId: superAdminRole.Id,
-                    roleName: "SuperAdmin"
-                );
-                context.UserRoles.Add(superAdminUserRole);
-                await context.SaveChangesAsync();
-
-                logger.LogInformation("✅ SuperAdmin user created - Email: {Email}", superAdminEmail);
-            }
-            else
-            {
-                logger.LogInformation("ℹ️ SuperAdmin user already exists");
-            }
-            // ========== SUPER ADMIN SEED END ==========
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "❌ Migration/Seed error: {Message}", ex.Message);
-        }
+        var seeder = scope.ServiceProvider.GetRequiredService<ECommerce.Infrastructure.Data.DataSeeder>();
+        await seeder.SeedAsync();
     }
 
     // Middleware Pipeline
@@ -372,5 +263,6 @@ app.MapGet("/", () => Results.Content(@"
 app.MapControllers();
 app.MapHealthChecks("/health");
 
+app.MapHub<ECommerce.Infrastructure.Hubs.NotificationHub>("/hub/notifications");
 app.Logger.LogInformation("🚀 ECommerce API başlatıldı - http://localhost:5010");
 app.Run();

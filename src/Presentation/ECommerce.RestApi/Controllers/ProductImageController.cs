@@ -1,3 +1,4 @@
+using ECommerce.Application.DTOs;
 using ECommerce.Application.DTOs.Common;
 using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Entities;
@@ -13,13 +14,13 @@ namespace ECommerce.RestApi.Controllers
     [Authorize(Roles = "Admin,SuperAdmin")]
     public class ProductImageController : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IProductService _productService;
         private readonly ITenantService _tenantService;
         private readonly ILogger<ProductImageController> _logger;
 
-        public ProductImageController(IUnitOfWork unitOfWork, ITenantService tenantService, ILogger<ProductImageController> logger)
+        public ProductImageController(IProductService productService, ITenantService tenantService, ILogger<ProductImageController> logger)
         {
-            _unitOfWork = unitOfWork;
+            _productService = productService;
             _tenantService = tenantService;
             _logger = logger;
         }
@@ -30,28 +31,7 @@ namespace ECommerce.RestApi.Controllers
         {
             try
             {
-                var product = await _unitOfWork.Products.GetByIdAsync(productId);
-                if (product == null)
-                {
-                    return NotFound(new ApiResponseDto<IEnumerable<ProductImageDto>>
-                    {
-                        Success = false,
-                        Message = "Ürün bulunamadı"
-                    });
-                }
-
-                var images = product.Images
-                    .OrderBy(i => i.Order)
-                    .Select(i => new ProductImageDto
-                    {
-                        Id = i.Id,
-                        ProductId = i.ProductId,
-                        ImageUrl = i.ImageUrl,
-                        Order = i.Order,
-                        IsPrimary = i.IsPrimary
-                    })
-                    .ToList();
-
+                var images = await _productService.GetImagesAsync(productId);
                 return Ok(new ApiResponseDto<IEnumerable<ProductImageDto>>
                 {
                     Success = true,
@@ -61,10 +41,10 @@ namespace ECommerce.RestApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting product images for product {ProductId}", productId);
-                return StatusCode(500, new ApiResponseDto<IEnumerable<ProductImageDto>>
+                return NotFound(new ApiResponseDto<IEnumerable<ProductImageDto>>
                 {
                     Success = false,
-                    Message = "Resimler alınırken hata oluştu"
+                    Message = ex.Message
                 });
             }
         }
@@ -74,47 +54,11 @@ namespace ECommerce.RestApi.Controllers
         {
             try
             {
-                var product = await _unitOfWork.Products.GetByIdAsync(productId);
-                if (product == null)
-                {
-                    return NotFound(new ApiResponseDto<ProductImageDto>
-                    {
-                        Success = false,
-                        Message = "Ürün bulunamadı"
-                    });
-                }
-
-                var companyId = _tenantService.GetCompanyId();
-                if (companyId.HasValue && product.CompanyId != companyId.Value)
-                {
-                    return Forbid();
-                }
-
-                // If setting as primary, unset others
-                if (dto.IsPrimary)
-                {
-                    foreach (var img in product.Images.Where(i => i.IsPrimary))
-                    {
-                        img.UnsetPrimary();
-                    }
-                }
-
-                var image = ProductImage.Create(productId, dto.ImageUrl, dto.Order, dto.IsPrimary);
-                ((List<ProductImage>)product.Images).Add(image);
-                
-                await _unitOfWork.SaveChangesAsync();
-
+                var image = await _productService.AddImageAsync(productId, dto.ImageUrl, dto.Order, dto.IsPrimary);
                 return Ok(new ApiResponseDto<ProductImageDto>
                 {
                     Success = true,
-                    Data = new ProductImageDto
-                    {
-                        Id = image.Id,
-                        ProductId = image.ProductId,
-                        ImageUrl = image.ImageUrl,
-                        Order = image.Order,
-                        IsPrimary = image.IsPrimary
-                    },
+                    Data = image,
                     Message = "Resim başarıyla eklendi"
                 });
             }
@@ -134,54 +78,18 @@ namespace ECommerce.RestApi.Controllers
         {
             try
             {
-                var product = await _unitOfWork.Products.GetByIdAsync(productId);
-                if (product == null)
-                {
-                    return NotFound(new ApiResponseDto<ProductImageDto>
-                    {
-                        Success = false,
-                        Message = "Ürün bulunamadı"
-                    });
-                }
-
-                var companyId = _tenantService.GetCompanyId();
-                if (companyId.HasValue && product.CompanyId != companyId.Value)
-                {
-                    return Forbid();
-                }
-
-                var image = product.Images.FirstOrDefault(i => i.Id == imageId);
-                if (image == null)
-                {
-                    return NotFound(new ApiResponseDto<ProductImageDto>
-                    {
-                        Success = false,
-                        Message = "Resim bulunamadı"
-                    });
-                }
-
-                // If setting as primary, unset others
-                if (dto.IsPrimary && !image.IsPrimary)
-                {
-                    foreach (var img in product.Images.Where(i => i.IsPrimary && i.Id != imageId))
-                    {
-                        img.UnsetPrimary();
-                    }
-                }
-
-                image.Update(dto.ImageUrl, dto.Order, dto.IsPrimary);
-                await _unitOfWork.SaveChangesAsync();
-
+                await _productService.UpdateImageAsync(productId, imageId, dto.ImageUrl, dto.Order, dto.IsPrimary);
+                // Return updated image DTO (manual construction as UpdateImageAsync returns void)
                 return Ok(new ApiResponseDto<ProductImageDto>
                 {
                     Success = true,
                     Data = new ProductImageDto
                     {
-                        Id = image.Id,
-                        ProductId = image.ProductId,
-                        ImageUrl = image.ImageUrl,
-                        Order = image.Order,
-                        IsPrimary = image.IsPrimary
+                        Id = imageId,
+                        ProductId = productId,
+                        ImageUrl = dto.ImageUrl,
+                        Order = dto.Order,
+                        IsPrimary = dto.IsPrimary
                     },
                     Message = "Resim başarıyla güncellendi"
                 });
@@ -202,35 +110,7 @@ namespace ECommerce.RestApi.Controllers
         {
             try
             {
-                var product = await _unitOfWork.Products.GetByIdAsync(productId);
-                if (product == null)
-                {
-                    return NotFound(new ApiResponseDto<bool>
-                    {
-                        Success = false,
-                        Message = "Ürün bulunamadı"
-                    });
-                }
-
-                var companyId = _tenantService.GetCompanyId();
-                if (companyId.HasValue && product.CompanyId != companyId.Value)
-                {
-                    return Forbid();
-                }
-
-                var image = product.Images.FirstOrDefault(i => i.Id == imageId);
-                if (image == null)
-                {
-                    return NotFound(new ApiResponseDto<bool>
-                    {
-                        Success = false,
-                        Message = "Resim bulunamadı"
-                    });
-                }
-
-                ((List<ProductImage>)product.Images).Remove(image);
-                await _unitOfWork.SaveChangesAsync();
-
+                await _productService.RemoveImageAsync(productId, imageId);
                 return Ok(new ApiResponseDto<bool>
                 {
                     Success = true,
@@ -244,19 +124,10 @@ namespace ECommerce.RestApi.Controllers
                 return StatusCode(500, new ApiResponseDto<bool>
                 {
                     Success = false,
-                    Message = "Resim silinirken hata oluştu"
+                    Message = ex.Message
                 });
             }
         }
-    }
-
-    public class ProductImageDto
-    {
-        public int Id { get; set; }
-        public int ProductId { get; set; }
-        public string ImageUrl { get; set; } = string.Empty;
-        public int Order { get; set; }
-        public bool IsPrimary { get; set; }
     }
 
     public class AddProductImageDto

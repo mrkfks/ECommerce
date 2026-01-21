@@ -101,6 +101,9 @@
                     <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Review" ? "active" : "")" asp-controller="Review" asp-action="Index">
                         <i class="fa-regular fa-comment-dots me-2"></i> Yorumlar
                     </a>
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Banner" ? "active" : "")" asp-controller="Banner" asp-action="Index">
+                        <i class="fa-solid fa-images me-2"></i> Bannerlar
+                    </a>
                     
                     @* Kullanıcı Yönetimi Bölümü *@
                     <div class="sidebar-divider" style="border-top: 1px solid rgba(255,255,255,0.1); margin: 0.5rem 1rem;"></div>
@@ -148,6 +151,16 @@
                     <div style="padding: 0.5rem 1.25rem; font-size: 0.7rem; text-transform: uppercase; color: rgba(255,255,255,0.4); letter-spacing: 1px;">
                         <i class="fa-solid fa-crown me-1" style="color: #ffc107;"></i> SuperAdmin
                     </div>
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Category" && ViewContext.RouteData.Values["action"]?.ToString()=="Index" ? "active" : "")" asp-controller="Category" asp-action="Index">
+                        <i class="fa-solid fa-list me-2"></i> Kategoriler
+                    </a>
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Category" && ViewContext.RouteData.Values["action"]?.ToString()=="Brands" ? "active" : "")" asp-controller="Category" asp-action="Brands">
+                        <i class="fa-solid fa-tags me-2"></i> Markalar
+                    </a>
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Category" && ViewContext.RouteData.Values["action"]?.ToString()=="Attributes" ? "active" : "")" asp-controller="Category" asp-action="Attributes">
+                        <i class="fa-solid fa-sliders me-2"></i> Özellikler
+                    </a>
+
                     <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Company" ? "active" : "")" asp-controller="Company" asp-action="Index">
                         <i class="fa-solid fa-building me-2"></i> Şirketler
                     </a>

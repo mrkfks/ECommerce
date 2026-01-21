@@ -14,7 +14,7 @@ namespace Dashboard.Web.Services
 
         public async Task<List<BannerViewModel>?> GetAllAsync()
         {
-            var response = await _httpClient.GetAsync("banner");
+            var response = await _httpClient.GetAsync("api/banner");
             response.EnsureSuccessStatusCode();
             
             var json = await response.Content.ReadAsStringAsync();
@@ -24,7 +24,7 @@ namespace Dashboard.Web.Services
 
         public async Task<BannerViewModel?> GetByIdAsync(int id)
         {
-            var response = await _httpClient.GetAsync($"banner/{id}");
+            var response = await _httpClient.GetAsync($"api/banner/{id}");
             response.EnsureSuccessStatusCode();
             
             var json = await response.Content.ReadAsStringAsync();
@@ -43,7 +43,7 @@ namespace Dashboard.Web.Services
                 order = model.Order
             };
 
-            var response = await _httpClient.PostAsJsonAsync("banner", createDto);
+            var response = await _httpClient.PostAsJsonAsync("api/banner", createDto);
             return response.IsSuccessStatusCode;
         }
 
@@ -59,13 +59,13 @@ namespace Dashboard.Web.Services
                 isActive = model.IsActive
             };
 
-            var response = await _httpClient.PutAsJsonAsync($"banner/{id}", updateDto);
+            var response = await _httpClient.PutAsJsonAsync($"api/banner/{id}", updateDto);
             return response.IsSuccessStatusCode;
         }
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var response = await _httpClient.DeleteAsync($"banner/{id}");
+            var response = await _httpClient.DeleteAsync($"api/banner/{id}");
             return response.IsSuccessStatusCode;
         }
 

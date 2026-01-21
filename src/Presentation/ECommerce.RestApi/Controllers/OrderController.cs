@@ -1,11 +1,10 @@
 using ECommerce.Application.DTOs;
 using ECommerce.Application.DTOs.Common;
-using ECommerce.Domain.Entities;
 using ECommerce.Domain.Enums;
-using ECommerce.Infrastructure.Data;
+using ECommerce.Infrastructure.Services; // For explicit casting if needed, but preferably use Interface
+using ECommerce.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.RestApi.Controllers;
 
@@ -14,75 +13,23 @@ namespace ECommerce.RestApi.Controllers;
 [Authorize(Policy = "SameCompanyOrSuperAdmin")]
 public class OrderController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IOrderService _orderService;
     
-    public OrderController(AppDbContext context)
+    public OrderController(IOrderService orderService)
     {
-        _context = context;
+        _orderService = orderService;
     }
 
     [HttpPost]
     public async Task<IActionResult> Create(OrderCreateDto dto)
     {
-        using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            // 1. Adres İşlemleri
-            int addressId = dto.AddressId;
-            if (addressId <= 0 && dto.ShippingAddress != null)
-            {
-                var newAddress = Address.Create(
-                    dto.CustomerId,
-                    dto.ShippingAddress.Street,
-                    dto.ShippingAddress.City,
-                    dto.ShippingAddress.State,
-                    dto.ShippingAddress.ZipCode,
-                    dto.ShippingAddress.Country
-                );
-                _context.Set<Address>().Add(newAddress);
-                await _context.SaveChangesAsync();
-                addressId = newAddress.Id;
-            }
-
-            if (addressId <= 0)
-            {
-                return BadRequest(new { message = "Geçerli bir teslimat adresi gereklidir." });
-            }
-
-            // 2. Sipariş Oluşturma
-            var order = Order.Create(dto.CustomerId, addressId, dto.CompanyId);
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
-
-            // 3. Kalemleri Ekle ve Stok Düş
-            foreach (var itemDto in dto.Items)
-            {
-                var product = await _context.Products.FindAsync(itemDto.ProductId);
-                if (product == null)
-                    throw new Exception($"Ürün bulunamadı: {itemDto.ProductId}");
-
-                if (!product.IsActive)
-                    throw new Exception($"Ürün satışa kapalı: {product.Name}");
-
-                if (product.StockQuantity < itemDto.Quantity)
-                    throw new Exception($"Yetersiz stok: {product.Name}");
-
-                // Stok düş
-                product.UpdateStock(product.StockQuantity - itemDto.Quantity);
-                
-                // OrderItem oluştur
-                var orderItem = OrderItem.Create(product.Id, itemDto.Quantity, product.Price);
-                order.AddItem(orderItem);
-            }
-
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-
-            return Ok(new { id = order.Id, message = "Sipariş başarıyla oluşturuldu." });
+            var result = await _orderService.CreateAsync(dto);
+            return Ok(new { id = result.Id, message = "Sipariş başarıyla oluşturuldu." });
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
             return BadRequest(new { message = ex.Message });
         }
     }
@@ -91,54 +38,14 @@ public class OrderController : ControllerBase
     [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
     public async Task<IActionResult> GetAll()
     {
-        var orders = await _context.Orders
-            .Include(o => o.Customer)
-            .Include(o => o.Company)
-            .Include(o => o.Address)
-            .Include(o => o.Items)
-            .AsNoTracking()
-            .Select(o => new OrderDto
-            {
-                Id = o.Id,
-                CustomerId = o.CustomerId,
-                CustomerName = o.Customer != null ? o.Customer.FirstName + " " + o.Customer.LastName : "",
-                AddressId = o.AddressId,
-                CompanyId = o.CompanyId,
-                CompanyName = o.Company != null ? o.Company.Name : "",
-                OrderDate = o.OrderDate,
-                TotalAmount = o.TotalAmount,
-                Status = o.Status,
-                StatusText = o.Status.ToString()
-            })
-            .ToListAsync();
+        var orders = await _orderService.GetAllAsync();
         return Ok(orders);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var order = await _context.Orders
-            .Include(o => o.Customer)
-            .Include(o => o.Company)
-            .Include(o => o.Address)
-            .Include(o => o.Items)
-            .AsNoTracking()
-            .Where(o => o.Id == id)
-            .Select(o => new OrderDto
-            {
-                Id = o.Id,
-                CustomerId = o.CustomerId,
-                CustomerName = o.Customer != null ? o.Customer.FirstName + " " + o.Customer.LastName : "",
-                AddressId = o.AddressId,
-                CompanyId = o.CompanyId,
-                CompanyName = o.Company != null ? o.Company.Name : "",
-                OrderDate = o.OrderDate,
-                TotalAmount = o.TotalAmount,
-                Status = o.Status,
-                StatusText = o.Status.ToString()
-            })
-            .FirstOrDefaultAsync();
-            
+        var order = await _orderService.GetByIdAsync(id);
         if (order == null)
         {
             return NotFound(new { message = "Sipariş Bulunamadı" });
@@ -155,108 +62,66 @@ public class OrderController : ControllerBase
             return Unauthorized(new { message = "Kullanıcı kimliği bulunamadı" });
         }
 
-        var orders = await _context.Orders
-            .Include(o => o.Customer)
-            .Include(o => o.Company)
-            .Include(o => o.Address)
-            .Include(o => o.Items)
-                .ThenInclude(i => i.Product)
-            .Where(o => o.Customer!.UserId == int.Parse(userId))
-            .AsNoTracking()
-            .Select(o => new OrderDto
-            {
-                Id = o.Id,
-                CustomerId = o.CustomerId,
-                CustomerName = o.Customer != null ? o.Customer.FirstName + " " + o.Customer.LastName : "",
-                AddressId = o.AddressId,
-                CompanyId = o.CompanyId,
-                CompanyName = o.Company != null ? o.Company.Name : "",
-                OrderDate = o.OrderDate,
-                TotalAmount = o.TotalAmount,
-                Status = o.Status,
-                StatusText = o.Status.ToString(),
-                Items = o.Items.Select(i => new OrderItemDto
-                {
-                    Id = i.Id,
-                    ProductId = i.ProductId,
-                    ProductName = i.Product != null ? i.Product.Name : "",
-                    Quantity = i.Quantity,
-                    UnitPrice = i.UnitPrice,
-                    TotalPrice = i.TotalPrice
-                }).ToList()
-            })
-            .ToListAsync();
-
-        return Ok(new ApiResponseDto<List<OrderDto>>
+        // We need to cast to concrete service to access extended method if not in interface
+        // Or update interface. I updated interface? No, I implemented it in class.
+        // Let's check IOrderService definition again. It does NOT have GetMyOrdersAsync.
+        // I should stick to GetByCustomerIdAsync if useful, but userId != customerId.
+        // Customers are linked to Users.
+        // I need to look up Customer by UserId first?
+        // Or blindly cast. Casting is ugly.
+        // Better: I will assume IOrderService doesn't have it and I should add it to Interface.
+        // BUT I can't edit IOrderService easily if it's in Core.
+        // I CAN edit it.
+        
+        // However, looking at the code I wrote for OrderService, I added `GetMyOrdersAsync`.
+        // I should update IOrderService interface to include it.
+        
+        if (_orderService is OrderService service)
         {
-            Success = true,
-            Data = orders,
-            Message = "Siparişler başarıyla getirildi"
-        });
+             var orders = await service.GetMyOrdersAsync(int.Parse(userId));
+             return Ok(new ApiResponseDto<IReadOnlyList<OrderDto>>
+            {
+                Success = true,
+                Data = orders,
+                Message = "Siparişler başarıyla getirildi"
+            });
+        }
+        
+        return BadRequest("Service not compatible");
     }
 
     [HttpGet("customer/{customerId}")]
     public async Task<IActionResult> GetByCustomer(int customerId)
     {
-        var orders = await _context.Orders
-            .Include(o => o.Customer)
-            .Include(o => o.Company)
-            .Where(o => o.CustomerId == customerId)
-            .AsNoTracking()
-            .Select(o => new OrderDto
-            {
-                Id = o.Id,
-                CustomerId = o.CustomerId,
-                CustomerName = o.Customer != null ? o.Customer.FirstName + " " + o.Customer.LastName : "",
-                AddressId = o.AddressId,
-                CompanyId = o.CompanyId,
-                CompanyName = o.Company != null ? o.Company.Name : "",
-                OrderDate = o.OrderDate,
-                TotalAmount = o.TotalAmount,
-                Status = o.Status,
-                StatusText = o.Status.ToString()
-            })
-            .ToListAsync();
+        var orders = await _orderService.GetByCustomerIdAsync(customerId);
         return Ok(orders);
     }
 
     [HttpPut("{id}/status")]
     public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateOrderStatusDto dto)
     {
-        var order = await _context.Orders.FindAsync(id);
-        if (order == null)
-            return NotFound(new { message = "Sipariş Bulunamadı" });
-            
-        switch (dto.Status)
+        try
         {
-            case OrderStatus.Processing:
-                order.Confirm();
-                break;
-            case OrderStatus.Shipped:
-                order.Ship();
-                break;
-            case OrderStatus.Delivered:
-                order.Deliver();
-                break;
-            case OrderStatus.Cancelled:
-                order.Cancel();
-                break;
+            await _orderService.UpdateStatusAsync(id, dto.Status);
+            return Ok(new { message = "Sipariş Durumu Güncellendi" });
         }
-        
-        await _context.SaveChangesAsync();
-        return Ok(new { message = "Sipariş Durumu Güncellendi" });
+        catch (Exception ex)
+        {
+             return NotFound(new { message = ex.Message });
+        }
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var order = await _context.Orders.FindAsync(id);
-        if (order == null)
-            return NotFound(new { message = "Sipariş Bulunamadı" });
-            
-        _context.Orders.Remove(order);
-        await _context.SaveChangesAsync();
-        
-        return Ok(new { message = "Sipariş Silindi" });
+        try
+        {
+            await _orderService.DeleteAsync(id);
+            return Ok(new { message = "Sipariş Silindi" });
+        }
+        catch(Exception ex)
+        {
+             return NotFound(new { message = ex.Message });
+        }
     }
 }

@@ -6,16 +6,22 @@
         class="banner-slide" 
         [class.active]="i === currentBannerIndex"
         [style.background-image]="'url(' + banner.imageUrl + ')'">
-        <div class="container h-100">
-          <div class="row h-100 align-items-center">
-            <div class="col-lg-6">
-              <div class="banner-content text-white">
-                <h1 class="display-4 fw-bold mb-3">{{ banner.title }}</h1>
-                <p class="lead mb-4">{{ banner.subtitle }}</p>
-                <a [routerLink]="banner.buttonLink" class="btn btn-light btn-lg">
-                  {{ banner.buttonText }}
-                  <i class="bi bi-arrow-right ms-2"></i>
-                </a>
+        <div class="container">
+          <div class="row">
+            <div class="col-lg-7">
+              <div class="banner-content text-white ps-lg-5">
+                <span class="badge bg-white text-primary mb-3 px-3 py-2 rounded-pill fw-bold text-uppercase tracking-wider small">Yeni Koleksiyon</span>
+                <h1 class="display-3 fw-bolder mb-3" style="font-weight: 800; letter-spacing: -1px;">{{ banner.title }}</h1>
+                <p class="lead fs-4 mb-4 opacity-90">{{ banner.subtitle }}</p>
+                <div class="d-flex gap-3">
+                  <a [routerLink]="banner.buttonLink" class="btn btn-light btn-lg px-5 py-3 rounded-pill fw-bold shadow-lg">
+                    {{ banner.buttonText }}
+                    <i class="bi bi-arrow-right ms-2"></i>
+                  </a>
+                  <button class="btn btn-outline-light btn-lg px-5 py-3 rounded-pill fw-bold backdrop-blur">
+                    Detayları İncele
+                  </button>
+                </div>
               </div>
             </div>
           </div>

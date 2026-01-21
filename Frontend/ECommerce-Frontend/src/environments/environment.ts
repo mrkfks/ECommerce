@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:5010/api',
+  apiUrl: 'https://localhost:7044/api',
   apiVersion: 'v1',
   defaultCompanyId: 1  // System company ID (SuperAdmin'in şirketi)
 };

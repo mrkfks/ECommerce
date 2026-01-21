@@ -13,6 +13,8 @@ namespace ECommerce.Application.DTOs
         public string CategoryName { get; set; } = string.Empty;
         public int BrandId { get; set; }
         public string BrandName { get; set; } = string.Empty;
+        public int? ModelId { get; set; }
+        public string? ModelName { get; set; }
         public int CompanyId { get; set; }
         public string CompanyName { get; set; } = string.Empty;
         public string? ImageUrl { get; set; }

@@ -137,6 +137,15 @@ public class CategoryService : ICategoryService
 
         await _context.SaveChangesAsync();
     }
+    
+    public async Task UpdateImageAsync(int id, string imageUrl)
+    {
+        var category = await _context.Categories.FindAsync(id);
+        if (category == null) throw new KeyNotFoundException("Category not found");
+        
+        category.Update(category.Name, category.Description, imageUrl, category.ParentCategoryId, category.DisplayOrder);
+        await _context.SaveChangesAsync();
+    }
 
     public async Task DeleteAsync(int id)
     {

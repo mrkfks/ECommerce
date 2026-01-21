@@ -1,31 +1,14 @@
 using ECommerce.Application.DTOs;
 
-namespace ECommerce.Application.Interfaces
+namespace ECommerce.Application.Interfaces;
+
+public interface IReviewService
 {
-    public interface IReviewService
-    {
-        // Tek yorum bilgisi getir
-        Task<ReviewDto?> GetByIdAsync(int id);
-
-        // Tüm yorumları getir
-        Task<IReadOnlyList<ReviewDto>> GetAllAsync();
-
-        // Belirli bir ürüne ait yorumları getir
-        Task<IReadOnlyList<ReviewDto>> GetByProductIdAsync(int productId);
-
-        // Belirli bir müşteriye ait yorumları getir
-        Task<IReadOnlyList<ReviewDto>> GetByCustomerIdAsync(int customerId);
-
-        // Yeni yorum oluştur
-        Task<ReviewDto> CreateAsync(ReviewCreateDto dto);
-
-        // Mevcut yorumu güncelle
-        Task UpdateAsync(ReviewUpdateDto dto);
-
-        // Yorumu sil
-        Task DeleteAsync(int id);
-
-        // Ortalama puanı getir (ürün bazlı)
-        Task<double> GetAverageRatingAsync(int productId);
-    }
+    Task<ReviewDto?> GetByIdAsync(int id);
+    Task<IReadOnlyList<ReviewDto>> GetAllAsync();
+    Task<IReadOnlyList<ReviewDto>> GetByProductIdAsync(int productId);
+    Task<IReadOnlyList<ReviewDto>> GetByCustomerIdAsync(int customerId);
+    Task<ReviewDto> AddAsync(ReviewCreateDto dto);
+    Task UpdateAsync(int id, ReviewUpdateDto dto);
+    Task DeleteAsync(int id);
 }

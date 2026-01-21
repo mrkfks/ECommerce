@@ -1274,6 +1274,7 @@
       },
       "ECommerce.Infrastructure/1.0.0": {
         "dependencies": {
+          "BCrypt.Net-Next": "4.0.3",
           "ECommerce.Application": "1.0.0",
           "ECommerce.Domain": "1.0.0",
           "Microsoft.EntityFrameworkCore.SqlServer": "9.0.0",

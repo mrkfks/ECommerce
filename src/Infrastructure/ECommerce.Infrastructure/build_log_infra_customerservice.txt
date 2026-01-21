@@ -1,0 +1,15 @@
+  Geri yüklenecek projeler belirleniyor...
+  Geri yükleme için tüm projeler güncel.
+  ECommerce.Domain -> D:\Ömer Kafkas\Projects\ECommerce\src\Core\ECommerce.Domain\bin\Debug\net10.0\ECommerce.Domain.dll
+  ECommerce.Application -> D:\Ömer Kafkas\Projects\ECommerce\src\Core\ECommerce.Application\bin\Debug\net10.0\ECommerce.Application.dll
+D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\Services\CustomerService.cs(113,32): warning CS8601: Olası null başvuru ataması. [D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj]
+D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\Services\CustomerService.cs(136,21): error CS0117: 'CustomerSummaryDto' bir 'PhoneNumber' tanımı içermiyor [D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj]
+
+Oluşturma BAŞARISIZ OLDU.
+
+D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\Services\CustomerService.cs(113,32): warning CS8601: Olası null başvuru ataması. [D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj]
+D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\Services\CustomerService.cs(136,21): error CS0117: 'CustomerSummaryDto' bir 'PhoneNumber' tanımı içermiyor [D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj]
+    1 Uyarı
+    1 Hata
+
+Geçen Süre 00:00:01.40

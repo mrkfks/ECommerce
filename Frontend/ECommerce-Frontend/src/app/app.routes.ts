@@ -1,17 +1,19 @@
 import { Routes } from '@angular/router';
-import { Home } from './pages/home/home';
-import { CategoryProducts } from './pages/category-products/category-products';
-import { ProductDetail } from './pages/product-detail/product-detail';
 import { Cart } from './pages/cart/cart';
+import { CategoryProducts } from './pages/category-products/category-products';
 import { Checkout } from './pages/checkout/checkout';
-import { OrderConfirmation } from './pages/order-confirmation/order-confirmation';
-import { OrderHistory } from './pages/order-history/order-history';
-import { Profile } from './pages/profile/profile';
-import { Login } from './pages/login/login';
-import { Register } from './pages/register/register';
 import { NotFoundComponent } from './pages/error/not-found/not-found.component';
 import { ServerErrorComponent } from './pages/error/server-error/server-error.component';
+import { Home } from './pages/home/home';
+import { Login } from './pages/login/login';
+import { OrderConfirmation } from './pages/order-confirmation/order-confirmation';
+import { OrderHistory } from './pages/order-history/order-history';
+import { ProductDetail } from './pages/product-detail/product-detail';
+import { Profile } from './pages/profile/profile';
+import { Register } from './pages/register/register';
 
+
+import { authGuard } from './guards/auth-guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -20,11 +22,11 @@ export const routes: Routes = [
   { path: 'products/:categoryId', component: CategoryProducts },
   { path: 'product/:productId', component: ProductDetail },
   { path: 'cart', component: Cart },
-  { path: 'checkout', component: Checkout },
-  { path: 'order/:orderId', component: OrderConfirmation },
+  { path: 'checkout', component: Checkout, canActivate: [authGuard] },
+  { path: 'order/:orderId', component: OrderConfirmation, canActivate: [authGuard] },
 
-  { path: 'orders', component: OrderHistory },
-  { path: 'profile', component: Profile },
+  { path: 'orders', component: OrderHistory, canActivate: [authGuard] },
+  { path: 'profile', component: Profile, canActivate: [authGuard] },
 
   { path: 'login', component: Login },
   { path: 'register', component: Register },

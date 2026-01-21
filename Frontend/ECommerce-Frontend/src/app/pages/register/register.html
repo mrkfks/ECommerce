@@ -30,6 +30,7 @@
                     id="firstName" 
                     [(ngModel)]="formData.firstName"
                     name="firstName"
+                    autocomplete="given-name"
                     placeholder="Adınız"
                     required>
                 </div>
@@ -41,6 +42,7 @@
                     id="lastName" 
                     [(ngModel)]="formData.lastName"
                     name="lastName"
+                    autocomplete="family-name"
                     placeholder="Soyadınız"
                     required>
                 </div>
@@ -56,6 +58,7 @@
                     id="phoneNumber" 
                     [(ngModel)]="formData.phoneNumber"
                     name="phoneNumber"
+                    autocomplete="tel"
                     placeholder="05xx xxx xx xx"
                     required>
                 </div>
@@ -74,6 +77,7 @@
                     [(ngModel)]="formData.username"
                     (blur)="onUsernameBlur()"
                     name="username"
+                    autocomplete="username"
                     placeholder="kullanici_adi"
                     required>
                   @if (usernameChecking) {
@@ -109,6 +113,7 @@
                     [(ngModel)]="formData.email"
                     (blur)="onEmailBlur()"
                     name="email"
+                    autocomplete="email"
                     placeholder="ornek&#64;email.com"
                     required>
                   @if (emailChecking) {
@@ -139,6 +144,7 @@
                     id="password" 
                     [(ngModel)]="formData.password"
                     name="password"
+                    autocomplete="new-password"
                     placeholder="En az 6 karakter"
                     required>
                   <button 
@@ -160,6 +166,7 @@
                     id="confirmPassword" 
                     [(ngModel)]="formData.confirmPassword"
                     name="confirmPassword"
+                    autocomplete="new-password"
                     placeholder="Şifrenizi tekrar girin"
                     required>
                 </div>

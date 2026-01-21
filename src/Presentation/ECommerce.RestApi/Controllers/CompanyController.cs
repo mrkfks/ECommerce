@@ -1,9 +1,8 @@
-using ECommerce.Infrastructure.Data;
 using ECommerce.Application.DTOs;
+using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.RestApi.Controllers
 {
@@ -11,92 +10,31 @@ namespace ECommerce.RestApi.Controllers
     [Route("api/[controller]")]
     public class CompanyController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly ICompanyService _companyService;
 
-        public CompanyController(AppDbContext context)
+        public CompanyController(ICompanyService companyService)
         {
-            _context = context;
+            _companyService = companyService;
         }
 
         [HttpPost("register")]
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // Email ve Username kontrolleri (TÜM ŞİRKETLERDE benzersiz)
-                var existingCompany = await _context.Companies
-                    .FirstOrDefaultAsync(c => c.Email == dto.CompanyEmail);
-                
-                if (existingCompany != null)
-                {
-                    return BadRequest(new { message = "Bu email adresi ile kayıtlı bir şirket zaten mevcut." });
-                }
-
-                var existingUser = await _context.Users
-                    .IgnoreQueryFilters()
-                    .FirstOrDefaultAsync(u => u.Email == dto.Email || u.Username == dto.Username);
-                
-                if (existingUser != null)
-                {
-                    if (existingUser.Email == dto.Email)
-                        return BadRequest(new { message = "Bu email adresi ile kayıtlı bir kullanıcı zaten mevcut." });
-                    else
-                        return BadRequest(new { message = "Bu kullanıcı adı zaten kullanılıyor." });
-                }
-
-                // Yeni şirket oluştur (IsApproved = false)
-                var company = Company.Create(
-                    dto.CompanyName,
-                    dto.CompanyAddress,
-                    dto.CompanyPhoneNumber,
-                    dto.CompanyEmail,
-                    dto.TaxNumber,
-                    $"{dto.FirstName} {dto.LastName}", // Sorumlu kişi adı
-                    dto.CompanyPhoneNumber, // Sorumlu telefon (varsayılan olarak şirket telefonu)
-                    dto.Email // Sorumlu email (yetkili yöneticinin emaili)
-                );
-
-                _context.Companies.Add(company);
-                await _context.SaveChangesAsync();
-
-                // Admin kullanıcı oluştur
-                var adminUser = Domain.Entities.User.Create(
-                    company.Id,
-                    dto.Username,
-                    dto.Email,
-                    BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                    dto.FirstName,
-                    dto.LastName
-                );
-
-                _context.Users.Add(adminUser);
-                await _context.SaveChangesAsync();
-
-                // CompanyAdmin rolü ata
-                var companyAdminRole = await _context.Roles
-                    .FirstOrDefaultAsync(r => r.Name == "CompanyAdmin");
-                
-                if (companyAdminRole != null)
-                {
-                    var userRole = UserRole.Create(adminUser.Id, companyAdminRole.Id, companyAdminRole.Name);
-                    _context.UserRoles.Add(userRole);
-                    await _context.SaveChangesAsync();
-                }
-
-                await transaction.CommitAsync();
-
-                return Ok(new { 
-                    message = "Şirket ve kullanıcı kaydınız alınmıştır. Süper admin onayından sonra giriş yapabileceksiniz.",
-                    companyId = company.Id,
-                    companyName = company.Name,
-                    username = adminUser.Username
+                var result = await _companyService.RegisterCompanyAsync(dto);
+                return Ok(new 
+                { 
+                    message = result.Message,
+                    companyId = result.CompanyId,
+                    companyName = result.CompanyName,
+                    username = result.Username
                 });
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
+                // In production, don't expose internal exception details unless safe
                 return BadRequest(new { message = "Kayıt sırasında hata oluştu: " + ex.Message });
             }
         }
@@ -107,31 +45,9 @@ namespace ECommerce.RestApi.Controllers
         {
             try
             {
-                // Email kontrolü
-                var existingCompany = await _context.Companies
-                    .FirstOrDefaultAsync(c => c.Email == dto.Email);
-                
-                if (existingCompany != null)
-                {
-                    return BadRequest(new { message = "Bu email adresi ile kayıtlı bir şirket zaten mevcut." });
-                }
-
-                // Yeni şirket oluştur (otomatik IsApproved = false)
-                var company = Company.Create(
-                    dto.Name,
-                    dto.Address,
-                    dto.PhoneNumber,
-                    dto.Email,
-                    dto.TaxNumber,
-                    dto.ResponsiblePersonName,
-                    dto.ResponsiblePersonPhone,
-                    dto.ResponsiblePersonEmail
-                );
-
-                _context.Companies.Add(company);
-                await _context.SaveChangesAsync();
-
-                return Ok(new { 
+                var company = await _companyService.CreateAsync(dto);
+                return Ok(new 
+                { 
                     message = "Şirket başarıyla kaydedildi.",
                     companyId = company.Id
                 });
@@ -146,27 +62,7 @@ namespace ECommerce.RestApi.Controllers
         [Authorize(Policy = "SuperAdminOnly")]
         public async Task<IActionResult> GetAll()
         {
-            var companies = await _context.Companies
-                .AsNoTracking()
-                .Select(c => new CompanyDto
-                {
-                    Id = c.Id,
-                    Name = c.Name,
-                    Address = c.Address,
-                    PhoneNumber = c.PhoneNumber,
-                    Email = c.Email,
-                    TaxNumber = c.TaxNumber,
-                    ResponsiblePersonName = c.ResponsiblePersonName,
-                    ResponsiblePersonPhone = c.ResponsiblePersonPhone,
-                    ResponsiblePersonEmail = c.ResponsiblePersonEmail,
-                    IsActive = c.IsActive,
-                    IsApproved = c.IsApproved,
-                    CreatedAt = c.CreatedAt,
-                    UpdatedAt = c.UpdatedAt,
-                    UserCount = c.Users.Count,
-                    CustomerCount = c.Customers.Count
-                })
-                .ToListAsync();
+            var companies = await _companyService.GetAllAsync();
             return Ok(companies);
         }
 
@@ -174,27 +70,7 @@ namespace ECommerce.RestApi.Controllers
         [Authorize(Policy = "SuperAdminOnly")]
         public async Task<IActionResult> GetById(int id)
         {
-            var company = await _context.Companies
-                .AsNoTracking()
-                .Select(c => new CompanyDto
-                {
-                    Id = c.Id,
-                    Name = c.Name,
-                    Address = c.Address,
-                    PhoneNumber = c.PhoneNumber,
-                    Email = c.Email,
-                    TaxNumber = c.TaxNumber,
-                    ResponsiblePersonName = c.ResponsiblePersonName,
-                    ResponsiblePersonPhone = c.ResponsiblePersonPhone,
-                    ResponsiblePersonEmail = c.ResponsiblePersonEmail,
-                    IsActive = c.IsActive,
-                    IsApproved = c.IsApproved,
-                    CreatedAt = c.CreatedAt,
-                    UpdatedAt = c.UpdatedAt,
-                    UserCount = c.Users.Count,
-                    CustomerCount = c.Customers.Count
-                })
-                .FirstOrDefaultAsync(c => c.Id == id);
+            var company = await _companyService.GetByIdAsync(id);
             
             if (company == null)
                 return NotFound(new { message = "Şirket bulunamadı" });
@@ -209,62 +85,133 @@ namespace ECommerce.RestApi.Controllers
             if (id != dto.Id)
                 return BadRequest(new { message = "ID uyuşmazlığı" });
             
-            var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
-            if (company == null)
+            try
+            {
+                await _companyService.UpdateAsync(id, dto);
+                return Ok(new { message = "Şirket bilgileri güncellendi" });
+            }
+            catch (KeyNotFoundException)
+            {
                 return NotFound(new { message = "Şirket bulunamadı" });
-            
-            company.Update(dto.Name, dto.Address, dto.PhoneNumber, dto.Email);
-            await _context.SaveChangesAsync();
-            
-            return Ok(new { message = "Şirket bilgileri güncellendi" });
+            }
         }
 
         [HttpPost("{id:int}/approve")]
         [Authorize(Policy = "SuperAdminOnly")]
         public async Task<IActionResult> Approve(int id)
         {
-            var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
-            if (company == null) return NotFound(new { message = "Şirket bulunamadı" });
-            
-            company.Approve();
-            await _context.SaveChangesAsync();
-            return Ok(new { message = "Şirket başarıyla onaylandı" });
+            try
+            {
+                await _companyService.ApproveAsync(id);
+                return Ok(new { message = "Şirket başarıyla onaylandı" });
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { message = "Şirket bulunamadı" });
+            }
         }
 
         [HttpPost("{id:int}/reject")]
         [Authorize(Policy = "SuperAdminOnly")]
         public async Task<IActionResult> Reject(int id)
         {
-            var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
-            if (company == null) return NotFound(new { message = "Şirket bulunamadı" });
-            
-            company.Reject();
-            await _context.SaveChangesAsync();
-            return Ok(new { message = "Şirket onayı reddedildi" });
+             try
+            {
+                await _companyService.RejectAsync(id);
+                return Ok(new { message = "Şirket onayı reddedildi" });
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { message = "Şirket bulunamadı" });
+            }
         }
 
         [HttpPost("{id:int}/deactivate")]
         [Authorize(Policy = "SuperAdminOnly")]
         public async Task<IActionResult> Deactivate(int id)
         {
-            var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
-            if (company == null) return NotFound(new { message = "Şirket bulunamadı" });
-            
-            company.Deactivate();
-            await _context.SaveChangesAsync();
-            return Ok(new { message = "Şirket pasifleştirildi" });
+             try
+            {
+                await _companyService.DeactivateAsync(id);
+                return Ok(new { message = "Şirket pasifleştirildi" });
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { message = "Şirket bulunamadı" });
+            }
         }
 
         [HttpPost("{id:int}/activate")]
         [Authorize(Policy = "SuperAdminOnly")]
         public async Task<IActionResult> Activate(int id)
         {
-            var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
-            if (company == null) return NotFound(new { message = "Şirket bulunamadı" });
-            
-            company.Activate();
-            await _context.SaveChangesAsync();
-            return Ok(new { message = "Şirket aktif hale getirildi" });
+             try
+            {
+                await _companyService.ActivateAsync(id);
+                return Ok(new { message = "Şirket aktif hale getirildi" });
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { message = "Şirket bulunamadı" });
+            }
         }
+        [HttpGet("settings")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetSettings([FromQuery] string domain)
+        {
+            if (string.IsNullOrWhiteSpace(domain))
+                return BadRequest(new { message = "Domain parametres zorunludur" });
+
+            try
+            {
+                // Service method will be implemented next
+                var company = await _companyService.GetByDomainAsync(domain);
+                if (company == null)
+                    return NotFound(new { message = "Bu domain için şirket bulunamadı" });
+
+                return Ok(new 
+                { 
+                    id = company.Id,
+                    companyName = company.Name,
+                    logoUrl = company.LogoUrl,
+                    primaryColor = company.PrimaryColor,
+                    secondaryColor = company.SecondaryColor,
+                    faviconUrl = "/favicon.ico" // Placeholder
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetSettings: {ex.Message} \nStack Trace: {ex.StackTrace}");
+                return BadRequest(new { message = "Ayarlar alınırken hata oluştu: " + ex.Message });
+            }
+        }
+
+        [HttpPut("{id:int}/branding")]
+        [Authorize(Policy = "CompanyAccess")] 
+        public async Task<IActionResult> UpdateBranding(int id, [FromBody] BrandingUpdateDto dto)
+        {
+            try
+            {
+                // Service method will be implemented next
+                await _companyService.UpdateBrandingAsync(id, dto);
+                return Ok(new { message = "Marka bilgileri güncellendi" });
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { message = "Şirket bulunamadı" });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Forbid();
+            }
+        }
+    }
+    
+    public class BrandingUpdateDto
+    {
+        public string? Domain { get; set; }
+        public string? LogoUrl { get; set; }
+        public string? PrimaryColor { get; set; }
+        public string? SecondaryColor { get; set; }
     }
 }

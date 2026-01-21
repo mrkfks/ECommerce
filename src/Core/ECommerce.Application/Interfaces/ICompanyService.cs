@@ -1,15 +1,18 @@
 using ECommerce.Application.DTOs;
 
-namespace ECommerce.Application.Interfaces
+namespace ECommerce.Application.Interfaces;
+
+public interface ICompanyService
 {
-    public interface ICompanyService
-    {
-        Task<CompanyDto?> GetByIdAsync(int id);
-        Task<IReadOnlyList<CompanyDto>> GetAllAsync();
-        Task<CompanyDto> CreateAsync(CompanyCreateDto dto);
-        Task UpdateAsync(CompanyUpdateDto dto);
-        Task DeleteAsync(int id);
-        Task<IReadOnlyList<UserDto>> GetUsersAsync(int companyId);
-        Task<IReadOnlyList<CustomerDto>> GetCustomersAsync(int companyId);
-    }
+    Task<CompanyRegistrationResultDto> RegisterCompanyAsync(RegisterDto dto);
+    Task<CompanyDto> CreateAsync(CompanyDto dto);
+    Task<IReadOnlyList<CompanyDto>> GetAllAsync();
+    Task<CompanyDto?> GetByIdAsync(int id);
+    Task UpdateAsync(int id, CompanyDto dto);
+    Task ApproveAsync(int id);
+    Task RejectAsync(int id);
+    Task ActivateAsync(int id);
+    Task DeactivateAsync(int id);
+    Task<CompanyDto?> GetByDomainAsync(string domain);
+    Task UpdateBrandingAsync(int id, object dto); // Receiving DTO from controller (using dynamic/object for now to avoid compilation error if DTO not moved)
 }

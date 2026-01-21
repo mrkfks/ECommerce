@@ -8,6 +8,7 @@ namespace ECommerce.Application.Interfaces
         Task<OrderDto?> GetByIdAsync(int id);
         Task<IReadOnlyList<OrderDto>> GetAllAsync();
         Task<IReadOnlyList<OrderDto>> GetByCustomerIdAsync(int customerId);
+        Task<IReadOnlyList<OrderDto>> GetMyOrdersAsync(int userId);
         Task<OrderDto> CreateAsync(OrderCreateDto dto);
         Task UpdateAsync(OrderUpdateDto dto);
         Task DeleteAsync(int id);

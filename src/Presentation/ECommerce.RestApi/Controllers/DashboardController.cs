@@ -1,6 +1,5 @@
 using ECommerce.Application.DTOs.Dashboard;
-using ECommerce.Application.Features.Dashboard.Queries;
-using MediatR;
+using ECommerce.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,12 +13,12 @@ namespace ECommerce.RestApi.Controllers;
 [Authorize]
 public class DashboardController : ControllerBase
 {
-    private readonly IMediator _mediator;
+    private readonly IDashboardService _dashboardService;
     private readonly ILogger<DashboardController> _logger;
 
-    public DashboardController(IMediator mediator, ILogger<DashboardController> logger)
+    public DashboardController(IDashboardService dashboardService, ILogger<DashboardController> logger)
     {
-        _mediator = mediator;
+        _dashboardService = dashboardService;
         _logger = logger;
     }
 
@@ -41,14 +40,7 @@ public class DashboardController : ControllerBase
         _logger.LogInformation("Fetching dashboard KPI data. StartDate: {StartDate}, EndDate: {EndDate}, CompanyId: {CompanyId}",
             startDate, endDate, companyId);
 
-        var query = new GetDashboardKpiQuery
-        {
-            StartDate = startDate,
-            EndDate = endDate,
-            CompanyId = companyId
-        };
-
-        var result = await _mediator.Send(query);
+        var result = await _dashboardService.GetDashboardKpiAsync(startDate, endDate, companyId);
         return Ok(result);
     }
 
@@ -59,9 +51,8 @@ public class DashboardController : ControllerBase
     [ProducesResponseType(typeof(SalesKpiDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<SalesKpiDto>> GetSalesKpi([FromQuery] int? companyId = null)
     {
-        var query = new GetDashboardKpiQuery { CompanyId = companyId };
-        var result = await _mediator.Send(query);
-        return Ok(result.Sales);
+        var result = await _dashboardService.GetSalesKpiAsync(null, null, companyId);
+        return Ok(result);
     }
 
     /// <summary>
@@ -71,9 +62,8 @@ public class DashboardController : ControllerBase
     [ProducesResponseType(typeof(OrderKpiDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<OrderKpiDto>> GetOrdersKpi([FromQuery] int? companyId = null)
     {
-        var query = new GetDashboardKpiQuery { CompanyId = companyId };
-        var result = await _mediator.Send(query);
-        return Ok(result.Orders);
+        var result = await _dashboardService.GetOrdersKpiAsync(null, null, companyId);
+        return Ok(result);
     }
 
     /// <summary>
@@ -83,9 +73,8 @@ public class DashboardController : ControllerBase
     [ProducesResponseType(typeof(List<TopProductDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<TopProductDto>>> GetTopProducts([FromQuery] int? companyId = null)
     {
-        var query = new GetDashboardKpiQuery { CompanyId = companyId };
-        var result = await _mediator.Send(query);
-        return Ok(result.TopProducts);
+        var result = await _dashboardService.GetTopProductsAsync(null, null, companyId);
+        return Ok(result);
     }
 
     /// <summary>
@@ -95,9 +84,8 @@ public class DashboardController : ControllerBase
     [ProducesResponseType(typeof(List<LowStockProductDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<LowStockProductDto>>> GetLowStockProducts([FromQuery] int? companyId = null)
     {
-        var query = new GetDashboardKpiQuery { CompanyId = companyId };
-        var result = await _mediator.Send(query);
-        return Ok(result.LowStockProducts);
+        var result = await _dashboardService.GetLowStockProductsAsync(companyId);
+        return Ok(result);
     }
 
     /// <summary>
@@ -107,9 +95,8 @@ public class DashboardController : ControllerBase
     [ProducesResponseType(typeof(List<RevenueTrendDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<RevenueTrendDto>>> GetRevenueTrend([FromQuery] int? companyId = null)
     {
-        var query = new GetDashboardKpiQuery { CompanyId = companyId };
-        var result = await _mediator.Send(query);
-        return Ok(result.RevenueTrend);
+        var result = await _dashboardService.GetRevenueTrendAsync(null, null, companyId);
+        return Ok(result);
     }
 
     /// <summary>
@@ -119,9 +106,8 @@ public class DashboardController : ControllerBase
     [ProducesResponseType(typeof(CustomerSegmentationDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<CustomerSegmentationDto>> GetCustomerSegments([FromQuery] int? companyId = null)
     {
-        var query = new GetDashboardKpiQuery { CompanyId = companyId };
-        var result = await _mediator.Send(query);
-        return Ok(result.CustomerSegmentation);
+        var result = await _dashboardService.GetCustomerSegmentsAsync(null, null, companyId);
+        return Ok(result);
     }
 
     /// <summary>
@@ -131,9 +117,8 @@ public class DashboardController : ControllerBase
     [ProducesResponseType(typeof(List<CategorySalesDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<CategorySalesDto>>> GetCategorySales([FromQuery] int? companyId = null)
     {
-        var query = new GetDashboardKpiQuery { CompanyId = companyId };
-        var result = await _mediator.Send(query);
-        return Ok(result.CategorySales);
+        var result = await _dashboardService.GetCategorySalesAsync(null, null, companyId);
+        return Ok(result);
     }
 
     /// <summary>
@@ -143,9 +128,8 @@ public class DashboardController : ControllerBase
     [ProducesResponseType(typeof(List<GeographicDistributionDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<GeographicDistributionDto>>> GetGeographicDistribution([FromQuery] int? companyId = null)
     {
-        var query = new GetDashboardKpiQuery { CompanyId = companyId };
-        var result = await _mediator.Send(query);
-        return Ok(result.GeographicDistribution);
+        var result = await _dashboardService.GetGeographicDistributionAsync(null, null, companyId);
+        return Ok(result);
     }
 
     /// <summary>
@@ -155,9 +139,8 @@ public class DashboardController : ControllerBase
     [ProducesResponseType(typeof(List<AverageCartTrendDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<AverageCartTrendDto>>> GetAverageCartTrend([FromQuery] int? companyId = null)
     {
-        var query = new GetDashboardKpiQuery { CompanyId = companyId };
-        var result = await _mediator.Send(query);
-        return Ok(result.AverageCartTrend);
+        var result = await _dashboardService.GetAverageCartTrendAsync(null, null, companyId);
+        return Ok(result);
     }
 
     /// <summary>
@@ -167,8 +150,7 @@ public class DashboardController : ControllerBase
     [ProducesResponseType(typeof(List<OrderStatusDistributionDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<OrderStatusDistributionDto>>> GetOrderStatusDistribution([FromQuery] int? companyId = null)
     {
-        var query = new GetDashboardKpiQuery { CompanyId = companyId };
-        var result = await _mediator.Send(query);
-        return Ok(result.OrderStatusDistribution);
+        var result = await _dashboardService.GetOrderStatusDistributionAsync(null, null, companyId);
+        return Ok(result);
     }
 }

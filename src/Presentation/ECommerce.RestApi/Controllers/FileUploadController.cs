@@ -1,8 +1,6 @@
 
-using ECommerce.Application.Features.Category.Commands;
-using ECommerce.Application.Features.Brand.Commands;
-using ECommerce.Application.Features.Banner.Commands;
-using MediatR;
+using ECommerce.Application.Interfaces;
+using ECommerce.Application.DTOs.Common;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,12 +10,26 @@ namespace ECommerce.RestApi.Controllers
     [Route("api/[controller]")]
     public class FileUploadController : ControllerBase
     {
-        private readonly IMediator _mediator;
+        private readonly IFileUploadService _fileUploadService;
+        private readonly IProductService _productService;
+        private readonly ICategoryService _categoryService;
+        private readonly IBrandService _brandService;
+        private readonly IBannerService _bannerService;
         private readonly ILogger<FileUploadController> _logger;
 
-        public FileUploadController(IMediator mediator, ILogger<FileUploadController> logger)
+        public FileUploadController(
+            IFileUploadService fileUploadService,
+            IProductService productService,
+            ICategoryService categoryService,
+            IBrandService brandService,
+            IBannerService bannerService,
+            ILogger<FileUploadController> logger)
         {
-            _mediator = mediator;
+            _fileUploadService = fileUploadService;
+            _productService = productService;
+            _categoryService = categoryService;
+            _brandService = brandService;
+            _bannerService = bannerService;
             _logger = logger;
         }
 
@@ -33,30 +45,23 @@ namespace ECommerce.RestApi.Controllers
 
             try
             {
-                using (var stream = file.OpenReadStream())
+                using (var memoryStream = new MemoryStream())
                 {
-                    var command = new ECommerce.Application.Features.Products.Commands.UploadProductImageCommand
-                    {
-                        ProductId = productId,
-                        FileStream = stream,
-                        FileName = file.FileName,
-                        IsPrimary = false // Default
-                    };
-
-                    var result = await _mediator.Send(command);
-
-                    if (result.Success)
-                    {
-                        return Ok(result);
-                    }
-
-                    return BadRequest(result);
+                    await file.CopyToAsync(memoryStream);
+                    var fileBytes = memoryStream.ToArray();
+                    
+                    var imageUrl = await _fileUploadService.UploadImageAsync(fileBytes, file.FileName, "products");
+                    
+                    // Add as not primary by default
+                    var result = await _productService.AddImageAsync(productId, imageUrl, 0, false);
+                    
+                    return Ok(new ApiResponseDto<object> { Success = true, Data = result, Message = "Ürün resmi yüklendi" });
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Ürün resmi yükleme hatası");
-                return StatusCode(500, new { message = "Dosya yüklenirken hata oluştu." });
+                return StatusCode(500, new { message = "Dosya yüklenirken hata oluştu: " + ex.Message });
             }
         }
 
@@ -72,27 +77,16 @@ namespace ECommerce.RestApi.Controllers
 
             try
             {
-                // IFormFile'ı byte array'e dönüştür
-                using (var memoryStream = new MemoryStream())
+                 using (var memoryStream = new MemoryStream())
                 {
                     await file.CopyToAsync(memoryStream);
                     var fileBytes = memoryStream.ToArray();
-
-                    var command = new UploadCategoryImageCommand
-                    {
-                        CategoryId = categoryId,
-                        ImageFileBytes = fileBytes,
-                        FileName = file.FileName
-                    };
-
-                    var result = await _mediator.Send(command);
-
-                    if (result.Success)
-                    {
-                        return Ok(result);
-                    }
-
-                    return BadRequest(result);
+                    
+                    var imageUrl = await _fileUploadService.UploadImageAsync(fileBytes, file.FileName, "categories");
+                    
+                    await _categoryService.UpdateImageAsync(categoryId, imageUrl);
+                    
+                    return Ok(new ApiResponseDto<string> { Success = true, Data = imageUrl, Message = "Kategori resmi yüklendi" });
                 }
             }
             catch (Exception ex)
@@ -114,27 +108,16 @@ namespace ECommerce.RestApi.Controllers
 
             try
             {
-                // IFormFile'ı byte array'e dönüştür
                 using (var memoryStream = new MemoryStream())
                 {
                     await file.CopyToAsync(memoryStream);
                     var fileBytes = memoryStream.ToArray();
-
-                    var command = new UploadBrandImageCommand
-                    {
-                        BrandId = brandId,
-                        ImageFileBytes = fileBytes,
-                        FileName = file.FileName
-                    };
-
-                    var result = await _mediator.Send(command);
-
-                    if (result.Success)
-                    {
-                        return Ok(result);
-                    }
-
-                    return BadRequest(result);
+                    
+                    var imageUrl = await _fileUploadService.UploadImageAsync(fileBytes, file.FileName, "brands");
+                    
+                    await _brandService.UpdateImageAsync(brandId, imageUrl);
+                    
+                    return Ok(new ApiResponseDto<string> { Success = true, Data = imageUrl, Message = "Marka resmi yüklendi" });
                 }
             }
             catch (Exception ex)
@@ -156,27 +139,19 @@ namespace ECommerce.RestApi.Controllers
 
             try
             {
-                // IFormFile'ı byte array'e dönüştür
                 using (var memoryStream = new MemoryStream())
                 {
                     await file.CopyToAsync(memoryStream);
                     var fileBytes = memoryStream.ToArray();
-
-                    var command = new UploadBannerImageCommand
-                    {
-                        BannerId = bannerId,
-                        ImageFileBytes = fileBytes,
-                        FileName = file.FileName
-                    };
-
-                    var result = await _mediator.Send(command);
-
+                    
+                    var imageUrl = await _fileUploadService.UploadImageAsync(fileBytes, file.FileName, "banners");
+                    
+                    var result = await _bannerService.UpdateImageAsync(bannerId, imageUrl);
+                    
                     if (result.Success)
-                    {
-                        return Ok(result);
-                    }
-
-                    return BadRequest(result);
+                         return Ok(new ApiResponseDto<string> { Success = true, Data = imageUrl, Message = "Banner resmi yüklendi" });
+                    else
+                         return BadRequest(new { message = result.Message });
                 }
             }
             catch (Exception ex)

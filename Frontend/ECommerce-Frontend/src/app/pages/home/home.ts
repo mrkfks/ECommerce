@@ -1,9 +1,9 @@
-import { Component, OnInit, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ProductCard } from '../../components/product-card/product-card';
-import { ProductService, CategoryService, CartService } from '../../core/services';
-import { Product, Category } from '../../core/models';
+import { Category, Product } from '../../core/models';
+import { BannerService, CartService, CategoryService, ProductService } from '../../core/services';
 
 interface Banner {
   id: number;
@@ -13,6 +13,8 @@ interface Banner {
   buttonLink: string;
   imageUrl: string;
 }
+
+// ...
 
 @Component({
   selector: 'app-home',
@@ -25,6 +27,7 @@ export class Home implements OnInit, OnDestroy {
   private productService = inject(ProductService);
   private categoryService = inject(CategoryService);
   private cartService = inject(CartService);
+  private bannerService = inject(BannerService);
 
   banners: Banner[] = [];
   categories: Category[] = [];
@@ -51,24 +54,21 @@ export class Home implements OnInit, OnDestroy {
   }
 
   loadBanners(): void {
-    this.banners = [
-      {
-        id: 1,
-        title: 'Kış Sezonu İndirimleri',
-        subtitle: 'Seçili ürünlerde %50\'ye varan indirimler',
-        buttonText: 'Alışverişe Başla',
-        buttonLink: '/products/1',
-        imageUrl: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1200&h=400&fit=crop'
+    this.bannerService.getAll().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.banners = response.data.map(b => ({
+            id: b.id,
+            title: b.title,
+            subtitle: b.description || '',
+            buttonText: 'Detayları İncele', // Default text as backend doesn't support button text yet
+            buttonLink: b.link || '/',
+            imageUrl: b.imageUrl
+          }));
+        }
       },
-      {
-        id: 2,
-        title: 'Yeni Sezon Ürünleri',
-        subtitle: '2026 koleksiyonu şimdi satışta',
-        buttonText: 'Keşfet',
-        buttonLink: '/products/2',
-        imageUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=400&fit=crop'
-      }
-    ];
+      error: (err) => console.error('Bannerlar yüklenemedi:', err)
+    });
   }
 
   loadCategories(): void {
@@ -98,7 +98,17 @@ export class Home implements OnInit, OnDestroy {
     this.isLoading = true;
     this.productService.getAll(1, 10).subscribe({
       next: (response) => {
-        const products = response.items;
+        // Check if response has data property (ApiResponse wrapper)
+        const responseData = (response as any).items ? response : (response as any).data;
+        
+        let products: any[] = [];
+        
+        if (responseData && Array.isArray(responseData.items)) {
+           products = responseData.items;
+        } else if (Array.isArray(responseData)) {
+           products = responseData;
+        }
+
         if (!Array.isArray(products)) {
           console.error('Products is not an array:', products);
           this.error = 'Ürünler yüklenirken bir hata oluştu.';
@@ -138,7 +148,7 @@ export class Home implements OnInit, OnDestroy {
       reviewCount: apiProduct.reviewCount || 0,
       isNew: apiProduct.isNew || false,
       discount: apiProduct.discount,
-      inStock: apiProduct.stockQuantity > 0,
+      inStock: (apiProduct.stockQuantity || 0) > 0,
       createdAt: new Date(apiProduct.createdAt)
     };
   }

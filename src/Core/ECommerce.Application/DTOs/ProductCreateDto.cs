@@ -9,6 +9,7 @@ namespace ECommerce.Application.DTOs
         public int CategoryId { get; set; }
         public int BrandId { get; set; }
         public int CompanyId { get; set; }
+        public int? ModelId { get; set; }
         public string? ImageUrl { get; set; }
     }
 }

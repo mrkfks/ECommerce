@@ -1,8 +1,6 @@
-using ECommerce.Application.DTOs;
-using ECommerce.Infrastructure.Data;
+using ECommerce.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.RestApi.Controllers;
 
@@ -11,39 +9,24 @@ namespace ECommerce.RestApi.Controllers;
 [Authorize]
 public class RoleController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IRoleService _roleService;
 
-    public RoleController(AppDbContext context)
+    public RoleController(IRoleService roleService)
     {
-        _context = context;
+        _roleService = roleService;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var roles = await _context.Roles
-            .Select(r => new RoleDto
-            {
-                Id = r.Id,
-                Name = r.Name
-            })
-            .ToListAsync();
-
+        var roles = await _roleService.GetAllAsync();
         return Ok(roles);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var role = await _context.Roles
-            .Where(r => r.Id == id)
-            .Select(r => new RoleDto
-            {
-                Id = r.Id,
-                Name = r.Name
-            })
-            .FirstOrDefaultAsync();
-
+        var role = await _roleService.GetByIdAsync(id);
         if (role == null)
             return NotFound();
 

@@ -1,0 +1,13 @@
+  Geri yüklenecek projeler belirleniyor...
+  Geri yükleme için tüm projeler güncel.
+  ECommerce.Domain -> D:\Ömer Kafkas\Projects\ECommerce\src\Core\ECommerce.Domain\bin\Debug\net10.0\ECommerce.Domain.dll
+  ECommerce.Application -> D:\Ömer Kafkas\Projects\ECommerce\src\Core\ECommerce.Application\bin\Debug\net10.0\ECommerce.Application.dll
+D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\Services\BannerService.cs(4,29): error CS0234: 'Services' tür veya ad alanı adı 'ECommerce.Application' ad alanında yok (bir derleme başvurunuz mu eksik?) [D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj]
+
+Oluşturma BAŞARISIZ OLDU.
+
+D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\Services\BannerService.cs(4,29): error CS0234: 'Services' tür veya ad alanı adı 'ECommerce.Application' ad alanında yok (bir derleme başvurunuz mu eksik?) [D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj]
+    0 Uyarı
+    1 Hata
+
+Geçen Süre 00:00:01.10

@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { Navbar } from './components/navbar/navbar';
 import { Footer } from './components/footer/footer';
+import { Navbar } from './components/navbar/navbar';
+import { DesignService } from './core/services';
 import { LoadingSpinnerComponent } from './shared/components/loading-spinner/loading-spinner.component';
 
 @Component({
@@ -19,5 +20,11 @@ import { LoadingSpinnerComponent } from './shared/components/loading-spinner/loa
     </div>
   `
 })
-export class App {}
+export class App implements OnInit {
+  private designService = inject(DesignService);
+
+  ngOnInit() {
+    this.designService.loadSettings();
+  }
+}
 

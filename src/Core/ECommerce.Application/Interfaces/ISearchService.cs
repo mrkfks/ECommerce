@@ -1,0 +1,13 @@
+using System.Threading.Tasks;
+using ECommerce.Application.DTOs;
+using ECommerce.Application.DTOs.Common;
+
+namespace ECommerce.Application.Interfaces
+{
+    public interface ISearchService
+    {
+        Task<bool> IndexProductAsync(ProductDto product);
+        Task<bool> DeleteProductAsync(int productId);
+        Task<PaginatedResult<ProductDto>> SearchProductsAsync(string query, int page, int pageSize, int? categoryId = null);
+    }
+}

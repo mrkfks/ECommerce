@@ -88,6 +88,15 @@ public class BrandService : IBrandService
 
         await _context.SaveChangesAsync();
     }
+    
+    public async Task UpdateImageAsync(int id, string imageUrl)
+    {
+        var brand = await _context.Brands.FirstOrDefaultAsync(b => b.Id == id);
+        if (brand == null) throw new KeyNotFoundException($"Brand with ID {id} not found");
+        
+        brand.Update(brand.Name, brand.Description, imageUrl);
+        await _context.SaveChangesAsync();
+    }
 
     public async Task DeleteAsync(int id)
     {

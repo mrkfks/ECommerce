@@ -31,6 +31,7 @@
                     id="usernameOrEmail" 
                     [(ngModel)]="credentials.usernameOrEmail"
                     name="usernameOrEmail"
+                    autocomplete="username"
                     placeholder="Kullanıcı adı veya e-posta"
                     required>
                 </div>
@@ -46,6 +47,7 @@
                     id="password" 
                     [(ngModel)]="credentials.password"
                     name="password"
+                    autocomplete="current-password"
                     placeholder="Şifrenizi girin"
                     required>
                   <button 

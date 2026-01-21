@@ -1,0 +1,21 @@
+  Geri yüklenecek projeler belirleniyor...
+  Geri yükleme için tüm projeler güncel.
+  ECommerce.Domain -> D:\Ömer Kafkas\Projects\ECommerce\src\Core\ECommerce.Domain\bin\Debug\net10.0\ECommerce.Domain.dll
+  ECommerce.Application -> D:\Ömer Kafkas\Projects\ECommerce\src\Core\ECommerce.Application\bin\Debug\net10.0\ECommerce.Application.dll
+D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\Services\BannerService.cs(39,49): error CS0103: 'MapToDto' adı geçerli bağlamda yok [D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj]
+D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\Services\BannerService.cs(85,28): error CS0103: 'MapToDto' adı geçerli bağlamda yok [D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj]
+D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\Services\BannerService.cs(120,28): error CS0103: 'MapToDto' adı geçerli bağlamda yok [D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj]
+D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\Services\BannerService.cs(171,28): error CS0103: 'MapToDto' adı geçerli bağlamda yok [D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj]
+D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\Services\BannerService.cs(204,30): warning CS0168: 'ex' değişkeni ifade edilir ancak hiçbir zaman kullanılmaz [D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj]
+
+Oluşturma BAŞARISIZ OLDU.
+
+D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\Services\BannerService.cs(204,30): warning CS0168: 'ex' değişkeni ifade edilir ancak hiçbir zaman kullanılmaz [D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj]
+D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\Services\BannerService.cs(39,49): error CS0103: 'MapToDto' adı geçerli bağlamda yok [D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj]
+D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\Services\BannerService.cs(85,28): error CS0103: 'MapToDto' adı geçerli bağlamda yok [D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj]
+D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\Services\BannerService.cs(120,28): error CS0103: 'MapToDto' adı geçerli bağlamda yok [D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj]
+D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\Services\BannerService.cs(171,28): error CS0103: 'MapToDto' adı geçerli bağlamda yok [D:\Ömer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj]
+    1 Uyarı
+    4 Hata
+
+Geçen Süre 00:00:01.40

@@ -16,6 +16,12 @@ namespace ECommerce.Domain.Entities
         public string? ResponsiblePersonName { get; private set; }
         public string? ResponsiblePersonPhone { get; private set; }
         public string? ResponsiblePersonEmail { get; private set; }
+        
+        // Branding & Configuration
+        public string? Domain { get; private set; } // e.g. "tenant1.myshop.com"
+        public string? LogoUrl { get; private set; }
+        public string PrimaryColor { get; private set; } = "#3b82f6"; // Default Blue
+        public string SecondaryColor { get; private set; } = "#1e40af"; // Default Dark Blue
 
         public virtual ICollection<User> Users { get; private set; } = new List<User>();
         public virtual ICollection<Customer> Customers { get; private set; } = new List<Customer>();
@@ -99,6 +105,14 @@ namespace ECommerce.Domain.Entities
         public void Deactivate()
         {
             IsActive = false;
+            MarkAsModified();
+        }
+        public void UpdateBranding(string? domain, string? logoUrl, string? primaryColor, string? secondaryColor)
+        {
+            Domain = domain?.Trim().ToLower();
+            LogoUrl = logoUrl;
+            if (!string.IsNullOrWhiteSpace(primaryColor)) PrimaryColor = primaryColor;
+            if (!string.IsNullOrWhiteSpace(secondaryColor)) SecondaryColor = secondaryColor;
             MarkAsModified();
         }
     }

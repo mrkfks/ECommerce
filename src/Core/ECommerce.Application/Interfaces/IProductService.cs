@@ -33,6 +33,12 @@ namespace ECommerce.Application.Interfaces
 
         // Ürün arama (isim veya açıklama üzerinden)
         Task<IReadOnlyList<ProductDto>> SearchAsync(string keyword);
+        
+        // Resim işlemleri
+        Task<ProductImageDto> AddImageAsync(int productId, string imageUrl, int order, bool isPrimary);
+        Task UpdateImageAsync(int productId, int imageId, string imageUrl, int order, bool isPrimary);
+        Task RemoveImageAsync(int productId, int imageId);
+        Task<IReadOnlyList<ProductImageDto>> GetImagesAsync(int productId);
     }
 }
 
