@@ -116,4 +116,56 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Invalid refresh token", details = ex.Message });
         }
     }
+    /// <summary>
+    /// Update current user profile
+    /// </summary>
+    [HttpPut("profile")]
+    [Authorize]
+    public async Task<IActionResult> UpdateProfile([FromBody] UserProfileUpdateDto dto)
+    {
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var result = await _authService.UpdateProfileAsync(userId, dto);
+            return Ok(new ApiResponseDto<UserDto>
+            {
+                Success = true,
+                Data = result,
+                Message = "Profil başarıyla güncellendi."
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Change password
+    /// </summary>
+    [HttpPost("change-password")]
+    [Authorize]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+    {
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            await _authService.ChangePasswordAsync(userId, dto);
+            return Ok(new { message = "Şifre başarıyla değiştirildi." });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }

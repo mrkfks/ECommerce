@@ -1,8 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { OrderService, AuthService } from '../../core/services';
 import { Order, OrderStatus } from '../../core/models';
+import { AuthService, OrderService } from '../../core/services';
 
 @Component({
   selector: 'app-order-history',
@@ -30,62 +30,13 @@ export class OrderHistory implements OnInit {
         this.orders = orders;
         this.isLoading = false;
       },
-      error: () => {
-        this.loadMockOrders();
+      error: (err) => {
+        console.error('Siparişler yüklenemedi:', err);
+        // Error handling - leave empty or show toast
+        this.orders = [];
         this.isLoading = false;
       }
     });
-  }
-
-  private loadMockOrders(): void {
-    this.orders = [
-      {
-        id: 1001,
-        customerId: 1,
-        customerName: 'Demo Kullanıcı',
-        addressId: 1,
-        companyId: 1,
-        companyName: 'Demo Şirket',
-        orderDate: new Date('2024-01-15'),
-        items: [
-          { id: 1, productId: 1, productName: 'Kablosuz Kulaklık', quantity: 1, unitPrice: 1299.99, totalPrice: 1299.99 },
-          { id: 2, productId: 2, productName: 'Telefon Kılıfı', quantity: 2, unitPrice: 99.99, totalPrice: 199.98 }
-        ],
-        totalAmount: 1499.97,
-        status: OrderStatus.Delivered,
-        statusText: 'Teslim Edildi'
-      },
-      {
-        id: 1002,
-        customerId: 1,
-        customerName: 'Demo Kullanıcı',
-        addressId: 1,
-        companyId: 1,
-        companyName: 'Demo Şirket',
-        orderDate: new Date('2024-01-20'),
-        items: [
-          { id: 3, productId: 3, productName: 'Akıllı Saat', quantity: 1, unitPrice: 2499.99, totalPrice: 2499.99 }
-        ],
-        totalAmount: 2499.99,
-        status: OrderStatus.Shipped,
-        statusText: 'Kargoda'
-      },
-      {
-        id: 1003,
-        customerId: 1,
-        customerName: 'Demo Kullanıcı',
-        addressId: 1,
-        companyId: 1,
-        companyName: 'Demo Şirket',
-        orderDate: new Date('2024-01-22'),
-        items: [
-          { id: 4, productId: 4, productName: 'Laptop Stand', quantity: 1, unitPrice: 349.99, totalPrice: 349.99 }
-        ],
-        totalAmount: 349.99,
-        status: OrderStatus.Processing,
-        statusText: 'Hazırlanıyor'
-      }
-    ];
   }
 
   getStatusBadgeClass(status: OrderStatus): string {

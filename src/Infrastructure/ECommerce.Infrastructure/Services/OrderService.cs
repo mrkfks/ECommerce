@@ -18,6 +18,7 @@ namespace ECommerce.Infrastructure.Services
         private readonly IProductService _productService;
         private readonly Microsoft.AspNetCore.SignalR.IHubContext<ECommerce.Infrastructure.Hubs.NotificationHub> _hubContext;
         private readonly ICacheService _cacheService;
+        private readonly ECommerce.Domain.Interfaces.IPaymentService _paymentService;
 
 
         public OrderService(
@@ -26,7 +27,8 @@ namespace ECommerce.Infrastructure.Services
             IProductService productService,
             ILogger<OrderService> logger, 
             Microsoft.AspNetCore.SignalR.IHubContext<ECommerce.Infrastructure.Hubs.NotificationHub> hubContext,
-            ICacheService cacheService)
+            ICacheService cacheService,
+            ECommerce.Domain.Interfaces.IPaymentService paymentService)
         {
             _context = context;
             _tenantService = tenantService;
@@ -34,6 +36,7 @@ namespace ECommerce.Infrastructure.Services
             _logger = logger;
             _hubContext = hubContext;
             _cacheService = cacheService;
+            _paymentService = paymentService;
         }
 
         public async Task<OrderDto> CreateAsync(OrderCreateDto dto)
@@ -63,8 +66,24 @@ namespace ECommerce.Infrastructure.Services
                     throw new Exception("Geçerli bir teslimat adresi gereklidir.");
                 }
 
-                // 2. Sipariş Oluşturma
+                // 2. Ödeme Kontrolü
+                if (string.IsNullOrEmpty(dto.CardNumber))
+                {
+                   // Kart bilgisi yoksa varsayılan davranış (Test için 4444000000000000 kabul edelim veya hata fırlatalım)
+                   // "Ödeme başarısızsa sipariş kaydedilmez" dendiği için hata fırlatmak daha doğru.
+                   // Ancak mevcut testleri bozmamak için sadece varsa kontrol edelim, yoksa hata
+                   throw new Exception("Ödeme bilgileri eksik (Simülasyon için: 4444...)");
+                }
+
+                bool paymentSuccess = _paymentService.ValidatePayment(dto.CardNumber, dto.CardExpiry ?? "12/26", dto.CardCvv ?? "123");
+                if (!paymentSuccess)
+                {
+                    throw new Exception("Yetersiz Bakiye veya Ödeme Başarısız");
+                }
+
+                // 3. Sipariş Oluşturma
                 var order = Order.Create(dto.CustomerId, addressId, dto.CompanyId);
+                
                 _context.Orders.Add(order);
                 await _context.SaveChangesAsync();
 
@@ -82,11 +101,12 @@ namespace ECommerce.Infrastructure.Services
                     await _productService.DecreaseStockAsync(product.Id, itemDto.Quantity);
                     
                     // OrderItem oluştur
-                    
-                    // OrderItem oluştur
                     var orderItem = OrderItem.Create(product.Id, itemDto.Quantity, product.Price);
                     order.AddItem(orderItem);
                 }
+
+                // Tüm kalemler eklendi ve stok düştü, şimdi siparişi tamamlandı olarak işaretle
+                order.MarkAsPaid();
 
                 // 4. Sepeti Temizle (Varsa)
                 // Müşterinin bu şirketteki aktif sepetini bul ve temizle

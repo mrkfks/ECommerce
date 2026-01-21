@@ -243,6 +243,25 @@ public class HomeController : Controller
     }
 
     /// <summary>
+    /// Kategori bazlı stok dağılımını getirir (Pie Chart)
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> GetCategoryStock(DateTime? startDate, DateTime? endDate, int? companyId)
+    {
+        companyId = ResolveCompanyId(companyId);
+        var kpiData = await _dashboardService.GetKpiAsync(startDate, endDate, companyId);
+
+        return Json(kpiData?.CategoryStock?.Select(c => new
+        {
+            categoryId = c.CategoryId,
+            name = c.CategoryName,
+            stock = c.StockQuantity,
+            percentage = c.Percentage,
+            color = c.Color
+        }) ?? Enumerable.Empty<object>());
+    }
+
+    /// <summary>
     /// Müşteri segmentasyonu verilerini getirir (Bar Chart)
     /// </summary>
     [HttpGet]

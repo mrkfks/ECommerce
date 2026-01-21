@@ -18,7 +18,7 @@ const colors = {
     orange: '#F97316',
     lime: '#84CC16',
     indigo: '#6366F1',
-    
+
     // Status colors
     pending: '#FCD34D',
     shipped: '#60A5FA',
@@ -29,8 +29,8 @@ const colors = {
 
 // Para formatı
 function formatCurrency(value) {
-    return new Intl.NumberFormat('tr-TR', { 
-        style: 'currency', 
+    return new Intl.NumberFormat('tr-TR', {
+        style: 'currency',
         currency: 'TRY',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
@@ -47,12 +47,12 @@ async function fetchChartData(endpoint, companyId = null) {
     try {
         const startDate = document.getElementById('startDate')?.value;
         const endDate = document.getElementById('endDate')?.value;
-        
+
         let url = `/Home/${endpoint}?`;
         if (startDate) url += `startDate=${startDate}&`;
         if (endDate) url += `endDate=${endDate}&`;
         if (companyId) url += `companyId=${companyId}&`;
-        
+
         const response = await fetch(url);
         if (!response.ok) throw new Error('API error');
         return await response.json();
@@ -65,9 +65,9 @@ async function fetchChartData(endpoint, companyId = null) {
 // Tüm grafikleri yükle
 async function loadAllCharts() {
     showLoading();
-    
+
     const companyId = document.getElementById('companyFilter')?.value || null;
-    
+
     try {
         // Tüm verileri paralel olarak çek
         const [
@@ -80,14 +80,14 @@ async function loadAllCharts() {
             topProductsData
         ] = await Promise.all([
             fetchChartData('GetSalesTrend', companyId),
-            fetchChartData('GetCategorySales', companyId),
+            fetchChartData('GetCategoryStock', companyId),
             fetchChartData('GetCustomerSegmentation', companyId),
             fetchChartData('GetOrderStatusDistribution', companyId),
             fetchChartData('GetGeographicDistribution', companyId),
             fetchChartData('GetAverageCartTrend', companyId),
             fetchChartData('GetTopProducts', companyId)
         ]);
-        
+
         // Grafikleri oluştur
         if (salesTrendData) createSalesTrendChart(salesTrendData);
         if (categorySalesData) createCategorySalesChart(categorySalesData);
@@ -96,7 +96,7 @@ async function loadAllCharts() {
         if (geoData) createGeographicHeatmap(geoData);
         if (avgCartData) createAverageCartChart(avgCartData);
         if (topProductsData) createTopProductsChart(topProductsData);
-        
+
     } catch (error) {
         console.error('Error loading charts:', error);
     } finally {
@@ -108,12 +108,12 @@ async function loadAllCharts() {
 function createSalesTrendChart(data) {
     const ctx = document.getElementById('salesTrendChart');
     if (!ctx) return;
-    
+
     // Mevcut grafiği yok et
     if (chartInstances.salesTrend) {
         chartInstances.salesTrend.destroy();
     }
-    
+
     chartInstances.salesTrend = new Chart(ctx, {
         type: 'line',
         data: {
@@ -164,7 +164,7 @@ function createSalesTrendChart(data) {
                     padding: 12,
                     cornerRadius: 8,
                     callbacks: {
-                        label: function(context) {
+                        label: function (context) {
                             if (context.datasetIndex === 0) {
                                 return 'Satış: ' + formatCurrency(context.parsed.y);
                             }
@@ -204,21 +204,21 @@ function createSalesTrendChart(data) {
     });
 }
 
-// 2. Kategori Satış Grafiği (Pie/Doughnut Chart)
+// 2. Kategori Stok Grafiği (Pie/Doughnut Chart)
 function createCategorySalesChart(data) {
     const ctx = document.getElementById('categorySalesChart');
     if (!ctx) return;
-    
+
     if (chartInstances.categorySales) {
         chartInstances.categorySales.destroy();
     }
-    
+
     chartInstances.categorySales = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: data.map(d => d.name),
             datasets: [{
-                data: data.map(d => d.sales),
+                data: data.map(d => d.stock || d.sales), // Fallback if data format differs
                 backgroundColor: data.map(d => d.color),
                 borderWidth: 0,
                 hoverOffset: 10
@@ -235,11 +235,10 @@ function createCategorySalesChart(data) {
                     padding: 12,
                     cornerRadius: 8,
                     callbacks: {
-                        label: function(context) {
+                        label: function (context) {
                             const item = data[context.dataIndex];
                             return [
-                                `Satış: ${formatCurrency(item.sales)}`,
-                                `Adet: ${formatNumber(item.quantity)}`,
+                                `Stok: ${formatNumber(item.stock || item.sales)} adet`,
                                 `Oran: %${item.percentage.toFixed(1)}`
                             ];
                         }
@@ -254,7 +253,7 @@ function createCategorySalesChart(data) {
             }
         }
     });
-    
+
     // Legend'ı oluştur
     createCategoryLegend(data);
 }
@@ -262,12 +261,12 @@ function createCategorySalesChart(data) {
 function createCategoryLegend(data) {
     const container = document.getElementById('categoryLegend');
     if (!container) return;
-    
+
     container.innerHTML = data.map(item => `
         <div class="category-legend-item" onclick="highlightCategory('${item.name}')">
             <span class="category-color" style="background-color: ${item.color}"></span>
             <span class="category-name">${item.name}</span>
-            <span class="category-value">${formatCurrency(item.sales)}</span>
+            <span class="category-value">${formatNumber(item.stock || item.sales)}</span>
             <span class="category-percent">%${item.percentage.toFixed(1)}</span>
         </div>
     `).join('');
@@ -277,11 +276,11 @@ function createCategoryLegend(data) {
 function createCustomerSegmentChart(data) {
     const ctx = document.getElementById('customerSegmentChart');
     if (!ctx) return;
-    
+
     if (chartInstances.customerSegment) {
         chartInstances.customerSegment.destroy();
     }
-    
+
     chartInstances.customerSegment = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -311,7 +310,7 @@ function createCustomerSegmentChart(data) {
                 },
                 tooltip: {
                     callbacks: {
-                        label: function(context) {
+                        label: function (context) {
                             if (context.dataIndex === 1) {
                                 return context.dataset.label + ': ' + formatCurrency(context.parsed.y);
                             }
@@ -325,7 +324,7 @@ function createCustomerSegmentChart(data) {
                 y: {
                     grid: { color: 'rgba(0,0,0,0.05)' },
                     ticks: {
-                        callback: function(value) {
+                        callback: function (value) {
                             if (value >= 1000) {
                                 return (value / 1000) + 'K';
                             }
@@ -336,7 +335,7 @@ function createCustomerSegmentChart(data) {
             }
         }
     });
-    
+
     // Summary kartlarını güncelle
     document.getElementById('newCustomerCount').textContent = formatNumber(data.newCustomers);
     document.getElementById('returningCustomerCount').textContent = formatNumber(data.returningCustomers);
@@ -348,11 +347,11 @@ function createCustomerSegmentChart(data) {
 function createOrderStatusChart(data) {
     const ctx = document.getElementById('orderStatusChart');
     if (!ctx) return;
-    
+
     if (chartInstances.orderStatus) {
         chartInstances.orderStatus.destroy();
     }
-    
+
     chartInstances.orderStatus = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -392,7 +391,7 @@ function createOrderStatusChart(data) {
                     mode: 'index',
                     intersect: false,
                     callbacks: {
-                        footer: function(tooltipItems) {
+                        footer: function (tooltipItems) {
                             const total = tooltipItems.reduce((sum, item) => sum + item.parsed.y, 0);
                             return 'Toplam: ' + total + ' sipariş';
                         }
@@ -411,7 +410,7 @@ function createOrderStatusChart(data) {
             }
         }
     });
-    
+
     // Toplam sayıları hesapla ve göster
     const totals = {
         pending: data.reduce((sum, d) => sum + d.pending, 0),
@@ -419,12 +418,12 @@ function createOrderStatusChart(data) {
         delivered: data.reduce((sum, d) => sum + d.delivered, 0),
         cancelled: data.reduce((sum, d) => sum + d.cancelled, 0)
     };
-    
+
     document.getElementById('totalPending').textContent = formatNumber(totals.pending);
     document.getElementById('totalShipped').textContent = formatNumber(totals.shipped);
     document.getElementById('totalDelivered').textContent = formatNumber(totals.delivered);
     document.getElementById('totalCancelled').textContent = formatNumber(totals.cancelled);
-    
+
     // İptal oranı yüksekse kırmızı vurgula
     const cancelRate = totals.cancelled / (totals.pending + totals.shipped + totals.delivered + totals.cancelled) * 100;
     if (cancelRate > 10) {
@@ -436,7 +435,7 @@ function createOrderStatusChart(data) {
 function createGeographicHeatmap(data) {
     const container = document.getElementById('cityGrid');
     if (!container) return;
-    
+
     container.innerHTML = data.map(item => `
         <div class="col-md-4 col-sm-6">
             <div class="city-card intensity-${item.intensity}" onclick="showCityDetail('${item.city}', '${item.state}')">
@@ -484,11 +483,11 @@ function getIntensityProgressBar(intensity) {
 function createAverageCartChart(data) {
     const ctx = document.getElementById('avgCartChart');
     if (!ctx) return;
-    
+
     if (chartInstances.avgCart) {
         chartInstances.avgCart.destroy();
     }
-    
+
     chartInstances.avgCart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -516,7 +515,7 @@ function createAverageCartChart(data) {
                 }
             },
             scales: {
-                x: { 
+                x: {
                     display: false,
                     grid: { display: false }
                 },
@@ -529,15 +528,15 @@ function createAverageCartChart(data) {
             }
         }
     });
-    
+
     // Güncel ortalamayı göster
     if (data.length > 0) {
         const current = data[data.length - 1].value;
         const previous = data.length > 1 ? data[data.length - 2].value : current;
         const change = previous > 0 ? ((current - previous) / previous * 100) : 0;
-        
+
         document.getElementById('currentAvgCart').textContent = formatCurrency(current);
-        
+
         const changeEl = document.getElementById('avgCartChange');
         if (change >= 0) {
             changeEl.className = 'badge bg-success-subtle text-success';
@@ -553,11 +552,11 @@ function createAverageCartChart(data) {
 function createTopProductsChart(data) {
     const ctx = document.getElementById('topProductsChart');
     if (!ctx) return;
-    
+
     if (chartInstances.topProducts) {
         chartInstances.topProducts.destroy();
     }
-    
+
     // Gradient renkler
     const gradientColors = [
         colors.primary,
@@ -566,7 +565,7 @@ function createTopProductsChart(data) {
         colors.warning,
         colors.purple
     ];
-    
+
     chartInstances.topProducts = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -587,10 +586,10 @@ function createTopProductsChart(data) {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        title: function(context) {
+                        title: function (context) {
                             return data[context[0].dataIndex].name;
                         },
-                        label: function(context) {
+                        label: function (context) {
                             const item = data[context.dataIndex];
                             return [
                                 `Satış: ${formatNumber(item.quantity)} adet`,
@@ -679,7 +678,7 @@ function highlightCategory(name) {
 function downloadChart(chartId, filename) {
     const canvas = document.getElementById(chartId);
     if (!canvas) return;
-    
+
     const link = document.createElement('a');
     link.download = `${filename}-${new Date().toISOString().split('T')[0]}.png`;
     link.href = canvas.toDataURL('image/png');
@@ -690,9 +689,9 @@ function downloadChart(chartId, filename) {
 function toggleFullscreen(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
-    
+
     container.classList.toggle('chart-fullscreen');
-    
+
     // Grafiği yeniden boyutlandır
     setTimeout(() => {
         Object.values(chartInstances).forEach(chart => {
@@ -702,7 +701,7 @@ function toggleFullscreen(containerId) {
 }
 
 // Escape tuşuyla fullscreen'den çık
-document.addEventListener('keydown', function(e) {
+document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
         document.querySelectorAll('.chart-fullscreen').forEach(el => {
             el.classList.remove('chart-fullscreen');

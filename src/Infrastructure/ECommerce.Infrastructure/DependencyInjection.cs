@@ -66,6 +66,7 @@ public static class DependencyInjection
         services.AddScoped<ICampaignService, CampaignService>();
         services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<ICompanyService, CompanyService>();
+        services.AddScoped<IPaymentService, FakePaymentService>();
             
         // Advanced Services
         services.AddScoped<ISearchService, DatabaseSearchService>();

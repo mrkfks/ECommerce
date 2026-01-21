@@ -29,7 +29,14 @@ public class GlobalExceptionHandlerMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unhandled exception occurred: {Message}", ex.Message);
+            var endpoint = context.GetEndpoint()?.DisplayName;
+            var user = context.User.Identity?.Name ?? "Anonymous";
+            var userId = context.User.FindFirst("id")?.Value;
+
+            _logger.LogError(ex, 
+                "An unhandled exception occurred. Endpoint: {Endpoint}, User: {User} ({UserId}), Message: {Message}", 
+                endpoint, user, userId, ex.Message);
+                
             await HandleExceptionAsync(context, ex);
         }
     }

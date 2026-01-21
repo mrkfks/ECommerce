@@ -35,6 +35,7 @@ namespace Dashboard.Web.Controllers
             // Şirket listesini ViewBag'e ekle
             ViewBag.Companies = await _companyService.GetAllAsync();
             ViewBag.SelectedCompanyId = companyId;
+            ViewBag.Roles = await _userService.GetRolesAsync();
 
             return View(users);
         }

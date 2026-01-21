@@ -384,5 +384,70 @@ namespace ECommerce.Infrastructure.Services
                 .FirstOrDefaultAsync(u => u.Username == username);
             return existingUser == null;
         }
+        public async Task<UserDto> UpdateProfileAsync(int userId, UserProfileUpdateDto dto)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                throw new NotFoundException("Kullanıcı bulunamadı.");
+            }
+
+            // Username/Email uniqueness check, only if changed
+            if (user.Email != dto.Email)
+            {
+                var emailExists = await _context.Users.AnyAsync(u => u.Email == dto.Email && u.Id != userId);
+                if (emailExists) throw new ConflictException("Bu email adresi zaten kullanılıyor.");
+                user.Email = dto.Email;
+            }
+            
+            if (user.Username != dto.Username)
+            {
+                var usernameExists = await _context.Users.AnyAsync(u => u.Username == dto.Username && u.Id != userId);
+                if (usernameExists) throw new ConflictException("Bu kullanıcı adı zaten kullanılıyor.");
+                user.Username = dto.Username;
+            }
+
+            user.FirstName = dto.FirstName;
+            user.LastName = dto.LastName;
+
+            await _context.SaveChangesAsync();
+
+            return await GetUserByIdAsync(userId) ?? throw new Exception("Updated user not found");
+        }
+
+        public async Task<bool> ChangePasswordAsync(int userId, ChangePasswordDto dto)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                throw new NotFoundException("Kullanıcı bulunamadı.");
+            }
+
+            if (dto.NewPassword != dto.ConfirmPassword)
+            {
+                throw new BadRequestException("Yeni şifreler eşleşmiyor.");
+            }
+
+            var passwordOk = BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash);
+            if (!passwordOk)
+            {
+                // Fallback for legacy
+                var legacy = LegacyHashPassword(dto.CurrentPassword);
+                if (legacy == user.PasswordHash)
+                {
+                   passwordOk = true; 
+                }
+            }
+
+            if (!passwordOk)
+            {
+                throw new BadRequestException("Mevcut şifre hatalı.");
+            }
+
+            user.UpdatePassword(BCrypt.Net.BCrypt.HashPassword(dto.NewPassword));
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
     }
 }

@@ -101,6 +101,12 @@ namespace ECommerce.Domain.Entities
             MarkAsModified();
         }
 
+        public void MarkAsPaid()
+        {
+            Status = OrderStatus.Completed;
+            MarkAsModified();
+        }
+
         private void RecalculateTotal()
         {
             TotalAmount = Items.Sum(x => x.UnitPrice * x.Quantity);

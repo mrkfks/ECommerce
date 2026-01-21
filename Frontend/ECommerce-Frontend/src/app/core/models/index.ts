@@ -36,6 +36,18 @@ export interface AuthResponse {
 
 export interface RefreshTokenRequest {
   refreshToken: string;
+
+export interface UserProfileUpdateRequest {
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 }
 
 // Product Models

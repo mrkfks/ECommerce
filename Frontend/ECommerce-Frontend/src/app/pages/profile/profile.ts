@@ -1,9 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { ChangePasswordRequest, User, UserProfileUpdateRequest } from '../../core/models';
 import { AuthService } from '../../core/services';
-import { User } from '../../core/models';
 
 @Component({
   selector: 'app-profile',
@@ -25,7 +25,7 @@ export class Profile implements OnInit {
     firstName: '',
     lastName: '',
     email: '',
-    phone: ''
+    phone: '' // Backend doesn't support phone update yet in profile endpoint
   };
 
   passwordForm = {
@@ -35,20 +35,16 @@ export class Profile implements OnInit {
   };
 
   ngOnInit(): void {
-    this.user = this.authService.currentUserValue;
-    if (!this.user) {
-      // Mock user for demo
-      this.user = {
-        id: 1,
-        email: 'demo@example.com',
-        firstName: 'Demo',
-        lastName: 'Kullanıcı',
-        username: 'demo',
-        role: 'user',
-        createdAt: new Date()
-      };
-    }
-    this.resetForm();
+    this.authService.getCurrentUser().subscribe({
+      next: (user) => {
+        this.user = user;
+        this.resetForm();
+      },
+      error: () => {
+        // Fallback or redirect if token is invalid but guard didn't catch it
+        // Should rely on Interceptors/Guard mostly.
+      }
+    });
   }
 
   resetForm(): void {
@@ -70,17 +66,29 @@ export class Profile implements OnInit {
   }
 
   saveProfile(): void {
+    if (!this.user) return;
     this.isSaving = true;
-    // Simülasyon
-    setTimeout(() => {
-      if (this.user) {
-        this.user.firstName = this.editForm.firstName;
-        this.user.lastName = this.editForm.lastName;
-        this.user.email = this.editForm.email;
+
+    const request: UserProfileUpdateRequest = {
+      firstName: this.editForm.firstName,
+      lastName: this.editForm.lastName,
+      email: this.editForm.email,
+      username: this.user.username
+    };
+
+    this.authService.updateProfile(request).subscribe({
+      next: (updatedUser) => {
+        this.user = updatedUser;
+        this.isSaving = false;
+        this.isEditing = false;
+        alert('Profil bilgileriniz güncellendi.');
+      },
+      error: (err) => {
+        console.error(err);
+        this.isSaving = false;
+        alert('Güncelleme başarısız: ' + (err.error?.message || 'Bilinmeyen hata'));
       }
-      this.isSaving = false;
-      this.isEditing = false;
-    }, 1000);
+    });
   }
 
   changePassword(): void {
@@ -88,9 +96,23 @@ export class Profile implements OnInit {
       alert('Şifreler eşleşmiyor!');
       return;
     }
-    // Şifre değiştirme işlemi
-    alert('Şifre başarıyla değiştirildi!');
-    this.passwordForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
+
+    const request: ChangePasswordRequest = {
+      currentPassword: this.passwordForm.currentPassword,
+      newPassword: this.passwordForm.newPassword,
+      confirmPassword: this.passwordForm.confirmPassword
+    };
+
+    this.authService.changePassword(request).subscribe({
+      next: () => {
+        alert('Şifreniz başarıyla değiştirildi.');
+        this.passwordForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
+      },
+      error: (err) => {
+        console.error(err);
+        alert('Şifre değiştirme başarısız: ' + (err.error?.message || 'Bilinmeyen hata'));
+      }
+    });
   }
 
   logout(): void {

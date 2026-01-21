@@ -1,15 +1,17 @@
-import { Injectable, signal, computed, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, BehaviorSubject, map } from 'rxjs';
+import { inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { BehaviorSubject, map, Observable, tap } from 'rxjs';
 import {
-  User,
-  LoginRequest,
-  RegisterRequest,
-  AuthResponse,
-  RefreshTokenRequest,
-  ApiResponse
+    ApiResponse,
+    AuthResponse,
+    ChangePasswordRequest,
+    LoginRequest,
+    RefreshTokenRequest,
+    RegisterRequest,
+    User,
+    UserProfileUpdateRequest
 } from '../models';
 
 @Injectable({
@@ -66,6 +68,29 @@ export class AuthService {
   checkUsernameAvailable(username: string): Observable<{ isAvailable: boolean; message: string }> {
     return this.http.post<any>('/auth/check-username', { username }).pipe(
       map(response => response.data || response)
+    );
+  }
+
+  updateProfile(data: UserProfileUpdateRequest): Observable<User> {
+    return this.http.put<ApiResponse<User>>('/auth/profile', data).pipe(
+      map(response => response.data),
+      tap(user => {
+        // Update local state
+        const currentUser = this.currentUserSubject.value;
+        if (currentUser) {
+          const updatedUser = { ...currentUser, ...user };
+          this.currentUserSubject.next(updatedUser);
+          if (this.isBrowser) {
+            localStorage.setItem(this.USER_KEY, JSON.stringify(updatedUser));
+          }
+        }
+      })
+    );
+  }
+
+  changePassword(data: ChangePasswordRequest): Observable<void> {
+    return this.http.post<ApiResponse<void>>('/auth/change-password', data).pipe(
+      map(() => void 0)
     );
   }
   logout(): void {

@@ -19,6 +19,9 @@ namespace ECommerce.Application.Interfaces
         Task<bool> IsEmailAvailableAsync(string email);
 
         Task<bool> IsUsernameAvailableAsync(string username);
+
+        Task<UserDto> UpdateProfileAsync(int userId, UserProfileUpdateDto dto);
+        Task<bool> ChangePasswordAsync(int userId, ChangePasswordDto dto);
     }
 }
 

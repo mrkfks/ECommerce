@@ -122,6 +122,17 @@ public class DashboardController : ControllerBase
     }
 
     /// <summary>
+    /// Kategori bazlı stok dağılımını getirir (Pie Chart için)
+    /// </summary>
+    [HttpGet("category-stock")]
+    [ProducesResponseType(typeof(List<CategoryStockDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<CategoryStockDto>>> GetCategoryStockDistribution([FromQuery] int? companyId = null)
+    {
+        var result = await _dashboardService.GetCategoryStockDistributionAsync(companyId);
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Coğrafi dağılım verilerini getirir (Heatmap için)
     /// </summary>
     [HttpGet("geographic-distribution")]

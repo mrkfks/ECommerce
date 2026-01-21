@@ -29,6 +29,9 @@ public class DashboardKpiDto
     // Kategori bazlı satış dağılımı
     public List<CategorySalesDto> CategorySales { get; set; } = new();
 
+    // Kategori bazlı stok dağılımı
+    public List<CategoryStockDto> CategoryStock { get; set; } = new();
+
     // Coğrafi dağılım
     public List<GeographicDistributionDto> GeographicDistribution { get; set; } = new();
 
@@ -156,6 +159,18 @@ public class CategorySalesDto
     public string CategoryName { get; set; } = string.Empty;
     public decimal TotalSales { get; set; }
     public int TotalQuantity { get; set; }
+    public decimal Percentage { get; set; }
+    public string Color { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Kategori bazlı stok dağılımı (Pie Chart için)
+/// </summary>
+public class CategoryStockDto
+{
+    public int CategoryId { get; set; }
+    public string CategoryName { get; set; } = string.Empty;
+    public int StockQuantity { get; set; }
     public decimal Percentage { get; set; }
     public string Color { get; set; } = string.Empty;
 }
