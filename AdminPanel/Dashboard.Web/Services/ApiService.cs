@@ -20,10 +20,10 @@ public class ApiService<T> : IApiService<T> where T : class
         PropertyNameCaseInsensitive = true 
     };
 
-    public ApiService(HttpClient httpClient, string endpoint)
+    public ApiService(IHttpClientFactory httpClientFactory)
     {
-        _httpClient = httpClient;
-        _endpoint = endpoint;
+        _httpClient = httpClientFactory.CreateClient("ECommerceApi");
+        _endpoint = typeof(T).Name.Replace("Dto", "");
     }
 
     public async Task<List<T>> GetAllAsync()
@@ -133,6 +133,20 @@ public class ApiService<T> : IApiService<T> where T : class
         try
         {
             var response = await _httpClient.DeleteAsync($"api/{_endpoint}/{id}");
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    // Generic Create support for different DTOs (e.g. ProductCreateDto -> ProductDto)
+    public async Task<bool> CreateAsync<TCreate>(TCreate entity)
+    {
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync($"api/{_endpoint}", entity);
             return response.IsSuccessStatusCode;
         }
         catch

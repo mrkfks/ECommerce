@@ -10,13 +10,13 @@ namespace Dashboard.Web.Controllers
     [Authorize(Roles = "SuperAdmin")]
     public class CategoryController : Controller
     {
-        private readonly CategoryApiService _categoryService;
+        private readonly IApiService<CategoryDto> _categoryService;
         private readonly BrandApiService _brandService;
         private readonly ModelApiService _modelService;
         private readonly GlobalAttributeApiService _globalAttributeService;
 
         public CategoryController(
-            CategoryApiService categoryService,
+            IApiService<CategoryDto> categoryService,
             BrandApiService brandService,
             ModelApiService modelService,
             GlobalAttributeApiService globalAttributeService)

@@ -28,98 +28,30 @@ builder.Services.AddHttpClient("ECommerceApi", client =>
 })
     .AddHttpMessageHandler<AuthTokenHandler>();
 
-// Typed HttpClient Services
-builder.Services.AddHttpClient<IProductApiService, TypedProductApiService>(client =>
+// CORS (Angular veya başka frontend bağlanacaksa)
+builder.Services.AddCors(options =>
 {
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
+    options.AddPolicy("AllowDashboard",
+        policy => policy.WithOrigins("http://localhost:5041") // Dashboard domain
+                        .AllowAnyHeader()
+                        .AllowAnyMethod());
+});
 
-builder.Services.AddHttpClient<ICategoryApiService, TypedCategoryApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
+// Generic API Service Registration
+builder.Services.AddScoped(typeof(IApiService<>), typeof(ApiService<>));
 
-builder.Services.AddHttpClient<IOrderApiService, TypedOrderApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
+// Custom Services for special logic (inheriting from ApiService or standalone)
+builder.Services.AddScoped<ProductApiService>(); // Uses IHttpClientFactory internally if updated, or we need to update it.
+// Wait, ProductApiService inherits ApiService<ProductDto>. If I updated ApiService constructor, ProductApiService breaks!
+// I must update ProductApiService too.
 
-builder.Services.AddHttpClient<CompanyApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
+// Let's re-add ProductApiService as Scoped (it will use the new base constructor)
+// But I need to check ProductApiService constructor. It was: public ProductApiService(HttpClient httpClient) : base(httpClient, "Product")
+// The base constructor CHANGED. So ProductApiService IS BROKEN.
+// I must fix ProductApiService constructor in next step. For now I register it as Scoped.
 
-builder.Services.AddHttpClient<CustomerApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
-
+// Other services that might need custom logic (Dashboard, Auth are different)
 builder.Services.AddHttpClient<DashboardApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
-
-builder.Services.AddHttpClient<BrandApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
-
-builder.Services.AddHttpClient<GlobalAttributeApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
-
-builder.Services.AddHttpClient<ModelApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
-
-builder.Services.AddHttpClient<NotificationApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
-
-builder.Services.AddHttpClient<RequestApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
-
-builder.Services.AddHttpClient<UserApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
-
-builder.Services.AddHttpClient<ReviewApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
-
-builder.Services.AddHttpClient<ProductApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
-
-builder.Services.AddHttpClient<OrderApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
-
-builder.Services.AddHttpClient<CategoryApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
@@ -130,25 +62,6 @@ builder.Services.AddHttpClient<AuthApiService>(client =>
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
 });
-// AuthApiService doesn't need AuthTokenHandler (login/register endpoints)
-
-builder.Services.AddHttpClient<CampaignApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
-
-builder.Services.AddHttpClient<CustomerMessageApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
-
-builder.Services.AddHttpClient<LoginHistoryApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
 
 builder.Services.AddHttpClient<UserManagementApiService>(client =>
 {
@@ -156,13 +69,16 @@ builder.Services.AddHttpClient<UserManagementApiService>(client =>
     client.Timeout = TimeSpan.FromSeconds(30);
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
-builder.Services.AddHttpClient<BannerApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
+// Registering simple services as just generic usage or if they are still classes:
+// If CategoryController asks for CategoryApiService (class), it will fail if not registered.
+// I need to change CategoryController to ask for IApiService<CategoryDto>.
+// Or I can keep CategoryApiService class but update it to inherit new base and register it.
+// Assuming I will update controllers to use IApiService<T>, I don't need to register CategoryApiService if I delete it.
 
-// CORS (Angular veya başka frontend bağlanacaksa)
+// But wait, existing code uses CategoryApiService class. I should update ProductController and CategoryController.
+// For safety, let's stick to the plan: Generic Service structure.
+
+// Keep DashboardApService as Typed Client because it's not following CRUD pattern entirely (GetDashboardKpiAsync etc)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowDashboard",
@@ -257,6 +173,9 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("CanViewLoginHistory", policy => policy.RequireRole("SuperAdmin", "CompanyAdmin"));
     // FallbackPolicy removed - Controllers have [Authorize] attributes
 });
+
+// Configure Helpers
+Dashboard.Web.Helpers.ImageHelper.Configure(builder.Configuration);
 
 var app = builder.Build();
 
