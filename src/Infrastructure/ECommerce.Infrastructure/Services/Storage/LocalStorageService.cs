@@ -1,4 +1,8 @@
 using ECommerce.Application.Interfaces;
+using ECommerce.Application.DTOs;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Formats.Webp;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 
@@ -17,7 +21,7 @@ namespace ECommerce.Infrastructure.Services.Storage
             _tenantService = tenantService;
         }
 
-        public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string folder)
+        public async Task<ImageUploadResultDto> UploadFileAsync(Stream fileStream, string fileName, string folder)
         {
             var companyId = _tenantService.GetCompanyId();
             var tenantPathFragment = companyId.HasValue ? companyId.Value.ToString() : "global";
@@ -30,10 +34,27 @@ namespace ECommerce.Infrastructure.Services.Storage
             var uniqueFileName = Guid.NewGuid().ToString() + "_" + fileName;
             var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
+            // Orijinal dosyayı kaydet
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await fileStream.CopyToAsync(stream);
             }
+
+            // ImageSharp ile işlemler
+            fileStream.Position = 0;
+            using var image = await Image.LoadAsync(filePath);
+
+            // Thumbnail oluştur (ör: 200x200)
+            var thumbFileName = Path.GetFileNameWithoutExtension(uniqueFileName) + "_thumb.webp";
+            var thumbPath = Path.Combine(uploadsFolder, thumbFileName);
+            image.Mutate(x => x.Resize(new ResizeOptions { Size = new Size(200, 200), Mode = ResizeMode.Max }));
+            await image.SaveAsWebpAsync(thumbPath);
+
+            // WebP olarak kaydet
+            var webpFileName = Path.GetFileNameWithoutExtension(uniqueFileName) + ".webp";
+            var webpPath = Path.Combine(uploadsFolder, webpFileName);
+            image.Mutate(x => x.AutoOrient());
+            await image.SaveAsWebpAsync(webpPath);
 
             var request = _httpContextAccessor.HttpContext?.Request;
             var scheme = request?.Scheme ?? "http";
@@ -47,7 +68,13 @@ namespace ECommerce.Infrastructure.Services.Storage
                 host = "localhost";
             }
             var baseUrl = $"{scheme}://{host}";
-            return $"{baseUrl}/uploads/{tenantPathFragment}/{folder}/{uniqueFileName}";
+
+            return new ImageUploadResultDto
+            {
+                OriginalUrl = $"{baseUrl}/uploads/{tenantPathFragment}/{folder}/{uniqueFileName}",
+                WebPUrl = $"{baseUrl}/uploads/{tenantPathFragment}/{folder}/{webpFileName}",
+                ThumbnailUrl = $"{baseUrl}/uploads/{tenantPathFragment}/{folder}/{thumbFileName}"
+            };
         }
 
         public Task DeleteFileAsync(string fileUrl)

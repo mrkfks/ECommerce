@@ -15,47 +15,51 @@ namespace ECommerce.Infrastructure.Services
         private readonly IMapper _mapper;
         private readonly ILogger<ProductService> _logger;
         private readonly IStorageService _storageService;
+        private readonly ISearchService _searchService;
 
-        public ProductService(AppDbContext context, ITenantService tenantService, IMapper mapper, ILogger<ProductService> logger, IStorageService storageService)
+        public ProductService(AppDbContext context, ITenantService tenantService, IMapper mapper, ILogger<ProductService> logger, IStorageService storageService, ISearchService searchService)
         {
             _context = context;
             _tenantService = tenantService;
             _mapper = mapper;
             _logger = logger;
             _storageService = storageService;
+            _searchService = searchService;
         }
 
         public async Task<ProductDto> CreateAsync(ProductCreateDto dto)
         {
-             var companyId = _tenantService.GetCompanyId();
-             int effectiveCompanyId = dto.CompanyId;
-             if (companyId.HasValue && companyId.Value != dto.CompanyId)
-             {
-                 effectiveCompanyId = companyId.Value;
-             }
-             
-             var product = Product.Create(
-                 dto.Name,
-                 dto.Description,
-                 dto.Price,
-                 dto.CategoryId,
-                 dto.BrandId,
-                 effectiveCompanyId,
-                 dto.StockQuantity,
-                 dto.ModelId
-             );
-             
-             if (!string.IsNullOrEmpty(dto.ImageUrl)) 
-             {
-                 // Add primary image if URL provided
-                 var img = ProductImage.Create(product.Id, dto.ImageUrl, 0, true);
-                 product.Images.Add(img);
-             }
-             
-             _context.Products.Add(product);
-             await _context.SaveChangesAsync();
-             
-             return MapToDto(product);
+            var companyId = _tenantService.GetCompanyId();
+            int effectiveCompanyId = dto.CompanyId;
+            if (companyId.HasValue && companyId.Value != dto.CompanyId)
+            {
+                effectiveCompanyId = companyId.Value;
+            }
+
+            var product = Product.Create(
+                dto.Name,
+                dto.Description,
+                dto.Price,
+                dto.CategoryId,
+                dto.BrandId,
+                effectiveCompanyId,
+                dto.StockQuantity,
+                dto.ModelId
+            );
+
+            if (!string.IsNullOrEmpty(dto.ImageUrl))
+            {
+                // Add primary image if URL provided
+                var img = ProductImage.Create(product.Id, dto.ImageUrl, 0, true);
+                product.Images.Add(img);
+            }
+
+            _context.Products.Add(product);
+            await _context.SaveChangesAsync();
+            var productDto = MapToDto(product);
+            // Elasticsearch'e ekle
+            try { await _searchService.IndexProductAsync(productDto); } catch (Exception ex) { _logger.LogError(ex, "Elasticsearch index ekleme hatası"); }
+            return productDto;
         }
 
         public async Task DeleteAsync(int id)
@@ -63,7 +67,7 @@ namespace ECommerce.Infrastructure.Services
             var product = await _context.Products
                 .Include(p => p.Images)
                 .FirstOrDefaultAsync(p => p.Id == id);
-                
+
             if (product == null) throw new Exception("Product not found");
 
             // Delete physical images
@@ -75,19 +79,21 @@ namespace ECommerce.Infrastructure.Services
                         await _storageService.DeleteFileAsync(img.ImageUrl);
                 }
             }
-            
+
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
+            // Elasticsearch'ten sil
+            try { await _searchService.DeleteProductAsync(id); } catch (Exception ex) { _logger.LogError(ex, "Elasticsearch index silme hatası"); }
         }
 
         public async Task<IReadOnlyList<ProductDto>> GetAllAsync()
         {
             var companyId = _tenantService.GetCompanyId();
             var query = _context.Products.AsNoTracking();
-            
+
             if (companyId.HasValue)
                 query = query.Where(p => p.CompanyId == companyId.Value);
-                
+
             var products = await query
                 .Include(p => p.Category)
                 .Include(p => p.Brand)
@@ -95,77 +101,77 @@ namespace ECommerce.Infrastructure.Services
                 .Include(p => p.Images)
                 .OrderBy(p => p.Name)
                 .ToListAsync();
-                
+
             return products.Select(MapToDto).ToList();
         }
 
         public async Task<IReadOnlyList<ProductDto>> GetByBrandIdAsync(int brandId)
         {
-             var products = await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.Brand)
-                .Include(p => p.Model)
-                .Include(p => p.Images)
-                .Where(p => p.BrandId == brandId)
-                .AsNoTracking()
-                .ToListAsync();
+            var products = await _context.Products
+               .Include(p => p.Category)
+               .Include(p => p.Brand)
+               .Include(p => p.Model)
+               .Include(p => p.Images)
+               .Where(p => p.BrandId == brandId)
+               .AsNoTracking()
+               .ToListAsync();
             return products.Select(MapToDto).ToList();
         }
 
         public async Task<IReadOnlyList<ProductDto>> GetByCategoryIdAsync(int categoryId)
         {
-             var products = await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.Brand)
-                .Include(p => p.Model)
-                .Include(p => p.Images)
-                .Where(p => p.CategoryId == categoryId)
-                .AsNoTracking()
-                .ToListAsync();
+            var products = await _context.Products
+               .Include(p => p.Category)
+               .Include(p => p.Brand)
+               .Include(p => p.Model)
+               .Include(p => p.Images)
+               .Where(p => p.CategoryId == categoryId)
+               .AsNoTracking()
+               .ToListAsync();
             return products.Select(MapToDto).ToList();
         }
 
         public async Task<IReadOnlyList<ProductDto>> GetByCompanyAsync(int companyId)
         {
-             var products = await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.Brand)
-                .Include(p => p.Model)
-                .Include(p => p.Images)
-                .Where(p => p.CompanyId == companyId)
-                .AsNoTracking()
-                .ToListAsync();
+            var products = await _context.Products
+               .Include(p => p.Category)
+               .Include(p => p.Brand)
+               .Include(p => p.Model)
+               .Include(p => p.Images)
+               .Where(p => p.CompanyId == companyId)
+               .AsNoTracking()
+               .ToListAsync();
             return products.Select(MapToDto).ToList();
         }
 
         public async Task<ProductDto?> GetByIdAsync(int id)
         {
-             var product = await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.Brand)
-                .Include(p => p.Model)
-                .Include(p => p.Images)
-                .FirstOrDefaultAsync(p => p.Id == id);
-                
+            var product = await _context.Products
+               .Include(p => p.Category)
+               .Include(p => p.Brand)
+               .Include(p => p.Model)
+               .Include(p => p.Images)
+               .FirstOrDefaultAsync(p => p.Id == id);
+
             return product == null ? null : MapToDto(product);
         }
 
         public async Task<IReadOnlyList<ProductDto>> SearchAsync(string keyword)
         {
-             if (string.IsNullOrWhiteSpace(keyword)) return await GetAllAsync();
-             
-             var companyId = _tenantService.GetCompanyId();
-             var query = _context.Products.AsNoTracking();
-             if (companyId.HasValue) query = query.Where(p => p.CompanyId == companyId.Value);
-             
-             var products = await query
-                .Include(p => p.Category)
-                .Include(p => p.Brand)
-                .Include(p => p.Model)
-                .Include(p => p.Images)
-                .Where(p => p.Name.Contains(keyword) || (p.Description != null && p.Description.Contains(keyword)))
-                .ToListAsync();
-                
+            if (string.IsNullOrWhiteSpace(keyword)) return await GetAllAsync();
+
+            var companyId = _tenantService.GetCompanyId();
+            var query = _context.Products.AsNoTracking();
+            if (companyId.HasValue) query = query.Where(p => p.CompanyId == companyId.Value);
+
+            var products = await query
+               .Include(p => p.Category)
+               .Include(p => p.Brand)
+               .Include(p => p.Model)
+               .Include(p => p.Images)
+               .Where(p => p.Name.Contains(keyword) || (p.Description != null && p.Description.Contains(keyword)))
+               .ToListAsync();
+
             return products.Select(MapToDto).ToList();
         }
 
@@ -173,27 +179,39 @@ namespace ECommerce.Infrastructure.Services
         {
             var product = await _context.Products.FindAsync(dto.Id);
             if (product == null) throw new Exception("Product not found");
-            
+
             product.Update(
                 dto.Name,
                 dto.Description,
                 dto.Price
             );
-            
+
             product.SetModel(dto.ModelId);
             product.UpdateStock(dto.StockQuantity);
-            
+
             if (dto.IsActive && !product.IsActive) product.Activate();
             else if (!dto.IsActive && product.IsActive) product.Deactivate();
-            
+
             await _context.SaveChangesAsync();
+            // Elasticsearch'te güncelle (indexle)
+            var updatedProduct = await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Brand)
+                .Include(p => p.Model)
+                .Include(p => p.Images)
+                .FirstOrDefaultAsync(p => p.Id == dto.Id);
+            if (updatedProduct != null)
+            {
+                var productDto = MapToDto(updatedProduct);
+                try { await _searchService.IndexProductAsync(productDto); } catch (Exception ex) { _logger.LogError(ex, "Elasticsearch index güncelleme hatası"); }
+            }
         }
 
         public async Task UpdateStockAsync(int productId, int newQuantity)
         {
             var product = await _context.Products.FindAsync(productId);
             if (product == null) throw new Exception("Product not found");
-            
+
             product.UpdateStock(newQuantity);
             await _context.SaveChangesAsync();
         }
@@ -207,7 +225,7 @@ namespace ECommerce.Infrastructure.Services
             if (affectedRows == 0)
                 throw new Exception($"Stok düşülemedi. Yetersiz stok veya ürün bulunamadı. ProductId: {productId}");
         }
-        
+
         // Image Methods
         public async Task<ProductImageDto> AddImageAsync(int productId, string imageUrl, int order, bool isPrimary)
         {
@@ -218,7 +236,7 @@ namespace ECommerce.Infrastructure.Services
             // Service should ideally check tenant ownership.
             var companyId = _tenantService.GetCompanyId();
             if (companyId.HasValue && product.CompanyId != companyId.Value)
-                 throw new UnauthorizedAccessException("Not authorized for this product");
+                throw new UnauthorizedAccessException("Not authorized for this product");
 
             if (isPrimary)
             {
@@ -241,13 +259,13 @@ namespace ECommerce.Infrastructure.Services
 
         public async Task UpdateImageAsync(int productId, int imageId, string imageUrl, int order, bool isPrimary)
         {
-             var product = await _context.Products.Include(p => p.Images).FirstOrDefaultAsync(p => p.Id == productId);
+            var product = await _context.Products.Include(p => p.Images).FirstOrDefaultAsync(p => p.Id == productId);
             if (product == null) throw new KeyNotFoundException("Product not found");
-            
+
             var companyId = _tenantService.GetCompanyId();
             if (companyId.HasValue && product.CompanyId != companyId.Value)
-                 throw new UnauthorizedAccessException("Not authorized for this product");
-            
+                throw new UnauthorizedAccessException("Not authorized for this product");
+
             var image = product.Images.FirstOrDefault(i => i.Id == imageId);
             if (image == null) throw new KeyNotFoundException("Image not found");
 
@@ -264,10 +282,10 @@ namespace ECommerce.Infrastructure.Services
         {
             var product = await _context.Products.Include(p => p.Images).FirstOrDefaultAsync(p => p.Id == productId);
             if (product == null) throw new KeyNotFoundException("Product not found");
-            
+
             var companyId = _tenantService.GetCompanyId();
             if (companyId.HasValue && product.CompanyId != companyId.Value)
-                 throw new UnauthorizedAccessException("Not authorized for this product");
+                throw new UnauthorizedAccessException("Not authorized for this product");
 
             var image = product.Images.FirstOrDefault(i => i.Id == imageId);
             if (image == null) throw new KeyNotFoundException("Image not found");
@@ -278,10 +296,10 @@ namespace ECommerce.Infrastructure.Services
                 await _storageService.DeleteFileAsync(image.ImageUrl);
             }
 
-            product.Images.Remove(image); 
+            product.Images.Remove(image);
             // Also explicitly remove from context to be safe if cascade isn't enough or for soft delete logic
             _context.ProductImages.Remove(image);
-            
+
             await _context.SaveChangesAsync();
         }
 
@@ -289,9 +307,9 @@ namespace ECommerce.Infrastructure.Services
         {
             var product = await _context.Products.AsNoTracking().Include(p => p.Images).FirstOrDefaultAsync(p => p.Id == productId);
             if (product == null) throw new KeyNotFoundException("Product not found");
-            
-             // Read access checks? usually public images.
-            
+
+            // Read access checks? usually public images.
+
             return product.Images.OrderBy(i => i.Order).Select(i => new ProductImageDto
             {
                 Id = i.Id,
@@ -304,46 +322,46 @@ namespace ECommerce.Infrastructure.Services
 
         public async Task BulkUpdatePriceAsync(List<int> productIds, decimal percentage)
         {
-             if (productIds == null || !productIds.Any()) return;
+            if (productIds == null || !productIds.Any()) return;
 
-             var companyId = _tenantService.GetCompanyId();
-             
-             // Base query filtered by tenant
-             var query = _context.Products.Where(p => productIds.Contains(p.Id));
-             if (companyId.HasValue)
-                 query = query.Where(p => p.CompanyId == companyId.Value);
+            var companyId = _tenantService.GetCompanyId();
 
-             // Calculate multiplier: e.g. 10% -> 1.10
-             // ExecuteUpdateAsync with expression tree might be tricky with decimal math in all providers, but usually works in modern EF Core.
-             // Price = Price * (1 + percentage/100)
-             
-             // Note: EF Core 7+ ExecuteUpdate supports math operations.
-             // We need to be careful about precision. 
-             // Let's assume Price is decimal(18,2).
-             
-             decimal multiplier = 1 + (percentage / 100m);
+            // Base query filtered by tenant
+            var query = _context.Products.Where(p => productIds.Contains(p.Id));
+            if (companyId.HasValue)
+                query = query.Where(p => p.CompanyId == companyId.Value);
 
-             await query.ExecuteUpdateAsync(s => s.SetProperty(p => p.Price, p => p.Price * multiplier));
+            // Calculate multiplier: e.g. 10% -> 1.10
+            // ExecuteUpdateAsync with expression tree might be tricky with decimal math in all providers, but usually works in modern EF Core.
+            // Price = Price * (1 + percentage/100)
+
+            // Note: EF Core 7+ ExecuteUpdate supports math operations.
+            // We need to be careful about precision. 
+            // Let's assume Price is decimal(18,2).
+
+            decimal multiplier = 1 + (percentage / 100m);
+
+            await query.ExecuteUpdateAsync(s => s.SetProperty(p => p.Price, p => p.Price * multiplier));
         }
-        
+
         private static ProductDto MapToDto(Product p)
         {
             return new ProductDto
             {
-                 Id = p.Id,
-                 Name = p.Name,
-                 Description = p.Description,
-                 Price = p.Price,
-                 StockQuantity = p.StockQuantity,
-                 CategoryId = p.CategoryId,
-                 CategoryName = p.Category?.Name ?? string.Empty,
-                 BrandId = p.BrandId,
-                 BrandName = p.Brand?.Name ?? string.Empty,
-                 ModelId = p.ModelId,
-                 ModelName = p.Model?.Name,
-                 CompanyId = p.CompanyId,
-                 IsActive = p.IsActive,
-                 ImageUrl = p.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl ?? p.Images.FirstOrDefault()?.ImageUrl
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                Price = p.Price,
+                StockQuantity = p.StockQuantity,
+                CategoryId = p.CategoryId,
+                CategoryName = p.Category?.Name ?? string.Empty,
+                BrandId = p.BrandId,
+                BrandName = p.Brand?.Name ?? string.Empty,
+                ModelId = p.ModelId,
+                ModelName = p.Model?.Name,
+                CompanyId = p.CompanyId,
+                IsActive = p.IsActive,
+                ImageUrl = p.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl ?? p.Images.FirstOrDefault()?.ImageUrl
             };
         }
     }

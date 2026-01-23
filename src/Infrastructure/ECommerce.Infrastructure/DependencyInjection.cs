@@ -11,6 +11,7 @@ using ECommerce.Application.Interfaces.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Nest;
 
 namespace ECommerce.Infrastructure;
 
@@ -59,7 +60,7 @@ public static class DependencyInjection
             var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
             return new FileUploadService(uploadsFolder);
         });
-        
+
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IReviewService, ReviewService>();
         services.AddScoped<IRequestService, RequestService>();
@@ -67,9 +68,24 @@ public static class DependencyInjection
         services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<ICompanyService, CompanyService>();
         services.AddScoped<IPaymentService, FakePaymentService>();
-            
-        // Advanced Services
-        services.AddScoped<ISearchService, DatabaseSearchService>();
+
+        // Elasticsearch DI
+        services.AddSingleton<IElasticClient>(sp =>
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            // Öncelik: Environment variable, sonra appsettings
+            var uri =
+                Environment.GetEnvironmentVariable("ELASTICSEARCH_URI") ??
+                config["Elasticsearch:Uri"] ??
+                "http://localhost:9200";
+            var defaultIndex =
+                Environment.GetEnvironmentVariable("ELASTICSEARCH_INDEX") ??
+                config["Elasticsearch:DefaultIndex"] ??
+                "products";
+            var settings = new Nest.ConnectionSettings(new Uri(uri)).DefaultIndex(defaultIndex);
+            return new Nest.ElasticClient(settings);
+        });
+        services.AddScoped<ISearchService, ECommerce.Infrastructure.Services.Search.ElasticsearchProductSearchService>();
         services.AddScoped<ICacheService, DistributedCacheService>();
         services.AddScoped<IRealTimeNotificationService, SignalRNotificationService>(); // New RealTime Notification Service
         services.AddScoped<IStorageService, LocalStorageService>();
