@@ -16,16 +16,16 @@ namespace ECommerce.Domain.Entities
         public string? Sku { get; private set; } // Stock Keeping Unit
         public bool IsActive { get; private set; } = true;
 
-        public virtual Category? Category { get; private set; }
-        public virtual Brand? Brand { get; private set; }
+        public virtual Category Category { get; private set; } = null!;
+        public virtual Brand Brand { get; private set; } = null!;
         public virtual Model? Model { get; private set; }
-        public virtual Company? Company { get; private set; }
+        public virtual Company Company { get; private set; } = null!;
         public virtual ICollection<Review> Reviews { get; private set; } = new List<Review>();
         public virtual ICollection<OrderItem> OrderItems { get; private set; } = new List<OrderItem>();
         public virtual ICollection<ProductSpecification> Specifications { get; private set; } = new List<ProductSpecification>();
         public virtual ICollection<ProductVariant> Variants { get; private set; } = new List<ProductVariant>();
         public virtual ICollection<ProductImage> Images { get; private set; } = new List<ProductImage>();
-        
+
         [System.ComponentModel.DataAnnotations.ConcurrencyCheck]
         public Guid Version { get; private set; } = Guid.NewGuid();
 
@@ -33,10 +33,10 @@ namespace ECommerce.Domain.Entities
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Ürün adı boş olamaz.", nameof(name));
-            
+
             if (price <= 0)
                 throw new ArgumentException("Ürün fiyatı sıfırdan büyük olmalıdır.", nameof(price));
-            
+
             if (stockQuantity < 0)
                 throw new ArgumentException("Stok miktarı negatif olamaz.", nameof(stockQuantity));
 
@@ -61,7 +61,7 @@ namespace ECommerce.Domain.Entities
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Ürün adı boş olamaz.", nameof(name));
-            
+
             if (price <= 0)
                 throw new ArgumentException("Ürün fiyatı sıfırdan büyük olmalıdır.", nameof(price));
 
@@ -77,7 +77,7 @@ namespace ECommerce.Domain.Entities
         {
             if (quantity < 0)
                 throw new ArgumentException("Stok miktarı negatif olamaz.", nameof(quantity));
-            
+
             StockQuantity = quantity;
             MarkAsModified();
             Version = Guid.NewGuid();
@@ -87,10 +87,10 @@ namespace ECommerce.Domain.Entities
         {
             if (quantity <= 0)
                 throw new ArgumentException("Azaltılacak miktar sıfırdan büyük olmalıdır.", nameof(quantity));
-            
+
             if (StockQuantity < quantity)
                 throw new InvalidOperationException($"Yeterli stok yok. Mevcut: {StockQuantity}, İstenen: {quantity}");
-            
+
             StockQuantity -= quantity;
             MarkAsModified();
             Version = Guid.NewGuid();

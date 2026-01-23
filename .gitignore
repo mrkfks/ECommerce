@@ -59,3 +59,9 @@ node_modules/
 
 # Migrations (opsiyonel - isteğe bağlı)
 # **/Migrations/
+
+# Generated build logs
+**/build_log*.txt
+**/build_log_*.txt
+logs/archived_build_logs/
+*.binlog

@@ -16,7 +16,7 @@ namespace ECommerce.Domain.Entities
         public bool IsActive { get; private set; } = true;
 
         // Navigation Properties
-        public virtual Product? Product { get; private set; }
+        public virtual Product Product { get; private set; } = null!;
         public virtual ICollection<ProductVariantAttribute> VariantAttributes { get; private set; } = new List<ProductVariantAttribute>();
 
         public static ProductVariant Create(int productId, int companyId, string sku, decimal? priceAdjustment = null, int stockQuantity = 0)

@@ -22,10 +22,10 @@ namespace ECommerce.Infrastructure.Services
 
 
         public OrderService(
-            AppDbContext context, 
-            ITenantService tenantService, 
+            AppDbContext context,
+            ITenantService tenantService,
             IProductService productService,
-            ILogger<OrderService> logger, 
+            ILogger<OrderService> logger,
             Microsoft.AspNetCore.SignalR.IHubContext<ECommerce.Infrastructure.Hubs.NotificationHub> hubContext,
             ICacheService cacheService,
             ECommerce.Domain.Interfaces.IPaymentService paymentService)
@@ -69,10 +69,10 @@ namespace ECommerce.Infrastructure.Services
                 // 2. Ödeme Kontrolü
                 if (string.IsNullOrEmpty(dto.CardNumber))
                 {
-                   // Kart bilgisi yoksa varsayılan davranış (Test için 4444000000000000 kabul edelim veya hata fırlatalım)
-                   // "Ödeme başarısızsa sipariş kaydedilmez" dendiği için hata fırlatmak daha doğru.
-                   // Ancak mevcut testleri bozmamak için sadece varsa kontrol edelim, yoksa hata
-                   throw new Exception("Ödeme bilgileri eksik (Simülasyon için: 4444...)");
+                    // Kart bilgisi yoksa varsayılan davranış (Test için 4444000000000000 kabul edelim veya hata fırlatalım)
+                    // "Ödeme başarısızsa sipariş kaydedilmez" dendiği için hata fırlatmak daha doğru.
+                    // Ancak mevcut testleri bozmamak için sadece varsa kontrol edelim, yoksa hata
+                    throw new Exception("Ödeme bilgileri eksik (Simülasyon için: 4444...)");
                 }
 
                 bool paymentSuccess = _paymentService.ValidatePayment(dto.CardNumber, dto.CardExpiry ?? "12/26", dto.CardCvv ?? "123");
@@ -83,7 +83,7 @@ namespace ECommerce.Infrastructure.Services
 
                 // 3. Sipariş Oluşturma
                 var order = Order.Create(dto.CustomerId, addressId, dto.CompanyId);
-                
+
                 _context.Orders.Add(order);
                 await _context.SaveChangesAsync();
 
@@ -99,7 +99,7 @@ namespace ECommerce.Infrastructure.Services
 
                     // Safe Atomic Stock Update via ProductService (SQL based)
                     await _productService.DecreaseStockAsync(product.Id, itemDto.Quantity);
-                    
+
                     // OrderItem oluştur
                     var orderItem = OrderItem.Create(product.Id, itemDto.Quantity, product.Price);
                     order.AddItem(orderItem);
@@ -112,14 +112,14 @@ namespace ECommerce.Infrastructure.Services
                 // Müşterinin bu şirketteki aktif sepetini bul ve temizle
                 if (dto.CustomerId > 0)
                 {
-                     // Sepet kalemlerini sil (CartItem -> Cart -> CustomerId == dto.CustomerId && CompanyId == dto.CompanyId)
-                     // Not: CartItem üzerinde doğrudan CustomerId yok, Cart üzerinden gidiyoruz.
-                     // Performans için ExecuteDeleteAsync kullanıyoruz.
-                     await _context.CartItems
-                         .Where(ci => ci.Cart.CustomerId == dto.CustomerId && ci.Cart.CompanyId == dto.CompanyId)
-                         .ExecuteDeleteAsync();
-                         
-                     // Opsiyonel: Sepeti de pasife çekebiliriz veya boş bırakabiliriz.
+                    // Sepet kalemlerini sil (CartItem -> Cart -> CustomerId == dto.CustomerId && CompanyId == dto.CompanyId)
+                    // Not: CartItem üzerinde doğrudan CustomerId yok, Cart üzerinden gidiyoruz.
+                    // Performans için ExecuteDeleteAsync kullanıyoruz.
+                    await _context.CartItems
+                        .Where(ci => ci.Cart != null && ci.Cart.CustomerId == dto.CustomerId && ci.Cart.CompanyId == dto.CompanyId)
+                        .ExecuteDeleteAsync();
+
+                    // Opsiyonel: Sepeti de pasife çekebiliriz veya boş bırakabiliriz.
                 }
 
                 await _context.SaveChangesAsync();
@@ -164,7 +164,7 @@ namespace ECommerce.Infrastructure.Services
             var order = await _context.Orders.FindAsync(id);
             if (order == null)
                 throw new Exception("Sipariş Bulunamadı");
-                
+
             _context.Orders.Remove(order);
             await _context.SaveChangesAsync();
         }
@@ -183,37 +183,37 @@ namespace ECommerce.Infrastructure.Services
                 .OrderByDescending(o => o.OrderDate)
                 .Select(o => MapToDto(o))
                 .ToListAsync();
-            
+
             return orders;
         }
 
         public async Task<IReadOnlyList<OrderDto>> GetByCustomerIdAsync(int customerId)
         {
-             var orders = await _context.Orders
-                .Include(o => o.Customer)
-                .Include(o => o.Company)
-                .Include(o => o.Address)
-                .Include(o => o.Items)
-                    .ThenInclude(i => i.Product)
-                .AsNoTracking()
-                .Where(o => o.CustomerId == customerId)
-                .OrderByDescending(o => o.OrderDate)
-                .Select(o => MapToDto(o))
-                .ToListAsync();
+            var orders = await _context.Orders
+               .Include(o => o.Customer)
+               .Include(o => o.Company)
+               .Include(o => o.Address)
+               .Include(o => o.Items)
+                   .ThenInclude(i => i.Product)
+               .AsNoTracking()
+               .Where(o => o.CustomerId == customerId)
+               .OrderByDescending(o => o.OrderDate)
+               .Select(o => MapToDto(o))
+               .ToListAsync();
             return orders;
         }
 
         public async Task<OrderDto?> GetByIdAsync(int id)
         {
-             var order = await _context.Orders
-                .Include(o => o.Customer)
-                .Include(o => o.Company)
-                .Include(o => o.Address)
-                .Include(o => o.Items)
-                    .ThenInclude(i => i.Product)
-                .AsNoTracking()
-                .Where(o => o.Id == id)
-                .FirstOrDefaultAsync();
+            var order = await _context.Orders
+               .Include(o => o.Customer)
+               .Include(o => o.Company)
+               .Include(o => o.Address)
+               .Include(o => o.Items)
+                   .ThenInclude(i => i.Product)
+               .AsNoTracking()
+               .Where(o => o.Id == id)
+               .FirstOrDefaultAsync();
 
             return order == null ? null : MapToDto(order);
         }
@@ -231,17 +231,17 @@ namespace ECommerce.Infrastructure.Services
              .OrderByDescending(o => o.OrderDate)
              .Select(o => MapToDto(o))
              .ToListAsync();
-             
-             return orders;
+
+            return orders;
         }
 
         public async Task UpdateAsync(OrderUpdateDto dto)
         {
-             // Not implemented in Controller, implementing basic update if needed or empty
-             var order = await _context.Orders.FindAsync(dto.Id);
-             if (order == null) throw new Exception("Order not found");
-             // Logic to update...
-             await _context.SaveChangesAsync();
+            // Not implemented in Controller, implementing basic update if needed or empty
+            var order = await _context.Orders.FindAsync(dto.Id);
+            if (order == null) throw new Exception("Order not found");
+            // Logic to update...
+            await _context.SaveChangesAsync();
         }
 
         public async Task UpdateStatusAsync(int orderId, OrderStatus status)
@@ -249,7 +249,7 @@ namespace ECommerce.Infrastructure.Services
             var order = await _context.Orders.FindAsync(orderId);
             if (order == null)
                 throw new Exception("Sipariş Bulunamadı");
-                
+
             switch (status)
             {
                 case OrderStatus.Processing:
@@ -265,33 +265,33 @@ namespace ECommerce.Infrastructure.Services
                     order.Cancel();
                     break;
             }
-            
+
             await _context.SaveChangesAsync();
         }
 
         public async Task AddItemAsync(int orderId, OrderItemCreateDto itemDto)
         {
-             // Placeholder implementation
-             await Task.CompletedTask;
+            // Placeholder implementation
+            await Task.CompletedTask;
         }
 
         public async Task RemoveItemAsync(int orderId, int productId)
         {
-             // Placeholder implementation
-             await Task.CompletedTask;
+            // Placeholder implementation
+            await Task.CompletedTask;
         }
 
         private async Task InvalidateDashboardStatsAsync(int companyId)
         {
             // Ana dashboard istatistiklerini temizle
             await _cacheService.RemoveAsync($"stats_{companyId}");
-            
+
             // Ayrıca alt detayları da temizleyebiliriz (opsiyonel, eski yapıdan kalanlar)
             var keys = new[]
             {
                 $"dashboard_stats_{companyId}_SalesKpi_{companyId}__",
                 $"dashboard_stats_{companyId}_OrdersKpi_{companyId}__",
-                $"dashboard_stats_{companyId}_TopProducts_{companyId}__", 
+                $"dashboard_stats_{companyId}_TopProducts_{companyId}__",
                 $"dashboard_stats_{companyId}_LowStock_{companyId}",
                 $"dashboard_stats_{companyId}_RevenueTrend_{companyId}__"
             };

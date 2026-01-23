@@ -10,19 +10,19 @@ namespace ECommerce.Domain.Entities
         public string ReviewerName { get; private set; } = string.Empty;
         public int Rating { get; private set; } // 1 to 5
         public string Comment { get; private set; } = string.Empty;
-        
-        public virtual Product? Product { get; private set; }
-        public virtual Customer? Customer { get; private set; }
-        public virtual Company? Company { get; private set; }
+
+        public virtual Product Product { get; private set; } = null!;
+        public virtual Customer Customer { get; private set; } = null!;
+        public virtual Company Company { get; private set; } = null!;
 
         public static Review Create(int productId, int customerId, int companyId, string reviewerName, int rating, string comment)
         {
             if (string.IsNullOrWhiteSpace(reviewerName))
                 throw new ArgumentException("Yorum yapan adı boş olamaz.", nameof(reviewerName));
-            
+
             if (rating < 1 || rating > 5)
                 throw new ArgumentException("Derecelendirme 1 ile 5 arasında olmalıdır.", nameof(rating));
-            
+
             if (string.IsNullOrWhiteSpace(comment))
                 throw new ArgumentException("Yorum metni boş olamaz.", nameof(comment));
 
@@ -41,7 +41,7 @@ namespace ECommerce.Domain.Entities
         {
             if (rating < 1 || rating > 5)
                 throw new ArgumentException("Derecelendirme 1 ile 5 arasında olmalıdır.", nameof(rating));
-            
+
             if (string.IsNullOrWhiteSpace(comment))
                 throw new ArgumentException("Yorum metni boş olamaz.", nameof(comment));
 

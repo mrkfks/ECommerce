@@ -28,9 +28,9 @@ public class TenantService : ITenantService
         if (isAuthenticated)
         {
             // İstenen özel claim veya standart primarysid
-            var tenantClaim = user.FindFirst("http://schemas.microsoft.com/ws/2008/06/identity/claims/primarysid") 
-                              ?? user.FindFirst("TenantId")
-                              ?? user.FindFirst("CompanyId");
+            var tenantClaim = user?.FindFirst("http://schemas.microsoft.com/ws/2008/06/identity/claims/primarysid")
+                              ?? user?.FindFirst("TenantId")
+                              ?? user?.FindFirst("CompanyId");
 
             if (tenantClaim != null && int.TryParse(tenantClaim.Value, out int claimCompanyId))
             {

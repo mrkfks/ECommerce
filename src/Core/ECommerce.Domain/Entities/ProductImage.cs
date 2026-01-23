@@ -9,7 +9,7 @@ namespace ECommerce.Domain.Entities
         public int Order { get; private set; }
         public bool IsPrimary { get; private set; }
 
-        public virtual Product? Product { get; private set; }
+        public virtual Product Product { get; private set; } = null!;
 
         public static ProductImage Create(int productId, string imageUrl, int order = 0, bool isPrimary = false)
         {

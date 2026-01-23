@@ -5,8 +5,29 @@ using System.Text;
 using Dashboard.Web.Infrastructure;
 using Dashboard.Web.Services;
 using Dashboard.Web.Middleware;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Load shared logging configuration if present
+builder.Configuration.AddJsonFile("logging.common.json", optional: true, reloadOnChange: true);
+
+// Serilog Configuration (read from configuration) and programmatic file sink to shared backend folder
+var logDir = Environment.GetEnvironmentVariable("BACKEND_LOG_DIR")
+    ?? Path.Combine(builder.Environment.ContentRootPath, "logs");
+if (!Directory.Exists(logDir)) Directory.CreateDirectory(logDir);
+
+var logFilePath = Path.Combine(logDir, "backend-log-.json");
+
+var loggerConfig = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext();
+
+// Programmatically add a file sink that writes to the shared backend directory
+loggerConfig = loggerConfig.WriteTo.File(logFilePath, rollingInterval: RollingInterval.Day);
+
+Log.Logger = loggerConfig.CreateLogger();
+builder.Host.UseSerilog();
 
 // Base URL config - Environment variable veya appsettings'den
 var apiBaseUrl = Environment.GetEnvironmentVariable("API_BASE_URL")

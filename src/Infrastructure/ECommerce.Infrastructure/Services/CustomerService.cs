@@ -73,7 +73,7 @@ namespace ECommerce.Infrastructure.Services
             }
 
             var customers = await query.OrderBy(c => c.FirstName).ToListAsync();
-            
+
             return customers.Select(MapToDto).ToList();
         }
 
@@ -83,7 +83,7 @@ namespace ECommerce.Infrastructure.Services
                 .Where(a => a.CustomerId == customerId)
                 .AsNoTracking()
                 .ToListAsync();
-                
+
             return _mapper.Map<List<AddressDto>>(addresses);
         }
 
@@ -96,23 +96,24 @@ namespace ECommerce.Infrastructure.Services
         public async Task<IReadOnlyList<OrderDto>> GetOrdersAsync(int customerId)
         {
             // Simple mapping for now, ideally delegate to OrderService or Repository
-             var orders = await _context.Orders
-                .Include(o => o.Company)
-                .Where(o => o.CustomerId == customerId)
-                .AsNoTracking()
-                .ToListAsync();
+            var orders = await _context.Orders
+               .Include(o => o.Company)
+               .Where(o => o.CustomerId == customerId)
+               .AsNoTracking()
+               .ToListAsync();
 
-             // Manual mapping as OrderDto is complex
-             return orders.Select(o => new OrderDto{
-                 Id = o.Id,
-                 OrderDate = o.OrderDate,
-                 TotalAmount = o.TotalAmount,
-                 Status = o.Status,
-                 StatusText = o.Status.ToString(),
-                 CompanyId = o.CompanyId,
-                 CompanyName = o.Company?.Name,
-                 CustomerId = o.CustomerId
-             }).ToList();
+            // Manual mapping as OrderDto is complex
+            return orders.Select(o => new OrderDto
+            {
+                Id = o.Id,
+                OrderDate = o.OrderDate,
+                TotalAmount = o.TotalAmount,
+                Status = o.Status,
+                StatusText = o.Status.ToString(),
+                CompanyId = o.CompanyId,
+                CompanyName = o.Company?.Name ?? string.Empty,
+                CustomerId = o.CustomerId
+            }).ToList();
         }
 
         public Task<IReadOnlyList<ReviewDto>> GetReviewsAsync(int customerId)
@@ -123,20 +124,20 @@ namespace ECommerce.Infrastructure.Services
 
         public async Task<IReadOnlyList<CustomerSummaryDto>> GetSummariesAsync()
         {
-             var companyId = _tenantService.GetCompanyId();
-             var query = _context.Customers.AsNoTracking();
-             if (companyId.HasValue) query = query.Where(c => c.CompanyId == companyId.Value);
-             
-             var customers = await query
-                .Select(c => new CustomerSummaryDto 
-                { 
-                    Id = c.Id, 
-                    Name = c.FirstName + " " + c.LastName,
-                    Email = c.Email,
-                    PhoneNumber = c.PhoneNumber
-                })
-                .ToListAsync();
-             return customers;
+            var companyId = _tenantService.GetCompanyId();
+            var query = _context.Customers.AsNoTracking();
+            if (companyId.HasValue) query = query.Where(c => c.CompanyId == companyId.Value);
+
+            var customers = await query
+               .Select(c => new CustomerSummaryDto
+               {
+                   Id = c.Id,
+                   Name = c.FirstName + " " + c.LastName,
+                   Email = c.Email,
+                   PhoneNumber = c.PhoneNumber
+               })
+               .ToListAsync();
+            return customers;
         }
 
         public async Task UpdateAsync(CustomerUpdateDto dto)

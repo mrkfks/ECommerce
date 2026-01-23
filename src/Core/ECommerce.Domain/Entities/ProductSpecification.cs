@@ -15,7 +15,7 @@ namespace ECommerce.Domain.Entities
         public int DisplayOrder { get; private set; }
 
         // Navigation Properties
-        public virtual Product? Product { get; private set; }
+        public virtual Product Product { get; private set; } = null!;
 
         public static ProductSpecification Create(int productId, int companyId, string key, string value, int displayOrder = 0)
         {

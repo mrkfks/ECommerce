@@ -7,21 +7,19 @@ namespace Dashboard.Web.Helpers
     [HtmlTargetElement(Attributes = "is-active-route")]
     public class ActiveRouteTagHelper : TagHelper
     {
-        private IDictionary<string, string> _routeValues;
+        private IDictionary<string, string> _routeValues = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         [HtmlAttributeName("asp-action")]
-        public string Action { get; set; }
+        public string? Action { get; set; }
 
         [HtmlAttributeName("asp-controller")]
-        public string Controller { get; set; }
+        public string? Controller { get; set; }
 
         [HtmlAttributeName("asp-all-route-data", DictionaryAttributePrefix = "asp-route-")]
         public IDictionary<string, string> RouteValues
         {
             get
             {
-                if (this._routeValues == null)
-                    this._routeValues = (IDictionary<string, string>)new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 return this._routeValues;
             }
             set
@@ -32,7 +30,7 @@ namespace Dashboard.Web.Helpers
 
         [HtmlAttributeNotBound]
         [ViewContext]
-        public ViewContext ViewContext { get; set; }
+        public ViewContext ViewContext { get; set; } = null!;
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
@@ -48,8 +46,12 @@ namespace Dashboard.Web.Helpers
 
         private bool ShouldBeActive()
         {
-            string currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
-            string currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
+            if (ViewContext?.RouteData?.Values == null)
+            {
+                return false;
+            }
+            string? currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+            string? currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
 
             if (!string.IsNullOrWhiteSpace(Controller) && !string.Equals(Controller, currentController, StringComparison.OrdinalIgnoreCase))
             {
@@ -61,12 +63,23 @@ namespace Dashboard.Web.Helpers
                 return false;
             }
 
+            var values = ViewContext.RouteData.Values;
             foreach (KeyValuePair<string, string> routeValue in RouteValues)
             {
-                if (!ViewContext.RouteData.Values.ContainsKey(routeValue.Key) ||
-                    ViewContext.RouteData.Values[routeValue.Key]?.ToString() != routeValue.Value)
+                if (!values.TryGetValue(routeValue.Key, out var valObj))
                 {
                     return false;
+                }
+
+                if (valObj == null)
+                {
+                    if (routeValue.Value != null)
+                        return false;
+                }
+                else
+                {
+                    if (valObj.ToString() != routeValue.Value)
+                        return false;
                 }
             }
 
@@ -78,14 +91,15 @@ namespace Dashboard.Web.Helpers
             var classAttr = output.Attributes.FirstOrDefault(a => a.Name == "class");
             if (classAttr == null)
             {
-                classAttr = new TagHelperAttribute("class", "active");
-                output.Attributes.Add(classAttr);
+                output.Attributes.Add("class", "active");
+                return;
             }
-            else if (classAttr.Value == null || classAttr.Value.ToString().IndexOf("active") < 0)
+
+            var current = classAttr.Value?.ToString() ?? string.Empty;
+            if (!current.Contains("active", StringComparison.OrdinalIgnoreCase))
             {
-                output.Attributes.SetAttribute("class", classAttr.Value == null
-                    ? "active"
-                    : classAttr.Value.ToString() + " active");
+                var newVal = string.IsNullOrWhiteSpace(current) ? "active" : current + " active";
+                output.Attributes.SetAttribute("class", newVal);
             }
         }
     }

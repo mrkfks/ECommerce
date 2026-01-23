@@ -29,14 +29,14 @@ public class DashboardService : IDashboardService
     {
         if (startDate.HasValue) query = query.Where(o => o.OrderDate >= startDate.Value);
         if (endDate.HasValue) query = query.Where(o => o.OrderDate <= endDate.Value);
-        
+
         var currentCompanyId = _tenantService.GetCompanyId();
         if (currentCompanyId.HasValue) query = query.Where(o => o.CompanyId == currentCompanyId.Value);
         else if (companyId.HasValue) query = query.Where(o => o.CompanyId == companyId.Value);
-        
+
         return query;
     }
-    
+
     // Helper for Products filter
     private IQueryable<Product> FilterProducts(IQueryable<Product> query, int? companyId)
     {
@@ -94,21 +94,21 @@ public class DashboardService : IDashboardService
 
     public async Task<SalesKpiDto> GetSalesKpiAsync(DateTime? startDate, DateTime? endDate, int? companyId)
     {
-        return await GetCachedDataAsync($"SalesKpi_{companyId ?? 0}_{startDate}_{endDate}", async () => 
+        return await GetCachedDataAsync($"SalesKpi_{companyId ?? 0}_{startDate}_{endDate}", async () =>
         {
             var today = DateTime.UtcNow.Date;
             var yesterday = today.AddDays(-1);
 
             IQueryable<Order> query = _context.Orders.AsNoTracking();
             query = FilterOrders(query, null, null, companyId);
-            
+
             var todaySales = await query.Where(o => o.OrderDate >= today).SumAsync(o => o.TotalAmount);
             var yesterdaySales = await query.Where(o => o.OrderDate >= yesterday && o.OrderDate < today).SumAsync(o => o.TotalAmount);
-            
+
             var totalSalesQuery = FilterOrders(_context.Orders.AsNoTracking(), startDate, endDate, companyId);
             var totalSales = await totalSalesQuery.SumAsync(o => o.TotalAmount);
             var count = await totalSalesQuery.CountAsync();
-            
+
             decimal change = 0;
             if (yesterdaySales > 0)
                 change = ((todaySales - yesterdaySales) / yesterdaySales) * 100;
@@ -130,30 +130,30 @@ public class DashboardService : IDashboardService
     {
         return await GetCachedDataAsync($"OrdersKpi_{companyId ?? 0}_{startDate}_{endDate}", async () =>
         {
-             IQueryable<Order> query = _context.Orders.AsNoTracking();
-             query = FilterOrders(query, startDate, endDate, companyId);
-             
-             var totalOrders = await query.CountAsync();
-             // Count by status
-             var pending = await query.CountAsync(o => o.Status == OrderStatus.Pending);
-             var shipped = await query.CountAsync(o => o.Status == OrderStatus.Shipped);
-             var delivered = await query.CountAsync(o => o.Status == OrderStatus.Delivered);
-             var cancelled = await query.CountAsync(o => o.Status == OrderStatus.Cancelled);
-             
-             return new OrderKpiDto
-             {
-                 TotalOrders = totalOrders,
-                 PendingCount = pending,
-                 ShippedCount = shipped,
-                 DeliveredCount = delivered,
-                 ReturnedCount = 0, // Not tracked
-                 CancelledCount = cancelled,
-                 PendingPercent = totalOrders > 0 ? (decimal)pending / totalOrders * 100 : 0,
-                 ShippedPercent = totalOrders > 0 ? (decimal)shipped / totalOrders * 100 : 0,
-                 DeliveredPercent = totalOrders > 0 ? (decimal)delivered / totalOrders * 100 : 0,
-                 ReturnedPercent = 0,
-                 CancelledPercent = totalOrders > 0 ? (decimal)cancelled / totalOrders * 100 : 0
-             };
+            IQueryable<Order> query = _context.Orders.AsNoTracking();
+            query = FilterOrders(query, startDate, endDate, companyId);
+
+            var totalOrders = await query.CountAsync();
+            // Count by status
+            var pending = await query.CountAsync(o => o.Status == OrderStatus.Pending);
+            var shipped = await query.CountAsync(o => o.Status == OrderStatus.Shipped);
+            var delivered = await query.CountAsync(o => o.Status == OrderStatus.Delivered);
+            var cancelled = await query.CountAsync(o => o.Status == OrderStatus.Cancelled);
+
+            return new OrderKpiDto
+            {
+                TotalOrders = totalOrders,
+                PendingCount = pending,
+                ShippedCount = shipped,
+                DeliveredCount = delivered,
+                ReturnedCount = 0, // Not tracked
+                CancelledCount = cancelled,
+                PendingPercent = totalOrders > 0 ? (decimal)pending / totalOrders * 100 : 0,
+                ShippedPercent = totalOrders > 0 ? (decimal)shipped / totalOrders * 100 : 0,
+                DeliveredPercent = totalOrders > 0 ? (decimal)delivered / totalOrders * 100 : 0,
+                ReturnedPercent = 0,
+                CancelledPercent = totalOrders > 0 ? (decimal)cancelled / totalOrders * 100 : 0
+            };
         }, companyId);
     }
 
@@ -167,32 +167,34 @@ public class DashboardService : IDashboardService
 
             // Flatten items
             var items = query.SelectMany(o => o.Items);
-            
+
             return await items
                 .GroupBy(i => i.ProductId)
                 .Select(g => new TopProductDto
                 {
                     ProductId = g.Key,
-                    ProductName = g.First().Product.Name,
+                    ProductName = g.Select(i => i.Product!.Name).FirstOrDefault() ?? string.Empty,
                     QuantitySold = g.Sum(i => i.Quantity),
                     Revenue = g.Sum(i => i.UnitPrice * i.Quantity),
-                    ImageUrl = g.First().Product.Images.FirstOrDefault(img => img.IsPrimary) != null 
-                        ? g.First().Product.Images.FirstOrDefault(img => img.IsPrimary).ImageUrl 
-                        : null
+                    ImageUrl = g.SelectMany(i => i.Product != null
+                            ? i.Product.Images.Where(img => img.IsPrimary).Select(img => img.ImageUrl)
+                            : Enumerable.Empty<string>())
+                        .FirstOrDefault()
                 })
                 .OrderByDescending(x => x.Revenue)
                 .Take(5)
                 .ToListAsync();
+
         }, companyId);
     }
 
     public async Task<List<LowStockProductDto>> GetLowStockProductsAsync(int? companyId)
     {
-        return await GetCachedDataAsync($"LowStock_{companyId ?? 0}", async () => 
+        return await GetCachedDataAsync($"LowStock_{companyId ?? 0}", async () =>
         {
             IQueryable<Product> query = _context.Products.AsNoTracking().Include(p => p.Category).Include(p => p.Images);
             query = FilterProducts(query, companyId);
-            
+
             return await query
                 .Where(p => p.StockQuantity < 5) // Threshold 5 as requested
                 .Select(p => new LowStockProductDto
@@ -200,10 +202,8 @@ public class DashboardService : IDashboardService
                     ProductId = p.Id,
                     ProductName = p.Name,
                     CurrentStock = p.StockQuantity,
-                    CategoryName = p.Category.Name,
-                    ImageUrl = p.Images.FirstOrDefault(i => i.IsPrimary) != null 
-                        ? p.Images.FirstOrDefault(i => i.IsPrimary).ImageUrl 
-                        : null,
+                    CategoryName = p.Category!.Name,
+                    ImageUrl = p.Images.Where(i => i.IsPrimary).Select(i => i.ImageUrl).FirstOrDefault(),
                     DaysUntilOutOfStock = 0 // Complex calc omitted for brevity
                 })
                 .ToListAsync();
@@ -219,10 +219,10 @@ public class DashboardService : IDashboardService
 
             IQueryable<Order> query = _context.Orders.AsNoTracking();
             query = FilterOrders(query, start, end, companyId);
-            
+
             var dailyData = await query
                 .GroupBy(o => o.OrderDate.Date)
-                .Select(g => new 
+                .Select(g => new
                 {
                     Date = g.Key,
                     Revenue = g.Sum(o => o.TotalAmount),
@@ -241,15 +241,15 @@ public class DashboardService : IDashboardService
                     OrderCount = dayData?.Count ?? 0
                 });
             }
-            
+
             return result;
         }, companyId);
     }
 
     public async Task<CustomerSegmentationDto> GetCustomerSegmentsAsync(DateTime? startDate, DateTime? endDate, int? companyId)
     {
-         // Placeholder
-         return await Task.FromResult(new CustomerSegmentationDto());
+        // Placeholder
+        return await Task.FromResult(new CustomerSegmentationDto());
     }
 
     public async Task<List<CategorySalesDto>> GetCategorySalesAsync(DateTime? startDate, DateTime? endDate, int? companyId)
@@ -258,23 +258,24 @@ public class DashboardService : IDashboardService
         {
             IQueryable<Order> query = _context.Orders.AsNoTracking().Include(o => o.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Category);
             query = FilterOrders(query, startDate, endDate, companyId);
-            
+
             var totalSales = await query.SumAsync(o => o.TotalAmount);
             if (totalSales == 0) totalSales = 1;
 
             var items = query.SelectMany(o => o.Items);
-            
+
             return await items
                 .GroupBy(i => i.Product.CategoryId)
                 .Select(g => new CategorySalesDto
                 {
                     CategoryId = g.Key,
-                    CategoryName = g.First().Product.Category.Name,
                     TotalSales = g.Sum(i => i.Quantity * i.UnitPrice),
                     TotalQuantity = g.Sum(i => i.Quantity),
+                    CategoryName = g.Select(i => i.Product.Category.Name).FirstOrDefault() ?? string.Empty,
                     Percentage = (g.Sum(i => i.Quantity * i.UnitPrice) / totalSales) * 100
                 })
                 .ToListAsync();
+
         }, companyId);
     }
 
@@ -284,7 +285,7 @@ public class DashboardService : IDashboardService
         {
             IQueryable<Product> query = _context.Products.AsNoTracking().Include(p => p.Category);
             query = FilterProducts(query, companyId);
-            
+
             var totalStock = await query.SumAsync(p => p.StockQuantity);
             if (totalStock == 0) totalStock = 1;
 
@@ -293,27 +294,28 @@ public class DashboardService : IDashboardService
                 .Select(g => new CategoryStockDto
                 {
                     CategoryId = g.Key,
-                    CategoryName = g.First().Category.Name,
+                    CategoryName = g.Select(p => p.Category.Name).FirstOrDefault() ?? string.Empty,
                     StockQuantity = g.Sum(p => p.StockQuantity),
                     Percentage = (decimal)g.Sum(p => p.StockQuantity) / totalStock * 100
                 })
                 .ToListAsync();
+
         }, companyId);
     }
 
     public async Task<List<GeographicDistributionDto>> GetGeographicDistributionAsync(DateTime? startDate, DateTime? endDate, int? companyId)
     {
-         // Requires Address data in Order
-         return new List<GeographicDistributionDto>();
+        // Requires Address data in Order
+        return new List<GeographicDistributionDto>();
     }
 
     public async Task<List<AverageCartTrendDto>> GetAverageCartTrendAsync(DateTime? startDate, DateTime? endDate, int? companyId)
     {
         return await GetCachedDataAsync($"AverageCartTrend_{companyId ?? 0}_{startDate}_{endDate}", async () =>
         {
-             IQueryable<Order> query = _context.Orders.AsNoTracking();
+            IQueryable<Order> query = _context.Orders.AsNoTracking();
             query = FilterOrders(query, startDate, endDate, companyId);
-            
+
             return await query
                 .GroupBy(o => o.OrderDate.Date)
                 .Select(g => new AverageCartTrendDto
@@ -353,33 +355,33 @@ public class DashboardService : IDashboardService
 
     private async Task<T> GetCachedDataAsync<T>(string key, Func<Task<T>> factory, int? companyId)
     {
-         var tenantId = companyId ?? _tenantService.GetCompanyId() ?? 0;
-         var cacheKey = $"dashboard_stats_{tenantId}_{key}";
-         
-         try 
-         {
-             var cachedData = await _cacheService.GetAsync<T>(cacheKey);
-             if (cachedData != null)
-             {
-                 return cachedData;
-             }
-         }
-         catch (Exception ex)
-         {
-             _logger.LogError(ex, "Cache read error for key {Key}", cacheKey);
-         }
-         
-         var data = await factory();
-         
-         try
-         {
-             await _cacheService.SetAsync(cacheKey, data, TimeSpan.FromMinutes(15));
-         }
-         catch (Exception ex)
-         {
-             _logger.LogError(ex, "Cache write error for key {Key}", cacheKey);
-         }
-         
-         return data;
+        var tenantId = companyId ?? _tenantService.GetCompanyId() ?? 0;
+        var cacheKey = $"dashboard_stats_{tenantId}_{key}";
+
+        try
+        {
+            var cachedData = await _cacheService.GetAsync<T>(cacheKey);
+            if (cachedData != null)
+            {
+                return cachedData;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Cache read error for key {Key}", cacheKey);
+        }
+
+        var data = await factory();
+
+        try
+        {
+            await _cacheService.SetAsync(cacheKey, data, TimeSpan.FromMinutes(15));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Cache write error for key {Key}", cacheKey);
+        }
+
+        return data;
     }
 }

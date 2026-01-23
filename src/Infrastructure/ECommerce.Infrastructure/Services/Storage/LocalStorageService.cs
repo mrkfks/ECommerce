@@ -21,8 +21,9 @@ namespace ECommerce.Infrastructure.Services.Storage
         {
             var companyId = _tenantService.GetCompanyId();
             var tenantPathFragment = companyId.HasValue ? companyId.Value.ToString() : "global";
-            
-            var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads", tenantPathFragment, folder);
+
+            var webRoot = _env.WebRootPath ?? string.Empty;
+            var uploadsFolder = Path.Combine(webRoot, "uploads", tenantPathFragment, folder);
             if (!Directory.Exists(uploadsFolder))
                 Directory.CreateDirectory(uploadsFolder);
 
@@ -35,7 +36,17 @@ namespace ECommerce.Infrastructure.Services.Storage
             }
 
             var request = _httpContextAccessor.HttpContext?.Request;
-            var baseUrl = $"{request?.Scheme}://{request?.Host}";
+            var scheme = request?.Scheme ?? "http";
+            string host;
+            if (request?.Host.HasValue == true)
+            {
+                host = request.Host.Value;
+            }
+            else
+            {
+                host = "localhost";
+            }
+            var baseUrl = $"{scheme}://{host}";
             return $"{baseUrl}/uploads/{tenantPathFragment}/{folder}/{uniqueFileName}";
         }
 
@@ -43,41 +54,42 @@ namespace ECommerce.Infrastructure.Services.Storage
         {
             if (string.IsNullOrEmpty(fileUrl)) return Task.CompletedTask;
 
-            try 
+            var webRoot = _env.WebRootPath ?? string.Empty;
+            try
             {
                 // URL örnek: http://localhost:5000/uploads/1/products/abc.jpg
                 // WebRootPath: .../wwwroot
-                
+
                 // 1. URL'den path kısmını al
-                Uri uri;
+                Uri? uri = null;
                 if (!Uri.TryCreate(fileUrl, UriKind.Absolute, out uri))
                 {
                     // Belki relative path gelmiştir (/uploads/...)
-                    if (fileUrl.StartsWith("/")) 
+                    if (fileUrl.StartsWith("/"))
                         uri = new Uri("http://dummy" + fileUrl);
                     else
                         return Task.CompletedTask; // Geçersiz format
                 }
-                
-                var localPath = uri.LocalPath; // /uploads/1/products/abc.jpg
-                
+
+                var localPath = uri?.LocalPath ?? string.Empty; // /uploads/1/products/abc.jpg
+
                 // 2. Başındaki /'ı kaldır ve sistem seperatorüne çevir
-                var relativePath = localPath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
-                
+                var relativePath = (localPath ?? string.Empty).TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+
                 // 3. Full path oluştur
-                var fullPath = Path.Combine(_env.WebRootPath, relativePath);
-                
-                if (File.Exists(fullPath))
+                var fullPath = Path.Combine(webRoot, relativePath);
+
+                if (!string.IsNullOrEmpty(fullPath) && File.Exists(fullPath))
                 {
                     File.Delete(fullPath);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Log and swallow - dosya silinememesi süreci kırmamalı
-                 // _logger.LogError(ex, "File delete failed: {Url}", fileUrl); (Logger yoksa yut)
+                // _logger.LogError(ex, "File delete failed: {Url}", fileUrl); (Logger yoksa yut)
             }
-            
+
             return Task.CompletedTask;
         }
     }
