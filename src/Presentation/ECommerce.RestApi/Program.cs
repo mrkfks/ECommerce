@@ -25,6 +25,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Load shared logging configuration if present
 builder.Configuration.AddJsonFile("logging.common.json", optional: true, reloadOnChange: true);
 
+// CORS origins from environment or config
+var corsOrigins = (Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS")
+    ?? builder.Configuration["Cors:AllowedOrigins"]
+    ?? "https://your-frontend-onrender.com,http://localhost:3000")
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
 // Serilog Configuration (read from configuration) and programmatic file sink to shared backend folder
 var logDir = Environment.GetEnvironmentVariable("BACKEND_LOG_DIR")
     ?? Path.Combine(builder.Environment.ContentRootPath, "logs");
@@ -51,9 +57,9 @@ builder.Services.AddControllers(options =>
 // CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(corsOrigins)
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
@@ -233,7 +239,7 @@ app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 app.UseStaticFiles();
 app.UseRouting();
-app.UseCors("AllowAll");
+app.UseCors("AllowFrontend");
 app.UseMiddleware<ApiKeyMiddleware>();
 app.UseRateLimiter();
 app.UseResponseCaching();

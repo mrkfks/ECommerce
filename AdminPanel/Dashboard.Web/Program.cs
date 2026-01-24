@@ -36,6 +36,11 @@ var apiBaseUrl = Environment.GetEnvironmentVariable("API_BASE_URL")
     ?? builder.Configuration.GetSection("ApiSettings")["BaseUrl"]
     ?? throw new InvalidOperationException("API BaseUrl not found");
 
+// CORS origins from environment or config
+var dashboardCorsOrigins = (Environment.GetEnvironmentVariable("DASHBOARD_CORS_ALLOWED_ORIGINS")
+    ?? "https://your-frontend-onrender.com,http://localhost:3000")
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
 Console.WriteLine($"🔗 API Base URL: {apiBaseUrl}");
 
 // Add services to the container
@@ -65,7 +70,7 @@ builder.Services.AddHttpClient("ECommerceApi", client =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowDashboard",
-        policy => policy.WithOrigins("http://localhost:5027") // Dashboard domain
+        policy => policy.WithOrigins(dashboardCorsOrigins)
                         .AllowAnyHeader()
                         .AllowAnyMethod());
 });
