@@ -6,6 +6,8 @@ using Dashboard.Web.Infrastructure;
 using Dashboard.Web.Services;
 using Dashboard.Web.Middleware;
 using Serilog;
+using ECommerce.Application;
+using ECommerce.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +41,15 @@ Console.WriteLine($"🔗 API Base URL: {apiBaseUrl}");
 // Add services to the container
 builder.Services.AddControllersWithViews();
 
+// Infrastructure services (DbContext, Repositories, etc.)
+builder.Services.AddInfrastructureServices(builder.Configuration);
+
+// Application services (AutoMapper, FluentValidation, etc.)
+builder.Services.AddApplicationServices();
+
+// SignalR for real-time notifications
+builder.Services.AddSignalR();
+
 // Response Caching for VaryByQueryKeys support
 builder.Services.AddResponseCaching();
 
@@ -54,7 +65,7 @@ builder.Services.AddHttpClient("ECommerceApi", client =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowDashboard",
-        policy => policy.WithOrigins("http://localhost:5041") // Dashboard domain
+        policy => policy.WithOrigins("http://localhost:5027") // Dashboard domain
                         .AllowAnyHeader()
                         .AllowAnyMethod());
 });
@@ -224,6 +235,15 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Auth}/{action=Login}/{id?}");
 
-app.Run();
+try
+{
+    app.Run();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Uygulama başlatma hatası: {ex.Message}");
+    Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+    throw;
+}
 
 

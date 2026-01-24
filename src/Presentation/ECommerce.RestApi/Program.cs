@@ -162,58 +162,61 @@ builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationH
     ECommerce.RestApi.Authorization.SameCompanyAuthorizationHandler>();
 
 // Swagger
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "ECommerce API",
-        Version = "v1",
-        Description = "ECommerce REST API Documentation"
-    });
+// builder.Services.AddEndpointsApiExplorer();
+// builder.Services.AddSwaggerGen(c =>
+// {
+//     c.SwaggerDoc("v1", new OpenApiInfo
+//     {
+//         Title = "ECommerce API",
+//         Version = "v1",
+//         Description = "ECommerce REST API Documentation"
+//     });
 
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Description = "JWT Authorization header. Example: \"Bearer {token}\"",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
-    });
+//     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+//     {
+//         Description = "JWT Authorization header. Example: \"Bearer {token}\"",
+//         Name = "Authorization",
+//         In = ParameterLocation.Header,
+//         Type = SecuritySchemeType.ApiKey,
+//         Scheme = "Bearer"
+//     });
 
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-            {
-                new OpenApiSecurityScheme
-                {
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
-                },
-                Array.Empty<string>()
-            }
-    });
+//     c.AddSecurityRequirement(new OpenApiSecurityRequirement
+//     {
+//             {
+//                 new OpenApiSecurityScheme
+//                 {
+//                     Reference = new OpenApiSecurityScheme
+//                     {
+//                         Reference = new OpenApiReference
+//                         {
+//                             Type = ReferenceType.SecurityScheme,
+//                             Id = "Bearer"
+//                         }
+//                     }
+//                 },
+//                 Array.Empty<string>()
+//             }
+//     });
 
-    // Swagger için ek ayarlar
-    c.UseInlineDefinitionsForEnums();
-    c.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
-});
+//     // Swagger için ek ayarlar
+//     c.UseInlineDefinitionsForEnums();
+//     c.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
+// });
 
 // Application & Infrastructure Services
-builder.Services.AddApplicationServices();
-builder.Services.AddInfrastructureServices(builder.Configuration);
+// builder.Services.AddApplicationServices();
+// builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
 // Database Migration & Seed
-using (var scope = app.Services.CreateScope())
-{
-    var seeder = scope.ServiceProvider.GetRequiredService<ECommerce.Infrastructure.Data.DataSeeder>();
-    await seeder.SeedAsync();
-}
+// using (var scope = app.Services.CreateScope())
+// {
+//     var seeder = scope.ServiceProvider.GetRequiredService<ECommerce.Infrastructure.Data.DataSeeder>();
+//     await seeder.SeedAsync();
+// }
 
 // Middleware Pipeline
 // Always use our global exception handler so AppException status codes (e.g., 409 Conflict) surface correctly.
@@ -221,12 +224,12 @@ using (var scope = app.Services.CreateScope())
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 // Swagger - hem Development hem Production'da açık
-app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommerce API V1");
-    c.RoutePrefix = "swagger";
-});
+// app.UseSwagger();
+// app.UseSwaggerUI(c =>
+// {
+//     c.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommerce API V1");
+//     c.RoutePrefix = "swagger";
+// });
 
 app.UseStaticFiles();
 app.UseRouting();
@@ -274,5 +277,15 @@ app.MapControllers();
 app.MapHealthChecks("/health");
 
 app.MapHub<ECommerce.Infrastructure.Hubs.NotificationHub>("/hub/notifications");
-app.Logger.LogInformation("🚀 ECommerce API başlatıldı - http://localhost:5010");
-app.Run();
+app.Logger.LogInformation("🚀 ECommerce API başlatıldı - http://localhost:5030");
+
+try
+{
+    app.Run();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"API başlatma hatası: {ex.Message}");
+    Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+    throw;
+}
