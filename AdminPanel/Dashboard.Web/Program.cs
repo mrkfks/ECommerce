@@ -85,7 +85,11 @@ builder.Services.AddScoped<CampaignApiService>();
 builder.Services.AddScoped<CustomerMessageApiService>();
 builder.Services.AddScoped<LoginHistoryApiService>();
 
-
+// New services for Brand, Model, Settings (GlobalAttribute), Role management
+builder.Services.AddScoped<BrandApiService>();
+builder.Services.AddScoped<ModelApiService>();
+builder.Services.AddScoped<GlobalAttributeApiService>();
+builder.Services.AddScoped<RoleApiService>();
 
 // Other services that might need custom logic (Dashboard, Auth are different)
 builder.Services.AddHttpClient<DashboardApiService>(client =>

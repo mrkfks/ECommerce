@@ -1,0 +1,109 @@
+# ECommerce Docker Compose
+# Tüm servisleri tek komutla başlatır
+
+services:
+  # ===========================================
+  # Backend API (ASP.NET Core)
+  # ===========================================
+  api:
+    build:
+      context: .
+      dockerfile: src/Presentation/ECommerce.RestApi/Dockerfile
+    container_name: ecommerce-api
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/ECommerce.db
+      - Jwt__Key=${JWT_SECRET_KEY:-super-secret-production-key-change-this-in-production-min-32-chars}
+      - Jwt__Issuer=ECommerce
+      - Jwt__Audience=ECommerce.Client
+      - Jwt__ExpiresInMinutes=60
+    volumes:
+      - api-data:/app/data
+      - api-uploads:/app/wwwroot/uploads
+    ports:
+      - "5000:5000"
+    networks:
+      - ecommerce-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5000/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ===========================================
+  # Admin Dashboard (ASP.NET Core MVC)
+  # ===========================================
+  dashboard:
+    build:
+      context: .
+      dockerfile: AdminPanel/Dashboard.Web/Dockerfile
+    container_name: ecommerce-dashboard
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ApiSettings__BaseUrl=http://api:5000/api
+    ports:
+      - "5001:5001"
+    networks:
+      - ecommerce-network
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # ===========================================
+  # Frontend (Angular SSR)
+  # ===========================================
+  frontend:
+    build:
+      context: ./Frontend/ECommerce-Frontend
+      dockerfile: Dockerfile
+    container_name: ecommerce-frontend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - API_URL=http://api:5000/api
+    ports:
+      - "4000:4000"
+    networks:
+      - ecommerce-network
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # ===========================================
+  # Nginx Reverse Proxy
+  # ===========================================
+  nginx:
+    image: nginx:alpine
+    container_name: ecommerce-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.docker.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    networks:
+      - ecommerce-network
+    depends_on:
+      - api
+      - dashboard
+      - frontend
+
+# ===========================================
+# Volumes (Kalıcı Veri Depolama)
+# ===========================================
+volumes:
+  api-data:
+    driver: local
+  api-uploads:
+    driver: local
+
+# ===========================================
+# Networks
+# ===========================================
+networks:
+  ecommerce-network:
+    driver: bridge

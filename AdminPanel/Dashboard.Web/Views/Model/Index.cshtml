@@ -1,0 +1,205 @@
+@model List<Dashboard.Web.Services.ModelViewModel>
+@{
+    ViewData["Title"] = "Model Yönetimi";
+    var brands = ViewBag.Brands as List<Dashboard.Web.Services.BrandViewModel> ?? new List<Dashboard.Web.Services.BrandViewModel>();
+    var selectedBrand = ViewBag.SelectedBrand as Dashboard.Web.Services.BrandViewModel;
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                <i class="bi bi-cpu text-primary me-2"></i>Model Yönetimi
+                @if (selectedBrand != null)
+                {
+                    <span class="badge bg-primary ms-2">@selectedBrand.Name</span>
+                }
+            </h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Ana Sayfa</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Brand")">Markalar</a></li>
+                    <li class="breadcrumb-item active">Modeller</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="d-flex gap-2">
+            <select class="form-select" id="brandFilter" style="width: auto;">
+                <option value="">Tüm Markalar</option>
+                @foreach (var brand in brands)
+                {
+                    if (selectedBrand?.Id == brand.Id)
+                    {
+                        <option value="@brand.Id" selected>@brand.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@brand.Id">@brand.Name</option>
+                    }
+                }
+            </select>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-1"></i>Yeni Model
+            </a>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Models Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Model Listesi (@Model.Count)</h5>
+            <div class="input-group" style="max-width: 300px;">
+                <span class="input-group-text bg-transparent border-end-0">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Model ara...">
+            </div>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="modelsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Model Adı</th>
+                                <th>Marka</th>
+                                <th>Açıklama</th>
+                                <th class="text-center">Ürün Sayısı</th>
+                                <th class="text-center">Durum</th>
+                                <th style="width: 150px;">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td><strong>@item.Name</strong></td>
+                                    <td>
+                                        <a href="@Url.Action("Index", new { brandId = item.BrandId })" class="text-decoration-none">
+                                            @item.BrandName
+                                        </a>
+                                    </td>
+                                    <td>
+                                        @{
+                                            var desc = item.Description ?? "-";
+                                            if (desc.Length > 50) desc = desc.Substring(0, 50) + "...";
+                                        }
+                                        <span class="text-muted">@desc</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">@item.ProductCount</span>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (item.IsActive)
+                                        {
+                                            <span class="badge bg-success">Aktif</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Pasif</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary" title="Düzenle">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-danger btn-delete" title="Sil" 
+                                                    data-id="@item.Id" data-name="@item.Name" data-brand="@item.BrandId">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-cpu display-1 text-muted"></i>
+                    <h5 class="mt-3">Henüz model eklenmemiş</h5>
+                    <p class="text-muted">Yeni bir model ekleyerek başlayın.</p>
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="bi bi-plus-lg me-1"></i>Yeni Model Ekle
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Model Silme Onayı</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong id="modelNameToDelete"></strong> modelini silmek istediğinizden emin misiniz?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <form id="deleteForm" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">Sil</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // Brand filter
+    document.getElementById('brandFilter').addEventListener('change', function() {
+        var brandId = this.value;
+        window.location.href = '@Url.Action("Index")' + (brandId ? '?brandId=' + brandId : '');
+    });
+
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        var filter = this.value.toLowerCase();
+        var rows = document.querySelectorAll('#modelsTable tbody tr');
+        rows.forEach(function(row) {
+            var text = row.textContent.toLowerCase();
+            row.style.display = text.includes(filter) ? '' : 'none';
+        });
+    });
+
+    // Delete modal
+    document.querySelectorAll('.btn-delete').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var id = this.getAttribute('data-id');
+            var name = this.getAttribute('data-name');
+            var brandId = this.getAttribute('data-brand');
+            document.getElementById('modelNameToDelete').textContent = name;
+            document.getElementById('deleteForm').action = '@Url.Action("Delete")/' + id + '?brandId=' + brandId;
+            var modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        });
+    });
+</script>
+}

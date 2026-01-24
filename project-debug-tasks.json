@@ -1,0 +1,20 @@
+{
+  "tasks": [
+    {
+      "name": "Backend, API ve Swagger'ı Debug Modda Başlat",
+      "commands": [
+        "dotnet run --project AdminPanel/Dashboard.Web/Dashboard.Web.csproj",
+        "dotnet run --project src/Presentation/ECommerce.RestApi/ECommerce.RestApi.csproj"
+      ],
+      "description": "Backend (Dashboard.Web), API (ECommerce.RestApi) ve Swagger'ı hata ayıklama modunda başlatır."
+    },
+    {
+      "name": "Frontend'i Debug Modda Başlat",
+      "commands": [
+        "cd Frontend/ECommerce-Frontend && npm install",
+        "cd Frontend/ECommerce-Frontend && ng serve --open"
+      ],
+      "description": "Angular frontend uygulamasını hata ayıklama modunda başlatır ve tarayıcıda açar."
+    }
+  ]
+}

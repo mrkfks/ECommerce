@@ -1,0 +1,96 @@
+@model Dashboard.Web.Services.GlobalAttributeCreateViewModel
+@{
+    ViewData["Title"] = "Yeni Ayar";
+    var companies = ViewBag.Companies as List<Dashboard.Web.Services.CompanyViewModel> ?? new List<Dashboard.Web.Services.CompanyViewModel>();
+}
+
+<div class="container-fluid">
+    <div class="mb-4">
+        <h1 class="h3 mb-1">
+            <i class="bi bi-plus-circle text-primary me-2"></i>Yeni Ayar Oluştur
+        </h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Ana Sayfa</a></li>
+                <li class="breadcrumb-item"><a href="@Url.Action("Index")">Ayarlar</a></li>
+                <li class="breadcrumb-item active">Yeni Ayar</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Anahtar (Key) <span class="text-danger">*</span></label>
+                                <input asp-for="Key" class="form-control" placeholder="site.name" required />
+                                <small class="text-muted">Benzersiz tanımlayıcı (örn: site.logo, smtp.host)</small>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Grup</label>
+                                <input asp-for="Group" class="form-control" placeholder="Genel" />
+                                <small class="text-muted">Ayarları gruplandırmak için</small>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label">Değer <span class="text-danger">*</span></label>
+                                <textarea asp-for="Value" class="form-control" rows="3" required></textarea>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label">Açıklama</label>
+                                <input asp-for="Description" class="form-control" placeholder="Bu ayarın ne işe yaradığını açıklayın" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Şirket (Opsiyonel)</label>
+                                <select asp-for="CompanyId" class="form-select">
+                                    <option value="">-- Global (Tüm Şirketler) --</option>
+                                    @foreach (var company in companies)
+                                    {
+                                        <option value="@company.Id">@company.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i>Geri
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i>Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm bg-light">
+                <div class="card-body">
+                    <h6><i class="bi bi-lightbulb text-warning me-2"></i>Örnekler</h6>
+                    <ul class="small text-muted mb-0">
+                        <li><code>site.name</code> = ECommerce</li>
+                        <li><code>site.logo</code> = /images/logo.png</li>
+                        <li><code>smtp.host</code> = smtp.gmail.com</li>
+                        <li><code>payment.currency</code> = TRY</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
