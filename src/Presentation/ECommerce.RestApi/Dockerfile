@@ -16,7 +16,7 @@ COPY src/Presentation/ECommerce.RestApi/ECommerce.RestApi.csproj src/Presentatio
 RUN dotnet restore src/Presentation/ECommerce.RestApi/ECommerce.RestApi.csproj
 
 # Copy all source code
-COPY src/ src/
+COPY . .
 
 # Build and publish
 WORKDIR /src/src/Presentation/ECommerce.RestApi

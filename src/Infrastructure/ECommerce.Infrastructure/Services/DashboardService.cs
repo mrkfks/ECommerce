@@ -306,7 +306,7 @@ public class DashboardService : IDashboardService
     public async Task<List<GeographicDistributionDto>> GetGeographicDistributionAsync(DateTime? startDate, DateTime? endDate, int? companyId)
     {
         // Requires Address data in Order
-        return new List<GeographicDistributionDto>();
+        return await Task.FromResult(new List<GeographicDistributionDto>());
     }
 
     public async Task<List<AverageCartTrendDto>> GetAverageCartTrendAsync(DateTime? startDate, DateTime? endDate, int? companyId)

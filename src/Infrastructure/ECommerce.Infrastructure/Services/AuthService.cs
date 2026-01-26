@@ -251,7 +251,7 @@ namespace ECommerce.Infrastructure.Services
 
         public async Task<bool> ValidateTokenAsync(string token)
         {
-            return !string.IsNullOrEmpty(token);
+            return await Task.FromResult(!string.IsNullOrEmpty(token));
         }
 
         private async Task<int> EnsureDefaultCompanyIdAsync()
