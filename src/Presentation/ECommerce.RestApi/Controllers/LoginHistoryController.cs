@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace ECommerce.RestApi.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/login-history")]
 [Authorize]
 public class LoginHistoryController : ControllerBase
 {

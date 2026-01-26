@@ -9,7 +9,7 @@ namespace ECommerce.RestApi.Controllers;
 /// Dashboard ve KPI verilerini sağlayan controller
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/dashboard")]
 [Authorize]
 public class DashboardController : ControllerBase
 {

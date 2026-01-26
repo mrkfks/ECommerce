@@ -28,7 +28,7 @@ builder.Configuration.AddJsonFile("logging.common.json", optional: true, reloadO
 // CORS origins from environment or config
 var corsOrigins = (Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS")
     ?? builder.Configuration["Cors:AllowedOrigins"]
-    ?? "https://your-frontend-onrender.com,http://localhost:3000")
+    ?? "http://localhost:4200,http://localhost:5100,http://localhost:3000,https://your-frontend-onrender.com")
     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
 // Serilog Configuration (read from configuration) and programmatic file sink to shared backend folder
@@ -168,61 +168,68 @@ builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationH
     ECommerce.RestApi.Authorization.SameCompanyAuthorizationHandler>();
 
 // Swagger
-// builder.Services.AddEndpointsApiExplorer();
-// builder.Services.AddSwaggerGen(c =>
-// {
-//     c.SwaggerDoc("v1", new OpenApiInfo
-//     {
-//         Title = "ECommerce API",
-//         Version = "v1",
-//         Description = "ECommerce REST API Documentation"
-//     });
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "ECommerce API",
+        Version = "v1",
+        Description = "ECommerce REST API Documentation"
+    });
 
-//     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-//     {
-//         Description = "JWT Authorization header. Example: \"Bearer {token}\"",
-//         Name = "Authorization",
-//         In = ParameterLocation.Header,
-//         Type = SecuritySchemeType.ApiKey,
-//         Scheme = "Bearer"
-//     });
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header. Example: \"Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
 
-//     c.AddSecurityRequirement(new OpenApiSecurityRequirement
-//     {
-//             {
-//                 new OpenApiSecurityScheme
-//                 {
-//                     Reference = new OpenApiSecurityScheme
-//                     {
-//                         Reference = new OpenApiReference
-//                         {
-//                             Type = ReferenceType.SecurityScheme,
-//                             Id = "Bearer"
-//                         }
-//                     }
-//                 },
-//                 Array.Empty<string>()
-//             }
-//     });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
 
-//     // Swagger için ek ayarlar
-//     c.UseInlineDefinitionsForEnums();
-//     c.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
-// });
+    // Swagger için ek ayarlar
+    c.UseInlineDefinitionsForEnums();
+    c.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
+});
 
 // Application & Infrastructure Services
-// builder.Services.AddApplicationServices();
-// builder.Services.AddInfrastructureServices(builder.Configuration);
+builder.Services.AddApplicationServices();
+builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
 // Database Migration & Seed
-// using (var scope = app.Services.CreateScope())
-// {
-//     var seeder = scope.ServiceProvider.GetRequiredService<ECommerce.Infrastructure.Data.DataSeeder>();
-//     await seeder.SeedAsync();
-// }
+using (var scope = app.Services.CreateScope())
+{
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try 
+    {
+        logger.LogInformation("Starting Data Seeding...");
+        var seeder = scope.ServiceProvider.GetRequiredService<ECommerce.Infrastructure.Data.DataSeeder>();
+        await seeder.SeedAsync();
+        logger.LogInformation("Data Seeding Completed Successfully.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
+}
 
 // Middleware Pipeline
 // Always use our global exception handler so AppException status codes (e.g., 409 Conflict) surface correctly.
@@ -230,12 +237,12 @@ var app = builder.Build();
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 // Swagger - hem Development hem Production'da açık
-// app.UseSwagger();
-// app.UseSwaggerUI(c =>
-// {
-//     c.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommerce API V1");
-//     c.RoutePrefix = "swagger";
-// });
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ECommerce API V1");
+    c.RoutePrefix = "swagger";
+});
 
 app.UseStaticFiles();
 app.UseRouting();
@@ -250,31 +257,212 @@ app.UseAuthorization();
 // Ana sayfa - API bilgisi
 app.MapGet("/", () => Results.Content(@"
 <!DOCTYPE html>
-<html>
+<html lang='tr'>
 <head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <title>ECommerce API</title>
+    <link href='https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap' rel='stylesheet'>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
-        h1 { color: #2c3e50; }
-        .link { display: inline-block; margin: 10px 0; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px; }
-        .link:hover { background: #2980b9; }
-        .status { color: #27ae60; font-weight: bold; }
+        :root {
+            --primary: #4F46E5;
+            --primary-hover: #4338ca;
+            --bg-gradient-start: #f3f4f6;
+            --bg-gradient-end: #e5e7eb;
+            --card-bg: #ffffff;
+            --text-main: #111827;
+            --text-secondary: #6b7280;
+            --success: #10B981;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+            color: var(--text-main);
+        }
+
+        .container {
+            background: var(--card-bg);
+            padding: 3rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #4F46E5, #7C3AED);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background-color: #D1FAE5;
+            color: var(--success);
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 0 0 1px #A7F3D0;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success);
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px -1px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--text-main);
+            border: 1px solid #E5E7EB;
+        }
+
+        .btn-secondary:hover {
+            background-color: #F9FAFB;
+            border-color: #D1D5DB;
+        }
+
+        .endpoints {
+            margin-top: 2rem;
+            text-align: left;
+            background: #F8FAFC;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #F1F5F9;
+        }
+
+        .endpoints h3 {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748B;
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+
+        .endpoint-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+            color: #334155;
+        }
+
+        .method {
+            font-family: monospace;
+            font-weight: 700;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            margin-right: 0.75rem;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .get { background: #DBEAFE; color: #1E40AF; }
+        .post { background: #D1FAE5; color: #065F46; }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
     </style>
 </head>
 <body>
-    <h1>🛒 ECommerce REST API</h1>
-    <p class='status'>✅ API Çalışıyor</p>
-    <p>Bu bir REST API servisidir. Aşağıdaki linkleri kullanabilirsiniz:</p>
-    <a class='link' href='/swagger'>📖 Swagger API Dokümantasyonu</a><br>
-    <a class='link' href='/health'>❤️ Health Check</a><br>
-    <a class='link' href='/api/products'>📦 Ürünler API</a>
-    <h3>Endpoints:</h3>
-    <ul>
-        <li><code>GET /api/products</code> - Ürün listesi</li>
-        <li><code>GET /api/categories</code> - Kategori listesi</li>
-        <li><code>GET /api/brands</code> - Marka listesi</li>
-        <li><code>POST /api/auth/login</code> - Giriş</li>
-    </ul>
+    <div class='container'>
+        <h1>ECommerce API</h1>
+        <div class='status-badge'>
+            <span class='status-dot'></span>
+            Sistem Aktif & Çalışıyor
+        </div>
+        
+        <p>E-Ticaret projesi için geliştirilmiş, yüksek performanslı RESTful API servisine hoş geldiniz.</p>
+
+        <div class='actions'>
+            <a href='/swagger' class='btn btn-primary'>
+                <span>📖 Dokümantasyonu İncele (Swagger)</span>
+            </a>
+            <a href='/health' class='btn btn-secondary'>
+                <span>❤️ Sistem Sağlığı (Health Check)</span>
+            </a>
+        </div>
+
+        <div class='endpoints'>
+            <h3>Öne Çıkan Endpointler</h3>
+            <div class='endpoint-item'>
+                <span class='method get'>GET</span>
+                <span>/api/products - Ürün Listesi</span>
+            </div>
+            <div class='endpoint-item'>
+                <span class='method get'>GET</span>
+                <span>/api/categories - Kategoriler</span>
+            </div>
+            <div class='endpoint-item'>
+                <span class='method post'>POST</span>
+                <span>/api/auth/login - Kullanıcı Girişi</span>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
 ", "text/html"));

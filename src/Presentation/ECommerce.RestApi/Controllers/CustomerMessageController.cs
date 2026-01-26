@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace ECommerce.RestApi.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/customer-messages")]
 [Authorize(Policy = "SameCompanyOrSuperAdmin")]
 public class CustomerMessageController : ControllerBase
 {

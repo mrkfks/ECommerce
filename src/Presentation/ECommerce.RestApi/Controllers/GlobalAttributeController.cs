@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ECommerce.RestApi.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/global-attributes")]
 [Authorize]
 public class GlobalAttributeController : ControllerBase
 {

@@ -7,7 +7,7 @@ import { Product, ProductCreateRequest, ProductUpdateRequest, PaginatedResponse,
   providedIn: 'root'
 })
 export class ProductService {
-  private readonly basePath = '/product';
+  private readonly basePath = '/products';
 
   constructor(private http: HttpClient) { }
 

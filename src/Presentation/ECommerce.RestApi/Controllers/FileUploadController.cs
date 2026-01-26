@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ECommerce.RestApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/files")]
     public class FileUploadController : ControllerBase
     {
         private readonly IFileUploadService _fileUploadService;

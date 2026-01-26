@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ECommerce.RestApi.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/roles")]
 [Authorize]
 public class RoleController : ControllerBase
 {

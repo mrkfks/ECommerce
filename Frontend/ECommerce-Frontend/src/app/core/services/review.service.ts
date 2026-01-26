@@ -34,7 +34,7 @@ export interface ProductReviewSummary {
 })
 export class ReviewService {
   private http = inject(HttpClient);
-  private apiUrl = '/api/review';
+  private apiUrl = '/reviews';
 
   /**
    * Get all reviews for a product

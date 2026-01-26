@@ -10,7 +10,7 @@ namespace ECommerce.RestApi.Controllers;
 /// Bildirim yönetimi controller'ı
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/notifications")]
 [Authorize]
 public class NotificationController : ControllerBase
 {

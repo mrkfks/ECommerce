@@ -7,7 +7,7 @@ import { Category, CategoryCreateRequest, ApiResponse } from '../models';
   providedIn: 'root'
 })
 export class CategoryService {
-  private readonly basePath = '/category';
+  private readonly basePath = '/categories';
 
   constructor(private http: HttpClient) {}
 

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ECommerce.RestApi.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/customers")]
 [Authorize(Policy = "SameCompanyOrSuperAdmin")]
 public class CustomerController : ControllerBase
 {

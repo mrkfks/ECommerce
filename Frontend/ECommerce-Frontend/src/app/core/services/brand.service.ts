@@ -23,7 +23,7 @@ export interface Model {
 })
 export class BrandService {
   private http = inject(HttpClient);
-  private apiUrl = '/api/brand';
+  private apiUrl = '/brands';
 
   /**
    * Get all brands
@@ -43,6 +43,6 @@ export class BrandService {
    * Get models by brand
    */
   getModels(brandId: number): Observable<Model[]> {
-    return this.http.get<Model[]>(`/api/model/brand/${brandId}`);
+    return this.http.get<Model[]>(`/models/brand/${brandId}`);
   }
 }

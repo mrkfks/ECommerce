@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ECommerce.RestApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/companies")]
     public class CompanyController : ControllerBase
     {
         private readonly ICompanyService _companyService;

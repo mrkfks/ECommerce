@@ -91,7 +91,7 @@ public static class DependencyInjection
         services.AddScoped<IStorageService, LocalStorageService>();
 
         // Seeder
-        // services.AddScoped<DataSeeder>();
+        services.AddScoped<DataSeeder>();
 
         return services;
     }

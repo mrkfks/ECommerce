@@ -18,7 +18,7 @@ export interface Banner {
   providedIn: 'root'
 })
 export class BannerService {
-  private readonly baseUrl = '/banner'; // Assumes base API URL is handled by interceptor
+  private readonly baseUrl = '/banners'; // Assumes base API URL is handled by interceptor
 
   constructor(private http: HttpClient) {}
 

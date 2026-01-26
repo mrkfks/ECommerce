@@ -7,7 +7,7 @@ import { Order, OrderCreateRequest, ApiResponse } from '../models';
   providedIn: 'root'
 })
 export class OrderService {
-  private readonly basePath = '/order';
+  private readonly basePath = '/orders';
 
   constructor(private http: HttpClient) {}
 

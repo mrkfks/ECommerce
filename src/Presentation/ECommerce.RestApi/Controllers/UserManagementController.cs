@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace ECommerce.RestApi.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/user-management")]
 [Authorize(Policy = "CanManageUsers")]
 public class UserManagementController : ControllerBase
 {

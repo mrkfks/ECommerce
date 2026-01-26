@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ECommerce.RestApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/banners")]
     public class BannerController : ControllerBase
     {
         private readonly IBannerService _bannerService;

@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ECommerce.RestApi.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/orders")]
 [Authorize(Policy = "SameCompanyOrSuperAdmin")]
 public class OrderController : ControllerBase
 {

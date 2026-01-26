@@ -32,7 +32,7 @@ export interface CampaignValidation {
 })
 export class CampaignService {
   private http = inject(HttpClient);
-  private apiUrl = '/api/campaign';
+  private apiUrl = '/campaigns';
 
   /**
    * Get all active campaigns for display
