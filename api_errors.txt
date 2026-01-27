@@ -1,0 +1,16 @@
+  Geri y├╝klenecek projeler belirleniyor...
+  Geri y├╝kleme i├ğin t├╝m projeler g├╝ncel.
+  ECommerce.Domain -> D:\├ûmer Kafkas\Projects\ECommerce\src\Core\ECommerce.Domain\bin\Debug\net9.0\ECommerce.Domain.dll
+  ECommerce.Application -> D:\├ûmer Kafkas\Projects\ECommerce\src\Core\ECommerce.Application\bin\Debug\net9.0\ECommerce.Application.dll
+  ECommerce.Infrastructure -> D:\├ûmer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\bin\Debug\net9.0\ECommerce.Infrastructure.dll
+D:\├ûmer Kafkas\Projects\ECommerce\src\Presentation\ECommerce.RestApi\Controllers\CustomerMessageController.cs(15,22): error CS0246: 'ICustomerMessageService' t├╝r├╝ veya ad alan─▒ ad─▒ bulunamad─▒ (bir using y├Ânergeniz veya derleme ba┼şvurunuz mu eksik?) [D:\├ûmer Kafkas\Projects\ECommerce\src\Presentation\ECommerce.RestApi\ECommerce.RestApi.csproj]
+D:\├ûmer Kafkas\Projects\ECommerce\src\Presentation\ECommerce.RestApi\Controllers\CustomerMessageController.cs(17,38): error CS0246: 'ICustomerMessageService' t├╝r├╝ veya ad alan─▒ ad─▒ bulunamad─▒ (bir using y├Ânergeniz veya derleme ba┼şvurunuz mu eksik?) [D:\├ûmer Kafkas\Projects\ECommerce\src\Presentation\ECommerce.RestApi\ECommerce.RestApi.csproj]
+
+Olu┼şturma BA┼ŞARISIZ OLDU.
+
+D:\├ûmer Kafkas\Projects\ECommerce\src\Presentation\ECommerce.RestApi\Controllers\CustomerMessageController.cs(15,22): error CS0246: 'ICustomerMessageService' t├╝r├╝ veya ad alan─▒ ad─▒ bulunamad─▒ (bir using y├Ânergeniz veya derleme ba┼şvurunuz mu eksik?) [D:\├ûmer Kafkas\Projects\ECommerce\src\Presentation\ECommerce.RestApi\ECommerce.RestApi.csproj]
+D:\├ûmer Kafkas\Projects\ECommerce\src\Presentation\ECommerce.RestApi\Controllers\CustomerMessageController.cs(17,38): error CS0246: 'ICustomerMessageService' t├╝r├╝ veya ad alan─▒ ad─▒ bulunamad─▒ (bir using y├Ânergeniz veya derleme ba┼şvurunuz mu eksik?) [D:\├ûmer Kafkas\Projects\ECommerce\src\Presentation\ECommerce.RestApi\ECommerce.RestApi.csproj]
+    0 Uyar─▒
+    2 Hata
+
+Ge├ğen S├╝re 00:00:02.51

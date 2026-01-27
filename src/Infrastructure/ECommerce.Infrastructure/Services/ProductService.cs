@@ -105,6 +105,37 @@ namespace ECommerce.Infrastructure.Services
             return products.Select(MapToDto).ToList();
         }
 
+        public async Task<ECommerce.Application.Responses.PagedResult<ProductDto>> GetPagedAsync(int pageNumber, int pageSize)
+        {
+            var companyId = _tenantService.GetCompanyId();
+            var query = _context.Products.AsNoTracking();
+
+            if (companyId.HasValue)
+                query = query.Where(p => p.CompanyId == companyId.Value);
+
+            var totalCount = await query.CountAsync();
+            
+            var products = await query
+                .Include(p => p.Category)
+                .Include(p => p.Brand)
+                .Include(p => p.Model)
+                .Include(p => p.Images)
+                .OrderBy(p => p.Name)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var dtos = products.Select(MapToDto).ToList();
+
+            return new ECommerce.Application.Responses.PagedResult<ProductDto>
+            {
+                Items = dtos,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+        }
+
         public async Task<IReadOnlyList<ProductDto>> GetByBrandIdAsync(int brandId)
         {
             var products = await _context.Products

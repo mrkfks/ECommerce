@@ -7,12 +7,12 @@ namespace Dashboard.Web.Controllers
 {
     public class AuthController : Controller
     {
-        // private readonly AuthApiService _authService;
+        private readonly AuthApiService _authService;
 
-        // public AuthController(AuthApiService authService)
-        // {
-        //     _authService = authService;
-        // }
+        public AuthController(AuthApiService authService)
+        {
+            _authService = authService;
+        }
 
         // GET: Login formu
         [AllowAnonymous]
@@ -30,17 +30,11 @@ namespace Dashboard.Web.Controllers
             if (!ModelState.IsValid)
                 return View(loginDto);
 
-            // Mock login - API çağrısı olmadan
-            // var authResponse = await _authService.LoginAsync(loginDto);
-
-            // Mock response
-            var authResponse = new { AccessToken = "mock-token", RefreshToken = "mock-refresh" };
+            var authResponse = await _authService.LoginAsync(loginDto);
 
             if (authResponse != null)
             {
-                // _authService.SetAuthCookies(authResponse);
-                // Mock cookie setting
-                Response.Cookies.Append("AuthToken", "mock-token");
+                _authService.SetAuthCookies(authResponse);
                 return RedirectToAction("Index", "Home");
             }
 
@@ -64,11 +58,7 @@ namespace Dashboard.Web.Controllers
             if (!ModelState.IsValid)
                 return View(registerDto);
 
-            // Mock register
-            // var authResponse = await _authService.RegisterAsync(registerDto);
-
-            // Mock response
-            var authResponse = new { AccessToken = "mock-token" };
+            var authResponse = await _authService.RegisterAsync(registerDto);
 
             if (authResponse != null)
             {

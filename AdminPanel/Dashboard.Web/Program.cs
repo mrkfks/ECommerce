@@ -6,8 +6,8 @@ using Dashboard.Web.Infrastructure;
 using Dashboard.Web.Services;
 using Dashboard.Web.Middleware;
 using Serilog;
-using ECommerce.Application;
-using ECommerce.Infrastructure;
+// using ECommerce.Application; // Removed direct dependency on service registrations
+// using ECommerce.Infrastructure; // Removed direct dependency on service registrations
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,11 +46,12 @@ Console.WriteLine($"🔗 API Base URL: {apiBaseUrl}");
 // Add services to the container
 builder.Services.AddControllersWithViews();
 
-// Infrastructure services (DbContext, Repositories, etc.)
-builder.Services.AddInfrastructureServices(builder.Configuration);
+// Infrastructure services (DbContext, Repositories, etc.) are NOT needed for Dashboard.Web
+// as it communicates via API.
+// builder.Services.AddInfrastructureServices(builder.Configuration);
 
-// Application services (AutoMapper, FluentValidation, etc.)
-builder.Services.AddApplicationServices();
+// Application services (AutoMapper, FluentValidation, etc.) are NOT needed if not using local processing
+// builder.Services.AddApplicationServices();
 
 // SignalR for real-time notifications
 builder.Services.AddSignalR();
@@ -75,26 +76,28 @@ builder.Services.AddCors(options =>
                         .AllowAnyMethod());
 });
 
-// Generic API Service Registration
+
+// Generic API Service Registration (tek ve doğru satır)
 builder.Services.AddScoped(typeof(IApiService<>), typeof(ApiService<>));
 
-// Custom Services for special logic (inheriting from ApiService or standalone)
-builder.Services.AddScoped<UserApiService>();
-builder.Services.AddScoped<ReviewApiService>();
-builder.Services.AddScoped<ProductApiService>();
-builder.Services.AddScoped<OrderApiService>();
-builder.Services.AddScoped<CustomerApiService>();
-builder.Services.AddScoped<CompanyApiService>();
-builder.Services.AddScoped<NotificationApiService>();
-builder.Services.AddScoped<CampaignApiService>();
-builder.Services.AddScoped<CustomerMessageApiService>();
-builder.Services.AddScoped<LoginHistoryApiService>();
+// Özel mantık içeren servisler (ör. AuthApiService, DashboardApiService vb.)
+builder.Services.AddHttpClient<DashboardApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
 
-// New services for Brand, Model, Settings (GlobalAttribute), Role management
-builder.Services.AddScoped<BrandApiService>();
-builder.Services.AddScoped<ModelApiService>();
-builder.Services.AddScoped<GlobalAttributeApiService>();
-builder.Services.AddScoped<RoleApiService>();
+builder.Services.AddHttpClient<AuthApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+
+builder.Services.AddHttpClient<UserManagementApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
 
 // Other services that might need custom logic (Dashboard, Auth are different)
 builder.Services.AddHttpClient<DashboardApiService>(client =>

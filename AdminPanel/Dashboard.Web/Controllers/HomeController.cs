@@ -11,47 +11,14 @@ namespace Dashboard.Web.Controllers;
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
-    private readonly DashboardApiService _dashboardService;
-    private readonly ProductApiService _productService;
-    private readonly OrderApiService _orderService;
-    private readonly CustomerApiService _customerService;
-    private readonly CompanyApiService _companyService;
-    private readonly NotificationApiService _notificationService;
-    private readonly CampaignApiService _campaignService;
-    private readonly CustomerMessageApiService _messageService;
-    private readonly IApiService<CategoryDto> _categoryService;
-    private readonly IApiService<BrandDto> _brandService;
-    private readonly LoginHistoryApiService _loginHistoryService;
-    private readonly UserManagementApiService _userManagementService;
+    private readonly IApiService<DashboardStatsVm> _dashboardStatsService;
 
     public HomeController(
         ILogger<HomeController> logger,
-        DashboardApiService dashboardService,
-        ProductApiService productService,
-        OrderApiService orderService,
-        CustomerApiService customerService,
-        CompanyApiService companyService,
-        NotificationApiService notificationService,
-        CampaignApiService campaignService,
-        CustomerMessageApiService messageService,
-        IApiService<CategoryDto> categoryService,
-        IApiService<BrandDto> brandService,
-        LoginHistoryApiService loginHistoryService,
-        UserManagementApiService userManagementService)
+        IApiService<DashboardStatsVm> dashboardStatsService)
     {
         _logger = logger;
-        _dashboardService = dashboardService;
-        _productService = productService;
-        _orderService = orderService;
-        _customerService = customerService;
-        _companyService = companyService;
-        _notificationService = notificationService;
-        _campaignService = campaignService;
-        _messageService = messageService;
-        _categoryService = categoryService;
-        _brandService = brandService;
-        _loginHistoryService = loginHistoryService;
-        _userManagementService = userManagementService;
+        _dashboardStatsService = dashboardStatsService;
     }
 
     [ResponseCache(Duration = 120, VaryByQueryKeys = new[] { "companyId" })]
@@ -115,69 +82,14 @@ public class HomeController : Controller
                 LowStockProducts = new List<LowStockProductVm>(),
                 RevenueTrend = new List<RevenueTrendVm>(),
                 CustomerSegmentation = new CustomerSegmentationVm()
-            };
-
-            return View(fallbackVm);
-        }
-
-        var viewModel = new DashboardKpiViewModel
-        {
-            Sales = kpiData.Sales,
-            Orders = kpiData.Orders,
-            Customers = kpiData.Customers,
-            TopProducts = kpiData.TopProducts,
-            LowStockProducts = kpiData.LowStockProducts,
-            RevenueTrend = kpiData.RevenueTrend,
-            CustomerSegmentation = kpiData.CustomerSegmentation
-        };
-
-        return View(viewModel);
-    }
-
-    /// <summary>
-    /// AJAX ile KPI verilerini getirir
-    /// </summary>
-    [HttpGet]
-    [ResponseCache(Duration = 120, VaryByQueryKeys = new[] { "startDate", "endDate", "companyId" })]
-    public async Task<IActionResult> GetKpiData(DateTime? startDate, DateTime? endDate, int? companyId)
-    {
-        var isSuperAdmin = User.IsInRole("SuperAdmin");
-
-        if (!isSuperAdmin)
-        {
-            var userCompanyId = User.FindFirst("CompanyId")?.Value;
-            if (!string.IsNullOrEmpty(userCompanyId) && int.TryParse(userCompanyId, out var parsedId))
+            // API'den DashboardStatsVm verisini çek
+            var response = await _dashboardStatsService.GetByIdAsync(0); // 0 veya uygun parametre, endpoint'e göre
+            if (response == null || response.Data == null)
             {
-                companyId = parsedId;
+                _logger.LogWarning("Dashboard istatistikleri alınamadı");
+                return View(new DashboardStatsVm());
             }
-        }
-
-        var kpiData = await _dashboardService.GetKpiAsync(startDate, endDate, companyId);
-        return Json(kpiData);
-    }
-
-    /// <summary>
-    /// Grafikler ve Görselleştirmeler Sayfası
-    /// </summary>
-    public async Task<IActionResult> Charts()
-    {
-        var isSuperAdmin = User.IsInRole("SuperAdmin");
-        int? companyId = null;
-
-        if (!isSuperAdmin)
-        {
-            var companyIdClaim = User.FindFirst("CompanyId")?.Value;
-            if (!string.IsNullOrEmpty(companyIdClaim) && int.TryParse(companyIdClaim, out var parsedCompanyId))
-            {
-                companyId = parsedCompanyId;
-            }
-        }
-
-        var viewModel = new ChartsViewModel
-        {
-            KpiData = await _dashboardService.GetKpiAsync(companyId: companyId),
-            Companies = new List<CompanySelectVm>()
-        };
+            return View(response.Data);
 
         // SuperAdmin için şirket listesini getir
         if (isSuperAdmin)

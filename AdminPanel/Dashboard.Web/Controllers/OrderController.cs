@@ -8,9 +8,9 @@ namespace Dashboard.Web.Controllers
     [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
     public class OrderController : Controller
     {
-        private readonly IApiService<OrderDto> _orderService;
+        private readonly IApiService<OrderViewModel> _orderService;
 
-        public OrderController(IApiService<OrderDto> orderService)
+        public OrderController(IApiService<OrderViewModel> orderService)
         {
             _orderService = orderService;
         }
@@ -18,19 +18,20 @@ namespace Dashboard.Web.Controllers
         // Listeleme
         public async Task<IActionResult> Index()
         {
-            var orders = await _orderService.GetAllAsync();
-            return View(orders);
+            var response = await _orderService.GetAllAsync();
+            if (response == null || response.Data == null)
+                return View(new List<OrderViewModel>());
+            return View(response.Data);
         }
 
         // Detay
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            var order = await _orderService.GetByIdAsync(id);
-            if (order == null)
+            var response = await _orderService.GetByIdAsync(id);
+            if (response == null || response.Data == null)
                 return NotFound();
-
-            return View(order);
+            return View(response.Data);
         }
 
         // Durum güncelleme (Edit)
@@ -38,11 +39,10 @@ namespace Dashboard.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var order = await _orderService.GetByIdAsync(id);
-            if (order == null)
+            var response = await _orderService.GetByIdAsync(id);
+            if (response == null || response.Data == null)
                 return NotFound();
-
-            return View(order);
+            return View(response.Data);
         }
 
         [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
@@ -52,8 +52,8 @@ namespace Dashboard.Web.Controllers
             if (!ModelState.IsValid)
                 return View(order);
 
-            var success = await _orderService.UpdateAsync(order.Id, order);
-            if (success)
+            var response = await _orderService.UpdateAsync(order.Id, order);
+            if (response != null && response.Data)
                 return RedirectToAction(nameof(Index));
 
             ModelState.AddModelError("", "Sipariş güncellenirken hata oluştu.");

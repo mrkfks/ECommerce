@@ -37,18 +37,8 @@ public class CustomerController : ControllerBase
     [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
     public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
-        // TODO: Pagination support in Service
-        var customers = await _customerService.GetAllAsync();
-        // Simple pagination for now
-        var paged = customers.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
-        
-        return Ok(new 
-        { 
-            Data = paged,
-            TotalCount = customers.Count,
-            PageNumber = pageNumber,
-            PageSize = pageSize
-        });
+        var result = await _customerService.GetPagedAsync(pageNumber, pageSize);
+        return Ok(result);
     }
 
     [HttpGet("{id}")]

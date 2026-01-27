@@ -1,0 +1,15 @@
+  Geri y├╝klenecek projeler belirleniyor...
+  Geri y├╝kleme i├ğin t├╝m projeler g├╝ncel.
+  ECommerce.Domain -> D:\├ûmer Kafkas\Projects\ECommerce\src\Core\ECommerce.Domain\bin\Debug\net9.0\ECommerce.Domain.dll
+  ECommerce.Application -> D:\├ûmer Kafkas\Projects\ECommerce\src\Core\ECommerce.Application\bin\Debug\net9.0\ECommerce.Application.dll
+D:\├ûmer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\Services\AuthService.cs(20,26): error CS0246: 'ILogger<>' t├╝r├╝ veya ad alan─▒ ad─▒ bulunamad─▒ (bir using y├Ânergeniz veya derleme ba┼şvurunuz mu eksik?) [D:\├ûmer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj]
+D:\├ûmer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\Services\AuthService.cs(22,80): error CS0246: 'ILogger<>' t├╝r├╝ veya ad alan─▒ ad─▒ bulunamad─▒ (bir using y├Ânergeniz veya derleme ba┼şvurunuz mu eksik?) [D:\├ûmer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj]
+
+Olu┼şturma BA┼ŞARISIZ OLDU.
+
+D:\├ûmer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\Services\AuthService.cs(20,26): error CS0246: 'ILogger<>' t├╝r├╝ veya ad alan─▒ ad─▒ bulunamad─▒ (bir using y├Ânergeniz veya derleme ba┼şvurunuz mu eksik?) [D:\├ûmer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj]
+D:\├ûmer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\Services\AuthService.cs(22,80): error CS0246: 'ILogger<>' t├╝r├╝ veya ad alan─▒ ad─▒ bulunamad─▒ (bir using y├Ânergeniz veya derleme ba┼şvurunuz mu eksik?) [D:\├ûmer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj]
+    0 Uyar─▒
+    2 Hata
+
+Ge├ğen S├╝re 00:00:01.90

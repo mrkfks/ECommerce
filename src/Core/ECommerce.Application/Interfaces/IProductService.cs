@@ -10,6 +10,9 @@ namespace ECommerce.Application.Interfaces
         // Tüm ürünleri getir
         Task<IReadOnlyList<ProductDto>> GetAllAsync();
 
+        // Sayfalanmış ürün listesi getir (Veritabanı seviyesinde)
+        Task<ECommerce.Application.Responses.PagedResult<ProductDto>> GetPagedAsync(int pageNumber, int pageSize);
+
         // Belirli bir kategoriye ait ürünleri getir
         Task<IReadOnlyList<ProductDto>> GetByCategoryIdAsync(int categoryId);
 

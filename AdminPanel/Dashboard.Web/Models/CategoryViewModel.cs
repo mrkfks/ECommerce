@@ -15,6 +15,9 @@ namespace Dashboard.Web.Models
         public int? ParentCategoryId { get; set; }
         public int DisplayOrder { get; set; }
         public bool IsActive { get; set; } = true;
+        public int ProductCount { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
 
         // Markalar (kategoriye özel)
         public List<BrandItemVm> Brands { get; set; } = new();

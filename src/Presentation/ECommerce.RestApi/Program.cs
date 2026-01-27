@@ -28,7 +28,7 @@ builder.Configuration.AddJsonFile("logging.common.json", optional: true, reloadO
 // CORS origins from environment or config
 var corsOrigins = (Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS")
     ?? builder.Configuration["Cors:AllowedOrigins"]
-    ?? "http://localhost:4200,http://localhost:5100,http://localhost:3000,https://your-frontend-onrender.com")
+    ?? "http://localhost:4200,http://localhost:5001,http://localhost:5000,http://localhost:3000,https://your-frontend-onrender.com")
     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
 // Serilog Configuration (read from configuration) and programmatic file sink to shared backend folder

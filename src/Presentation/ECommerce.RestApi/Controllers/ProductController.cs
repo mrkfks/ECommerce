@@ -69,20 +69,11 @@ public class ProductController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
-        var currentCompanyId = _tenantService.GetCompanyId();
-        _logger.LogInformation("Fetching products (Page {Page}, Size {Size}) - Current CompanyId: {CompanyId}", pageNumber, pageSize, currentCompanyId?.ToString() ?? "NULL");
+        _logger.LogInformation("Fetching products (Page {Page}, Size {Size})", pageNumber, pageSize);
         
-        var products = await _productService.GetAllAsync();
-        var paged = products.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+        var result = await _productService.GetPagedAsync(pageNumber, pageSize);
         
-        return Ok(new 
-        { 
-            Data = paged,
-            TotalCount = products.Count,
-            PageNumber = pageNumber,
-            PageSize = pageSize,
-            Success = true
-        });
+        return Ok(result);
     }
 
     /// <summary>

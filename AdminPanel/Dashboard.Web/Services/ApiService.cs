@@ -1,15 +1,10 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using ECommerce.Application.Responses;
 
 namespace Dashboard.Web.Services;
 
-// API'nin döndürdüğü wrapper response
-public class ApiResponse<T>
-{
-    public bool Success { get; set; }
-    public string Message { get; set; } = string.Empty;
-    public T? Data { get; set; }
-}
+
 
 public class ApiService<T> : IApiService<T> where T : class
 {
@@ -20,17 +15,52 @@ public class ApiService<T> : IApiService<T> where T : class
         PropertyNameCaseInsensitive = true 
     };
 
-    public ApiService(IHttpClientFactory httpClientFactory)
+    public ApiService(IHttpClientFactory httpClientFactory) : this(httpClientFactory, null) { }
+
+    public ApiService(IHttpClientFactory httpClientFactory, string? customEndpoint)
     {
         _httpClient = httpClientFactory.CreateClient("ECommerceApi");
-        // Remove Dto/ViewModel and simple pluralization could be added if needed, 
-        // but for now relying on strict naming or manual override would be better if we weren't fully generic.
-        // Assuming API endpoints are consistently named after the entity.
-        var name = typeof(T).Name;
-        if (name.EndsWith("Dto")) name = name[..^3];
-        else if (name.EndsWith("ViewModel")) name = name[..^9];
         
-        _endpoint = name;
+        if (!string.IsNullOrEmpty(customEndpoint))
+        {
+            _endpoint = customEndpoint;
+        }
+        else
+        {
+            var name = typeof(T).Name;
+            if (name.EndsWith("Dto")) name = name[..^3];
+            else if (name.EndsWith("ViewModel")) name = name[..^9];
+            
+            // Basic pluralization attempt or just use the name
+            // For this project, most are simple: Products, Categories, Brands, etc.
+            // But some are CustomerMessages (with s). 
+            // The API uses: products, categories, customers, customer-messages
+            
+            _endpoint = ToKebabCase(name);
+            if (!_endpoint.EndsWith("s")) _endpoint += "s";
+            
+            // Special cases
+            if (_endpoint == "customer-message") _endpoint = "customer-messages";
+        }
+    }
+
+    private static string ToKebabCase(string str)
+    {
+        if (string.IsNullOrEmpty(str)) return str;
+        var result = new System.Text.StringBuilder();
+        for (int i = 0; i < str.Length; i++)
+        {
+            if (char.IsUpper(str[i]))
+            {
+                if (i > 0) result.Append('-');
+                result.Append(char.ToLower(str[i]));
+            }
+            else
+            {
+                result.Append(str[i]);
+            }
+        }
+        return result.ToString();
     }
 
     public async Task<List<T>> GetAllAsync()
@@ -65,7 +95,7 @@ public class ApiService<T> : IApiService<T> where T : class
             // Try ApiResponse<List<T>>
             try
             {
-                var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<T>>>(content, _jsonOptions);
+                var apiResponse = JsonSerializer.Deserialize<ECommerce.Application.Responses.ApiResponse<List<T>>>(content, _jsonOptions);
                 if (apiResponse?.Success == true && apiResponse.Data != null)
                 {
                     return apiResponse.Data;
@@ -101,11 +131,31 @@ public class ApiService<T> : IApiService<T> where T : class
             }
 
             var content = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<ECommerce.Application.Responses.PagedResult<T>>(content, _jsonOptions);
-            return result ?? new ECommerce.Application.Responses.PagedResult<T>();
+            
+            // Try wrapped ApiResponseDto<PagedResult<T>>
+            try
+            {
+                var wrapped = JsonSerializer.Deserialize<ECommerce.Application.DTOs.Common.ApiResponseDto<ECommerce.Application.Responses.PagedResult<T>>>(content, _jsonOptions);
+                if (wrapped?.Success == true && wrapped.Data != null)
+                {
+                    return wrapped.Data;
+                }
+            }
+            catch { }
+
+            // Try direct PagedResult<T>
+            try
+            {
+                var result = JsonSerializer.Deserialize<ECommerce.Application.Responses.PagedResult<T>>(content, _jsonOptions);
+                return result ?? new ECommerce.Application.Responses.PagedResult<T>();
+            }
+            catch { }
+
+            return new ECommerce.Application.Responses.PagedResult<T>();
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"[ApiService] GetPagedListAsync exception: {ex.Message}");
             return new ECommerce.Application.Responses.PagedResult<T>();
         }
     }
@@ -123,7 +173,7 @@ public class ApiService<T> : IApiService<T> where T : class
             // Önce ApiResponse<T> olarak dene
             try
             {
-                var apiResponse = JsonSerializer.Deserialize<ApiResponse<T>>(content, _jsonOptions);
+                var apiResponse = JsonSerializer.Deserialize<ECommerce.Application.Responses.ApiResponse<T>>(content, _jsonOptions);
                 if (apiResponse?.Success == true && apiResponse.Data != null)
                     return apiResponse.Data;
             }

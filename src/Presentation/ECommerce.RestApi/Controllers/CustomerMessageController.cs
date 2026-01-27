@@ -1,9 +1,7 @@
 using ECommerce.Application.DTOs;
-using ECommerce.Domain.Entities;
-using ECommerce.Infrastructure.Data;
+using ECommerce.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.RestApi.Controllers;
 
@@ -12,170 +10,49 @@ namespace ECommerce.RestApi.Controllers;
 [Authorize(Policy = "SameCompanyOrSuperAdmin")]
 public class CustomerMessageController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly ICustomerMessageService _messageService;
 
-    public CustomerMessageController(AppDbContext context)
+    public CustomerMessageController(ICustomerMessageService messageService)
     {
-        _context = context;
+        _messageService = messageService;
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
-        var messages = await _context.CustomerMessages
-            .Include(m => m.Customer)
-            .Include(m => m.RepliedBy)
-            .AsNoTracking()
-            .Select(m => new CustomerMessageDto
-            {
-                Id = m.Id,
-                CustomerId = m.CustomerId,
-                CustomerName = m.Customer != null ? m.Customer.FirstName + " " + m.Customer.LastName : "",
-                CustomerEmail = m.Customer != null ? m.Customer.Email : "",
-                CompanyId = m.CompanyId,
-                Subject = m.Subject,
-                Message = m.Message,
-                IsRead = m.IsRead,
-                IsReplied = m.IsReplied,
-                Reply = m.Reply,
-                RepliedAt = m.RepliedAt,
-                RepliedByUserId = m.RepliedByUserId,
-                RepliedByName = m.RepliedBy != null ? m.RepliedBy.FirstName + " " + m.RepliedBy.LastName : null,
-                Category = m.Category,
-                CategoryText = GetCategoryText(m.Category),
-                CreatedAt = m.CreatedAt
-            })
-            .OrderByDescending(m => m.CreatedAt)
-            .ToListAsync();
-
-        return Ok(messages);
+        var result = await _messageService.GetPagedAsync(pageNumber, pageSize);
+        return Ok(result);
     }
 
     [HttpGet("unread")]
     public async Task<IActionResult> GetUnread()
     {
-        var messages = await _context.CustomerMessages
-            .Include(m => m.Customer)
-            .Where(m => !m.IsRead)
-            .AsNoTracking()
-            .Select(m => new CustomerMessageDto
-            {
-                Id = m.Id,
-                CustomerId = m.CustomerId,
-                CustomerName = m.Customer != null ? m.Customer.FirstName + " " + m.Customer.LastName : "",
-                CustomerEmail = m.Customer != null ? m.Customer.Email : "",
-                CompanyId = m.CompanyId,
-                Subject = m.Subject,
-                Message = m.Message,
-                IsRead = m.IsRead,
-                IsReplied = m.IsReplied,
-                Category = m.Category,
-                CategoryText = GetCategoryText(m.Category),
-                CreatedAt = m.CreatedAt
-            })
-            .OrderByDescending(m => m.CreatedAt)
-            .ToListAsync();
-
+        var messages = await _messageService.GetUnreadAsync();
         return Ok(messages);
     }
 
     [HttpGet("pending")]
     public async Task<IActionResult> GetPending()
     {
-        var messages = await _context.CustomerMessages
-            .Include(m => m.Customer)
-            .Where(m => !m.IsReplied)
-            .AsNoTracking()
-            .Select(m => new CustomerMessageDto
-            {
-                Id = m.Id,
-                CustomerId = m.CustomerId,
-                CustomerName = m.Customer != null ? m.Customer.FirstName + " " + m.Customer.LastName : "",
-                CustomerEmail = m.Customer != null ? m.Customer.Email : "",
-                CompanyId = m.CompanyId,
-                Subject = m.Subject,
-                Message = m.Message,
-                IsRead = m.IsRead,
-                IsReplied = m.IsReplied,
-                Category = m.Category,
-                CategoryText = GetCategoryText(m.Category),
-                CreatedAt = m.CreatedAt
-            })
-            .OrderByDescending(m => m.CreatedAt)
-            .ToListAsync();
-
+        var messages = await _messageService.GetPendingAsync();
         return Ok(messages);
     }
 
     [HttpGet("summary")]
     public async Task<IActionResult> GetSummary()
     {
-        var messages = await _context.CustomerMessages
-            .Include(m => m.Customer)
-            .AsNoTracking()
-            .ToListAsync();
-
-        var summary = new CustomerMessageSummaryDto
-        {
-            TotalMessages = messages.Count,
-            UnreadMessages = messages.Count(m => !m.IsRead),
-            PendingReplies = messages.Count(m => !m.IsReplied),
-            RepliedMessages = messages.Count(m => m.IsReplied),
-            RecentMessages = messages
-                .OrderByDescending(m => m.CreatedAt)
-                .Take(10)
-                .Select(m => new CustomerMessageDto
-                {
-                    Id = m.Id,
-                    CustomerId = m.CustomerId,
-                    CustomerName = m.Customer != null ? m.Customer.FirstName + " " + m.Customer.LastName : "",
-                    CustomerEmail = m.Customer?.Email ?? "",
-                    CompanyId = m.CompanyId,
-                    Subject = m.Subject,
-                    Message = m.Message,
-                    IsRead = m.IsRead,
-                    IsReplied = m.IsReplied,
-                    Category = m.Category,
-                    CategoryText = GetCategoryText(m.Category),
-                    CreatedAt = m.CreatedAt
-                })
-                .ToList()
-        };
-
+        var summary = await _messageService.GetSummaryAsync();
         return Ok(summary);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var message = await _context.CustomerMessages
-            .Include(m => m.Customer)
-            .Include(m => m.RepliedBy)
-            .AsNoTracking()
-            .FirstOrDefaultAsync(m => m.Id == id);
-
+        var message = await _messageService.GetByIdAsync(id);
         if (message == null)
             return NotFound(new { message = "Mesaj bulunamadı." });
 
-        return Ok(new CustomerMessageDto
-        {
-            Id = message.Id,
-            CustomerId = message.CustomerId,
-            CustomerName = message.Customer != null ? message.Customer.FirstName + " " + message.Customer.LastName : "",
-            CustomerEmail = message.Customer?.Email ?? "",
-            CompanyId = message.CompanyId,
-            Subject = message.Subject,
-            Message = message.Message,
-            IsRead = message.IsRead,
-            IsReplied = message.IsReplied,
-            Reply = message.Reply,
-            RepliedAt = message.RepliedAt,
-            RepliedByUserId = message.RepliedByUserId,
-            RepliedByName = message.RepliedBy != null ? message.RepliedBy.FirstName + " " + message.RepliedBy.LastName : null,
-            Category = message.Category,
-            CategoryText = GetCategoryText(message.Category),
-            CreatedAt = message.CreatedAt
-        });
+        return Ok(message);
     }
 
     [HttpPost]
@@ -183,17 +60,8 @@ public class CustomerMessageController : ControllerBase
     {
         try
         {
-            var message = CustomerMessage.Create(
-                dto.CustomerId,
-                dto.CompanyId,
-                dto.Subject,
-                dto.Message,
-                dto.Category);
-
-            _context.CustomerMessages.Add(message);
-            await _context.SaveChangesAsync();
-
-            return Ok(new { id = message.Id, message = "Mesaj oluşturuldu." });
+            var id = await _messageService.CreateAsync(dto);
+            return Ok(new { id, message = "Mesaj oluşturuldu." });
         }
         catch (ArgumentException ex)
         {
@@ -204,31 +72,28 @@ public class CustomerMessageController : ControllerBase
     [HttpPut("{id}/read")]
     public async Task<IActionResult> MarkAsRead(int id)
     {
-        var message = await _context.CustomerMessages.FindAsync(id);
-        if (message == null)
-            return NotFound(new { message = "Mesaj bulunamadı." });
-
-        message.MarkAsRead();
-        await _context.SaveChangesAsync();
-
-        return Ok(new { message = "Mesaj okundu olarak işaretlendi." });
+        try
+        {
+            await _messageService.MarkAsReadAsync(id);
+            return Ok(new { message = "Mesaj okundu olarak işaretlendi." });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
     }
 
     [HttpPost("{id}/reply")]
     public async Task<IActionResult> Reply(int id, [FromBody] CustomerMessageReplyDto dto)
     {
-        var message = await _context.CustomerMessages.FindAsync(id);
-        if (message == null)
-            return NotFound(new { message = "Mesaj bulunamadı." });
-
         try
         {
-            message.SendReply(dto.Reply, dto.RepliedByUserId);
-            await _context.SaveChangesAsync();
-
-            // TODO: Müşteriye e-posta bildirimi gönder
-
+            await _messageService.SendReplyAsync(id, dto);
             return Ok(new { message = "Yanıt gönderildi." });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
         }
         catch (ArgumentException ex)
         {
@@ -239,27 +104,14 @@ public class CustomerMessageController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var message = await _context.CustomerMessages.FindAsync(id);
-        if (message == null)
-            return NotFound(new { message = "Mesaj bulunamadı." });
-
-        _context.CustomerMessages.Remove(message);
-        await _context.SaveChangesAsync();
-
-        return Ok(new { message = "Mesaj silindi." });
-    }
-
-    private static string GetCategoryText(MessageCategory category)
-    {
-        return category switch
+        try
         {
-            MessageCategory.General => "Genel",
-            MessageCategory.Order => "Sipariş",
-            MessageCategory.Product => "Ürün",
-            MessageCategory.Return => "İade",
-            MessageCategory.Complaint => "Şikayet",
-            MessageCategory.Suggestion => "Öneri",
-            _ => "Genel"
-        };
+            await _messageService.DeleteAsync(id);
+            return Ok(new { message = "Mesaj silindi." });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
     }
 }

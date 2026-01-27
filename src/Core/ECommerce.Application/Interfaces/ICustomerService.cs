@@ -7,6 +7,7 @@ namespace ECommerce.Application.Interfaces
         Task<CustomerDto?> GetByIdAsync(int id);
 
         Task<IReadOnlyList<CustomerDto>> GetAllAsync();
+        Task<ECommerce.Application.Responses.PagedResult<CustomerDto>> GetPagedAsync(int pageNumber, int pageSize);
 
         Task<IReadOnlyList<CustomerSummaryDto>> GetSummariesAsync();
 

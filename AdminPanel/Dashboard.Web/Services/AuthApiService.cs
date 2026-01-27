@@ -25,7 +25,7 @@ namespace Dashboard.Web.Services
                 if (response.IsSuccessStatusCode)
                 {
                     // API returns wrapped response: { success, data: AuthResponseDto, message }
-                    var wrappedResponse = await response.Content.ReadFromJsonAsync<ApiResponse<AuthResponseDto>>();
+                    var wrappedResponse = await response.Content.ReadFromJsonAsync<ECommerce.Application.Responses.ApiResponse<AuthResponseDto>>();
                     var result = wrappedResponse?.Data;
 
                     _logger.LogInformation("Login successful for: {Username}", result?.Username);

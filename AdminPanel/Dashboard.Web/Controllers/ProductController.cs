@@ -8,14 +8,14 @@ namespace Dashboard.Web.Controllers
     [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
     public class ProductController : Controller
     {
-        private readonly IApiService<ProductDto> _productService;
-        private readonly IApiService<CategoryDto> _categoryService;
+        private readonly IApiService<ProductViewModel> _productService;
+        private readonly IApiService<CategoryViewModel> _categoryService;
         private readonly IApiService<BrandDto> _brandService;
         private readonly IApiService<CompanyDto> _companyService;
 
         public ProductController(
-            IApiService<ProductDto> productService,
-            IApiService<CategoryDto> categoryService,
+            IApiService<ProductViewModel> productService,
+            IApiService<CategoryViewModel> categoryService,
             IApiService<BrandDto> brandService,
             IApiService<CompanyDto> companyService)
         {
@@ -40,19 +40,20 @@ namespace Dashboard.Web.Controllers
         // Ürün listesi
         public async Task<IActionResult> List()
         {
-            var products = await _productService.GetAllAsync();
-            return View(products);
+            var response = await _productService.GetAllAsync();
+            if (response == null || response.Data == null)
+                return View(new List<ProductViewModel>());
+            return View(response.Data);
         }
 
         // GET: Ürün detayları
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            var product = await _productService.GetByIdAsync(id);
-            if (product == null)
+            var response = await _productService.GetByIdAsync(id);
+            if (response == null || response.Data == null)
                 return NotFound();
-
-            return View(product);
+            return View(response.Data);
         }
 
         // GET: Create formu

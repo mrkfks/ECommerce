@@ -29,24 +29,35 @@ public class CartService : ICartService
 
     public async Task AddToCartAsync(AddToCartDto dto, string? sessionId = null)
     {
-        var cart = await GetOrCreateCartAsync(sessionId);
         var product = await _context.Products.FindAsync(dto.ProductId);
         
         if (product == null)
             throw new Application.Exceptions.NotFoundException("Ürün bulunamadı");
         
-        // TODO: Check stock, etc.
+        if (!product.IsActive)
+            throw new Application.Exceptions.BadRequestException("Bu ürün şu anda satışta değil.");
 
-        cart.AddItem(dto.ProductId, dto.Quantity, product.Price); // Using Product Price as Unit Price
+        // Stok Kontrolü
+        if (product.StockQuantity < dto.Quantity)
+            throw new Application.Exceptions.BadRequestException($"Yetersiz stok. Mevcut stok: {product.StockQuantity}");
+
+        var cart = await GetOrCreateCartAsync(sessionId);
+        
+        // Eğer ürün zaten sepetteyse toplam miktarı da kontrol etmeliyiz
+        var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == dto.ProductId);
+        if (existingItem != null)
+        {
+            if (product.StockQuantity < (existingItem.Quantity + dto.Quantity))
+                throw new Application.Exceptions.BadRequestException($"Sepetinizdeki miktar ile birlikte stok sınırı aşılıyor. Mevcut stok: {product.StockQuantity}");
+        }
+
+        cart.AddItem(dto.ProductId, dto.Quantity, product.Price);
         await _context.SaveChangesAsync();
     }
 
     public async Task RemoveFromCartAsync(int itemId)
     {
-        // Security check: item belongs to current cart?
-        // Simplifying for MVP: just find item and remove if user owns the cart.
-        
-        var cart = await GetOrCreateCartAsync(null); // Get current context cart
+        var cart = await GetOrCreateCartAsync(null);
         var item = cart.Items.FirstOrDefault(i => i.Id == itemId);
         
         if (item != null)
@@ -64,9 +75,18 @@ public class CartService : ICartService
         if (item != null)
         {
             if (quantity <= 0)
+            {
                 cart.Items.Remove(item);
+            }
             else
+            {
+                // Stok kontrolü (Güncellenirken)
+                var product = await _context.Products.FindAsync(item.ProductId);
+                if (product != null && product.StockQuantity < quantity)
+                    throw new Application.Exceptions.BadRequestException($"Yetersiz stok. Mevcut stok: {product.StockQuantity}");
+                
                 item.UpdateQuantity(quantity);
+            }
                 
             await _context.SaveChangesAsync();
         }
@@ -81,8 +101,6 @@ public class CartService : ICartService
 
     public async Task MergeCartAsync(string sessionId)
     {
-        // Logic to move guest cart items to user cart upon login
-        // 1. Get Guest Cart
         var guestCart = await _context.Carts
             .Include(c => c.Items)
             .FirstOrDefaultAsync(c => c.SessionId == sessionId && c.Customer == null);
@@ -90,24 +108,20 @@ public class CartService : ICartService
         if (guestCart == null || !guestCart.Items.Any())
             return;
 
-        // 2. Get/Create User Cart
-        var userCart = await GetOrCreateCartAsync(null); // Will get user cart since we are logged in
+        var userCart = await GetOrCreateCartAsync(null);
 
-        // 3. Merge Items
         foreach (var item in guestCart.Items)
         {
             userCart.AddItem(item.ProductId, item.Quantity, item.UnitPrice);
         }
 
-        // 4. Delete guest cart or clear it
         _context.Carts.Remove(guestCart);
         await _context.SaveChangesAsync();
     }
 
     private async Task<Cart> GetOrCreateCartAsync(string? sessionId)
     {
-        var userIdStr = _httpContextAccessor.HttpContext?.User?.FindFirst("userId")?.Value; // Claim types may vary
-        // Fallback to standard claim types if custom one fails
+        var userIdStr = _httpContextAccessor.HttpContext?.User?.FindFirst("userId")?.Value;
         if (string.IsNullOrEmpty(userIdStr))
             userIdStr = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -116,29 +130,21 @@ public class CartService : ICartService
         {
             currentUserId = uid;
         }
-        else 
-        {
-             // Try getting from token manually if needed or assume guest
-        }
 
-        int companyId = _tenantService.GetCompanyId() ?? 2; // Default system company or error?
+        int? companyId = _tenantService.GetCompanyId();
+        
+        if (!companyId.HasValue)
+        {
+            // Eğer hala companyId yoksa, sepet işlemini gerçekleştiremeyiz.
+            // Çünkü sepet hangi dükkana/organizasyona ait bilinmeli.
+            throw new Application.Exceptions.BadRequestException("Şirket bilgisi eksik. Lütfen siteyi doğru kanal üzerinden ziyaret ettiğinizden emin olun.");
+        }
 
         Cart? cart = null;
 
-        // 1. Authenticated User
         if (currentUserId.HasValue)
         {
-            // Find Customer for this User
             var customer = await _context.Customers.FirstOrDefaultAsync(c => c.UserId == currentUserId.Value);
-            if (customer == null)
-            {
-                // Should we create a customer profile? Or just fail?
-                // For MVP, if no customer profile, maybe we can't have a cart? 
-                // Creating a simplified path: Assume Customer exists or logic handles it in other services.
-                // Or maybe Cart can have UserId? The Entity has CustomerId.
-                // Let's create a Customer if not exists? Or just fallback.
-            }
-
             if (customer != null)
             {
                 cart = await _context.Carts
@@ -147,7 +153,7 @@ public class CartService : ICartService
 
                 if (cart == null)
                 {
-                    cart = Cart.Create(companyId, customer.Id, null);
+                    cart = Cart.Create(companyId.Value, customer.Id, null);
                     _context.Carts.Add(cart);
                     await _context.SaveChangesAsync();
                 }
@@ -155,18 +161,15 @@ public class CartService : ICartService
             }
         }
 
-        // 2. Guest User (Session)
-        // Ensure sessionId provided
         if (string.IsNullOrEmpty(sessionId))
         {
-            // Try to look for session header if not passed explicitly?
             if (_httpContextAccessor.HttpContext?.Request.Headers.TryGetValue("X-Session-ID", out var headerSessionId) == true)
             {
                 sessionId = headerSessionId.ToString();
             }
             
-            // Generate if strictly missing?
-            if (string.IsNullOrEmpty(sessionId)) throw new System.Exception("Session ID required for guest cart");
+            if (string.IsNullOrEmpty(sessionId)) 
+                throw new Application.Exceptions.BadRequestException("Misafir sepeti için Session ID gereklidir.");
         }
 
         cart = await _context.Carts
@@ -175,7 +178,7 @@ public class CartService : ICartService
 
         if (cart == null)
         {
-            cart = Cart.Create(companyId, null, sessionId);
+            cart = Cart.Create(companyId.Value, null, sessionId);
             _context.Carts.Add(cart);
             await _context.SaveChangesAsync();
         }

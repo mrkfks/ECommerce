@@ -77,6 +77,37 @@ namespace ECommerce.Infrastructure.Services
             return customers.Select(MapToDto).ToList();
         }
 
+        public async Task<ECommerce.Application.Responses.PagedResult<CustomerDto>> GetPagedAsync(int pageNumber, int pageSize)
+        {
+            var companyId = _tenantService.GetCompanyId();
+            var isSuperAdmin = _tenantService.IsSuperAdmin();
+
+            var query = _context.Customers.AsNoTracking();
+
+            if (!isSuperAdmin && companyId.HasValue)
+            {
+                query = query.Where(c => c.CompanyId == companyId.Value);
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var customers = await query
+                .OrderBy(c => c.FirstName)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var dtos = customers.Select(MapToDto).ToList();
+
+            return new ECommerce.Application.Responses.PagedResult<CustomerDto>
+            {
+                Items = dtos,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+        }
+
         public async Task<IReadOnlyList<AddressDto>> GetAddressesAsync(int customerId)
         {
             var addresses = await _context.Set<Address>()

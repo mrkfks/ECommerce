@@ -2,6 +2,8 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
+
+
 # Proje dosyalarını (.csproj) klasör yapılarıyla birlikte kopyalıyoruz
 # NuGet restore işleminin cache mekanizmasını kullanabilmesi için bu adım önemlidir.
 COPY ["ECommerce.slnx", "./"]
@@ -19,7 +21,7 @@ COPY . .
 
 # Dashboard klasörüne geç ve projeyi yayınla
 WORKDIR "/src/AdminPanel/Dashboard.Web"
-RUN dotnet publish "Dashboard.Web.csproj" -c Release -o /app/publish --no-restore
+RUN dotnet publish "Dashboard.Web.csproj" -c Release -o /app/publish
 
 # Stage 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime

@@ -10,13 +10,13 @@ namespace Dashboard.Web.Controllers
     [Authorize(Roles = "SuperAdmin")]
     public class CategoryController : Controller
     {
-        private readonly IApiService<CategoryDto> _categoryService;
+        private readonly IApiService<CategoryViewModel> _categoryService;
         private readonly IApiService<BrandDto> _brandService;
         private readonly IApiService<ModelDto> _modelService;
         private readonly IApiService<GlobalAttributeDto> _globalAttributeService;
 
         public CategoryController(
-            IApiService<CategoryDto> categoryService,
+            IApiService<CategoryViewModel> categoryService,
             IApiService<BrandDto> brandService,
             IApiService<ModelDto> modelService,
             IApiService<GlobalAttributeDto> globalAttributeService)
@@ -30,19 +30,20 @@ namespace Dashboard.Web.Controllers
         // Listeleme
         public async Task<IActionResult> Index()
         {
-            var categories = await _categoryService.GetAllAsync();
-            return View(categories);
+            var response = await _categoryService.GetAllAsync();
+            if (response == null || response.Data == null)
+                return View(new List<CategoryViewModel>());
+            return View(response.Data);
         }
 
         // Detay
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            var category = await _categoryService.GetByIdAsync(id);
-            if (category == null)
+            var response = await _categoryService.GetByIdAsync(id);
+            if (response == null || response.Data == null)
                 return NotFound();
-
-            return View(category);
+            return View(response.Data);
         }
 
         // Yeni kategori ekleme - GET
@@ -51,9 +52,19 @@ namespace Dashboard.Web.Controllers
         {
             var viewModel = new CategoryViewModel
             {
-                AvailableParentCategories = await _categoryService.GetAllAsync()
+                AvailableParentCategories = (await _categoryService.GetAllAsync()).Select(x => new CategoryDto {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Description = x.Description,
+                    ImageUrl = x.ImageUrl,
+                    IsActive = x.IsActive,
+                    ProductCount = x.ProductCount,
+                    ParentCategoryId = x.ParentCategoryId,
+                    DisplayOrder = x.DisplayOrder,
+                    CreatedAt = x.CreatedAt,
+                    UpdatedAt = x.UpdatedAt
+                }).ToList()
             };
-            
             return View(viewModel);
         }
 

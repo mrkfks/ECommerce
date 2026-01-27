@@ -1,7 +1,14 @@
-﻿@model Dashboard.Web.Models.DashboardKpiViewModel
+﻿@model Dashboard.Web.Models.DashboardStatsVm
 @{
     ViewData["Title"] = "Dashboard - Genel Özet";
 }
+
+<div id="dashboard-spinner" class="text-center my-4">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Yükleniyor...</span>
+    </div>
+</div>
+<div id="dashboard-content" style="display:none;">
 
 @if (TempData["LoginSuccess"] != null)
 {
@@ -11,6 +18,56 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
+<!-- Dashboard KPI Kutucukları -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card kpi-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="kpi-label text-muted">Toplam Satış</span>
+                </div>
+                <div class="kpi-value h3 fw-bold mb-1">@Model.TotalSales</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card kpi-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="kpi-label text-muted">Aktif Üye</span>
+                </div>
+                <div class="kpi-value h3 fw-bold mb-1">@Model.ActiveUsers</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card kpi-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="kpi-label text-muted">Toplam Ürün</span>
+                </div>
+                <div class="kpi-value h3 fw-bold mb-1">@Model.TotalProducts</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card kpi-card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="kpi-label text-muted">Toplam Sipariş</span>
+                </div>
+                <div class="kpi-value h3 fw-bold mb-1">@Model.TotalOrders</div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('dashboard-spinner').style.display = 'none';
+        document.getElementById('dashboard-content').style.display = '';
+    });
+</script>
 
 <!-- Hızlı Aksiyon Butonları -->
 <div class="card mb-4 border-0 shadow-sm quick-actions-card">
