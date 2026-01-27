@@ -1,36 +1,24 @@
-using ECommerce.Application.DTOs.Common;
+namespace ECommerce.Application.DTOs.Banner;
 
-namespace ECommerce.Application.DTOs.Banner
-{
-    public class BannerDto
-    {
-        public int Id { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string? Description { get; set; }
-        public string ImageUrl { get; set; } = string.Empty;
-        public string? Link { get; set; }
-        public int Order { get; set; }
-        public bool IsActive { get; set; }
-        public int CompanyId { get; set; }
-        public DateTime CreatedAt { get; set; }
-    }
+public record BannerDto(
+    int Id,
+    string Title,
+    string? Description,
+    string ImageUrl,
+    string? Link,
+    int Order,
+    bool IsActive,
+    int CompanyId,
+    DateTime CreatedAt
+);
 
-    public class CreateBannerDto
-    {
-        public string Title { get; set; } = string.Empty;
-        public string? Description { get; set; }
-        public string ImageUrl { get; set; } = string.Empty;
-        public string? Link { get; set; }
-        public int Order { get; set; }
-    }
-
-    public class UpdateBannerDto
-    {
-        public string Title { get; set; } = string.Empty;
-        public string? Description { get; set; }
-        public string ImageUrl { get; set; } = string.Empty;
-        public string? Link { get; set; }
-        public int Order { get; set; }
-        public bool IsActive { get; set; }
-    }
-}
+public record BannerFormDto(
+    int? Id,
+    string Title,
+    string ImageUrl,
+    string? Description = null,
+    string? Link = null,
+    int Order = 0,
+    bool IsActive = true,
+    int? CompanyId = null
+);

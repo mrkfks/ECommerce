@@ -1,33 +1,27 @@
-using System.Collections.Generic;
-
 namespace ECommerce.Application.DTOs;
 
-public class CartDto
-{
-    public int Id { get; set; }
-    public decimal TotalAmount { get; set; }
-    public List<CartItemDto> Items { get; set; } = new();
-}
+public record CartDto(
+    int Id,
+    decimal TotalAmount,
+    List<CartItemDto> Items
+);
 
-public class CartItemDto
-{
-    public int Id { get; set; }
-    public int ProductId { get; set; }
-    public string ProductName { get; set; } = string.Empty;
-    public string ProductImage { get; set; } = string.Empty;
-    public int Quantity { get; set; }
-    public decimal UnitPrice { get; set; }
-    public decimal TotalPrice { get; set; }
-    public int CompanyId { get; set; }
-}
+public record CartItemDto(
+    int Id,
+    int ProductId,
+    string ProductName,
+    string ProductImage,
+    int Quantity,
+    decimal UnitPrice,
+    decimal TotalPrice,
+    int CompanyId
+);
 
-public class AddToCartDto
-{
-    public int ProductId { get; set; }
-    public int Quantity { get; set; }
-}
+public record AddToCartDto(
+    int ProductId,
+    int Quantity
+);
 
-public class UpdateCartItemDto
-{
-    public int Quantity { get; set; }
-}
+public record UpdateCartItemDto(
+    int Quantity
+);

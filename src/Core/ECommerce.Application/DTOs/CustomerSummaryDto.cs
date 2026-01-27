@@ -1,14 +1,13 @@
-namespace ECommerce.Application.DTOs
-{
-    public class CustomerSummaryDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string PhoneNumber { get; set; } = string.Empty;
-        public int TotalOrders { get; set; }
-        public decimal TotalSpent { get; set; }
-        public int OrderCount { get; set; }
-        public int ReviewCount { get; set; }
-    }
-}
+namespace ECommerce.Application.DTOs;
+
+public record CustomerSummaryDto(
+    int Id,
+    string Name,
+    string Email,
+    string PhoneNumber,
+    int OrderCount = 0,
+    int ReviewCount = 0,
+    int TotalOrders = 0,
+    decimal TotalSpent = 0,
+    string? ImageUrl = null
+);

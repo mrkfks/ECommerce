@@ -1,21 +1,18 @@
 using ECommerce.Domain.Enums;
-using System.Collections.Generic;
 
-namespace ECommerce.Application.DTOs
-{
-    public class OrderDto
-    {
-        public int Id { get; set; }
-        public int CustomerId { get; set; }
-        public string CustomerName { get; set; } = string.Empty;
-        public int AddressId { get; set; }
-        public int CompanyId { get; set; }
-        public string CompanyName { get; set; } = string.Empty;
-        public DateTime OrderDate { get; set; }
-        public decimal TotalAmount { get; set; }
-        public OrderStatus Status { get; set; }
-        public string StatusText { get; set; } = string.Empty;
-        public AddressDto? Address { get; set; }
-        public List<OrderItemDto> Items { get; set; } = new();
-    }
-}
+namespace ECommerce.Application.DTOs;
+
+public record OrderDto(
+    int Id,
+    int CustomerId,
+    string CustomerName,
+    int AddressId,
+    int CompanyId,
+    string CompanyName,
+    DateTime OrderDate,
+    decimal TotalAmount,
+    OrderStatus Status,
+    string StatusText,
+    AddressDto? Address = null,
+    List<OrderItemDto>? Items = null
+);

@@ -1,8 +1,3 @@
-namespace ECommerce.Application.DTOs
-{
-    public class RoleDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-    }
-}
+namespace ECommerce.Application.DTOs;
+
+public record RoleDto(int Id, string Name);

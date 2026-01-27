@@ -27,7 +27,7 @@ namespace ECommerce.Infrastructure.Services
             _searchService = searchService;
         }
 
-        public async Task<ProductDto> CreateAsync(ProductCreateDto dto)
+        public async Task<ProductDto> CreateAsync(ProductFormDto dto)
         {
             var companyId = _tenantService.GetCompanyId();
             int effectiveCompanyId = dto.CompanyId;
@@ -206,9 +206,10 @@ namespace ECommerce.Infrastructure.Services
             return products.Select(MapToDto).ToList();
         }
 
-        public async Task UpdateAsync(ProductUpdateDto dto)
+        public async Task UpdateAsync(ProductFormDto dto)
         {
-            var product = await _context.Products.FindAsync(dto.Id);
+            if (!dto.Id.HasValue) throw new Exception("Product Id is required for update");
+            var product = await _context.Products.FindAsync(dto.Id.Value);
             if (product == null) throw new Exception("Product not found");
 
             product.Update(
@@ -230,7 +231,7 @@ namespace ECommerce.Infrastructure.Services
                 .Include(p => p.Brand)
                 .Include(p => p.Model)
                 .Include(p => p.Images)
-                .FirstOrDefaultAsync(p => p.Id == dto.Id);
+                .FirstOrDefaultAsync(p => p.Id == dto.Id.Value);
             if (updatedProduct != null)
             {
                 var productDto = MapToDto(updatedProduct);

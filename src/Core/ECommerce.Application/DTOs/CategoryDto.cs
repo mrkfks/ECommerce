@@ -1,16 +1,14 @@
-namespace ECommerce.Application.DTOs
-{
-    public class CategoryDto
-    {
-        public int Id { get; set; }
-        public required string Name { get; set; }
-        public required string Description { get; set; }
-        public string? ImageUrl { get; set; }
-        public bool IsActive { get; set; } = true;
-        public int ProductCount { get; set; }
-        public int? ParentCategoryId { get; set; }
-        public int DisplayOrder { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-    }
-}
+namespace ECommerce.Application.DTOs;
+
+public record CategoryDto(
+    int Id,
+    string Name,
+    string Description,
+    string? ImageUrl = null,
+    bool IsActive = true,
+    int ProductCount = 0,
+    int? ParentCategoryId = null,
+    int DisplayOrder = 0,
+    DateTime? CreatedAt = null,
+    DateTime? UpdatedAt = null
+);

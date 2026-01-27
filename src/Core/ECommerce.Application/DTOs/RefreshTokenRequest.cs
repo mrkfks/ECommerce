@@ -1,6 +1,6 @@
 namespace ECommerce.Application.DTOs;
 
-public class RefreshTokenRequest
-{
-    public string RefreshToken { get; set; } = string.Empty;
-}
+public record RefreshTokenRequest(
+    string Token,
+    string RefreshToken
+);

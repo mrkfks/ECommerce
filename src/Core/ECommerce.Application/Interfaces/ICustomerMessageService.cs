@@ -1,19 +1,11 @@
-using ECommerce.Application.DTOs;
-using ECommerce.Application.Responses;
+using ECommerce.Domain.Entities;
+using ECommerce.Domain.Interfaces;
 
 namespace ECommerce.Application.Interfaces
 {
-    public interface ICustomerMessageService
+    public interface ICustomerMessageService : IGenericRepository<CustomerMessage>
     {
-        Task<IReadOnlyList<CustomerMessageDto>> GetAllAsync();
-        Task<PagedResult<CustomerMessageDto>> GetPagedAsync(int pageNumber, int pageSize);
-        Task<IReadOnlyList<CustomerMessageDto>> GetUnreadAsync();
-        Task<IReadOnlyList<CustomerMessageDto>> GetPendingAsync();
-        Task<CustomerMessageSummaryDto> GetSummaryAsync();
-        Task<CustomerMessageDto?> GetByIdAsync(int id);
-        Task<int> CreateAsync(CustomerMessageCreateDto dto);
+        Task<List<CustomerMessage>> GetUnreadMessagesAsync(int companyId);
         Task MarkAsReadAsync(int id);
-        Task SendReplyAsync(int id, CustomerMessageReplyDto dto);
-        Task DeleteAsync(int id);
     }
 }

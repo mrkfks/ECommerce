@@ -30,7 +30,7 @@ public class ProductController : ControllerBase
     [Authorize(Roles = "CompanyAdmin,User,SuperAdmin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Create(ProductCreateDto dto)
+    public async Task<IActionResult> Create(ProductFormDto dto)
     {
         try
         {
@@ -112,7 +112,7 @@ public class ProductController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Update(int id, ProductUpdateDto dto)
+    public async Task<IActionResult> Update(int id, ProductFormDto dto)
     {
         if (id != dto.Id) 
             return BadRequest(new { message = "Id mismatch" });

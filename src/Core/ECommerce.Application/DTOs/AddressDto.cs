@@ -1,18 +1,14 @@
-namespace ECommerce.Application.DTOs
-{
-    public class AddressDto
-    {
-        public int Id { get; set; }
-        public string Street { get; set; } = string.Empty;
-        public string City { get; set; } = string.Empty;
-        public string State { get; set; } = string.Empty;
-        public string Country { get; set; } = string.Empty;
-        public string PostalCode { get; set; } = string.Empty;
+namespace ECommerce.Application.DTOs;
 
-        public int CustomerId { get; set; }
-        public string CustomerName { get; set; } = string.Empty;
-
-        public int? CompanyId { get; set; }
-        public string CompanyName { get; set; } = string.Empty;
-    }
-}
+public record AddressDto(
+    int Id,
+    int CustomerId,
+    string? CustomerName,
+    string Street,
+    string City,
+    string State,
+    string PostalCode,
+    string Country,
+    int? CompanyId = null,
+    string? CompanyName = null
+);

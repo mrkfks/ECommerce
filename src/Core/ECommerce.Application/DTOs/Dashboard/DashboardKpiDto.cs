@@ -1,212 +1,177 @@
 namespace ECommerce.Application.DTOs.Dashboard;
 
+public record DailySalesDto(
+    DateTime Date,
+    decimal TotalAmount
+);
+
 /// <summary>
 /// Dashboard KPI ana DTO - tüm metrikleri içerir
 /// </summary>
-public class DashboardKpiDto
-{
-    // Satış KPI'ları
-    public SalesKpiDto Sales { get; set; } = new();
-
-    // Sipariş Metrikleri
-    public OrderKpiDto Orders { get; set; } = new();
-
-    // Müşteri Metrikleri
-    public CustomerKpiDto Customers { get; set; } = new();
-
-    // En Çok Satan Ürünler
-    public List<TopProductDto> TopProducts { get; set; } = new();
-
-    // Kritik Stok Ürünleri
-    public List<LowStockProductDto> LowStockProducts { get; set; } = new();
-
-    // Gelir Trendi (Son 30 Gün)
-    public List<RevenueTrendDto> RevenueTrend { get; set; } = new();
-
-    // Müşteri Segmentasyonu
-    public CustomerSegmentationDto CustomerSegmentation { get; set; } = new();
-
-    // Kategori bazlı satış dağılımı
-    public List<CategorySalesDto> CategorySales { get; set; } = new();
-
-    // Kategori bazlı stok dağılımı
-    public List<CategoryStockDto> CategoryStock { get; set; } = new();
-
-    // Coğrafi dağılım
-    public List<GeographicDistributionDto> GeographicDistribution { get; set; } = new();
-
-    // Ortalama sepet tutarı trendi
-    public List<AverageCartTrendDto> AverageCartTrend { get; set; } = new();
-
-    // Sipariş durumu zaman bazlı dağılımı
-    public List<OrderStatusDistributionDto> OrderStatusDistribution { get; set; } = new();
-}
+public record DashboardKpiDto(
+    SalesKpiDto Sales,
+    OrderKpiDto Orders,
+    CustomerKpiDto Customers,
+    List<TopProductDto> TopProducts,
+    List<LowStockProductDto> LowStockProducts,
+    List<RevenueTrendDto> RevenueTrend,
+    CustomerSegmentationDto CustomerSegmentation,
+    List<CategorySalesDto> CategorySales,
+    List<CategoryStockDto> CategoryStock,
+    List<GeographicDistributionDto> GeographicDistribution,
+    List<AverageCartTrendDto> AverageCartTrend,
+    List<OrderStatusDistributionDto> OrderStatusDistribution
+);
 
 /// <summary>
 /// Satış KPI'ları
 /// </summary>
-public class SalesKpiDto
-{
-    public decimal DailySales { get; set; }
-    public decimal DailySalesChange { get; set; } // Yüzde değişim
-    public decimal YesterdaySales { get; set; }
-
-    public decimal WeeklySales { get; set; }
-    public decimal WeeklySalesChange { get; set; }
-    public decimal LastWeekSales { get; set; }
-
-    public decimal MonthlySales { get; set; }
-    public decimal MonthlySalesChange { get; set; }
-    public decimal MonthlyTarget { get; set; }
-
-    public decimal AverageOrderValue { get; set; }
-    public decimal AverageOrderValueChange { get; set; }
-}
+public record SalesKpiDto(
+    decimal DailySales = 0,
+    decimal DailySalesChange = 0,
+    decimal YesterdaySales = 0,
+    decimal WeeklySales = 0,
+    decimal WeeklySalesChange = 0,
+    decimal LastWeekSales = 0,
+    decimal MonthlySales = 0,
+    decimal MonthlySalesChange = 0,
+    decimal MonthlyTarget = 0,
+    decimal AverageOrderValue = 0,
+    decimal AverageOrderValueChange = 0
+);
 
 /// <summary>
 /// Sipariş KPI'ları
 /// </summary>
-public class OrderKpiDto
-{
-    public int TotalOrders { get; set; }
-    public int DailyOrders { get; set; }
-
-    // Durum Dağılımı
-    public int PendingCount { get; set; }
-    public int ShippedCount { get; set; }
-    public int DeliveredCount { get; set; }
-    public int ReturnedCount { get; set; }
-    public int CancelledCount { get; set; }
-
-    // Yüzde Dağılımı
-    public decimal PendingPercent { get; set; }
-    public decimal ShippedPercent { get; set; }
-    public decimal DeliveredPercent { get; set; }
-    public decimal ReturnedPercent { get; set; }
-    public decimal CancelledPercent { get; set; }
-}
+public record OrderKpiDto(
+    int TotalOrders = 0,
+    int DailyOrders = 0,
+    int PendingCount = 0,
+    int ShippedCount = 0,
+    int DeliveredCount = 0,
+    int ReturnedCount = 0,
+    int CancelledCount = 0,
+    decimal PendingPercent = 0,
+    decimal ShippedPercent = 0,
+    decimal DeliveredPercent = 0,
+    decimal ReturnedPercent = 0,
+    decimal CancelledPercent = 0
+);
 
 /// <summary>
 /// Müşteri KPI'ları
 /// </summary>
-public class CustomerKpiDto
-{
-    public int TotalCustomers { get; set; }
-    public int DailyNewCustomers { get; set; }
-    public int MonthlyNewCustomers { get; set; }
-    public decimal CustomerGrowthRate { get; set; } // Aylık büyüme oranı
-}
+public record CustomerKpiDto(
+    int TotalCustomers = 0,
+    int DailyNewCustomers = 0,
+    int MonthlyNewCustomers = 0,
+    decimal CustomerGrowthRate = 0
+);
 
 /// <summary>
 /// En Çok Satan Ürün
 /// </summary>
-public class TopProductDto
-{
-    public int ProductId { get; set; }
-    public string ProductName { get; set; } = string.Empty;
-    public string? ImageUrl { get; set; }
-    public int QuantitySold { get; set; }
-    public decimal Revenue { get; set; }
-    public string CategoryName { get; set; } = string.Empty;
-}
+public record TopProductDto(
+    int ProductId,
+    string ProductName,
+    string? ImageUrl,
+    int QuantitySold,
+    decimal Revenue,
+    string CategoryName
+);
 
 /// <summary>
 /// Kritik Stok Ürünü
 /// </summary>
-public class LowStockProductDto
+public record LowStockProductDto(
+    int ProductId,
+    string ProductName,
+    string? ImageUrl,
+    int CurrentStock,
+    decimal DailyAverageSales,
+    int DaysUntilOutOfStock,
+    string CategoryName
+)
 {
-    public int ProductId { get; set; }
-    public string ProductName { get; set; } = string.Empty;
-    public string? ImageUrl { get; set; }
-    public int CurrentStock { get; set; }
-    public decimal DailyAverageSales { get; set; }
-    public int DaysUntilOutOfStock { get; set; }
-    public string CategoryName { get; set; } = string.Empty;
     public bool IsCritical => CurrentStock < 5;
 }
 
 /// <summary>
 /// Gelir Trend Verisi
 /// </summary>
-public class RevenueTrendDto
-{
-    public DateTime Date { get; set; }
-    public decimal Revenue { get; set; }
-    public int OrderCount { get; set; }
-}
+public record RevenueTrendDto(
+    DateTime Date,
+    decimal Revenue,
+    int OrderCount
+);
 
 /// <summary>
 /// Müşteri Segmentasyonu
 /// </summary>
-public class CustomerSegmentationDto
+public record CustomerSegmentationDto(
+    int NewCustomers = 0,
+    int ReturningCustomers = 0,
+    decimal NewCustomersRevenue = 0,
+    decimal ReturningCustomersRevenue = 0
+)
 {
-    public int NewCustomers { get; set; } // İlk kez alışveriş yapanlar
-    public int ReturningCustomers { get; set; } // Tekrar alışveriş yapanlar
-    public decimal NewCustomersRevenue { get; set; }
-    public decimal ReturningCustomersRevenue { get; set; }
-
+    private int TotalCustomers => NewCustomers + ReturningCustomers;
     public decimal NewCustomerPercent => TotalCustomers > 0 ? (decimal)NewCustomers / TotalCustomers * 100 : 0;
     public decimal ReturningCustomerPercent => TotalCustomers > 0 ? (decimal)ReturningCustomers / TotalCustomers * 100 : 0;
-    private int TotalCustomers => NewCustomers + ReturningCustomers;
 }
 
 /// <summary>
 /// Kategori bazlı satış dağılımı (Pie Chart için)
 /// </summary>
-public class CategorySalesDto
-{
-    public int CategoryId { get; set; }
-    public string CategoryName { get; set; } = string.Empty;
-    public decimal TotalSales { get; set; }
-    public int TotalQuantity { get; set; }
-    public decimal Percentage { get; set; }
-    public string Color { get; set; } = string.Empty;
-}
+public record CategorySalesDto(
+    int CategoryId,
+    string CategoryName,
+    decimal TotalSales,
+    int TotalQuantity,
+    decimal Percentage,
+    string Color
+);
 
 /// <summary>
 /// Kategori bazlı stok dağılımı (Pie Chart için)
 /// </summary>
-public class CategoryStockDto
-{
-    public int CategoryId { get; set; }
-    public string CategoryName { get; set; } = string.Empty;
-    public int StockQuantity { get; set; }
-    public decimal Percentage { get; set; }
-    public string Color { get; set; } = string.Empty;
-}
+public record CategoryStockDto(
+    int CategoryId,
+    string CategoryName,
+    int StockQuantity,
+    decimal Percentage,
+    string Color
+);
 
 /// <summary>
 /// Coğrafi dağılım (Heatmap için)
 /// </summary>
-public class GeographicDistributionDto
-{
-    public string City { get; set; } = string.Empty;
-    public string State { get; set; } = string.Empty;
-    public int OrderCount { get; set; }
-    public decimal TotalRevenue { get; set; }
-    public decimal Percentage { get; set; }
-    public string Intensity { get; set; } = "low"; // low, medium, high, critical
-}
+public record GeographicDistributionDto(
+    string City,
+    string State,
+    int OrderCount,
+    decimal TotalRevenue,
+    decimal Percentage,
+    string Intensity = "low"
+);
 
 /// <summary>
 /// Ortalama sepet tutarı trendi (Line Chart için)
 /// </summary>
-public class AverageCartTrendDto
-{
-    public DateTime Date { get; set; }
-    public decimal AverageCartValue { get; set; }
-    public int OrderCount { get; set; }
-}
+public record AverageCartTrendDto(
+    DateTime Date,
+    decimal AverageCartValue,
+    int OrderCount
+);
 
 /// <summary>
 /// Sipariş durumu dağılımı (Stacked Bar Chart için)
 /// </summary>
-public class OrderStatusDistributionDto
-{
-    public DateTime Date { get; set; }
-    public int PendingCount { get; set; }
-    public int ShippedCount { get; set; }
-    public int DeliveredCount { get; set; }
-    public int ReturnedCount { get; set; }
-    public int CancelledCount { get; set; }
-}
+public record OrderStatusDistributionDto(
+    DateTime Date,
+    int PendingCount,
+    int ShippedCount,
+    int DeliveredCount,
+    int ReturnedCount,
+    int CancelledCount
+);

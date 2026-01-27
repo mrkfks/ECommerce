@@ -23,10 +23,10 @@ namespace ECommerce.Application.Interfaces
         Task<IReadOnlyList<ProductDto>> GetByCompanyAsync(int companyId);
 
         // Yeni ürün oluştur
-        Task<ProductDto> CreateAsync(ProductCreateDto dto);
+        Task<ProductDto> CreateAsync(ProductFormDto dto);
 
         // Mevcut ürünü güncelle
-        Task UpdateAsync(ProductUpdateDto dto);
+        Task UpdateAsync(ProductFormDto dto);
 
         // Ürünü sil
         Task DeleteAsync(int id);

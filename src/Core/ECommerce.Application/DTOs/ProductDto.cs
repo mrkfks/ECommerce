@@ -1,29 +1,24 @@
-using System.Collections.Generic;
+namespace ECommerce.Application.DTOs;
 
-namespace ECommerce.Application.DTOs
-{
-    public class ProductDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public decimal Price { get; set; }
-        public int StockQuantity { get; set; }
-        public int CategoryId { get; set; }
-        public string CategoryName { get; set; } = string.Empty;
-        public int BrandId { get; set; }
-        public string BrandName { get; set; } = string.Empty;
-        public int? ModelId { get; set; }
-        public string? ModelName { get; set; }
-        public int CompanyId { get; set; }
-        public string CompanyName { get; set; } = string.Empty;
-        public string? ImageUrl { get; set; }
-        public bool IsActive { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-        public int ReviewCount { get; set; }
-        public double AverageRating { get; set; }
-        public List<ProductImageDto> Images { get; set; } = new();
-    }
-}
-
+public record ProductDto(
+    int Id,
+    string Name,
+    string Description,
+    decimal Price,
+    int StockQuantity,
+    int CategoryId,
+    string CategoryName,
+    int BrandId,
+    string BrandName,
+    int CompanyId,
+    string CompanyName,
+    int? ModelId = null,
+    string? ModelName = null,
+    string? ImageUrl = null,
+    bool IsActive = true,
+    DateTime? CreatedAt = null,
+    DateTime? UpdatedAt = null,
+    int ReviewCount = 0,
+    double AverageRating = 0,
+    List<ProductImageDto>? Images = null
+);

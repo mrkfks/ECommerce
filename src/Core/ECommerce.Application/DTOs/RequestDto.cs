@@ -1,35 +1,21 @@
-namespace ECommerce.Application.DTOs
-{
-    public class RequestDto
-    {
-        public int Id { get; set; }
-        public int CompanyId { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public int Status { get; set; } // 0: Pending, 1: Approved, 2: Rejected, 3: InProgress, 4: Completed
-        public string? Feedback { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-    }
+namespace ECommerce.Application.DTOs;
 
-    public class RequestCreateDto
-    {
-        public int CompanyId { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-    }
+public record RequestDto(
+    int Id,
+    int CompanyId,
+    string Title,
+    string Description,
+    int Status,
+    string? Feedback = null,
+    DateTime? CreatedAt = null,
+    DateTime? UpdatedAt = null
+);
 
-    public class RequestUpdateDto
-    {
-        public int Id { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public int Status { get; set; }
-        public string? Feedback { get; set; }
-    }
-
-    public class RequestFeedbackDto
-    {
-        public string? Feedback { get; set; }
-    }
-}
+public record RequestFormDto(
+    int? Id,
+    int CompanyId,
+    string Title,
+    string Description,
+    int Status = 0,
+    string? Feedback = null
+);

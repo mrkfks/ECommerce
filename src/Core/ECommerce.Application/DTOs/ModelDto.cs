@@ -1,34 +1,22 @@
-namespace ECommerce.Application.DTOs
-{
-    public class ModelDto
-    {
-        public int Id { get; set; }
-        public int BrandId { get; set; }
-        public string? BrandName { get; set; }
-        public required string Name { get; set; }
-        public required string Description { get; set; }
-        public string? ImageUrl { get; set; }
-        public bool IsActive { get; set; } = true;
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-    }
+namespace ECommerce.Application.DTOs;
 
-    public class ModelCreateDto
-    {
-        public int BrandId { get; set; }
-        public required string Name { get; set; }
-        public required string Description { get; set; }
-        public string? ImageUrl { get; set; }
-        public bool IsActive { get; set; } = true;
-    }
+public record ModelDto(
+    int Id,
+    int BrandId,
+    string? BrandName,
+    string Name,
+    string Description,
+    string? ImageUrl = null,
+    bool IsActive = true,
+    DateTime? CreatedAt = null,
+    DateTime? UpdatedAt = null
+);
 
-    public class ModelUpdateDto
-    {
-        public int Id { get; set; }
-        public int BrandId { get; set; }
-        public required string Name { get; set; }
-        public required string Description { get; set; }
-        public string? ImageUrl { get; set; }
-        public bool IsActive { get; set; }
-    }
-}
+public record ModelFormDto(
+    int? Id,
+    int BrandId,
+    string Name,
+    string Description,
+    string? ImageUrl = null,
+    bool IsActive = true
+);

@@ -1,10 +1,9 @@
-namespace ECommerce.Application.DTOs
-{
-    public class UserProfileUpdateDto
-    {
-        public string Username { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string FirstName { get; set; } = string.Empty;
-        public string LastName { get; set; } = string.Empty;
-    }
-}
+namespace ECommerce.Application.DTOs;
+
+public record UserProfileUpdateDto(
+    string FirstName,
+    string LastName,
+    string? Email = null,
+    string? PhoneNumber = null,
+    string? ProfilePictureUrl = null
+);

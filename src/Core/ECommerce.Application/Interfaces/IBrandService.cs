@@ -6,8 +6,8 @@ namespace ECommerce.Application.Interfaces
     {
         Task<IReadOnlyList<BrandDto>> GetAllAsync();
         Task<BrandDto?> GetByIdAsync(int id);
-        Task<BrandDto> CreateAsync(BrandCreateDto dto);
-        Task UpdateAsync(BrandUpdateDto dto);
+        Task<BrandDto> CreateAsync(BrandFormDto dto);
+        Task UpdateAsync(BrandFormDto dto);
         Task UpdateImageAsync(int id, string imageUrl);
         Task DeleteAsync(int id);
     }

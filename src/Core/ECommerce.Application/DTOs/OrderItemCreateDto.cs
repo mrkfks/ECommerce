@@ -1,8 +1,6 @@
-namespace ECommerce.Application.DTOs
-{
-    public class OrderItemCreateDto
-    {
-        public int ProductId { get; set; }
-        public int Quantity { get; set; }
-    }
-}
+namespace ECommerce.Application.DTOs;
+
+public record OrderItemCreateDto(
+    int ProductId,
+    int Quantity
+);

@@ -46,7 +46,7 @@ public class BrandService : IBrandService
         return brand == null ? null : _mapper.Map<BrandDto>(brand);
     }
 
-    public async Task<BrandDto> CreateAsync(BrandCreateDto dto)
+    public async Task<BrandDto> CreateAsync(BrandFormDto dto)
     {
         var currentCompanyId = _tenantService.GetCompanyId();
         var isSuperAdmin = _tenantService.IsSuperAdmin();
@@ -66,9 +66,10 @@ public class BrandService : IBrandService
         return _mapper.Map<BrandDto>(brand);
     }
 
-    public async Task UpdateAsync(BrandUpdateDto dto)
+    public async Task UpdateAsync(BrandFormDto dto)
     {
-        var brand = await _context.Brands.FirstOrDefaultAsync(b => b.Id == dto.Id);
+        if (!dto.Id.HasValue) throw new BusinessException("Brand ID is required for update.");
+        var brand = await _context.Brands.FirstOrDefaultAsync(b => b.Id == dto.Id.Value);
 
         if (brand == null)
         {
