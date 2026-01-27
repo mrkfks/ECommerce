@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ECommerce.Application.DTOs;
 using Dashboard.Web.Models;
 using Dashboard.Web.Services;
+using ProductBulkUpdateDto = Dashboard.Web.Models.ProductBulkUpdateDto;
+
 
 namespace Dashboard.Web.Controllers
 {
@@ -11,8 +12,8 @@ namespace Dashboard.Web.Controllers
     {
         private readonly IApiService<ProductViewModel> _productService;
         private readonly IApiService<CategoryViewModel> _categoryService;
-        private readonly IApiService<BrandDto> _brandService;
-        private readonly IApiService<CompanyDto> _companyService;
+        private readonly IApiService<Dashboard.Web.Models.BrandDto> _brandService;
+        private readonly IApiService<Dashboard.Web.Models.CompanyDto> _companyService;
 
         public ProductController(
             IApiService<ProductViewModel> productService,

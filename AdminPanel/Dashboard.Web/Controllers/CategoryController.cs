@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ECommerce.Application.DTOs;
 using Dashboard.Web.Services;
 using Dashboard.Web.Models;
 using System.Text.Json;
+using ModelDto = Dashboard.Web.Models.ModelDto;
+using GlobalAttributeDto = Dashboard.Web.Models.GlobalAttributeDto;
+using ModelCreateDto = Dashboard.Web.Models.ModelCreateDto;
+using GlobalAttributeCreateDto = Dashboard.Web.Models.GlobalAttributeCreateDto;
 
 namespace Dashboard.Web.Controllers
 {

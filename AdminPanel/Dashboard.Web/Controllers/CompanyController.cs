@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Dashboard.Web.Services;
 using Dashboard.Web.Models;
-using ECommerce.Application.DTOs;
+using CompanyDto = Dashboard.Web.Models.CompanyDto;
 
 namespace Dashboard.Web.Controllers
 {
