@@ -223,13 +223,13 @@ public class BrandController : Controller
 
     private async Task LoadCompaniesAsync()
     {
-        var companies = await _companyService.GetAllAsync();
-        ViewBag.Companies = companies?.Select(c => new CompanyViewModel 
-        { 
-            Id = c.Id, 
-            Name = c.Name, 
+        var companiesResponse = await _companyService.GetAllAsync();
+        ViewBag.Companies = companiesResponse?.Data?.Select(c => new CompanyViewModel
+        {
+            Id = c.Id,
+            Name = c.Name,
             LogoUrl = c.LogoUrl,
-            IsActive = c.IsActive 
+            IsActive = c.IsActive
         }).ToList() ?? new List<CompanyViewModel>();
     }
 }

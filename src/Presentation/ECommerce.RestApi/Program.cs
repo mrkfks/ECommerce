@@ -1,6 +1,8 @@
 using ECommerce.Application;
+using ECommerce.Application.Interfaces;
 using ECommerce.Infrastructure;
 using ECommerce.Infrastructure.Data;
+using ECommerce.Infrastructure.Services;
 using ECommerce.RestApi.Filters;
 using ECommerce.RestApi.Middleware;
 using ECommerce.RestApi.Options;
@@ -211,6 +213,9 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
+
+// DI: CustomerMessageService
+builder.Services.AddScoped<ICustomerMessageService, CustomerMessageService>();
 
 var app = builder.Build();
 

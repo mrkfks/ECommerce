@@ -80,15 +80,39 @@ builder.Services.AddCors(options =>
 // Generic API Service Registration (tek ve doğru satır)
 builder.Services.AddScoped(typeof(IApiService<>), typeof(ApiService<>));
 
-// LoginHistoryApiService özel endpointler için
+// HomeController ve AuthController için özel servis DI kayıtları
+builder.Services.AddHttpClient<AuthApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+builder.Services.AddHttpClient<NotificationApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
 builder.Services.AddHttpClient<LoginHistoryApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
 }).AddHttpMessageHandler<AuthTokenHandler>();
-
-// CustomerMessageApiService özel endpointler için
+builder.Services.AddHttpClient<UserManagementApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
 builder.Services.AddHttpClient<CustomerMessageApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+builder.Services.AddHttpClient<DashboardApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+// RequestApiService varsa ekle
+builder.Services.AddHttpClient<RequestApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
