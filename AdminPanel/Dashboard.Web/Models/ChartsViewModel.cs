@@ -8,7 +8,7 @@ namespace Dashboard.Web.Models;
 public class ChartsViewModel
 {
     // Temel KPI Verileri
-    public DashboardKpiVm? KpiData { get; set; }
+    public DashboardKpiViewModel? KpiData { get; set; }
 
     // Şirketler (SuperAdmin için filtre)
     public List<CompanySelectVm> Companies { get; set; } = new();

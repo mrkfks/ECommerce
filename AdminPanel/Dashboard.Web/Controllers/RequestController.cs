@@ -88,8 +88,8 @@ namespace Dashboard.Web.Controllers
                     return BadRequest("Sirket bilgisi alinamadi");
                 }
 
-                var allRequests = await _requestService.GetAllAsync();
-                var requests = allRequests?.Where(r => r.CompanyId == companyId).ToList() ?? new List<RequestDto>();
+                var response = await _requestService.GetAllAsync();
+                var requests = (response?.Data ?? new List<RequestDto>()).Where(r => r.CompanyId == companyId).ToList();
                 return View(requests);
             }
             catch (Exception ex)
@@ -107,18 +107,19 @@ namespace Dashboard.Web.Controllers
                 return RedirectToAction(nameof(MyRequests));
             }
 
-            var requests = await _requestService.GetAllAsync();
-            return View(requests);
+            var response = await _requestService.GetAllAsync();
+            return View(response?.Data ?? new List<RequestDto>());
         }
 
         [Authorize]
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            var request = await _requestService.GetByIdAsync(id);
-
-            if (request == null)
+            var response = await _requestService.GetByIdAsync(id);
+            if (response == null || response.Data == null)
                 return NotFound();
+            
+            var request = response.Data;
 
             // SuperAdmin ise tum talepləri gorebilir
             if (User.IsInRole("SuperAdmin"))

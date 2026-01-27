@@ -2,6 +2,10 @@ namespace Dashboard.Web.Models
 {
     public class CustomerMessageSummaryVm
     {
-        // TODO: Add properties matching the API CustomerMessageSummaryVm
+        public int TotalMessages { get; set; }
+        public int UnreadMessages { get; set; }
+        public int PendingReplies { get; set; }
+        public int RepliedMessages { get; set; }
+        public List<CustomerMessageVm> RecentMessages { get; set; } = new();
     }
 }

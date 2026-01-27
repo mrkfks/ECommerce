@@ -78,57 +78,7 @@ public class ApiService<T> : IApiService<T> where T : class
         }
     }
 
-    public async Task<List<T>> GetListAsync(string subUrl)
-    {
-        try
-        {
-            // If subUrl is relative (e.g. "brand/5"), prepend "api/{endpoint}/" ?
-            // The interface says GetListAsync(subUrl).
-            // If user passes "brand/5", intention is "api/Model/brand/5".
-            // If user passes "api/Items", intention is "api/Items".
-            // Let's standardise: Helper method calls usually target the entity endpoint.
-            
-            // If call is internal GetAllAsync, we passed full path.
-            // If call is external like GetListAsync("brand/5"), we probably want "api/{_endpoint}/brand/5".
-            
-            string url = subUrl.StartsWith("api/") ? subUrl : $"api/{_endpoint}/{subUrl}";
 
-            var response = await _httpClient.GetAsync(url);
-            if (!response.IsSuccessStatusCode)
-            {
-                // Console.WriteLine($"[ApiService] GetListAsync failed: {url} {response.StatusCode}");
-                return new List<T>();
-            }
-
-            var content = await response.Content.ReadAsStringAsync();
-            
-            // Try ApiResponse<List<T>>
-            try
-            {
-                var apiResponse = JsonSerializer.Deserialize<ECommerce.Application.Responses.ApiResponse<List<T>>>(content, _jsonOptions);
-                if (apiResponse?.Success == true && apiResponse.Data != null)
-                {
-                    return apiResponse.Data;
-                }
-            }
-            catch { }
-
-            // Try List<T>
-            try
-            {
-                var result = JsonSerializer.Deserialize<List<T>>(content, _jsonOptions);
-                return result ?? new List<T>();
-            }
-            catch { }
-
-            return new List<T>();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[ApiService] GetListAsync exception: {ex.Message}");
-            return new List<T>();
-        }
-    }
 
     public async Task<ECommerce.Application.Responses.PagedResult<T>> GetPagedListAsync(int pageNumber, int pageSize)
     {
@@ -224,18 +174,7 @@ public class ApiService<T> : IApiService<T> where T : class
         }
     }
 
-    public async Task<bool> UpdateAsync<TUpdate>(int id, TUpdate entity)
-    {
-        try
-        {
-            var response = await _httpClient.PutAsJsonAsync($"api/{_endpoint}/{id}", entity);
-            return response.IsSuccessStatusCode;
-        }
-        catch
-        {
-            return false;
-        }
-    }
+
 
     public async Task<ECommerce.Application.Responses.ApiResponse<bool>> DeleteAsync(int id)
     {
@@ -252,16 +191,42 @@ public class ApiService<T> : IApiService<T> where T : class
         }
     }
 
-    // Generic Create support for different DTOs (e.g. ProductCreateDto -> ProductDto)
     public async Task<bool> CreateAsync<TCreate>(TCreate entity)
     {
         try
         {
             var response = await _httpClient.PostAsJsonAsync($"api/{_endpoint}", entity);
-            return response.IsSuccessStatusCode;
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonSerializer.Deserialize<ECommerce.Application.Responses.ApiResponse<object>>(content, _jsonOptions);
+                return apiResponse?.Success ?? true;
+            }
+            return false;
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"[ApiService] CreateAsync<{typeof(TCreate).Name}> exception: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> UpdateAsync<TUpdate>(int id, TUpdate entity)
+    {
+        try
+        {
+            var response = await _httpClient.PutAsJsonAsync($"api/{_endpoint}/{id}", entity);
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonSerializer.Deserialize<ECommerce.Application.Responses.ApiResponse<object>>(content, _jsonOptions);
+                return apiResponse?.Success ?? true;
+            }
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ApiService] UpdateAsync<{typeof(TUpdate).Name}> exception: {ex.Message}");
             return false;
         }
     }
@@ -293,6 +258,48 @@ public class ApiService<T> : IApiService<T> where T : class
         {
             Console.WriteLine($"[ApiService] PutActionAsync exception: {ex.Message}");
             return false;
+        }
+    }
+
+    public async Task<TResponse?> GetAsync<TResponse>(string subUrl)
+    {
+        try
+        {
+            var url = subUrl.StartsWith("api/") ? subUrl : $"api/{_endpoint}/{subUrl}";
+            var response = await _httpClient.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonSerializer.Deserialize<ECommerce.Application.Responses.ApiResponse<TResponse>>(content, _jsonOptions);
+                return apiResponse != null ? apiResponse.Data : default;
+            }
+            return default;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ApiService] GetAsync<{typeof(TResponse).Name}> exception: {ex.Message}");
+            return default;
+        }
+    }
+
+    public async Task<List<T>> GetListAsync(string subUrl)
+    {
+        try
+        {
+            var url = subUrl.StartsWith("api/") ? subUrl : $"api/{_endpoint}/{subUrl}";
+            var response = await _httpClient.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonSerializer.Deserialize<ECommerce.Application.Responses.ApiResponse<List<T>>>(content, _jsonOptions);
+                return apiResponse?.Data ?? new List<T>();
+            }
+            return new List<T>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ApiService] GetListAsync exception: {ex.Message}");
+            return new List<T>();
         }
     }
 }

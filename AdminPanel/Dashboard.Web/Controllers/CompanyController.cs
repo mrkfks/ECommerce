@@ -18,8 +18,8 @@ namespace Dashboard.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var companies = await _companyService.GetAllAsync();
-            var companyVms = companies.Select(c => new CompanyVm
+            var response = await _companyService.GetAllAsync();
+            var companyVms = (response?.Data ?? new List<CompanyDto>()).Select(c => new CompanyVm
             {
                 Id = c.Id,
                 Name = c.Name,
@@ -50,9 +50,9 @@ namespace Dashboard.Web.Controllers
             if (!ModelState.IsValid)
                 return View(dto);
             
-            var success = await _companyService.CreateAsync(dto);
+            var response = await _companyService.CreateAsync(dto);
             
-            if (success)
+            if (response != null && response.Success)
             {
                 TempData["Success"] = "Şirket başarıyla kaydedildi";
                 return RedirectToAction(nameof(Index));
@@ -65,10 +65,11 @@ namespace Dashboard.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            var company = await _companyService.GetByIdAsync(id);
-            if (company == null)
+            var response = await _companyService.GetByIdAsync(id);
+            if (response == null || response.Data == null)
                 return NotFound();
             
+            var company = response.Data;
             var companyVm = new CompanyVm
             {
                 Id = company.Id,
@@ -91,11 +92,11 @@ namespace Dashboard.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var company = await _companyService.GetByIdAsync(id);
-            if (company == null)
+            var response = await _companyService.GetByIdAsync(id);
+            if (response == null || response.Data == null)
                 return NotFound();
             
-            return View(company);
+            return View(response.Data);
         }
 
         [HttpPost]

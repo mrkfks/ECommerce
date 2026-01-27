@@ -28,12 +28,15 @@ namespace Dashboard.Web.Controllers
         // Listeleme
         public async Task<IActionResult> Index(int? companyId = null)
         {
-            var users = companyId.HasValue
+            var response = companyId.HasValue
                 ? await _userService.GetByCompanyAsync(companyId.Value)
                 : await _userService.GetAllAsync();
 
+            var users = response?.Data ?? new List<ECommerce.Application.DTOs.UserDto>();
+
             // Şirket listesini ViewBag'e ekle
-            ViewBag.Companies = await _companyService.GetAllAsync();
+            var companiesResponse = await _companyService.GetAllAsync();
+            ViewBag.Companies = companiesResponse?.Data ?? new List<Dashboard.Web.Models.CompanyDto>();
             ViewBag.SelectedCompanyId = companyId;
             ViewBag.Roles = await _userService.GetRolesAsync();
 
@@ -287,14 +290,14 @@ namespace Dashboard.Web.Controllers
         [HttpPost, ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var success = await _userService.DeleteAsync(id);
+            var response = await _userService.DeleteAsync(id);
 
-            if (success)
+            if (response != null && response.Success)
                 return RedirectToAction(nameof(Index));
 
             ModelState.AddModelError("", "Kullanıcı silinirken hata oluştu.");
-            var user = await _userService.GetByIdAsync(id);
-            return View(user);
+            var userRes = await _userService.GetByIdAsync(id);
+            return View(userRes?.Data);
         }
 
         // Profil Görüntüleme ve Düzenleme - Giriş yapmış kullanıcılar erişebilir

@@ -8,5 +8,6 @@ namespace Dashboard.Web.Models
         public double DeliveredPercent { get; set; }
         public int ShippedCount { get; set; }
         public int CancelledCount { get; set; }
+        public int PendingCount { get; set; }
     }
 }

@@ -51,14 +51,14 @@ namespace Dashboard.Web.Controllers
         [HttpPost, ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var success = await _reviewService.DeleteAsync(id);
+            var response = await _reviewService.DeleteAsync(id);
 
-            if (success)
+            if (response != null && response.Success)
                 return RedirectToAction(nameof(Index));
 
             ModelState.AddModelError("", "Yorum silinirken hata oluştu.");
             var review = await _reviewService.GetByIdAsync(id);
-            return View(review);
+            return View(review?.Data);
         }
     }
 }

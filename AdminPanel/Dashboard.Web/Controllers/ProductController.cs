@@ -134,11 +134,11 @@ namespace Dashboard.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var product = await _productService.GetByIdAsync(id);
-            if (product == null)
+            var response = await _productService.GetByIdAsync(id);
+            if (response == null || response.Data == null)
                 return NotFound();
 
-            return View(product);
+            return View(response.Data);
         }
 
         // POST: Ürün güncelleme
@@ -161,11 +161,11 @@ namespace Dashboard.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
-            var product = await _productService.GetByIdAsync(id);
-            if (product == null)
+            var response = await _productService.GetByIdAsync(id);
+            if (response == null || response.Data == null)
                 return NotFound();
 
-            return View(product);
+            return View(response.Data);
         }
 
         // POST: Ürün silme
@@ -173,13 +173,13 @@ namespace Dashboard.Web.Controllers
         [HttpPost, ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var success = await _productService.DeleteAsync(id);
-            if (success)
+            var response = await _productService.DeleteAsync(id);
+            if (response != null && response.Success)
                 return RedirectToAction(nameof(List));
 
             ModelState.AddModelError("", "Ürün silinirken hata oluştu.");
-            var product = await _productService.GetByIdAsync(id);
-            return View(product);
+            var productRes = await _productService.GetByIdAsync(id);
+            return View(productRes?.Data);
         }
 
         [Authorize(Roles = "CompanyAdmin,SuperAdmin")]

@@ -53,9 +53,10 @@ namespace Dashboard.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
+            var response = await _categoryService.GetAllAsync();
             var viewModel = new CategoryViewModel
             {
-                AvailableParentCategories = (await _categoryService.GetAllAsync()).Select(x => new CategoryDto {
+                AvailableParentCategories = (response?.Data ?? new List<CategoryViewModel>()).Select(x => new CategoryDto {
                     Id = x.Id,
                     Name = x.Name,
                     Description = x.Description,
@@ -98,7 +99,7 @@ namespace Dashboard.Web.Controllers
                     }
                 
                 categoryDto.ParentCategoryId = null; // Ana kategori
-                var success = await _categoryService.CreateAsync(categoryDto);
+                var success = await _categoryService.CreateAsync<CategoryDto>(categoryDto);
                 
                 if (success)
                 {
@@ -149,7 +150,7 @@ namespace Dashboard.Web.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                var success = await _categoryService.CreateAsync(categoryDto);
+                var success = await _categoryService.CreateAsync<CategoryDto>(categoryDto);
                 
                 if (success)
                 {
@@ -173,15 +174,15 @@ namespace Dashboard.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var category = await _categoryService.GetByIdAsync(id);
-            if (category == null)
+            var response = await _categoryService.GetByIdAsync(id);
+            if (response == null || response.Data == null)
                 return NotFound();
 
             // Alt kategorileri yükle
-            var categories = await _categoryService.GetAllAsync();
-            ViewBag.SubCategories = categories.Where(c => c.ParentCategoryId == id).ToList();
+            var categoriesResponse = await _categoryService.GetAllAsync();
+            ViewBag.SubCategories = (categoriesResponse?.Data ?? new List<CategoryViewModel>()).Where(c => c.ParentCategoryId == id).ToList();
 
-            return View(category);
+            return View(response.Data);
         }
 
         // Düzenleme - POST
@@ -193,11 +194,11 @@ namespace Dashboard.Web.Controllers
                 return View(category);
             }
 
-            var success = await _categoryService.UpdateAsync(category.Id, category);
+            var success = await _categoryService.UpdateAsync<CategoryDto>(category.Id, category);
 
             if (success)
             {
-                TempData["Success"] = "Kategori başarıyla güncellendi";
+                TempData["Success"] = "Kategori başarıyla güncellendi.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -220,9 +221,9 @@ namespace Dashboard.Web.Controllers
         [HttpPost, ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var success = await _categoryService.DeleteAsync(id);
+            var response = await _categoryService.DeleteAsync(id);
 
-            if (success)
+            if (response != null && response.Success)
             {
                 TempData["Success"] = "Kategori başarıyla silindi";
                 return RedirectToAction(nameof(Index));
@@ -263,9 +264,9 @@ namespace Dashboard.Web.Controllers
                 // Kategori bağımsız marka için CategoryId boş bırakılır
                 brandDto.CategoryId = null;
 
-                var success = await _brandService.CreateAsync(brandDto);
+                var response = await _brandService.CreateAsync(brandDto);
 
-                TempData[success ? "Success" : "Error"] = success
+                TempData[response != null && response.Success ? "Success" : "Error"] = (response != null && response.Success)
                     ? "Marka başarıyla eklendi."
                     : "Marka eklenirken hata oluştu.";
             }
@@ -323,9 +324,9 @@ namespace Dashboard.Web.Controllers
                 brandDto.Description ??= string.Empty;
                 brandDto.CategoryId = null;
 
-                var success = await _brandService.UpdateAsync(id, brandDto);
+                var response = await _brandService.UpdateAsync(id, brandDto);
 
-                TempData[success ? "Success" : "Error"] = success
+                TempData[response != null && response.Success ? "Success" : "Error"] = (response != null && response.Success)
                     ? "Marka başarıyla güncellendi."
                     : "Marka güncellenirken hata oluştu.";
             }
@@ -343,8 +344,8 @@ namespace Dashboard.Web.Controllers
         {
             try
             {
-                var success = await _brandService.DeleteAsync(id);
-                TempData[success ? "Success" : "Error"] = success
+                var response = await _brandService.DeleteAsync(id);
+                TempData[response != null && response.Success ? "Success" : "Error"] = (response != null && response.Success)
                     ? "Marka başarıyla silindi."
                     : "Marka silinirken hata oluştu.";
             }
@@ -374,7 +375,7 @@ namespace Dashboard.Web.Controllers
                 {
                     BrandId = modelDto.BrandId,
                     Name = modelDto.Name,
-                    Description = modelDto.Description,
+                    Description = modelDto.Description ?? string.Empty,
                     ImageUrl = modelDto.ImageUrl,
                     IsActive = modelDto.IsActive,
                     CreatedAt = DateTime.Now,
@@ -444,24 +445,25 @@ namespace Dashboard.Web.Controllers
         // Özellik Yönetimi
         public async Task<IActionResult> Attributes()
         {
-            var attributes = await _globalAttributeService.GetAllAsync();
-            return View(attributes);
+            var response = await _globalAttributeService.GetAllAsync();
+            return View(response?.Data ?? new List<GlobalAttributeDto>());
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateAttribute(GlobalAttributeCreateDto dto)
         {
             dto.Values = dto.Values.Where(v => !string.IsNullOrWhiteSpace(v.Value)).ToList();
-            var result = await _globalAttributeService.CreateAsync(dto);
-            TempData[result.Success ? "Success" : "Error"] = result.Success ? "Özellik eklendi." : "Özellik eklenemedi.";
+            var success = await _globalAttributeService.CreateAsync<GlobalAttributeCreateDto>(dto);
+            TempData[success ? "Success" : "Error"] = success ? "Özellik eklendi." : "Özellik eklenemedi.";
             return RedirectToAction(nameof(Attributes));
         }
 
         [HttpPost]
         public async Task<IActionResult> DeleteAttribute(int id)
         {
-            var result = await _globalAttributeService.DeleteAsync(id);
-            TempData[result.Success ? "Success" : "Error"] = result.Success ? "Özellik silindi." : "Özellik silinemedi.";
+            var response = await _globalAttributeService.DeleteAsync(id);
+            var success = response != null && response.Success;
+            TempData[success ? "Success" : "Error"] = success ? "Özellik silindi." : "Özellik silinemedi.";
             return RedirectToAction(nameof(Attributes));
         }
     }

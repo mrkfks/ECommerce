@@ -244,8 +244,8 @@ public class SettingsController : Controller
 
     private async Task LoadCompaniesAsync()
     {
-        var companies = await _companyService.GetAllAsync();
-        ViewBag.Companies = companies?.Select(c => new CompanyViewModel 
+        var response = await _companyService.GetAllAsync();
+        ViewBag.Companies = response?.Data?.Select(c => new CompanyViewModel 
         { 
             Id = c.Id, 
             Name = c.Name, 

@@ -17,14 +17,14 @@ public class HomeController : Controller
     private readonly ILogger<HomeController> _logger;
     private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.DashboardStatsVm> _dashboardStatsService;
     private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.DashboardKpiViewModel> _dashboardService;
-    private readonly Dashboard.Web.Services.IApiService<ProductDto> _productService;
-    private readonly Dashboard.Web.Services.IApiService<OrderDto> _orderService;
-    private readonly Dashboard.Web.Services.IApiService<CustomerDto> _customerService;
-    private readonly Dashboard.Web.Services.IApiService<CompanyDto> _companyService;
-    private readonly Dashboard.Web.Services.IApiService<CategoryDto> _categoryService;
-    private readonly Dashboard.Web.Services.IApiService<BrandDto> _brandService;
+    private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.ProductDto> _productService;
+    private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.OrderDto> _orderService;
+    private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CustomerDto> _customerService;
+    private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CompanyDto> _companyService;
+    private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CategoryDto> _categoryService;
+    private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.BrandDto> _brandService;
     private readonly Dashboard.Web.Services.NotificationApiService _notificationService;
-    private readonly Dashboard.Web.Services.IApiService<CampaignDto> _campaignService;
+    private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CampaignDto> _campaignService;
     private readonly Dashboard.Web.Services.LoginHistoryApiService _loginHistoryService;
     private readonly Dashboard.Web.Services.UserManagementApiService _userManagementService;
     private readonly Dashboard.Web.Services.CustomerMessageApiService _messageService;
@@ -33,14 +33,14 @@ public class HomeController : Controller
         Microsoft.Extensions.Logging.ILogger<HomeController> logger,
         Dashboard.Web.Services.IApiService<Dashboard.Web.Models.DashboardStatsVm> dashboardStatsService,
         Dashboard.Web.Services.IApiService<Dashboard.Web.Models.DashboardKpiViewModel> dashboardService,
-        Dashboard.Web.Services.IApiService<ProductDto> productService,
-        Dashboard.Web.Services.IApiService<OrderDto> orderService,
-        Dashboard.Web.Services.IApiService<CustomerDto> customerService,
-        Dashboard.Web.Services.IApiService<CompanyDto> companyService,
-        Dashboard.Web.Services.IApiService<CategoryDto> categoryService,
-        Dashboard.Web.Services.IApiService<BrandDto> brandService,
+        Dashboard.Web.Services.IApiService<Dashboard.Web.Models.ProductDto> productService,
+        Dashboard.Web.Services.IApiService<Dashboard.Web.Models.OrderDto> orderService,
+        Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CustomerDto> customerService,
+        Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CompanyDto> companyService,
+        Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CategoryDto> categoryService,
+        Dashboard.Web.Services.IApiService<Dashboard.Web.Models.BrandDto> brandService,
         Dashboard.Web.Services.NotificationApiService notificationService,
-        Dashboard.Web.Services.IApiService<CampaignDto> campaignService,
+        Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CampaignDto> campaignService,
         Dashboard.Web.Services.LoginHistoryApiService loginHistoryService,
         Dashboard.Web.Services.UserManagementApiService userManagementService,
         Dashboard.Web.Services.CustomerMessageApiService messageService)
@@ -365,8 +365,8 @@ public class HomeController : Controller
             return Json(new
             {
                 success = true,
-                categories = categories?.Select(c => new { id = c.Id, name = c.Name }) ?? Enumerable.Empty<object>(),
-                brands = brands?.Select(b => new { id = b.Id, name = b.Name }) ?? Enumerable.Empty<object>()
+                categories = categories?.Data?.Select(c => new { id = c.Id, name = c.Name }) ?? Enumerable.Empty<object>(),
+                brands = brands?.Data?.Select(b => new { id = b.Id, name = b.Name }) ?? Enumerable.Empty<object>()
             });
         }
         catch (Exception ex)
@@ -440,9 +440,8 @@ public class HomeController : Controller
         try
         {
             model.CompanyId = GetCurrentCompanyId();
-            var dto = MapToCampaignDto(model);
-            var result = await _campaignService.CreateAsync(dto);
-            return Json(new { success = result, message = result ? "Kampanya başarıyla oluşturuldu" : "Kampanya oluşturulamadı" });
+            var success = await _campaignService.CreateAsync<CampaignCreateVm>(model);
+            return Json(new { success = success, message = success ? "Kampanya başarıyla oluşturuldu" : "Kampanya oluşturulamadı" });
         }
         catch (Exception ex)
         {

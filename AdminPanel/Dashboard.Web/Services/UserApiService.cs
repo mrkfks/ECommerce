@@ -1,4 +1,6 @@
 using ECommerce.Application.DTOs;
+using ECommerce.Application.Responses;
+using Dashboard.Web.Models;
 
 namespace Dashboard.Web.Services
 {
@@ -52,16 +54,18 @@ namespace Dashboard.Web.Services
             }
         }
 
-        public async Task<List<UserDto>> GetByCompanyAsync(int companyId)
+        public async Task<ApiResponse<List<UserDto>>> GetByCompanyAsync(int companyId)
         {
             try
             {
-                var result = await _httpClient.GetFromJsonAsync<List<UserDto>>($"api/User?companyId={companyId}");
-                return result ?? new List<UserDto>();
+                var response = await _httpClient.GetAsync($"api/User?companyId={companyId}");
+                var content = await response.Content.ReadAsStringAsync();
+                var apiResponse = System.Text.Json.JsonSerializer.Deserialize<ApiResponse<List<UserDto>>>(content, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                return apiResponse ?? new ApiResponse<List<UserDto>> { Success = false, Message = "Deserialization failed" };
             }
-            catch
+            catch (Exception ex)
             {
-                return new List<UserDto>();
+                return new ApiResponse<List<UserDto>> { Success = false, Message = ex.Message };
             }
         }
 

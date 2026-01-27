@@ -53,7 +53,7 @@ namespace Dashboard.Web.Controllers
                 return View(order);
 
             var response = await _orderService.UpdateAsync(order.Id, order);
-            if (response != null && response.Data)
+            if (response != null && response.Success)
                 return RedirectToAction(nameof(Index));
 
             ModelState.AddModelError("", "Sipariş güncellenirken hata oluştu.");

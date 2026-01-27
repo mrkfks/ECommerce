@@ -3,6 +3,7 @@ namespace Dashboard.Web.Models
     public class TopProductVm
     {
         public int Id { get; set; }
+        public int ProductId => Id;
         public string Name { get; set; } = string.Empty;
         public int QuantitySold { get; set; }
         public decimal Revenue { get; set; }

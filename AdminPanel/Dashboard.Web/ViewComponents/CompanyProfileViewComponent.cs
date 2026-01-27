@@ -26,7 +26,8 @@ namespace Dashboard.Web.ViewComponents
 
             if (companyIdClaim != null && int.TryParse(companyIdClaim.Value, out int companyId))
             {
-                company = await _companyService.GetByIdAsync(companyId);
+                var response = await _companyService.GetByIdAsync(companyId);
+                company = response?.Data;
             }
             
             // Eğer company null ise varsayılan dönebilir veya boş

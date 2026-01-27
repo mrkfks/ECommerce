@@ -77,143 +77,51 @@ builder.Services.AddCors(options =>
 });
 
 
-// Generic API Service Registration (tek ve doğru satır)
+// Generic API Service Registration
 builder.Services.AddScoped(typeof(IApiService<>), typeof(ApiService<>));
 
-// HomeController ve AuthController için özel servis DI kayıtları
+// Typed API Services with custom logic
 builder.Services.AddHttpClient<AuthApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
 });
-builder.Services.AddHttpClient<BrandApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-});
-builder.Services.AddHttpClient<CampaignApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-});
-builder.Services.AddHttpClient<CompanyApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-});
-builder.Services.AddHttpClient<CustomerApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-});
-builder.Services.AddHttpClient<ModelApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-});
-builder.Services.AddHttpClient<OrderApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-});
-builder.Services.AddHttpClient<ProductApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-});
-builder.Services.AddHttpClient<ReviewApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-});
-builder.Services.AddHttpClient<RoleApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-});
-builder.Services.AddHttpClient<GlobalAttributeApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-});
-builder.Services.AddHttpClient<UserApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-});
+
 builder.Services.AddHttpClient<NotificationApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
 }).AddHttpMessageHandler<AuthTokenHandler>();
+
 builder.Services.AddHttpClient<LoginHistoryApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
 }).AddHttpMessageHandler<AuthTokenHandler>();
+
 builder.Services.AddHttpClient<UserManagementApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
 }).AddHttpMessageHandler<AuthTokenHandler>();
+
 builder.Services.AddHttpClient<CustomerMessageApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
 }).AddHttpMessageHandler<AuthTokenHandler>();
-builder.Services.AddHttpClient<DashboardApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
-// RequestApiService varsa ekle
-builder.Services.AddHttpClient<RequestApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
 
-
-// Özel mantık içeren servisler (ör. AuthApiService, DashboardApiService vb.)
 builder.Services.AddHttpClient<DashboardApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
-builder.Services.AddHttpClient<AuthApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-});
-
-builder.Services.AddHttpClient<UserManagementApiService>(client =>
+builder.Services.AddHttpClient<UserApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
 }).AddHttpMessageHandler<AuthTokenHandler>();
-
-// Other services that might need custom logic (Dashboard, Auth are different)
-builder.Services.AddHttpClient<DashboardApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
-
-builder.Services.AddHttpClient<AuthApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-});
-
-builder.Services.AddHttpClient<UserManagementApiService>(client =>
-{
-    client.BaseAddress = new Uri(apiBaseUrl);
-    client.Timeout = TimeSpan.FromSeconds(30);
-}).AddHttpMessageHandler<AuthTokenHandler>();
-
-
-// Keep DashboardApService as Typed Client because it's not following CRUD pattern entirely (GetDashboardKpiAsync etc)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowDashboard",
