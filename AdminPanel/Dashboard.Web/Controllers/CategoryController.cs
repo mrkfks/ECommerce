@@ -366,7 +366,19 @@ namespace Dashboard.Web.Controllers
                 
                 modelDto.BrandId = brandId;
                 
-                var success = await _modelService.CreateAsync<ModelCreateDto>(modelDto);
+                // ModelCreateDto'dan ModelDto'ya dönüştür
+                var model = new ModelDto
+                {
+                    BrandId = modelDto.BrandId,
+                    Name = modelDto.Name,
+                    Description = modelDto.Description,
+                    ImageUrl = modelDto.ImageUrl,
+                    IsActive = modelDto.IsActive,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                };
+                var response = await _modelService.CreateAsync(model);
+                var success = response != null && response.Success;
                 
                 // AJAX isteği ise sadece JSON döndür
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || 
@@ -437,16 +449,16 @@ namespace Dashboard.Web.Controllers
         public async Task<IActionResult> CreateAttribute(GlobalAttributeCreateDto dto)
         {
             dto.Values = dto.Values.Where(v => !string.IsNullOrWhiteSpace(v.Value)).ToList();
-            var success = await _globalAttributeService.CreateAsync<GlobalAttributeCreateDto>(dto);
-            TempData[success ? "Success" : "Error"] = success ? "Özellik eklendi." : "Özellik eklenemedi.";
+            var result = await _globalAttributeService.CreateAsync(dto);
+            TempData[result.Success ? "Success" : "Error"] = result.Success ? "Özellik eklendi." : "Özellik eklenemedi.";
             return RedirectToAction(nameof(Attributes));
         }
 
         [HttpPost]
         public async Task<IActionResult> DeleteAttribute(int id)
         {
-            var success = await _globalAttributeService.DeleteAsync(id);
-            TempData[success ? "Success" : "Error"] = success ? "Özellik silindi." : "Özellik silinemedi.";
+            var result = await _globalAttributeService.DeleteAsync(id);
+            TempData[result.Success ? "Success" : "Error"] = result.Success ? "Özellik silindi." : "Özellik silinemedi.";
             return RedirectToAction(nameof(Attributes));
         }
     }

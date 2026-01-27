@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ECommerce.Application.DTOs;
+using Dashboard.Web.Models;
 using Dashboard.Web.Services;
 
 namespace Dashboard.Web.Controllers

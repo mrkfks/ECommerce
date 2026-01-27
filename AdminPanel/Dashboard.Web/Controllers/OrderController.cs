@@ -8,9 +8,9 @@ namespace Dashboard.Web.Controllers
     [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
     public class OrderController : Controller
     {
-        private readonly IApiService<OrderViewModel> _orderService;
+        private readonly IApiService<OrderDto> _orderService;
 
-        public OrderController(IApiService<OrderViewModel> orderService)
+        public OrderController(IApiService<OrderDto> orderService)
         {
             _orderService = orderService;
         }
@@ -20,7 +20,7 @@ namespace Dashboard.Web.Controllers
         {
             var response = await _orderService.GetAllAsync();
             if (response == null || response.Data == null)
-                return View(new List<OrderViewModel>());
+                return View(new List<OrderDto>());
             return View(response.Data);
         }
 

@@ -80,6 +80,21 @@ builder.Services.AddCors(options =>
 // Generic API Service Registration (tek ve doğru satır)
 builder.Services.AddScoped(typeof(IApiService<>), typeof(ApiService<>));
 
+// LoginHistoryApiService özel endpointler için
+builder.Services.AddHttpClient<LoginHistoryApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+// CustomerMessageApiService özel endpointler için
+builder.Services.AddHttpClient<CustomerMessageApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+
 // Özel mantık içeren servisler (ör. AuthApiService, DashboardApiService vb.)
 builder.Services.AddHttpClient<DashboardApiService>(client =>
 {

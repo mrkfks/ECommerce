@@ -63,9 +63,19 @@ public class ApiService<T> : IApiService<T> where T : class
         return result.ToString();
     }
 
-    public async Task<List<T>> GetAllAsync()
+    public async Task<ECommerce.Application.Responses.ApiResponse<List<T>>> GetAllAsync()
     {
-        return await GetListAsync($"api/{_endpoint}");
+        try
+        {
+            var response = await _httpClient.GetAsync($"api/{_endpoint}");
+            var content = await response.Content.ReadAsStringAsync();
+            var apiResponse = JsonSerializer.Deserialize<ECommerce.Application.Responses.ApiResponse<List<T>>>(content, _jsonOptions);
+            return apiResponse ?? new ECommerce.Application.Responses.ApiResponse<List<T>> { Success = false, Data = new List<T>(), Message = "GetAll failed" };
+        }
+        catch (Exception ex)
+        {
+            return new ECommerce.Application.Responses.ApiResponse<List<T>> { Success = false, Data = new List<T>(), Message = ex.Message };
+        }
     }
 
     public async Task<List<T>> GetListAsync(string subUrl)
@@ -160,63 +170,57 @@ public class ApiService<T> : IApiService<T> where T : class
         }
     }
 
-    public async Task<T?> GetByIdAsync(int id)
+    public async Task<ECommerce.Application.Responses.ApiResponse<T?>> GetByIdAsync(int id)
     {
         try
         {
             var response = await _httpClient.GetAsync($"api/{_endpoint}/{id}");
-            if (!response.IsSuccessStatusCode)
-                return null;
-
             var content = await response.Content.ReadAsStringAsync();
-            
-            // Önce ApiResponse<T> olarak dene
-            try
+            var apiResponse = JsonSerializer.Deserialize<ECommerce.Application.Responses.ApiResponse<T>>(content, _jsonOptions);
+            if (apiResponse != null)
             {
-                var apiResponse = JsonSerializer.Deserialize<ECommerce.Application.Responses.ApiResponse<T>>(content, _jsonOptions);
-                if (apiResponse?.Success == true && apiResponse.Data != null)
-                    return apiResponse.Data;
+                return new ECommerce.Application.Responses.ApiResponse<T?>
+                {
+                    Success = apiResponse.Success,
+                    Data = apiResponse.Data,
+                    Message = apiResponse.Message
+                };
             }
-            catch { }
-
-            // Düz T olarak dene
-            try
-            {
-                return JsonSerializer.Deserialize<T>(content, _jsonOptions);
-            }
-            catch { }
-
-            return null;
+            return new ECommerce.Application.Responses.ApiResponse<T?> { Success = false, Data = null, Message = "Not found" };
         }
-        catch
+        catch (Exception ex)
         {
-            return null;
+            return new ECommerce.Application.Responses.ApiResponse<T?> { Success = false, Data = null, Message = ex.Message };
         }
     }
 
-    public async Task<bool> CreateAsync(T entity)
+    public async Task<ECommerce.Application.Responses.ApiResponse<T>> CreateAsync(T entity)
     {
         try
         {
             var response = await _httpClient.PostAsJsonAsync($"api/{_endpoint}", entity);
-            return response.IsSuccessStatusCode;
+            var content = await response.Content.ReadAsStringAsync();
+            var apiResponse = JsonSerializer.Deserialize<ECommerce.Application.Responses.ApiResponse<T>>(content, _jsonOptions);
+            return apiResponse ?? new ECommerce.Application.Responses.ApiResponse<T> { Success = false, Message = "Create failed" };
         }
-        catch
+        catch (Exception ex)
         {
-            return false;
+            return new ECommerce.Application.Responses.ApiResponse<T> { Success = false, Message = ex.Message };
         }
     }
 
-    public async Task<bool> UpdateAsync(int id, T entity)
+    public async Task<ECommerce.Application.Responses.ApiResponse<T>> UpdateAsync(int id, T entity)
     {
         try
         {
             var response = await _httpClient.PutAsJsonAsync($"api/{_endpoint}/{id}", entity);
-            return response.IsSuccessStatusCode;
+            var content = await response.Content.ReadAsStringAsync();
+            var apiResponse = JsonSerializer.Deserialize<ECommerce.Application.Responses.ApiResponse<T>>(content, _jsonOptions);
+            return apiResponse ?? new ECommerce.Application.Responses.ApiResponse<T> { Success = false, Message = "Update failed" };
         }
-        catch
+        catch (Exception ex)
         {
-            return false;
+            return new ECommerce.Application.Responses.ApiResponse<T> { Success = false, Message = ex.Message };
         }
     }
 
@@ -233,16 +237,18 @@ public class ApiService<T> : IApiService<T> where T : class
         }
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<ECommerce.Application.Responses.ApiResponse<bool>> DeleteAsync(int id)
     {
         try
         {
             var response = await _httpClient.DeleteAsync($"api/{_endpoint}/{id}");
-            return response.IsSuccessStatusCode;
+            var content = await response.Content.ReadAsStringAsync();
+            var apiResponse = JsonSerializer.Deserialize<ECommerce.Application.Responses.ApiResponse<bool>>(content, _jsonOptions);
+            return apiResponse ?? new ECommerce.Application.Responses.ApiResponse<bool> { Success = false, Message = "Delete failed" };
         }
-        catch
+        catch (Exception ex)
         {
-            return false;
+            return new ECommerce.Application.Responses.ApiResponse<bool> { Success = false, Message = ex.Message };
         }
     }
 

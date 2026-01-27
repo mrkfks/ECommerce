@@ -5214,6 +5214,7 @@
       "Microsoft.EntityFrameworkCore.Design >= 9.0.0",
       "Microsoft.EntityFrameworkCore.SqlServer >= 9.0.0",
       "Microsoft.EntityFrameworkCore.Sqlite >= 9.0.0",
+      "Microsoft.Extensions.Logging.Abstractions >= 9.0.0",
       "NEST >= 7.17.5",
       "SixLabors.ImageSharp >= 3.1.12",
       "SixLabors.ImageSharp.Web >= 3.2.0"
@@ -5296,6 +5297,10 @@
             "version": "[9.0.0, )"
           },
           "Microsoft.EntityFrameworkCore.Sqlite": {
+            "target": "Package",
+            "version": "[9.0.0, )"
+          },
+          "Microsoft.Extensions.Logging.Abstractions": {
             "target": "Package",
             "version": "[9.0.0, )"
           },

@@ -107,14 +107,12 @@ namespace Dashboard.Web.Controllers
             if (!ModelState.IsValid)
                 return View(company);
             
-            var success = await _companyService.UpdateAsync(id, company);
-            
-            if (success)
+            var response = await _companyService.UpdateAsync(id, company);
+            if (response != null && response.Success)
             {
                 TempData["Success"] = "Şirket bilgileri başarıyla güncellendi";
                 return RedirectToAction(nameof(Index));
             }
-            
             ModelState.AddModelError("", "Şirket güncellenirken hata oluştu");
             return View(company);
         }

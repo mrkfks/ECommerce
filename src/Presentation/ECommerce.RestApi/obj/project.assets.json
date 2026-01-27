@@ -2414,6 +2414,7 @@
           "Elasticsearch.Net": "7.17.5",
           "Microsoft.EntityFrameworkCore.SqlServer": "9.0.0",
           "Microsoft.EntityFrameworkCore.Sqlite": "9.0.0",
+          "Microsoft.Extensions.Logging.Abstractions": "9.0.0",
           "NEST": "7.17.5",
           "SixLabors.ImageSharp": "3.1.12",
           "SixLabors.ImageSharp.Web": "3.2.0"

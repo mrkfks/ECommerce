@@ -23,7 +23,7 @@ namespace Dashboard.Web.Controllers
             try
             {
                 var banners = await _bannerService.GetAllAsync();
-                return View(banners ?? new List<BannerViewModel>());
+                return View(banners?.Data ?? new List<BannerViewModel>());
             }
             catch (Exception ex)
             {
@@ -47,14 +47,14 @@ namespace Dashboard.Web.Controllers
 
             try
             {
-                var success = await _bannerService.CreateAsync(model);
-                if (success)
+                var result = await _bannerService.CreateAsync(model);
+                if (result.Success)
                 {
                     TempData["Success"] = "Banner başarıyla oluşturuldu";
                     return RedirectToAction(nameof(Index));
                 }
 
-                ModelState.AddModelError("", "Banner oluşturulamadı");
+                ModelState.AddModelError("", result.Message ?? "Banner oluşturulamadı");
                 return View(model);
             }
             catch (Exception ex)
@@ -69,14 +69,14 @@ namespace Dashboard.Web.Controllers
         {
             try
             {
-                var banner = await _bannerService.GetByIdAsync(id);
-                if (banner == null)
+                var result = await _bannerService.GetByIdAsync(id);
+                if (result == null || result.Data == null)
                 {
                     TempData["Error"] = "Banner bulunamadı";
                     return RedirectToAction(nameof(Index));
                 }
 
-                return View(banner);
+                return View(result.Data);
             }
             catch (Exception ex)
             {
@@ -98,14 +98,14 @@ namespace Dashboard.Web.Controllers
 
             try
             {
-                var success = await _bannerService.UpdateAsync(id, model);
-                if (success)
+                var result = await _bannerService.UpdateAsync(id, model);
+                if (result.Success)
                 {
                     TempData["Success"] = "Banner başarıyla güncellendi";
                     return RedirectToAction(nameof(Index));
                 }
 
-                ModelState.AddModelError("", "Banner güncellenemedi");
+                ModelState.AddModelError("", result.Message ?? "Banner güncellenemedi");
                 return View(model);
             }
             catch (Exception ex)
@@ -122,14 +122,14 @@ namespace Dashboard.Web.Controllers
         {
             try
             {
-                var success = await _bannerService.DeleteAsync(id);
-                if (success)
+                var result = await _bannerService.DeleteAsync(id);
+                if (result.Success)
                 {
                     TempData["Success"] = "Banner başarıyla silindi";
                 }
                 else
                 {
-                    TempData["Error"] = "Banner silinemedi";
+                    TempData["Error"] = result.Message ?? "Banner silinemedi";
                 }
             }
             catch (Exception ex)
@@ -146,12 +146,12 @@ namespace Dashboard.Web.Controllers
         {
             try
             {
-                var banner = await _bannerService.GetByIdAsync(id);
-                if (banner != null)
+                var result = await _bannerService.GetByIdAsync(id);
+                if (result != null && result.Data != null)
                 {
-                    banner.IsActive = !banner.IsActive;
-                    await _bannerService.UpdateAsync(id, banner);
-                    return Json(new { success = true, isActive = banner.IsActive });
+                    result.Data.IsActive = !result.Data.IsActive;
+                    await _bannerService.UpdateAsync(id, result.Data);
+                    return Json(new { success = true, isActive = result.Data.IsActive });
                 }
                 return Json(new { success = false, message = "Banner bulunamadı" });
             }

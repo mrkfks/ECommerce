@@ -52,8 +52,8 @@ namespace Dashboard.Web.Controllers
             if (!ModelState.IsValid)
                 return View(customer);
 
-            var success = await _customerService.UpdateAsync(customer.Id, customer);
-            if (success)
+            var response = await _customerService.UpdateAsync(customer.Id, customer);
+            if (response != null && response.Success)
                 return RedirectToAction(nameof(Index));
 
             ModelState.AddModelError("", "Müşteri güncellenirken hata oluştu.");
@@ -76,8 +76,8 @@ namespace Dashboard.Web.Controllers
         [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var success = await _customerService.DeleteAsync(id);
-            if (success)
+            var response = await _customerService.DeleteAsync(id);
+            if (response != null && response.Success)
                 return RedirectToAction(nameof(Index));
 
             ModelState.AddModelError("", "Müşteri silinirken hata oluştu.");
