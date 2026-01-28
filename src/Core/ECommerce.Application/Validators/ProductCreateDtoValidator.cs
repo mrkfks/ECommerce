@@ -29,10 +29,7 @@ public class ProductCreateDtoValidator : AbstractValidator<ProductCreateDto>
         RuleFor(x => x.BrandId)
             .GreaterThan(0).WithMessage(ValidationMessages.ProductBrandRequired);
 
-        RuleFor(x => x.CompanyId)
-            .GreaterThan(0).WithMessage("Şirket seçilmelidir");
-
-        RuleFor(x => x.ImageUrl)
-            .MaximumLength(500).WithMessage("Resim URL'si en fazla 500 karakter olabilir");
+        // CompanyId ve ImageUrl, ProductCreateDto'da yok - ProductFormDto kullanılmalı
+        // Bu validator sadece ProductCreateDto için geçerli
     }
 }

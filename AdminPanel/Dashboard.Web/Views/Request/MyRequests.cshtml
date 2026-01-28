@@ -97,7 +97,7 @@
                                 <span class="@badgeClass">@statusText</span>
                             </td>
                             <td>
-                                @request.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                                @(request.CreatedAt.HasValue ? request.CreatedAt.Value.ToString("dd.MM.yyyy HH:mm") : "-")
                             </td>
                         </tr>
                     }

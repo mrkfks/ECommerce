@@ -46,7 +46,7 @@ public class BrandController : ControllerBase
     /// </summary>
     [HttpPost]
     [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
-    public async Task<IActionResult> Create([FromBody] BrandCreateDto dto)
+    public async Task<IActionResult> Create([FromBody] BrandFormDto dto)
     {
         var brand = await _brandService.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = brand.Id }, brand);
@@ -57,7 +57,7 @@ public class BrandController : ControllerBase
     /// </summary>
     [HttpPut("{id}")]
     [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
-    public async Task<IActionResult> Update(int id, [FromBody] BrandUpdateDto dto)
+    public async Task<IActionResult> Update(int id, [FromBody] BrandFormDto dto)
     {
         if (id != dto.Id)
             return BadRequest("Id mismatch");

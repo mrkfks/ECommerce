@@ -3,105 +3,76 @@ using ECommerce.Domain.Enums;
 namespace ECommerce.Application.DTOs;
 
 /// <summary>
-/// Bildirim DTO'su
+/// Bildirim bilgisi DTO
 /// </summary>
-public record NotificationDto(
-    int Id,
-    int CompanyId,
-    NotificationType Type,
-    string TypeText,
-    NotificationPriority Priority,
-    string PriorityText,
-    string Title,
-    string Message,
-    string? EntityType,
-    int? EntityId,
-    bool IsRead,
-    DateTime? ReadAt,
-    string? Data,
-    string? ActionUrl,
-    string? ActionText,
-    DateTime CreatedAt,
-    string TimeAgo
-);
+public record NotificationDto
+{
+    public int Id { get; init; }
+    public int CompanyId { get; init; }
+    public NotificationType Type { get; init; }
+    public string? TypeText { get; init; }
+    public string Title { get; init; } = string.Empty;
+    public NotificationPriority Priority { get; init; }
+    public string? PriorityText { get; init; }
+    public string Message { get; init; } = string.Empty;
+    public string Data { get; init; } = string.Empty;
+    public string EntityType { get; init; } = string.Empty;
+    public int? EntityId { get; init; }
+    public int? UserId { get; init; }
+    public bool IsRead { get; init; }
+    public DateTime? ReadAt { get; init; }
+    public string? ReadBy { get; init; }
+    public string? ActionUrl { get; init; }
+    public string? ActionText { get; init; }
+    public string? Icon { get; init; }
+    public DateTime CreatedAt { get; init; }
+    public string Severity { get; init; } = "info";
+    public string? TimeAgo { get; init; }
+}
 
 /// <summary>
-/// Bildirim listesi özet DTO'su
+/// Bildirim oluşturma DTO
 /// </summary>
-public record NotificationSummaryDto(
-    int TotalCount,
-    int UnreadCount,
-    int LowStockCount,
-    int NewOrderCount,
-    int ReturnRequestCount,
-    int PaymentFailedCount,
-    List<NotificationDto> RecentNotifications
-);
+public record NotificationCreateDto
+{
+    public int CompanyId { get; init; }
+    public NotificationType Type { get; init; }
+    public string Title { get; init; } = string.Empty;
+    public string Message { get; init; } = string.Empty;
+    public NotificationPriority Priority { get; init; } = NotificationPriority.Normal;
+    public string? EntityType { get; init; }
+    public int? EntityId { get; init; }
+    public string? Data { get; init; }
+    public string? ActionUrl { get; init; }
+    public string? ActionText { get; init; }
+}
 
 /// <summary>
-/// Bildirim oluşturma DTO'su
+/// Bildirim özet DTO
 /// </summary>
-public record NotificationCreateDto(
-    NotificationType Type,
-    NotificationPriority Priority,
-    string Title,
-    string Message,
-    string? EntityType = null,
-    int? EntityId = null,
-    string? Data = null,
-    string? ActionUrl = null,
-    string? ActionText = null
-);
+public record NotificationSummaryDto
+{
+    public int TotalCount { get; init; }
+    public int UnreadCount { get; init; }
+    public int HighPriorityCount { get; init; }
+    public int LowStockCount { get; init; }
+    public int NewOrderCount { get; init; }
+    public int ReturnRequestCount { get; init; }
+    public int PaymentFailedCount { get; init; }
+    public int SystemAlertCount { get; init; }
+    public List<NotificationDto> RecentNotifications { get; init; } = new();
+}
 
 /// <summary>
-/// Düşük stok ürün DTO'su
+/// Yeni sipariş bildirimi DTO
 /// </summary>
-public record LowStockProductDto(
-    int ProductId,
-    string ProductName,
-    string? ImageUrl,
-    int CurrentStock,
-    int Threshold = 10,
-    string CategoryName = "",
-    string BrandName = "",
-    decimal Price = 0
-);
-
-/// <summary>
-/// Yeni sipariş bildirim DTO'su
-/// </summary>
-public record NewOrderNotificationDto(
-    int OrderId,
-    string CustomerName,
-    decimal TotalAmount,
-    int ItemCount,
-    DateTime OrderDate,
-    string TimeAgo
-);
-
-/// <summary>
-/// İade talebi DTO'su
-/// </summary>
-public record ReturnRequestDto(
-    int OrderId,
-    int OrderItemId,
-    string ProductName,
-    string CustomerName,
-    string ReturnReason,
-    DateTime RequestDate,
-    string Status,
-    decimal RefundAmount
-);
-
-/// <summary>
-/// Başarısız ödeme DTO'su
-/// </summary>
-public record FailedPaymentDto(
-    int OrderId,
-    string CustomerName,
-    string PaymentMethod,
-    string ErrorMessage,
-    decimal Amount,
-    DateTime AttemptDate,
-    int RetryCount
-);
+public record NewOrderNotificationDto
+{
+    public int OrderId { get; init; }
+    public string CustomerName { get; init; } = string.Empty;
+    public decimal TotalAmount { get; init; }
+    public int ItemCount { get; init; }
+    public DateTime OrderDate { get; init; }
+    public string Status { get; init; } = string.Empty;
+    public string? TimeAgo { get; init; }
+}

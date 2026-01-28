@@ -1,6 +1,11 @@
 namespace ECommerce.Application.DTOs;
 
-public record OrderItemCreateDto(
-    int ProductId,
-    int Quantity
-);
+/// <summary>
+/// Sipariş kalemi oluşturma DTO
+/// </summary>
+public record OrderItemCreateDto
+{
+    public int ProductId { get; init; }
+    public int Quantity { get; init; }
+    public decimal UnitPrice { get; init; }
+}

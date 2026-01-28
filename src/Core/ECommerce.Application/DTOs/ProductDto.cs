@@ -1,24 +1,28 @@
 namespace ECommerce.Application.DTOs;
 
-public record ProductDto(
-    int Id,
-    string Name,
-    string Description,
-    decimal Price,
-    int StockQuantity,
-    int CategoryId,
-    string CategoryName,
-    int BrandId,
-    string BrandName,
-    int CompanyId,
-    string CompanyName,
-    int? ModelId = null,
-    string? ModelName = null,
-    string? ImageUrl = null,
-    bool IsActive = true,
-    DateTime? CreatedAt = null,
-    DateTime? UpdatedAt = null,
-    int ReviewCount = 0,
-    double AverageRating = 0,
-    List<ProductImageDto>? Images = null
-);
+/// <summary>
+/// Ürün bilgisi DTO
+/// </summary>
+public record ProductDto
+{
+    public int Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string Description { get; init; } = string.Empty;
+    public decimal Price { get; init; }
+    public int StockQuantity { get; init; }
+    public int CategoryId { get; init; }
+    public string CategoryName { get; init; } = string.Empty;
+    public int BrandId { get; init; }
+    public string BrandName { get; init; } = string.Empty;
+    public int CompanyId { get; init; }
+    public string CompanyName { get; init; } = string.Empty;
+    public int? ModelId { get; init; }
+    public string? ModelName { get; init; }
+    public string? ImageUrl { get; init; }
+    public bool IsActive { get; init; } = true;
+    public DateTime? CreatedAt { get; init; }
+    public DateTime? UpdatedAt { get; init; }
+    public int ReviewCount { get; init; }
+    public double AverageRating { get; init; }
+    public List<ProductImageDto>? Images { get; init; }
+}

@@ -134,11 +134,11 @@ namespace Dashboard.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var response = await _productService.GetByIdAsync(id);
-            if (response == null || response.Data == null)
+            var product = await _productService.GetByIdAsync(id);
+            if (product == null)
                 return NotFound();
 
-            return View(response.Data);
+            return View(product);
         }
 
         // POST: Ürün güncelleme
@@ -156,16 +156,17 @@ namespace Dashboard.Web.Controllers
             ModelState.AddModelError("", "Ürün güncellenirken hata oluştu.");
             return View(product);
         }
-        // GET: Delete onay ekranı
+        // GET: Ürün silme onayı
         [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
             var response = await _productService.GetByIdAsync(id);
-            if (response == null || response.Data == null)
+            var product = response?.Data;
+            if (product == null)
                 return NotFound();
 
-            return View(response.Data);
+            return View(product);
         }
 
         // POST: Ürün silme
@@ -174,19 +175,19 @@ namespace Dashboard.Web.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var response = await _productService.DeleteAsync(id);
-            if (response != null && response.Success)
+            var success = response != null && response.Success;
+            if (success)
                 return RedirectToAction(nameof(List));
 
             ModelState.AddModelError("", "Ürün silinirken hata oluştu.");
-            var productRes = await _productService.GetByIdAsync(id);
-            return View(productRes?.Data);
+            var productResponse = await _productService.GetByIdAsync(id);
+            return View(productResponse?.Data);
         }
 
         [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
         [HttpPost]
         public async Task<IActionResult> BulkUpdate([FromBody] ProductBulkUpdateDto dto)
         {
-            // var success = await _productService.BulkUpdateAsync(dto.ProductIds, dto.PriceIncreasePercentage);
             var success = await _productService.PostActionAsync("bulk-price-update", dto);
             return Json(new { success = success, message = success ? "Fiyatlar güncellendi" : "Hata oluştu" });
         }

@@ -1,4 +1,5 @@
 using ECommerce.Application.DTOs;
+using ECommerce.Application.DTOs.Dashboard;
 using ECommerce.Domain.Enums;
 using System.Collections.Generic;
 using System.Threading.Tasks;

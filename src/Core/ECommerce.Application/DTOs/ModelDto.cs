@@ -1,22 +1,30 @@
 namespace ECommerce.Application.DTOs;
 
-public record ModelDto(
-    int Id,
-    int BrandId,
-    string? BrandName,
-    string Name,
-    string Description,
-    string? ImageUrl = null,
-    bool IsActive = true,
-    DateTime? CreatedAt = null,
-    DateTime? UpdatedAt = null
-);
+/// <summary>
+/// Model bilgisi DTO
+/// </summary>
+public record ModelDto
+{
+    public int Id { get; init; }
+    public int BrandId { get; init; }
+    public string? BrandName { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string? Description { get; init; }
+    public string? ImageUrl { get; init; }
+    public bool IsActive { get; init; } = true;
+    public DateTime? CreatedAt { get; init; }
+    public DateTime? UpdatedAt { get; init; }
+}
 
-public record ModelFormDto(
-    int? Id,
-    int BrandId,
-    string Name,
-    string Description,
-    string? ImageUrl = null,
-    bool IsActive = true
-);
+/// <summary>
+/// Model form DTO
+/// </summary>
+public record ModelFormDto
+{
+    public int? Id { get; init; }
+    public int BrandId { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string? Description { get; init; }
+    public string? ImageUrl { get; init; }
+    public bool IsActive { get; init; } = true;
+}

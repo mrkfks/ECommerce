@@ -56,8 +56,17 @@ namespace Dashboard.Web.Controllers
                     return View(dto);
                 }
 
-                dto.CompanyId = companyId;
-                var success = await _requestService.CreateAsync<RequestCreateDto>(dto);
+                // init-only property olduğu için yeni bir DTO oluştur
+                var createDto = new RequestCreateDto
+                {
+                    CompanyId = companyId,
+                    Title = dto.Title,
+                    Description = dto.Description,
+                    CreatedByUserId = dto.CreatedByUserId,
+                    CreatedAt = DateTime.UtcNow
+                };
+                
+                var success = await _requestService.CreateAsync<RequestCreateDto>(createDto);
 
                 if (success)
                 {

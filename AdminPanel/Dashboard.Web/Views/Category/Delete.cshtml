@@ -38,7 +38,7 @@
             </dd>
 
             <dt class="col-sm-3">Oluşturulma:</dt>
-            <dd class="col-sm-9">@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
+            <dd class="col-sm-9">@(Model.CreatedAt.HasValue ? Model.CreatedAt.Value.ToString("dd.MM.yyyy HH:mm") : "-")</dd>
         </dl>
 
         <div class="alert alert-warning mt-3">

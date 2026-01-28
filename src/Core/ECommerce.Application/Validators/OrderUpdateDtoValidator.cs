@@ -8,11 +8,11 @@ public class OrderUpdateDtoValidator : AbstractValidator<OrderUpdateDto>
 {
     public OrderUpdateDtoValidator()
     {
-        RuleFor(x => x.OrderStatus)
+        RuleFor(x => x.Status)
             .IsInEnum().WithMessage("Geçersiz sipariş durumu");
 
         RuleFor(x => x.AddressId)
-            .GreaterThan(0).When(x => x.AddressId.HasValue)
+            .GreaterThan(0)
             .WithMessage("Geçersiz adres ID");
     }
 }

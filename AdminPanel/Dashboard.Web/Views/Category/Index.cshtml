@@ -75,7 +75,7 @@
                             <span class="badge @(category.IsActive ? "bg-success" : "bg-secondary") me-2">
                                 @(category.IsActive ? "Aktif" : "Pasif")
                             </span>
-                            <small class="text-muted">@category.CreatedAt.ToString("dd.MM.yyyy")</small>
+                            <small class="text-muted">@(category.CreatedAt.HasValue ? category.CreatedAt.Value.ToString("dd.MM.yyyy") : "-")</small>
                         </div>
 
                         <hr />
@@ -247,16 +247,15 @@
     }
 
     function editCategory(id) {
-        // TODO: Edit modal veya sayfası eklenecek
-        alert('Kategori düzenleme: ' + id);
+        // Edit sayfasına yönlendir
+        window.location.href = '@Url.Action("Edit")/' + id;
     }
 
     function deleteCategory(id) {
         if (confirm('Bu kategoriyi silmek istediğinizden emin misiniz?')) {
-            // TODO: Delete API call
+            // Delete confirmation sayfasına yönlendir
             window.location.href = '@Url.Action("Delete")/' + id;
         }
     }
 </script>
 }
-

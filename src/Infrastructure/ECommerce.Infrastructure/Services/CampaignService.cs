@@ -112,7 +112,7 @@ public class CampaignService : ICampaignService
     public async Task<CampaignDto> CreateAsync(CampaignCreateDto dto)
     {
         // Enforce tenant?
-        var companyId = _tenantService.GetCompanyId() ?? dto.CompanyId;
+        var companyId = _tenantService.GetCompanyId() ?? dto.CompanyId ?? 1;
         
         var campaign = Campaign.Create(
             dto.Name,

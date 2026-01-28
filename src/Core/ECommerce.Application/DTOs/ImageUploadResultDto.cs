@@ -1,7 +1,12 @@
 namespace ECommerce.Application.DTOs;
 
-public record ImageUploadResultDto(
-    string OriginalUrl,
-    string WebPUrl,
-    string ThumbnailUrl
-);
+/// <summary>
+/// Resim yükleme sonuç DTO
+/// </summary>
+public record ImageUploadResultDto
+{
+    public string OriginalUrl { get; init; } = string.Empty;
+    public string ThumbnailUrl { get; init; } = string.Empty;
+    public string WebPUrl { get; init; } = string.Empty;
+    public string FileName { get; init; } = string.Empty;
+}

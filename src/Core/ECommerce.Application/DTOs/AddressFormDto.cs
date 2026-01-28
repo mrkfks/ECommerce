@@ -1,12 +1,15 @@
 namespace ECommerce.Application.DTOs;
 
-public record AddressFormDto(
-    int? Id,
-    int CustomerId,
-    string Street,
-    string City,
-    string State,
-    string ZipCode,
-    string Country = "Turkey",
-    int? CompanyId = null
-);
+/// <summary>
+/// Adres form DTO
+/// </summary>
+public record AddressFormDto
+{
+    public int? Id { get; init; }
+    public int CustomerId { get; init; }
+    public string Street { get; init; } = string.Empty;
+    public string City { get; init; } = string.Empty;
+    public string State { get; init; } = string.Empty;
+    public string ZipCode { get; init; } = string.Empty;
+    public string Country { get; init; } = string.Empty;
+}

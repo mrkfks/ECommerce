@@ -19,7 +19,8 @@ namespace Dashboard.Web.Controllers
         public async Task<IActionResult> Index()
         {
             var response = await _companyService.GetAllAsync();
-            var companyVms = (response?.Data ?? new List<CompanyDto>()).Select(c => new CompanyVm
+            var companies = response?.Data ?? new List<CompanyDto>();
+            var companyVms = companies.Select(c => new CompanyVm
             {
                 Id = c.Id,
                 Name = c.Name,
@@ -66,10 +67,10 @@ namespace Dashboard.Web.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var response = await _companyService.GetByIdAsync(id);
-            if (response == null || response.Data == null)
+            var company = response?.Data;
+            if (company == null)
                 return NotFound();
             
-            var company = response.Data;
             var companyVm = new CompanyVm
             {
                 Id = company.Id,
@@ -93,10 +94,11 @@ namespace Dashboard.Web.Controllers
         public async Task<IActionResult> Edit(int id)
         {
             var response = await _companyService.GetByIdAsync(id);
-            if (response == null || response.Data == null)
+            var company = response?.Data;
+            if (company == null)
                 return NotFound();
             
-            return View(response.Data);
+            return View(company);
         }
 
         [HttpPost]

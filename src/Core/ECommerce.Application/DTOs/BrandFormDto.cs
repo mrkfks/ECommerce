@@ -1,11 +1,15 @@
 namespace ECommerce.Application.DTOs;
 
-public record BrandFormDto(
-    int? Id,
-    string Name,
-    string Description,
-    string? ImageUrl = null,
-    int? CategoryId = null,
-    int? CompanyId = null,
-    bool IsActive = true
-);
+/// <summary>
+/// Marka form DTO
+/// </summary>
+public record BrandFormDto
+{
+    public int? Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string Description { get; init; } = string.Empty;
+    public string? ImageUrl { get; init; }
+    public int? CategoryId { get; init; }
+    public int? CompanyId { get; init; }
+    public bool IsActive { get; init; } = true;
+}

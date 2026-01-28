@@ -7,7 +7,7 @@ public class LoginDtoValidator : AbstractValidator<LoginDto>
 {
     public LoginDtoValidator()
     {
-        RuleFor(x => x.UsernameOrEmail)
+        RuleFor(x => x.LoginIdentifier)
             .NotEmpty().WithMessage("Kullanıcı adı veya email zorunludur");
 
         RuleFor(x => x.Password)

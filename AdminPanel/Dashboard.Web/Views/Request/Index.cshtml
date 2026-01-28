@@ -55,7 +55,7 @@
                                     }
                                     <span class="badge @badgeClass">@statusText</span>
                                 </td>
-                                <td>@request.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td>@(request.CreatedAt.HasValue ? request.CreatedAt.Value.ToString("dd.MM.yyyy HH:mm") : "-")</td>
                                 <td>
                                     <a asp-action="Details" asp-route-id="@request.Id" class="btn btn-sm btn-info">
                                         <i class="fa-solid fa-eye"></i>

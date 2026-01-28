@@ -1,4 +1,5 @@
 using ECommerce.Application.DTOs;
+using ECommerce.Application.DTOs.Dashboard;
 using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;

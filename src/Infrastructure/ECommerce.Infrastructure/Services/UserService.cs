@@ -193,9 +193,9 @@ public class UserService : IUserService
 
         // Şirket güncelleme (SuperAdmin için)
         var isSuperAdmin = _tenantService.IsSuperAdmin();
-        if (isSuperAdmin && dto.CompanyId > 0 && dto.CompanyId != user.CompanyId)
+        if (isSuperAdmin && dto.CompanyId.HasValue && dto.CompanyId.Value > 0 && dto.CompanyId.Value != user.CompanyId)
         {
-            user.UpdateCompany(dto.CompanyId);
+            user.UpdateCompany(dto.CompanyId.Value);
         }
 
         // Aktiflik durumu güncelleme

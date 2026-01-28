@@ -1,11 +1,15 @@
 namespace ECommerce.Application.DTOs;
 
-public record CategoryFormDto(
-    int? Id,
-    string Name,
-    string? Description = null,
-    string? ImageUrl = null,
-    int? ParentCategoryId = null,
-    int DisplayOrder = 0,
-    bool IsActive = true
-);
+/// <summary>
+/// Kategori form DTO
+/// </summary>
+public record CategoryFormDto
+{
+    public int? Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string? Description { get; init; }
+    public string? ImageUrl { get; init; }
+    public int? ParentCategoryId { get; init; }
+    public int DisplayOrder { get; init; }
+    public bool IsActive { get; init; } = true;
+}

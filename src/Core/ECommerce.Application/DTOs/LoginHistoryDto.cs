@@ -3,126 +3,52 @@ namespace ECommerce.Application.DTOs;
 /// <summary>
 /// Giriş geçmişi DTO
 /// </summary>
-public record LoginHistoryDto(
-    int Id,
-    int UserId,
-    string Username,
-    string? UserFullName,
-    string? RoleName,
-    DateTime LoginTime,
-    string IpAddress,
-    string? UserAgent,
-    string? Browser,
-    string? OperatingSystem,
-    string? Location,
-    bool IsSuspicious,
-    string? SuspiciousReason,
-    bool IsSuccessful,
-    string? FailureReason,
-    string TimeAgo
-);
+public record LoginHistoryDto
+{
+    public int Id { get; init; }
+    public int UserId { get; init; }
+    public string Username { get; init; } = string.Empty;
+    public string UserFullName { get; init; } = string.Empty;
+    public string? RoleName { get; init; }
+    public string? IpAddress { get; init; }
+    public string? UserAgent { get; init; }
+    public string? Browser { get; init; }
+    public string? OperatingSystem { get; init; }
+    public string? Location { get; init; }
+    public bool IsSuccess { get; init; }
+    public bool IsSuccessful { get; init; }  // Geriye uyumluluk
+    public string? FailureReason { get; init; }
+    public bool IsSuspicious { get; init; }
+    public string? SuspiciousReason { get; init; }
+    public DateTime LoginTime { get; init; }
+    public string? TimeAgo { get; init; }
+}
 
 /// <summary>
 /// Giriş geçmişi oluşturma DTO
 /// </summary>
-public record LoginHistoryCreateDto(
-    int UserId,
-    string IpAddress,
-    string? UserAgent = null,
-    string? Browser = null,
-    string? OperatingSystem = null,
-    string? Location = null,
-    bool IsSuccessful = true,
-    string? FailureReason = null
-);
-
-/// <summary>
-/// Son girişler özeti DTO
-/// </summary>
-public record LoginHistorySummaryDto(
-    int TotalLogins,
-    int SuspiciousLogins,
-    int FailedLogins,
-    int UniqueUsers,
-    List<LoginHistoryDto> RecentLogins
-);
-
-/// <summary>
-/// Kullanıcı yönetimi özet DTO
-/// </summary>
-public record UserManagementSummaryDto(
-    int TotalUsers,
-    int ActiveUsers,
-    int InactiveUsers,
-    int SuperAdminCount,
-    int CompanyAdminCount,
-    int CustomerCount,
-    int TodayLogins,
-    int SuspiciousLogins,
-    List<UserWithRoleDto> RecentUsers
-);
-
-/// <summary>
-/// Rol bilgisiyle kullanıcı DTO
-/// </summary>
-public record UserWithRoleDto(
-    int Id,
-    string Username,
-    string Email,
-    string? FirstName,
-    string? LastName,
-    bool IsActive,
-    int CompanyId,
-    string? CompanyName,
-    List<string> Roles,
-    DateTime? LastLoginTime = null,
-    string? LastLoginIp = null,
-    DateTime? CreatedAt = null
-)
+public record LoginHistoryCreateDto
 {
-    public string FullName => $"{FirstName} {LastName}".Trim();
-    public string PrimaryRole => Roles.FirstOrDefault() ?? "Customer";
+    public int UserId { get; init; }
+    public string? IpAddress { get; init; }
+    public string? UserAgent { get; init; }
+    public string? Browser { get; init; }
+    public string? OperatingSystem { get; init; }
+    public string? Location { get; init; }
+    public bool IsSuccess { get; init; } = true;
+    public bool IsSuccessful { get; init; } = true;  // Geriye uyumluluk
+    public string? FailureReason { get; init; }
 }
 
 /// <summary>
-/// Kullanıcı filtre DTO
+/// Giriş geçmişi özeti DTO
 /// </summary>
-public record UserFilterDto(
-    string? SearchTerm = null,
-    string? Role = null,
-    int? CompanyId = null,
-    bool? IsActive = null,
-    int Page = 1,
-    int PageSize = 20
-);
-
-/// <summary>
-/// Sayfalanmış kullanıcı listesi DTO
-/// </summary>
-public record PagedUserListDto(
-    List<UserWithRoleDto> Users,
-    int TotalCount,
-    int Page,
-    int PageSize
-)
+public record LoginHistorySummaryDto
 {
-    public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
-    public bool HasNextPage => Page < TotalPages;
-    public bool HasPreviousPage => Page > 1;
+    public int TotalLogins { get; init; }
+    public int SuccessfulLogins { get; init; }
+    public int FailedLogins { get; init; }
+    public int SuspiciousLogins { get; init; }
+    public int UniqueUsers { get; init; }
+    public List<LoginHistoryDto> RecentLogins { get; init; } = new();
 }
-
-/// <summary>
-/// Rol güncelleme DTO
-/// </summary>
-public record UserRoleUpdateDto(
-    int UserId,
-    List<string> Roles
-);
-
-/// <summary>
-/// Kullanıcı aktivasyon DTO
-/// </summary>
-public record UserActivationDto(
-    int UserId,
-    bool IsActive
-);

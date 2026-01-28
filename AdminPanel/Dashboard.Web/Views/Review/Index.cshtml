@@ -29,7 +29,7 @@
                         <td>@review.ProductName</td>
                         <td>@review.ReviewerName</td>
                         <td>@review.Comment</td>
-                        <td>@review.CreatedAt.ToString("dd.MM.yyyy")</td>
+                        <td>@(review.CreatedAt.HasValue ? review.CreatedAt.Value.ToString("dd.MM.yyyy") : "-")</td>
                         <td>
                             <a asp-action="Details" asp-route-id="@review.Id" class="btn btn-sm btn-info">Detay</a>
                             @if (User.IsInRole("CompanyAdmin") || User.IsInRole("SuperAdmin"))

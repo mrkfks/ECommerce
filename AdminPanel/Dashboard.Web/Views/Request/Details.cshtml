@@ -72,7 +72,7 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Oluşturma Tarihi</label>
-                        <p class="form-control-plaintext">@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm:ss")</p>
+                        <p class="form-control-plaintext">@(Model.CreatedAt.HasValue ? Model.CreatedAt.Value.ToString("dd.MM.yyyy HH:mm:ss") : "-")</p>
                     </div>
                 </div>
             </div>

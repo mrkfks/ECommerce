@@ -294,16 +294,23 @@
                                     </td>
                                     <td>@user.Email</td>
                                     <td>
-                                        @foreach (var role in user.Roles)
+                                        @if (user.Roles != null)
                                         {
-                                            var badgeClass = role switch
+                                            @foreach (var role in user.Roles)
                                             {
-                                                "SuperAdmin" => "role-badge-superadmin",
-                                                "CompanyAdmin" => "role-badge-companyadmin",
-                                                "Customer" => "role-badge-customer",
-                                                _ => "role-badge-default"
-                                            };
-                                            <span class="badge @badgeClass me-1">@role</span>
+                                                var badgeClass = role switch
+                                                {
+                                                    "SuperAdmin" => "role-badge-superadmin",
+                                                    "CompanyAdmin" => "role-badge-companyadmin",
+                                                    "Customer" => "role-badge-customer",
+                                                    _ => "role-badge-default"
+                                                };
+                                                <span class="badge @badgeClass me-1">@role</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
                                         }
                                     </td>
                                     @if (User.IsInRole("SuperAdmin"))
@@ -339,7 +346,7 @@
                                                 <i class="fa-solid fa-edit"></i>
                                             </a>
                                             <button type="button" class="btn btn-outline-warning" title="Rolleri Düzenle" 
-                                                    onclick="openRoleModal(@user.Id, '@user.Username', '@string.Join(",", user.Roles)')">
+                                                    onclick="openRoleModal(@user.Id, '@user.Username', '@(user.Roles != null ? string.Join(",", user.Roles) : string.Empty)')">
                                                 <i class="fa-solid fa-user-tag"></i>
                                             </button>
                                             <button type="button" class="btn @(user.IsActive ? "btn-outline-secondary" : "btn-outline-success")" 

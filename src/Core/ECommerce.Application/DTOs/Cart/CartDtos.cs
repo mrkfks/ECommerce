@@ -1,27 +1,46 @@
-namespace ECommerce.Application.DTOs;
+namespace ECommerce.Application.DTOs.Cart;
 
-public record CartDto(
-    int Id,
-    decimal TotalAmount,
-    List<CartItemDto> Items
-);
+/// <summary>
+/// Sepet bilgisi DTO
+/// </summary>
+public record CartDto
+{
+    public int Id { get; init; }
+    public decimal TotalAmount { get; init; }
+    public List<CartItemDto> Items { get; init; } = new();
+}
 
-public record CartItemDto(
-    int Id,
-    int ProductId,
-    string ProductName,
-    string ProductImage,
-    int Quantity,
-    decimal UnitPrice,
-    decimal TotalPrice,
-    int CompanyId
-);
+/// <summary>
+/// Sepet kalemi DTO
+/// </summary>
+public record CartItemDto
+{
+    public int Id { get; init; }
+    public int ProductId { get; init; }
+    public string ProductName { get; init; } = string.Empty;
+    public string? ImageUrl { get; init; }
+    public string? ProductImage { get; init; }  // Geriye uyumluluk
+    public int Quantity { get; init; }
+    public decimal UnitPrice { get; init; }
+    public decimal TotalPrice { get; init; }
+    public int StockQuantity { get; init; }
+    public int CompanyId { get; init; }
+}
 
-public record AddToCartDto(
-    int ProductId,
-    int Quantity
-);
+/// <summary>
+/// Sepete ürün ekleme DTO
+/// </summary>
+public record AddToCartDto
+{
+    public int ProductId { get; init; }
+    public int Quantity { get; init; } = 1;
+}
 
-public record UpdateCartItemDto(
-    int Quantity
-);
+/// <summary>
+/// Sepet kalemi güncelleme DTO
+/// </summary>
+public record UpdateCartItemDto
+{
+    public int CartItemId { get; init; }
+    public int Quantity { get; init; }
+}

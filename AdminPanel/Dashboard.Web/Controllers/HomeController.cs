@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dashboard.Web.Models;
+using Dashboard.Web.Services;
 
 
 
@@ -435,12 +436,12 @@ public class HomeController : Controller
     /// Yeni kampanya oluşturur
     /// </summary>
     [HttpPost]
-    public async Task<IActionResult> CreateCampaign([FromBody] CampaignCreateVm model)
+    public async Task<IActionResult> CreateCampaign([FromBody] Models.CampaignCreateVm model)
     {
         try
         {
             model.CompanyId = GetCurrentCompanyId();
-            var success = await _campaignService.CreateAsync<CampaignCreateVm>(model);
+            var success = await _campaignService.CreateAsync<Models.CampaignCreateVm>(model);
             return Json(new { success = success, message = success ? "Kampanya başarıyla oluşturuldu" : "Kampanya oluşturulamadı" });
         }
         catch (Exception ex)

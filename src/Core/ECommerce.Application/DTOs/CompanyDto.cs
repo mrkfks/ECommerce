@@ -1,123 +1,79 @@
 namespace ECommerce.Application.DTOs;
 
-public record CompanyDto(
-    int Id,
-    string Name,
-    string? Description,
-    string TaxNumber,
-    string Email,
-    string PhoneNumber,
-    string Address,
-    bool IsActive = true,
-    DateTime? CreatedAt = null,
-    DateTime? UpdatedAt = null
-);
+/// <summary>
+/// Şirket bilgisi DTO
+/// </summary>
+public record CompanyDto
+{
+    public int Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string? Description { get; init; }
+    public string TaxNumber { get; init; } = string.Empty;
+    public string Email { get; init; } = string.Empty;
+    public string PhoneNumber { get; init; } = string.Empty;
+    public string Address { get; init; } = string.Empty;
+    public bool IsActive { get; init; } = true;
+    public bool IsApproved { get; init; } = false;
+    public DateTime? CreatedAt { get; init; }
+    public DateTime? UpdatedAt { get; init; }
+    
+    // Sorumlu kişi bilgileri
+    public string? ResponsiblePersonName { get; init; }
+    public string? ResponsiblePersonPhone { get; init; }
+    public string? ResponsiblePersonEmail { get; init; }
+    
+    // İstatistikler
+    public int UserCount { get; init; }
+    public int CustomerCount { get; init; }
+    
+    // Branding bilgileri
+    public string? Domain { get; init; }
+    public string? LogoUrl { get; init; }
+    public string? PrimaryColor { get; init; }
+    public string? SecondaryColor { get; init; }
+}
 
-public record CompanyFormDto(
-    int? Id,
-    string Name,
-    string? Description = null,
-    string TaxNumber = "",
-    string Email = "",
-    string PhoneNumber = "",
-    string Address = "",
-    bool IsActive = true
-);
+/// <summary>
+/// Şirket oluşturma DTO
+/// </summary>
+public record CompanyCreateDto
+{
+    public string Name { get; init; } = string.Empty;
+    public string TaxNumber { get; init; } = string.Empty;
+    public string Email { get; init; } = string.Empty;
+    public string PhoneNumber { get; init; } = string.Empty;
+    public string Address { get; init; } = string.Empty;
+    public string? Description { get; init; }
+}
 
-public record CustomerDto(
-    int Id,
-    string FirstName,
-    string LastName,
-    string Name, // Full name
-    string Email,
-    string PhoneNumber,
-    DateTime DateOfBirth,
-    int CompanyId,
-    string? CompanyName = null,
-    int? UserId = null,
-    int TotalOrders = 0,
-    decimal TotalSpent = 0,
-    DateTime? CreatedAt = null,
-    DateTime? UpdatedAt = null
-);
+/// <summary>
+/// Şirket güncelleme DTO
+/// </summary>
+public record CompanyUpdateDto
+{
+    public int Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string Email { get; init; } = string.Empty;
+    public string PhoneNumber { get; init; } = string.Empty;
+    public string Address { get; init; } = string.Empty;
+    public bool IsActive { get; init; }
+    public string? Description { get; init; }
+}
 
-public record CustomerFormDto(
-    int? Id,
-    string FirstName,
-    string LastName,
-    string Email,
-    string PhoneNumber,
-    DateTime DateOfBirth,
-    int CompanyId,
-    int? UserId = null
-);
-
-public record CustomerSummaryDto(
-    int Id,
-    string Name,
-    string Email,
-    string PhoneNumber,
-    int OrderCount = 0,
-    int ReviewCount = 0,
-    int TotalOrders = 0,
-    decimal TotalSpent = 0,
-    string? ImageUrl = null
-);
-
-public record UserDto(
-    int Id,
-    string Username,
-    string Email,
-    string FirstName,
-    string LastName,
-    int? CompanyId = null,
-    string? CompanyName = null,
-    List<string>? Roles = null,
-    bool IsActive = true,
-    DateTime? CreatedAt = null
-);
-
-public record UserFormDto(
-    int? Id,
-    string Username,
-    string Email,
-    string? Password = null, // Only for Create
-    string FirstName = "",
-    string LastName = "",
-    string? RoleName = null, // For simplify single role assignment
-    List<string>? Roles = null, // For multiple role management
-    int? CompanyId = null,
-    bool IsActive = true
-);
-
-public record UserProfileUpdateDto(
-    string FirstName,
-    string LastName,
-    string? Email = null,
-    string? PhoneNumber = null,
-    string? ProfilePictureUrl = null
-);
-
-public record ReviewDto(
-    int Id,
-    int ProductId,
-    string? ProductName = null,
-    int CustomerId,
-    string? CustomerName = null,
-    int CompanyId,
-    string? ReviewerName = null,
-    int Rating,
-    string Comment,
-    DateTime? CreatedAt = null,
-    DateTime? UpdatedAt = null
-);
-
-public record ReviewFormDto(
-    int? Id,
-    int? ProductId = null,
-    int? CustomerId = null,
-    int? CompanyId = null,
-    string? ReviewerName = null,
-    int Rating = 0,
-    string Comment = ""
-);
+/// <summary>
+/// Yorum bilgisi DTO
+/// </summary>
+public record ReviewDto
+{
+    public int Id { get; init; }
+    public int ProductId { get; init; }
+    public int CustomerId { get; init; }
+    public int CompanyId { get; init; }
+    public int Rating { get; init; }
+    public string Comment { get; init; } = string.Empty;
+    public string? ProductName { get; init; }
+    public string? CustomerName { get; init; }
+    public string? ReviewerName { get; init; }
+    public DateTime? CreatedAt { get; init; }
+    public DateTime? UpdatedAt { get; init; }
+}

@@ -1,0 +1,12 @@
+  Geri y├╝klenecek projeler belirleniyor...
+  Geri y├╝kleme i├ğin t├╝m projeler g├╝ncel.
+  ECommerce.Domain -> D:\├ûmer Kafkas\Projects\ECommerce\src\Core\ECommerce.Domain\bin\Debug\net9.0\ECommerce.Domain.dll
+  ECommerce.Application -> D:\├ûmer Kafkas\Projects\ECommerce\src\Core\ECommerce.Application\bin\Debug\net9.0\ECommerce.Application.dll
+  ECommerce.Infrastructure -> D:\├ûmer Kafkas\Projects\ECommerce\src\Infrastructure\ECommerce.Infrastructure\bin\Debug\net9.0\ECommerce.Infrastructure.dll
+  Dashboard.Web -> D:\├ûmer Kafkas\Projects\ECommerce\AdminPanel\Dashboard.Web\bin\Debug\net9.0\Dashboard.Web.dll
+
+Olu┼şturma ba┼şar─▒l─▒ oldu.
+    0 Uyar─▒
+    0 Hata
+
+Ge├ğen S├╝re 00:00:01.50

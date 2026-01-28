@@ -57,7 +57,7 @@
                                     <div class="text-muted small">@attr.Description</div>
                                 </td>
                                 <td>
-                                    <span class="badge bg-secondary">@((ECommerce.Domain.Entities.AttributeType)attr.AttributeType)</span>
+                                    <span class="badge bg-secondary">@((ECommerce.Domain.Entities.AttributeType)Enum.Parse(typeof(ECommerce.Domain.Entities.AttributeType), attr.AttributeType.ToString()))</span>
                                 </td>
                                 <td>
                                     @if (attr.Values != null && attr.Values.Any())

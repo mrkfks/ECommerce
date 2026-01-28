@@ -88,9 +88,9 @@
                             <div class="mb-3">
                                 <label class="form-label fw-semibold text-muted">Kayıt Tarihi</label>
                                 <div class="form-control-plaintext">
-                                    @if (Model.CreatedAt != default)
+                                    @if (Model.CreatedAt.HasValue)
                                     {
-                                        @Model.CreatedAt.ToString("dd MMMM yyyy HH:mm")
+                                        @Model.CreatedAt.Value.ToString("dd MMMM yyyy HH:mm")
                                     }
                                     else
                                     {

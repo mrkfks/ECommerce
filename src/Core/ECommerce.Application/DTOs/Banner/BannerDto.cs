@@ -1,24 +1,59 @@
 namespace ECommerce.Application.DTOs.Banner;
 
-public record BannerDto(
-    int Id,
-    string Title,
-    string? Description,
-    string ImageUrl,
-    string? Link,
-    int Order,
-    bool IsActive,
-    int CompanyId,
-    DateTime CreatedAt
-);
+/// <summary>
+/// Banner bilgisi DTO
+/// </summary>
+public record BannerDto
+{
+    public int Id { get; init; }
+    public string Title { get; init; } = string.Empty;
+    public string? Description { get; init; }
+    public string ImageUrl { get; init; } = string.Empty;
+    public string? Link { get; init; }
+    public int Order { get; init; }
+    public bool IsActive { get; init; } = true;
+    public int CompanyId { get; init; }
+    public DateTime CreatedAt { get; init; }
+}
 
-public record BannerFormDto(
-    int? Id,
-    string Title,
-    string ImageUrl,
-    string? Description = null,
-    string? Link = null,
-    int Order = 0,
-    bool IsActive = true,
-    int? CompanyId = null
-);
+/// <summary>
+/// Banner form DTO
+/// </summary>
+public record BannerFormDto
+{
+    public int? Id { get; init; }
+    public string Title { get; init; } = string.Empty;
+    public string ImageUrl { get; init; } = string.Empty;
+    public string? Description { get; init; }
+    public string? Link { get; init; }
+    public int Order { get; init; }
+    public bool IsActive { get; init; } = true;
+    public int? CompanyId { get; init; }
+}
+
+/// <summary>
+/// Banner oluşturma DTO
+/// </summary>
+public record CreateBannerDto
+{
+    public string Title { get; init; } = string.Empty;
+    public string ImageUrl { get; init; } = string.Empty;
+    public string? Description { get; init; }
+    public string? Link { get; init; }
+    public int Order { get; init; }
+    public bool IsActive { get; init; } = true;
+    public int? CompanyId { get; init; }
+}
+
+/// <summary>
+/// Banner güncelleme DTO
+/// </summary>
+public record UpdateBannerDto
+{
+    public string Title { get; init; } = string.Empty;
+    public string ImageUrl { get; init; } = string.Empty;
+    public string? Description { get; init; }
+    public string? Link { get; init; }
+    public int Order { get; init; }
+    public bool IsActive { get; init; } = true;
+}

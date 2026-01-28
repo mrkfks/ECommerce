@@ -17,10 +17,9 @@
             <dd class="col-sm-9">@Model.Email</dd>
 
             <dt class="col-sm-3">Roller</dt>
-            <dd class="col-sm-9">@string.Join(", ", Model.Roles)</dd>
+            <dd class="col-sm-9">@(Model.Roles != null ? string.Join(", ", Model.Roles) : "-")</dd>
         </dl>
 
         <a asp-action="Index" class="btn btn-secondary">Geri</a>
     </div>
 </div>
-

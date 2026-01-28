@@ -2,8 +2,12 @@ using ECommerce.Domain.Enums;
 
 namespace ECommerce.Application.DTOs;
 
-public record OrderUpdateDto(
-    int Id,
-    OrderStatus OrderStatus,
-    int? AddressId = null
-);
+/// <summary>
+/// Sipariş güncelleme DTO
+/// </summary>
+public record OrderUpdateDto
+{
+    public int Id { get; init; }
+    public int AddressId { get; init; }
+    public OrderStatus Status { get; init; }
+}

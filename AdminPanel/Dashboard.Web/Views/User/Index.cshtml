@@ -67,7 +67,7 @@
                         <td>@user.Username</td>
                         <td>@user.Email</td>
                         <td>@(user.CompanyName ?? "-")</td>
-                        <td>@string.Join(", ", user.Roles)</td>
+                        <td>@(user.Roles != null ? string.Join(", ", user.Roles) : "-")</td>
                         <td>
                             @if (user.IsActive)
                             {
@@ -81,7 +81,7 @@
                         <td>
                             <a asp-action="Details" asp-route-id="@user.Id" class="btn btn-sm btn-info">Detay</a>
                             <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-sm btn-warning">Düzenle</a>
-                            <button type="button" class="btn btn-sm btn-outline-dark" onclick="openRoleModal(@user.Id, '@user.Username', '@string.Join(",", user.Roles)')">
+                            <button type="button" class="btn btn-sm btn-outline-dark" onclick="openRoleModal(@user.Id, '@user.Username', '@(user.Roles != null ? string.Join(",", user.Roles) : string.Empty)')">
                                 <i class="fa-solid fa-user-tag"></i> Rol
                             </button>
                             <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-sm btn-danger">Sil</a>

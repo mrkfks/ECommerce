@@ -51,7 +51,9 @@ public class MappingProfile : Profile
 
         // Address mappings
         CreateMap<Address, AddressDto>()
-            .ForMember(d => d.CompanyName, opt => opt.MapFrom(s => s.Company != null ? s.Company.Name : null))
+            .ForMember(d => d.CompanyId, opt => opt.Ignore())
+            .ForMember(d => d.CompanyName, opt => opt.Ignore())
+            .ForMember(d => d.PostalCode, opt => opt.MapFrom(s => s.ZipCode))
             .ForMember(d => d.CustomerName, opt => opt.MapFrom(s => s.Customer != null ? $"{s.Customer.FirstName} {s.Customer.LastName}" : null));
         
         CreateMap<AddressFormDto, Address>();
@@ -77,7 +79,8 @@ public class MappingProfile : Profile
 
         // Brand mappings
         CreateMap<Brand, BrandDto>()
-            .ForMember(d => d.CategoryName, opt => opt.MapFrom(s => s.Category != null ? s.Category.Name : null));
+            .ForMember(d => d.CategoryId, opt => opt.Ignore())
+            .ForMember(d => d.CategoryName, opt => opt.Ignore());
         CreateMap<BrandFormDto, Brand>();
 
         // Model mappings
@@ -143,7 +146,18 @@ public class MappingProfile : Profile
 
         // Company mappings
         CreateMap<Company, CompanyDto>();
-        CreateMap<CompanyFormDto, Company>()
+        CreateMap<CompanyCreateDto, Company>()
+            .ForMember(d => d.Id, opt => opt.Ignore())
+            .ForMember(d => d.CreatedAt, opt => opt.Ignore())
+            .ForMember(d => d.UpdatedAt, opt => opt.Ignore())
+            .ForMember(d => d.IsActive, opt => opt.MapFrom(s => true))
+            .ForMember(d => d.Users, opt => opt.Ignore())
+            .ForMember(d => d.Customers, opt => opt.Ignore())
+            .ForMember(d => d.Products, opt => opt.Ignore())
+            .ForMember(d => d.Orders, opt => opt.Ignore())
+            .ForMember(d => d.Reviews, opt => opt.Ignore());
+        CreateMap<CompanyUpdateDto, Company>()
+            .ForMember(d => d.TaxNumber, opt => opt.Ignore())
             .ForMember(d => d.CreatedAt, opt => opt.Ignore())
             .ForMember(d => d.UpdatedAt, opt => opt.Ignore())
             .ForMember(d => d.Users, opt => opt.Ignore())

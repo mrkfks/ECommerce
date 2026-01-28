@@ -1,14 +1,18 @@
 namespace ECommerce.Application.DTOs;
 
-public record AddressDto(
-    int Id,
-    int CustomerId,
-    string? CustomerName,
-    string Street,
-    string City,
-    string State,
-    string PostalCode,
-    string Country,
-    int? CompanyId = null,
-    string? CompanyName = null
-);
+/// <summary>
+/// Adres bilgisi DTO
+/// </summary>
+public record AddressDto
+{
+    public int Id { get; init; }
+    public int CustomerId { get; init; }
+    public string? CustomerName { get; init; }
+    public string Street { get; init; } = string.Empty;
+    public string City { get; init; } = string.Empty;
+    public string State { get; init; } = string.Empty;
+    public string PostalCode { get; init; } = string.Empty;
+    public string Country { get; init; } = string.Empty;
+    public int? CompanyId { get; init; }
+    public string? CompanyName { get; init; }
+}

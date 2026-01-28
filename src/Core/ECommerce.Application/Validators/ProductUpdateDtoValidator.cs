@@ -28,10 +28,7 @@ public class ProductUpdateDtoValidator : AbstractValidator<ProductUpdateDto>
         RuleFor(x => x.BrandId)
             .GreaterThan(0).WithMessage("Marka seçilmelidir");
 
-        RuleFor(x => x.ImageUrl)
-            .MaximumLength(500).WithMessage("Resim URL'si en fazla 500 karakter olabilir");
-
-        RuleFor(x => x.IsActive)
-            .NotNull().WithMessage("Aktiflik durumu belirtilmelidir");
+        // ImageUrl ve IsActive, ProductUpdateDto'da bulunmuyor - ProductFormDto kullanılmalı
+        // Bu validator sadece ProductUpdateDto için geçerli
     }
 }

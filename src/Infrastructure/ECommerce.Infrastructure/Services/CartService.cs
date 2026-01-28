@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using ECommerce.Application.DTOs;
+using ECommerce.Application.DTOs.Cart;
 using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Entities;
 using ECommerce.Infrastructure.Data;

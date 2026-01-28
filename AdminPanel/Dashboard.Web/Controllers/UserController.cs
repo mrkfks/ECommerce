@@ -191,13 +191,21 @@ namespace Dashboard.Web.Controllers
                 return View(dto);
             }
 
-            // İlk seçilen rolü ata
-            if (SelectedRoles != null && SelectedRoles.Any())
+            // init-only property olduğu için yeni bir DTO oluştur
+            var createDto = new UserCreateDto
             {
-                dto.RoleName = SelectedRoles.First();
-            }
+                Username = dto.Username,
+                Email = dto.Email,
+                Password = dto.Password,
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                CompanyId = dto.CompanyId,
+                IsActive = dto.IsActive,
+                RoleName = SelectedRoles?.FirstOrDefault(),
+                Roles = SelectedRoles
+            };
 
-            var success = await _userService.CreateAsync(dto);
+            var success = await _userService.CreateAsync(createDto);
 
             if (success)
                 return RedirectToAction(nameof(Index));
