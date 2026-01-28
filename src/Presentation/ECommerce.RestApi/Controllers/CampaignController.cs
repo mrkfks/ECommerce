@@ -49,7 +49,7 @@ public class CampaignController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CampaignCreateDto dto)
+    public async Task<IActionResult> Create([FromBody] CampaignFormDto dto)
     {
         try
         {
@@ -63,7 +63,7 @@ public class CampaignController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] CampaignUpdateDto dto)
+    public async Task<IActionResult> Update(int id, [FromBody] CampaignFormDto dto)
     {
         try
         {

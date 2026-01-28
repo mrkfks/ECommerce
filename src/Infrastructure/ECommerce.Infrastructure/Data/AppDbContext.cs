@@ -1,6 +1,6 @@
 using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Entities;
-using ECommerce.Infrastructure.Data.Configurations;
+
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 

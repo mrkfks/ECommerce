@@ -1,5 +1,4 @@
-using ECommerce.Application.DTOs.Banner;
-using ECommerce.Application.DTOs.Common;
+using ECommerce.Application.DTOs;
 using ECommerce.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -36,7 +35,7 @@ namespace ECommerce.RestApi.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin,SuperAdmin")]
-        public async Task<ActionResult<ApiResponseDto<BannerDto>>> Create([FromBody] CreateBannerDto dto)
+        public async Task<ActionResult<ApiResponseDto<BannerDto>>> Create([FromBody] BannerFormDto dto)
         {
             var result = await _bannerService.CreateAsync(dto);
             if (!result.Success)
@@ -47,7 +46,7 @@ namespace ECommerce.RestApi.Controllers
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin,SuperAdmin")]
-        public async Task<ActionResult<ApiResponseDto<BannerDto>>> Update(int id, [FromBody] UpdateBannerDto dto)
+        public async Task<ActionResult<ApiResponseDto<BannerDto>>> Update(int id, [FromBody] BannerFormDto dto)
         {
             var result = await _bannerService.UpdateAsync(id, dto);
             if (!result.Success)

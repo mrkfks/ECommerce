@@ -1,5 +1,4 @@
 using ECommerce.Application.DTOs;
-using ECommerce.Application.DTOs.Dashboard;
 using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -110,7 +109,7 @@ public class NotificationController : ControllerBase
     /// </summary>
     [HttpPost]
     [ProducesResponseType(typeof(NotificationDto), StatusCodes.Status201Created)]
-    public async Task<ActionResult<NotificationDto>> Create([FromBody] NotificationCreateDto dto)
+    public async Task<ActionResult<NotificationDto>> Create([FromBody] NotificationFormDto dto)
     {
         var notification = await _notificationService.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = notification.Id }, notification);

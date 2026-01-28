@@ -104,7 +104,7 @@ public class CompanyService : ICompanyService
         }
     }
 
-    public async Task<CompanyDto> CreateAsync(CompanyDto dto)
+    public async Task<CompanyDto> CreateAsync(CompanyFormDto dto)
     {
         // Email kontrolü
         var existingCompany = await _context.Companies.FirstOrDefaultAsync(c => c.Email == dto.Email);
@@ -195,7 +195,7 @@ public class CompanyService : ICompanyService
             .FirstOrDefaultAsync(c => c.Id == id);
     }
 
-    public async Task UpdateAsync(int id, CompanyDto dto)
+    public async Task UpdateAsync(int id, CompanyFormDto dto)
     {
         var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
         if (company == null) throw new KeyNotFoundException("Şirket bulunamadı");

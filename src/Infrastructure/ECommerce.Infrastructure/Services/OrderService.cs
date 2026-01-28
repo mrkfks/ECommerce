@@ -1,5 +1,4 @@
 using ECommerce.Application.DTOs;
-using ECommerce.Application.DTOs.Common;
 using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Entities;
 using ECommerce.Domain.Enums;
@@ -39,7 +38,7 @@ namespace ECommerce.Infrastructure.Services
             _paymentService = paymentService;
         }
 
-        public async Task<OrderDto> CreateAsync(OrderCreateDto dto)
+        public async Task<OrderDto> CreateAsync(OrderFormDto dto)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -82,7 +81,10 @@ namespace ECommerce.Infrastructure.Services
                 }
 
                 // 3. Sipariş Oluşturma
-                var order = Order.Create(dto.CustomerId, addressId, dto.CompanyId);
+                if (!dto.CompanyId.HasValue)
+                    throw new Exception("Şirket bilgisi gereklidir.");
+                
+                var order = Order.Create(dto.CustomerId, addressId, dto.CompanyId.Value);
 
                 _context.Orders.Add(order);
                 await _context.SaveChangesAsync();
@@ -235,10 +237,10 @@ namespace ECommerce.Infrastructure.Services
             return orders;
         }
 
-        public async Task UpdateAsync(OrderUpdateDto dto)
+        public async Task UpdateAsync(OrderFormDto dto)
         {
-            // Not implemented in Controller, implementing basic update if needed or empty
-            var order = await _context.Orders.FindAsync(dto.Id);
+            if (!dto.Id.HasValue) throw new Exception("Order ID is required for update.");
+            var order = await _context.Orders.FindAsync(dto.Id.Value);
             if (order == null) throw new Exception("Order not found");
             // Logic to update...
             await _context.SaveChangesAsync();
@@ -269,7 +271,7 @@ namespace ECommerce.Infrastructure.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task AddItemAsync(int orderId, OrderItemCreateDto itemDto)
+        public async Task AddItemAsync(int orderId, OrderItemFormDto itemDto)
         {
             // Placeholder implementation
             await Task.CompletedTask;

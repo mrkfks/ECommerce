@@ -119,7 +119,7 @@ public class UserService : IUserService
         };
     }
 
-    public async Task<UserDto> CreateAsync(UserCreateDto dto)
+    public async Task<UserDto> CreateAsync(UserFormDto dto)
     {
         var currentCompanyId = _tenantService.GetCurrentCompanyId();
         var isSuperAdmin = _tenantService.IsSuperAdmin();
@@ -149,7 +149,7 @@ public class UserService : IUserService
         }
 
         // Şifre hash'leme
-        var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password ?? "Password123!");
 
         var user = User.Create(
             companyId: companyId,
@@ -164,17 +164,21 @@ public class UserService : IUserService
         await _context.SaveChangesAsync();
 
         // Rol atama
-        if (!string.IsNullOrEmpty(dto.RoleName))
+        if (dto.Roles != null && dto.Roles.Any())
         {
-            await AddRoleAsync(user.Id, dto.RoleName);
+            foreach (var role in dto.Roles)
+            {
+                await AddRoleAsync(user.Id, role);
+            }
         }
 
         return await GetByIdAsync(user.Id) ?? throw new InvalidOperationException("Kullanıcı oluşturulduktan sonra bulunamadı.");
     }
 
-    public async Task UpdateAsync(UserUpdateDto dto)
+    public async Task UpdateAsync(UserFormDto dto)
     {
-        var user = await _context.Users.FindAsync(dto.Id);
+        if (!dto.Id.HasValue) throw new InvalidOperationException("User ID is required for update.");
+        var user = await _context.Users.FindAsync(dto.Id.Value);
         if (user == null)
             throw new InvalidOperationException("Kullanıcı bulunamadı.");
 
@@ -183,7 +187,7 @@ public class UserService : IUserService
         {
             var existingUser = await _context.Users
                 .IgnoreQueryFilters()
-                .FirstOrDefaultAsync(u => u.Username == dto.Username && u.Id != dto.Id);
+                .FirstOrDefaultAsync(u => u.Username == dto.Username && u.Id != dto.Id.Value);
             if (existingUser != null)
                 throw new InvalidOperationException("Bu kullanıcı adı zaten kullanılıyor.");
         }

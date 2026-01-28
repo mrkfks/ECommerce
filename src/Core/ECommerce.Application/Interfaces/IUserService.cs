@@ -17,10 +17,10 @@ namespace ECommerce.Application.Interfaces
         Task<UserDto?> GetByUsernameAsync(string username);
 
         // Yeni kullanıcı oluştur
-        Task<UserDto> CreateAsync(UserCreateDto dto);
+        Task<UserDto> CreateAsync(UserFormDto dto);
 
         // Mevcut kullanıcı güncelle
-        Task UpdateAsync(UserUpdateDto dto);
+        Task UpdateAsync(UserFormDto dto);
 
         // Kullanıcı sil
         Task DeleteAsync(int id);

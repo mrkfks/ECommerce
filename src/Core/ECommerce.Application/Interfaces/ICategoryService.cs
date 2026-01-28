@@ -6,8 +6,8 @@ namespace ECommerce.Application.Interfaces
     {
         Task<IReadOnlyList<CategoryDto>> GetAllAsync();
         Task<CategoryDto?> GetByIdAsync(int id);
-        Task<CategoryDto> CreateAsync(CategoryCreateDto dto);
-        Task UpdateAsync(CategoryUpdateDto dto);
+        Task<CategoryDto> CreateAsync(CategoryFormDto dto);
+        Task UpdateAsync(CategoryFormDto dto);
         Task UpdateImageAsync(int id, string imageUrl);
         Task DeleteAsync(int id);
     }

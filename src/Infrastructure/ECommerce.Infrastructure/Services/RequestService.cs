@@ -37,10 +37,10 @@ public class RequestService : IRequestService
         return requests.Select(MapToDto).ToList();
     }
 
-    public async Task<RequestDto> CreateRequestAsync(RequestCreateDto dto)
+    public async Task<RequestDto> CreateRequestAsync(RequestFormDto dto)
     {
         var request = Request.Create(
-            dto.CompanyId,
+            dto.CompanyId ?? 0,
             dto.Title,
             dto.Description
         );

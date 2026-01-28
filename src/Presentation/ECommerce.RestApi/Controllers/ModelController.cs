@@ -57,7 +57,7 @@ public class ModelController : ControllerBase
     /// </summary>
     [HttpPost]
     [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
-    public async Task<IActionResult> Create([FromBody] ModelCreateDto dto)
+    public async Task<IActionResult> Create([FromBody] ModelFormDto dto)
     {
         var model = await _modelService.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = model.Id }, model);
@@ -68,7 +68,7 @@ public class ModelController : ControllerBase
     /// </summary>
     [HttpPut("{id}")]
     [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
-    public async Task<IActionResult> Update(int id, [FromBody] ModelUpdateDto dto)
+    public async Task<IActionResult> Update(int id, [FromBody] ModelFormDto dto)
     {
         if (id != dto.Id)
             return BadRequest("Id mismatch");

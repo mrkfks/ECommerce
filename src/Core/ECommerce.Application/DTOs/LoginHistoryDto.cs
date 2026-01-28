@@ -25,10 +25,11 @@ public record LoginHistoryDto
 }
 
 /// <summary>
-/// Giriş geçmişi oluşturma DTO
+/// Giriş geçmişi form DTO
 /// </summary>
-public record LoginHistoryCreateDto
+public record LoginHistoryFormDto
 {
+    public int? Id { get; init; }
     public int UserId { get; init; }
     public string? IpAddress { get; init; }
     public string? UserAgent { get; init; }

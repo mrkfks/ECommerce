@@ -83,7 +83,7 @@ public class CategoryService : ICategoryService
         return _mapper.Map<CategoryDto>(category);
     }
 
-    public async Task<CategoryDto> CreateAsync(CategoryCreateDto dto)
+    public async Task<CategoryDto> CreateAsync(CategoryFormDto dto)
     {
         var currentCompanyId = _tenantService.GetCompanyId();
         var isSuperAdmin = _tenantService.IsSuperAdmin();
@@ -115,9 +115,10 @@ public class CategoryService : ICategoryService
         return _mapper.Map<CategoryDto>(category);
     }
 
-    public async Task UpdateAsync(CategoryUpdateDto dto)
+    public async Task UpdateAsync(CategoryFormDto dto)
     {
-        var category = await _context.Categories.FindAsync(dto.Id);
+        if (!dto.Id.HasValue) throw new BusinessException("Category ID is required for update.");
+        var category = await _context.Categories.FindAsync(dto.Id.Value);
 
         if (category == null)
         {

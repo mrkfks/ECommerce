@@ -11,9 +11,8 @@ namespace ECommerce.Application.Interfaces
 
         Task<IReadOnlyList<CustomerSummaryDto>> GetSummariesAsync();
 
-        Task<CustomerDto> CreateAsync(CustomerCreateDto dto);
-
-        Task UpdateAsync(CustomerUpdateDto dto);
+        Task<CustomerDto> CreateAsync(CustomerFormDto dto);
+        Task UpdateAsync(CustomerFormDto dto);
 
         Task DeleteAsync(int id);
 

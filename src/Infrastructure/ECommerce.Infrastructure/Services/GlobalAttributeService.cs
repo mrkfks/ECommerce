@@ -53,7 +53,7 @@ public class GlobalAttributeService : IGlobalAttributeService
         return entity == null ? null : _mapper.Map<GlobalAttributeDto>(entity);
     }
 
-    public async Task<GlobalAttributeDto> CreateAsync(GlobalAttributeCreateDto dto)
+    public async Task<GlobalAttributeDto> CreateAsync(GlobalAttributeFormDto dto)
     {
         var currentCompanyId = _tenantService.GetCompanyId();
         var isSuperAdmin = _tenantService.IsSuperAdmin();
@@ -65,7 +65,7 @@ public class GlobalAttributeService : IGlobalAttributeService
             dto.DisplayName,
             dto.Description ?? string.Empty,
             companyId,
-            (AttributeType)dto.AttributeType,
+            Enum.Parse<AttributeType>(dto.AttributeType),
             dto.DisplayOrder);
 
         if (!dto.IsActive)
@@ -94,16 +94,17 @@ public class GlobalAttributeService : IGlobalAttributeService
         return _mapper.Map<GlobalAttributeDto>(reloaded);
     }
 
-    public async Task UpdateAsync(GlobalAttributeUpdateDto dto)
+    public async Task UpdateAsync(GlobalAttributeFormDto dto)
     {
+        if (!dto.Id.HasValue) throw new Exception("Global attribute id is required");
         var entity = await _context.GlobalAttributes
             .Include(g => g.Values)
-            .FirstOrDefaultAsync(g => g.Id == dto.Id);
+            .FirstOrDefaultAsync(g => g.Id == dto.Id.Value);
 
         if (entity == null)
             throw new KeyNotFoundException($"Global attribute with ID {dto.Id} not found");
 
-        entity.Update(dto.DisplayName, dto.Description ?? string.Empty, (AttributeType)dto.AttributeType, dto.DisplayOrder);
+        entity.Update(dto.DisplayName, dto.Description ?? string.Empty, Enum.Parse<AttributeType>(dto.AttributeType), dto.DisplayOrder);
         if (dto.IsActive) entity.Activate(); else entity.Deactivate();
 
         // replace values for simplicity

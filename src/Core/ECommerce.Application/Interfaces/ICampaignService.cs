@@ -8,8 +8,8 @@ public interface ICampaignService
     Task<IReadOnlyList<CampaignDto>> GetActiveAsync();
     Task<CampaignSummaryDto> GetSummaryAsync();
     Task<CampaignDto?> GetByIdAsync(int id);
-    Task<CampaignDto> CreateAsync(CampaignCreateDto dto);
-    Task UpdateAsync(int id, CampaignUpdateDto dto);
+    Task<CampaignDto> CreateAsync(CampaignFormDto dto);
+    Task UpdateAsync(int id, CampaignFormDto dto);
     Task ActivateAsync(int id);
     Task DeactivateAsync(int id);
     Task DeleteAsync(int id);

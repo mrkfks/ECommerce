@@ -11,7 +11,7 @@ namespace Dashboard.Web.Services
         {
             try
             {
-                var dto = new ECommerce.Application.DTOs.Common.UpdateOrderStatusDto { Status = status };
+                var dto = new ECommerce.Application.DTOs.UpdateOrderStatusDto { Status = status };
                 var response = await _httpClient.PutAsJsonAsync($"api/Order/{id}/status", dto);
                 return response.IsSuccessStatusCode;
             }

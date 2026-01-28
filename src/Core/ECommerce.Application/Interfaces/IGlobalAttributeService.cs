@@ -6,8 +6,8 @@ namespace ECommerce.Application.Interfaces
     {
         Task<IReadOnlyList<GlobalAttributeDto>> GetAllAsync();
         Task<GlobalAttributeDto?> GetByIdAsync(int id);
-        Task<GlobalAttributeDto> CreateAsync(GlobalAttributeCreateDto dto);
-        Task UpdateAsync(GlobalAttributeUpdateDto dto);
+        Task<GlobalAttributeDto> CreateAsync(GlobalAttributeFormDto dto);
+        Task UpdateAsync(GlobalAttributeFormDto dto);
         Task DeleteAsync(int id);
     }
 }

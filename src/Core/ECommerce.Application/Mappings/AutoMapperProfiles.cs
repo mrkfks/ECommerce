@@ -1,8 +1,6 @@
 using AutoMapper;
 using ECommerce.Domain.Entities;
 using ECommerce.Application.DTOs;
-using ECommerce.Application.DTOs.Banner;
-using ECommerce.Application.DTOs.Dashboard;
 
 namespace ECommerce.Application.Mappings;
 
@@ -24,7 +22,7 @@ public class MappingProfile : Profile
 
         // Login History mappings
         CreateMap<LoginHistory, LoginHistoryDto>();
-        CreateMap<LoginHistoryCreateDto, LoginHistory>();
+        CreateMap<LoginHistoryFormDto, LoginHistory>();
 
         // Customer mappings
         CreateMap<Customer, CustomerDto>()
@@ -103,29 +101,20 @@ public class MappingProfile : Profile
             .ForMember(d => d.CustomerName, opt => opt.MapFrom(s => s.Customer != null ? $"{s.Customer.FirstName} {s.Customer.LastName}" : null))
             .ForMember(d => d.CompanyName, opt => opt.MapFrom(s => s.Company != null ? s.Company.Name : null));
 
-        CreateMap<OrderCreateDto, Order>()
+        CreateMap<OrderFormDto, Order>()
             .ForMember(d => d.OrderDate, opt => opt.Ignore())
             .ForMember(d => d.TotalAmount, opt => opt.Ignore())
-            .ForMember(d => d.Status, opt => opt.Ignore())
             .ForMember(d => d.Customer, opt => opt.Ignore())
             .ForMember(d => d.Address, opt => opt.Ignore())
             .ForMember(d => d.Company, opt => opt.Ignore());
 
-        CreateMap<OrderUpdateDto, Order>()
-            .ForMember(d => d.CustomerId, opt => opt.Ignore())
-            .ForMember(d => d.CompanyId, opt => opt.Ignore())
-            .ForMember(d => d.OrderDate, opt => opt.Ignore())
-            .ForMember(d => d.TotalAmount, opt => opt.Ignore())
-            .ForMember(d => d.Customer, opt => opt.Ignore())
-            .ForMember(d => d.Address, opt => opt.Ignore())
-            .ForMember(d => d.Company, opt => opt.Ignore())
-            .ForMember(d => d.Items, opt => opt.Ignore());
+
 
         // OrderItem mappings
         CreateMap<OrderItem, OrderItemDto>()
             .ForMember(d => d.ProductName, opt => opt.MapFrom(s => s.Product != null ? s.Product.Name : null));
 
-        CreateMap<OrderItemCreateDto, OrderItem>()
+        CreateMap<OrderItemFormDto, OrderItem>()
             .ForMember(d => d.Id, opt => opt.Ignore())
             .ForMember(d => d.OrderId, opt => opt.Ignore())
             .ForMember(d => d.Order, opt => opt.Ignore())
@@ -146,18 +135,7 @@ public class MappingProfile : Profile
 
         // Company mappings
         CreateMap<Company, CompanyDto>();
-        CreateMap<CompanyCreateDto, Company>()
-            .ForMember(d => d.Id, opt => opt.Ignore())
-            .ForMember(d => d.CreatedAt, opt => opt.Ignore())
-            .ForMember(d => d.UpdatedAt, opt => opt.Ignore())
-            .ForMember(d => d.IsActive, opt => opt.MapFrom(s => true))
-            .ForMember(d => d.Users, opt => opt.Ignore())
-            .ForMember(d => d.Customers, opt => opt.Ignore())
-            .ForMember(d => d.Products, opt => opt.Ignore())
-            .ForMember(d => d.Orders, opt => opt.Ignore())
-            .ForMember(d => d.Reviews, opt => opt.Ignore());
-        CreateMap<CompanyUpdateDto, Company>()
-            .ForMember(d => d.TaxNumber, opt => opt.Ignore())
+        CreateMap<CompanyFormDto, Company>()
             .ForMember(d => d.CreatedAt, opt => opt.Ignore())
             .ForMember(d => d.UpdatedAt, opt => opt.Ignore())
             .ForMember(d => d.Users, opt => opt.Ignore())
@@ -176,7 +154,7 @@ public class MappingProfile : Profile
 
         // Notification mappings
         CreateMap<Notification, NotificationDto>();
-        CreateMap<NotificationCreateDto, Notification>();
+        CreateMap<NotificationFormDto, Notification>();
 
         // Request mappings
         CreateMap<Request, RequestDto>();

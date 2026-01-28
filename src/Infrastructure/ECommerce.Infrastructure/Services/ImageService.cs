@@ -1,4 +1,4 @@
-using ECommerce.Application.Interfaces.Infrastructure;
+using ECommerce.Application.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 

@@ -1,5 +1,4 @@
 using ECommerce.Application.DTOs;
-using ECommerce.Application.DTOs.Common;
 using ECommerce.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +20,7 @@ public class UserController : ControllerBase
         // CREATE
         [HttpPost]
         [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
-        public async Task<IActionResult> Add(UserCreateDto dto)
+        public async Task<IActionResult> Add(UserFormDto dto)
         {
             var user = await _userService.CreateAsync(dto);
             return Ok(user);
@@ -67,7 +66,7 @@ public class UserController : ControllerBase
         // UPDATE
         [HttpPut("{id}")]
         [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
-        public async Task<IActionResult> Update(int id, UserUpdateDto dto)
+        public async Task<IActionResult> Update(int id, UserFormDto dto)
         {
              if(id != dto.Id) return BadRequest();
              
@@ -144,11 +143,11 @@ public class UserController : ControllerBase
             try
             {
                 // Kullanıcının kendi profilini güncellemesine izin ver
-                var updateDto = new UserUpdateDto
+                var updateDto = new UserFormDto
                 {
                     Id = userId,
-                    Username = dto.Username,
-                    Email = dto.Email,
+                    Username = dto.Username ?? string.Empty,
+                    Email = dto.Email ?? string.Empty,
                     FirstName = dto.FirstName,
                     LastName = dto.LastName,
                     IsActive = true, // Kullanıcı kendi durumunu değiştiremez

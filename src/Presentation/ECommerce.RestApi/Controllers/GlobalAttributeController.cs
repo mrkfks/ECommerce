@@ -36,7 +36,7 @@ public class GlobalAttributeController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
-    public async Task<IActionResult> Create([FromBody] GlobalAttributeCreateDto dto)
+    public async Task<IActionResult> Create([FromBody] GlobalAttributeFormDto dto)
     {
         var created = await _service.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
@@ -44,7 +44,7 @@ public class GlobalAttributeController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
-    public async Task<IActionResult> Update(int id, [FromBody] GlobalAttributeUpdateDto dto)
+    public async Task<IActionResult> Update(int id, [FromBody] GlobalAttributeFormDto dto)
     {
         if (id != dto.Id) return BadRequest("Id mismatch");
         await _service.UpdateAsync(dto);

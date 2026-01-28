@@ -88,7 +88,7 @@ public class ReviewService : IReviewService
         return reviews.Select(MapToDto).ToList();
     }
 
-    public async Task<ReviewDto> AddAsync(ReviewCreateDto dto)
+    public async Task<ReviewDto> AddAsync(ReviewFormDto dto)
     {
         var companyId = _tenantService.GetCompanyId() ?? dto.CompanyId;
         // If companyId is still 0/null? Controller DTO has CompanyId.
@@ -108,7 +108,7 @@ public class ReviewService : IReviewService
         return MapToDto(review);
     }
 
-    public async Task UpdateAsync(int id, ReviewUpdateDto dto)
+    public async Task UpdateAsync(int id, ReviewFormDto dto)
     {
         var review = await _context.Reviews.FindAsync(id);
         if (review == null) throw new KeyNotFoundException("Review not found");

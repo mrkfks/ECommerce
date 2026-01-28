@@ -94,7 +94,7 @@ public class ModelService : IModelService
         return model == null ? null : _mapper.Map<ModelDto>(model);
     }
 
-    public async Task<ModelDto> CreateAsync(ModelCreateDto dto)
+    public async Task<ModelDto> CreateAsync(ModelFormDto dto)
     {
         Console.WriteLine($"[ModelService.CreateAsync] Başladı - Name: {dto.Name}, BrandId: {dto.BrandId}");
         
@@ -136,9 +136,10 @@ public class ModelService : IModelService
         return result;
     }
 
-    public async Task UpdateAsync(ModelUpdateDto dto)
+    public async Task UpdateAsync(ModelFormDto dto)
     {
-        var model = await _context.Models.FirstOrDefaultAsync(m => m.Id == dto.Id);
+        if (!dto.Id.HasValue) throw new Exception("Model id is required");
+        var model = await _context.Models.FirstOrDefaultAsync(m => m.Id == dto.Id.Value);
 
         if (model == null)
         {

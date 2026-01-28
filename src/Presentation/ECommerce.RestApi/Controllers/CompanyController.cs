@@ -41,7 +41,7 @@ namespace ECommerce.RestApi.Controllers
 
         [HttpPost]
         [Authorize(Policy = "SuperAdminOnly")]
-        public async Task<IActionResult> Create([FromBody] CompanyDto dto)
+        public async Task<IActionResult> Create([FromBody] CompanyFormDto dto)
         {
             try
             {
@@ -80,7 +80,7 @@ namespace ECommerce.RestApi.Controllers
 
         [HttpPut("{id:int}")]
         [Authorize(Policy = "SuperAdminOnly")]
-        public async Task<IActionResult> Update(int id, [FromBody] CompanyDto dto)
+        public async Task<IActionResult> Update(int id, [FromBody] CompanyFormDto dto)
         {
             if (id != dto.Id)
                 return BadRequest(new { message = "ID uyuşmazlığı" });

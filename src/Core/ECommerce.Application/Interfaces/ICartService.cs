@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using ECommerce.Application.DTOs;
-using ECommerce.Application.DTOs.Cart;
 
 namespace ECommerce.Application.Interfaces;
 

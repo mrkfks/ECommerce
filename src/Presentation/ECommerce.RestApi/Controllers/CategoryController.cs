@@ -46,7 +46,7 @@ public class CategoryController : ControllerBase
     /// </summary>
     [HttpPost]
     [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
-    public async Task<IActionResult> Create([FromBody] CategoryCreateDto dto)
+    public async Task<IActionResult> Create([FromBody] CategoryFormDto dto)
     {
         var category = await _categoryService.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = category.Id }, category);
@@ -57,7 +57,7 @@ public class CategoryController : ControllerBase
     /// </summary>
     [HttpPut("{id}")]
     [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
-    public async Task<IActionResult> Update(int id, [FromBody] CategoryUpdateDto dto)
+    public async Task<IActionResult> Update(int id, [FromBody] CategoryFormDto dto)
     {
         if (id != dto.Id)
             return BadRequest("Id mismatch");

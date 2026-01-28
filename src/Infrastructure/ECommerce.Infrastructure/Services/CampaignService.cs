@@ -109,7 +109,7 @@ public class CampaignService : ICampaignService
         return campaign == null ? null : MapToDto(campaign);
     }
 
-    public async Task<CampaignDto> CreateAsync(CampaignCreateDto dto)
+    public async Task<CampaignDto> CreateAsync(CampaignFormDto dto)
     {
         // Enforce tenant?
         var companyId = _tenantService.GetCompanyId() ?? dto.CompanyId ?? 1;
@@ -128,7 +128,7 @@ public class CampaignService : ICampaignService
         return MapToDto(campaign);
     }
 
-    public async Task UpdateAsync(int id, CampaignUpdateDto dto)
+    public async Task UpdateAsync(int id, CampaignFormDto dto)
     {
         var campaign = await GetCampaignEntityAsync(id);
         if (campaign == null) throw new KeyNotFoundException("Campaign not found");

@@ -59,7 +59,7 @@ public class RequestController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = "CompanyAdmin")]
-    public async Task<IActionResult> CreateRequest([FromBody] RequestCreateDto dto)
+    public async Task<IActionResult> CreateRequest([FromBody] RequestFormDto dto)
     {
         var request = await _requestService.CreateRequestAsync(dto);
         return CreatedAtAction(nameof(GetRequestById), new { id = request.Id }, request);

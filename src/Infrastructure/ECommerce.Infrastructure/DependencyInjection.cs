@@ -3,11 +3,6 @@ using ECommerce.Domain.Interfaces;
 using ECommerce.Infrastructure.Data;
 using ECommerce.Infrastructure.Repositories;
 using ECommerce.Infrastructure.Services;
-using ECommerce.Infrastructure.Services.Notifications;
-using ECommerce.Infrastructure.Services.Search;
-using ECommerce.Infrastructure.Services.Caching;
-using ECommerce.Infrastructure.Services.Storage;
-using ECommerce.Application.Interfaces.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -86,7 +81,7 @@ public static class DependencyInjection
             var settings = new Nest.ConnectionSettings(new Uri(uri)).DefaultIndex(defaultIndex);
             return new Nest.ElasticClient(settings);
         });
-        services.AddScoped<ISearchService, ECommerce.Infrastructure.Services.Search.ElasticsearchProductSearchService>();
+        services.AddScoped<ISearchService, ElasticsearchProductSearchService>();
         services.AddScoped<ICacheService, DistributedCacheService>();
         services.AddScoped<IRealTimeNotificationService, SignalRNotificationService>(); // New RealTime Notification Service
         services.AddScoped<IStorageService, LocalStorageService>();

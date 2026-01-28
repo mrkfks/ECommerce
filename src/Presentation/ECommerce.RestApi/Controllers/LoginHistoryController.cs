@@ -217,7 +217,7 @@ public class LoginHistoryController : ControllerBase
     /// </summary>
     [HttpPost]
     [Authorize]
-    public async Task<IActionResult> Create([FromBody] LoginHistoryCreateDto dto)
+    public async Task<IActionResult> Create([FromBody] LoginHistoryFormDto dto)
     {
         // Sadece kendi user ID'si ile kayıt oluşturabilir
         var currentUserId = GetCurrentUserId();

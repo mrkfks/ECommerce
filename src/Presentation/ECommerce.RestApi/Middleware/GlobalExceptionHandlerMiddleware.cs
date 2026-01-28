@@ -45,7 +45,7 @@ public class GlobalExceptionHandlerMiddleware
     {
         context.Response.ContentType = "application/json";
         
-        var response = new ECommerce.Application.DTOs.Common.ApiResponseDto<object>
+        var response = new ECommerce.Application.DTOs.ApiResponseDto<object>
         {
             Success = false
         };

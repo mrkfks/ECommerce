@@ -31,10 +31,11 @@ public record NotificationDto
 }
 
 /// <summary>
-/// Bildirim oluşturma DTO
+/// Bildirim form DTO
 /// </summary>
-public record NotificationCreateDto
+public record NotificationFormDto
 {
+    public int? Id { get; init; }
     public int CompanyId { get; init; }
     public NotificationType Type { get; init; }
     public string Title { get; init; } = string.Empty;

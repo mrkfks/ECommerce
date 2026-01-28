@@ -1,5 +1,4 @@
 using ECommerce.Application.DTOs;
-using ECommerce.Application.DTOs.Cart;
 using ECommerce.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 

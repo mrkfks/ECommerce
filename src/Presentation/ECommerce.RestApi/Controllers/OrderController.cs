@@ -1,5 +1,4 @@
 using ECommerce.Application.DTOs;
-using ECommerce.Application.DTOs.Common;
 using ECommerce.Domain.Enums;
 using ECommerce.Infrastructure.Services; // For explicit casting if needed, but preferably use Interface
 using ECommerce.Application.Interfaces;
@@ -21,7 +20,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(OrderCreateDto dto)
+    public async Task<IActionResult> Create(OrderFormDto dto)
     {
         try
         {

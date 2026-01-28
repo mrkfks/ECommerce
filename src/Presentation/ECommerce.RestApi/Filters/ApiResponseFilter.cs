@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using ECommerce.Application.DTOs.Common;
+using ECommerce.Application.DTOs;
 using ECommerce.Application.Responses;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

@@ -20,7 +20,7 @@ public class CustomerController : ControllerBase
     
     [HttpPost]
     [Authorize(Roles = "CompanyAdmin,User,SuperAdmin")]
-    public async Task<IActionResult> Add(CustomerCreateDto dto)
+    public async Task<IActionResult> Add(CustomerFormDto dto)
     {
         try
         {
@@ -52,7 +52,7 @@ public class CustomerController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = "CompanyAdmin,User,SuperAdmin")]
-    public async Task<IActionResult> Update(int id, CustomerUpdateDto dto)
+    public async Task<IActionResult> Update(int id, CustomerFormDto dto)
     {
         if (id != dto.Id) return BadRequest("ID mismatch");
         try

@@ -1,5 +1,4 @@
 using ECommerce.Application.DTOs;
-using ECommerce.Application.DTOs.Dashboard;
 using ECommerce.Domain.Enums;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -15,7 +14,7 @@ namespace ECommerce.Application.Interfaces
         Task<NotificationSummaryDto> GetSummaryAsync();
         Task<IReadOnlyList<LowStockProductDto>> GetLowStockProductsAsync(int threshold = 10);
         Task<IReadOnlyList<NewOrderNotificationDto>> GetRecentOrdersAsync(int count = 10);
-        Task<NotificationDto> CreateAsync(NotificationCreateDto dto);
+        Task<NotificationDto> CreateAsync(NotificationFormDto dto);
         Task CreateLowStockAlertAsync(int productId, string productName, int currentStock);
         Task CreateNewOrderNotificationAsync(int orderId, string customerName, decimal totalAmount);
         Task CreateReturnRequestNotificationAsync(int orderId, string productName, string customerName, string returnReason);

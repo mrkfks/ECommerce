@@ -22,7 +22,7 @@ namespace ECommerce.Application.DTOs
         public bool IsActive { get; set; } = true;
     }
 
-    public class CategoryAttributeCreateDto
+    public class CategoryAttributeFormDto
     {
         public required string Name { get; set; }
         public required string DisplayName { get; set; }

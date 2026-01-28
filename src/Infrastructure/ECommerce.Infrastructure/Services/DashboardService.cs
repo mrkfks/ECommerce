@@ -1,4 +1,4 @@
-using ECommerce.Application.DTOs.Dashboard;
+using ECommerce.Application.DTOs;
 using ECommerce.Application.Interfaces;
 using Microsoft.Extensions.Caching.Distributed;
 using ECommerce.Domain.Entities;

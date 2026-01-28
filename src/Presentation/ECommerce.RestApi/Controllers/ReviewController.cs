@@ -19,7 +19,7 @@ public class ReviewController : ControllerBase
     
     [HttpPost]
     [Authorize(Roles = "CompanyAdmin,User,SuperAdmin")]
-    public async Task<IActionResult> Add(ReviewCreateDto dto)
+    public async Task<IActionResult> Add(ReviewFormDto dto)
     {
         var review = await _reviewService.AddAsync(dto);
         return Ok(new { id = review.Id, message = "Yorum eklendi" });
@@ -58,7 +58,7 @@ public class ReviewController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = "CompanyAdmin,User,SuperAdmin")]
-    public async Task<IActionResult> Update(int id, ReviewUpdateDto dto)
+    public async Task<IActionResult> Update(int id, ReviewFormDto dto)
     {
         if (id != dto.Id) 
             return BadRequest();

@@ -1,6 +1,5 @@
 using AutoMapper;
 using ECommerce.Application.DTOs;
-using ECommerce.Application.DTOs.Common;
 using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Entities;
 using ECommerce.Infrastructure.Data;
@@ -24,12 +23,13 @@ namespace ECommerce.Infrastructure.Services
             _mapper = mapper;
         }
 
-        public async Task<CustomerDto> CreateAsync(CustomerCreateDto dto)
+        public async Task<CustomerDto> CreateAsync(CustomerFormDto dto)
         {
+            var companyId = dto.CompanyId ?? _tenantService.GetCompanyId() ?? 1;
             try
             {
                 var customer = Customer.Create(
-                    dto.CompanyId,
+                    companyId,
                     dto.FirstName,
                     dto.LastName,
                     dto.Email,
@@ -171,9 +171,10 @@ namespace ECommerce.Infrastructure.Services
             return customers;
         }
 
-        public async Task UpdateAsync(CustomerUpdateDto dto)
+        public async Task UpdateAsync(CustomerFormDto dto)
         {
-            var customer = await _context.Customers.FindAsync(dto.Id);
+            if (!dto.Id.HasValue) throw new Exception("Customer ID is required for update.");
+            var customer = await _context.Customers.FindAsync(dto.Id.Value);
             if (customer == null)
                 throw new Exception("Müşteri Bulunamadı");
 

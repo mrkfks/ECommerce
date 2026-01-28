@@ -1,5 +1,4 @@
-using ECommerce.Application.DTOs.Banner;
-using ECommerce.Application.DTOs.Common;
+using ECommerce.Application.DTOs;
 using ECommerce.Application.Interfaces;
 
 using ECommerce.Domain.Entities;
@@ -96,7 +95,7 @@ namespace ECommerce.Infrastructure.Services
             }
         }
 
-        public async Task<ApiResponseDto<BannerDto>> CreateAsync(CreateBannerDto dto)
+        public async Task<ApiResponseDto<BannerDto>> CreateAsync(BannerFormDto dto)
         {
             try
             {
@@ -132,7 +131,7 @@ namespace ECommerce.Infrastructure.Services
             }
         }
 
-        public async Task<ApiResponseDto<BannerDto>> UpdateAsync(int id, UpdateBannerDto dto)
+        public async Task<ApiResponseDto<BannerDto>> UpdateAsync(int id, BannerFormDto dto)
         {
             try
             {

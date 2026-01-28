@@ -64,3 +64,35 @@ public record RoleDto
     public int Id { get; init; }
     public string Name { get; init; } = string.Empty;
 }
+
+/// <summary>
+/// Kullanıcı oluşturma DTO (UserFormDto'nun alias'ı - geriye uyumluluk için)
+/// </summary>
+public record UserCreateDto
+{
+    public string Username { get; init; } = string.Empty;
+    public string Email { get; init; } = string.Empty;
+    public string FirstName { get; init; } = string.Empty;
+    public string LastName { get; init; } = string.Empty;
+    public string? Password { get; init; }
+    public int? CompanyId { get; init; }
+    public string? RoleName { get; init; }
+    public List<string>? Roles { get; init; }
+    public bool IsActive { get; init; } = true;
+}
+
+/// <summary>
+/// Kullanıcı güncelleme DTO (UserFormDto'nun alias'ı - geriye uyumluluk için)
+/// </summary>
+public record UserUpdateDto
+{
+    public int Id { get; init; }
+    public string Username { get; init; } = string.Empty;
+    public string Email { get; init; } = string.Empty;
+    public string FirstName { get; init; } = string.Empty;
+    public string LastName { get; init; } = string.Empty;
+    public string? Password { get; init; }
+    public int? CompanyId { get; init; }
+    public List<string>? Roles { get; init; }
+    public bool IsActive { get; init; } = true;
+}

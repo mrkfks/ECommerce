@@ -95,7 +95,7 @@ public class ApiService<T> : IApiService<T> where T : class
             // Try wrapped ApiResponseDto<PagedResult<T>>
             try
             {
-                var wrapped = JsonSerializer.Deserialize<ECommerce.Application.DTOs.Common.ApiResponseDto<ECommerce.Application.Responses.PagedResult<T>>>(content, _jsonOptions);
+                var wrapped = JsonSerializer.Deserialize<ECommerce.Application.DTOs.ApiResponseDto<ECommerce.Application.Responses.PagedResult<T>>>(content, _jsonOptions);
                 if (wrapped?.Success == true && wrapped.Data != null)
                 {
                     return wrapped.Data;
