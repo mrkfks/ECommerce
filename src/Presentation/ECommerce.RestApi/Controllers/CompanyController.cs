@@ -156,6 +156,7 @@ namespace ECommerce.RestApi.Controllers
             }
         }
         [HttpGet("settings")]
+        [HttpGet("/api/company/settings")]
         [AllowAnonymous]
         public async Task<IActionResult> GetSettings([FromQuery] string domain)
         {

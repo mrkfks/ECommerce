@@ -225,6 +225,11 @@ using (var scope = app.Services.CreateScope())
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     try 
     {
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        logger.LogInformation("Applying Database Migrations...");
+        context.Database.Migrate(); // Bu işlem veritabanı dosyasını oluşturur
+        logger.LogInformation("Database Migrations Applied Successfully.");
+
         logger.LogInformation("Starting Data Seeding...");
         var seeder = scope.ServiceProvider.GetRequiredService<ECommerce.Infrastructure.Data.DataSeeder>();
         await seeder.SeedAsync();
@@ -232,7 +237,7 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "An error occurred while seeding the database.");
+        logger.LogError(ex, "An error occurred while migrating the database.");
     }
 }
 
