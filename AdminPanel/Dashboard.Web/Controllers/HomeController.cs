@@ -1,12 +1,14 @@
 
 
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dashboard.Web.Models;
 using Dashboard.Web.Services;
+using ECommerce.Application.DTOs;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 
 
@@ -16,13 +18,12 @@ namespace Dashboard.Web.Controllers;
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
-    private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.DashboardStatsVm> _dashboardStatsService;
-    private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.DashboardKpiViewModel> _dashboardService;
+    private readonly Dashboard.Web.Services.DashboardApiService _dashboardApiService;
     private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.ProductDto> _productService;
     private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.OrderDto> _orderService;
     private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CustomerDto> _customerService;
     private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CompanyDto> _companyService;
-    private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CategoryDto> _categoryService;
+    private readonly Dashboard.Web.Services.IApiService<CategoryDto> _categoryService;
     private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.BrandDto> _brandService;
     private readonly Dashboard.Web.Services.NotificationApiService _notificationService;
     private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CampaignDto> _campaignService;
@@ -32,13 +33,12 @@ public class HomeController : Controller
 
     public HomeController(
         Microsoft.Extensions.Logging.ILogger<HomeController> logger,
-        Dashboard.Web.Services.IApiService<Dashboard.Web.Models.DashboardStatsVm> dashboardStatsService,
-        Dashboard.Web.Services.IApiService<Dashboard.Web.Models.DashboardKpiViewModel> dashboardService,
+        Dashboard.Web.Services.DashboardApiService dashboardApiService,
         Dashboard.Web.Services.IApiService<Dashboard.Web.Models.ProductDto> productService,
         Dashboard.Web.Services.IApiService<Dashboard.Web.Models.OrderDto> orderService,
         Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CustomerDto> customerService,
         Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CompanyDto> companyService,
-        Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CategoryDto> categoryService,
+        Dashboard.Web.Services.IApiService<CategoryDto> categoryService,
         Dashboard.Web.Services.IApiService<Dashboard.Web.Models.BrandDto> brandService,
         Dashboard.Web.Services.NotificationApiService notificationService,
         Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CampaignDto> campaignService,
@@ -47,8 +47,7 @@ public class HomeController : Controller
         Dashboard.Web.Services.CustomerMessageApiService messageService)
     {
         _logger = logger;
-        _dashboardStatsService = dashboardStatsService;
-        _dashboardService = dashboardService;
+        _dashboardApiService = dashboardApiService;
         _productService = productService;
         _orderService = orderService;
         _customerService = customerService;
@@ -63,12 +62,26 @@ public class HomeController : Controller
     }
 
     [ResponseCache(Duration = 120, VaryByQueryKeys = new[] { "companyId" })]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(DateTime? startDate, DateTime? endDate, int? companyId)
     {
         var isSuperAdmin = User.IsInRole("SuperAdmin");
-        int? companyId = null;
-
-        if (!isSuperAdmin)
+        if (isSuperAdmin)
+        {
+            try
+            {
+                var companies = await _companyService.GetAllAsync();
+                ViewBag.Companies = companies?.Data?.Select(c => new Dashboard.Web.Models.CompanySelectVm
+                {
+                    Id = c.Id,
+                    Name = c.Name
+                }).ToList() ?? new List<Dashboard.Web.Models.CompanySelectVm>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Şirket listesi alınamadı: {Message}", ex.Message);
+            }
+        }
+        else
         {
             var companyIdClaim = User.FindFirst("CompanyId")?.Value;
             if (string.IsNullOrEmpty(companyIdClaim) || !int.TryParse(companyIdClaim, out var parsedCompanyId))
@@ -79,37 +92,74 @@ public class HomeController : Controller
             companyId = parsedCompanyId;
         }
 
-        // API'den DashboardStatsVm verisini çek
-        var response = await _dashboardStatsService.GetByIdAsync(0); // 0 veya uygun parametre, endpoint'e göre
-        if (response == null || response.Data == null)
+        // API'den DashboardKpiViewModel verisini çek
+        var kpiData = await _dashboardApiService.GetKpiAsync(companyId: companyId, startDate: startDate, endDate: endDate);
+
+        if (kpiData == null)
         {
-            _logger.LogWarning("Dashboard istatistikleri alınamadı, fallback kullanılıyor");
-            return View(new Dashboard.Web.Models.DashboardKpiViewModel());
+            _logger.LogWarning("Dashboard istatistikleri alınamadı, boş model gönderiliyor");
+            return View(new Dashboard.Web.Models.DashboardStatsVm());
+        }
+
+        // DashboardStatsVm'ye eşle (View bu modeli bekliyor)
+        var statsVm = new Dashboard.Web.Models.DashboardStatsVm
+        {
+            TotalProducts = 0, // Not directly available in KPI model
+            TotalOrders = kpiData.Orders.TotalOrders,
+            TotalCustomers = kpiData.Customers.TotalCustomers,
+            TotalSales = kpiData.Sales.MonthlySales, // Assuming MonthlySales is the correct property for TotalSales
+            TopProducts = kpiData.TopProducts,
+            LowStockProducts = kpiData.LowStockProducts,
+            Sales = kpiData.Sales,
+            Orders = kpiData.Orders,
+            Customers = kpiData.Customers,
+            CustomerSegmentation = kpiData.CustomerSegmentation,
+            RevenueTrendJson = kpiData.RevenueTrendJson,
+            OrderStatusJson = kpiData.OrderStatusJson,
+            CustomerSegmentJson = kpiData.CustomerSegmentJson
+        };
+
+        return View(statsVm);
+    }
+
+    #region AJAX Endpoints for Charts
+
+    [HttpGet]
+    public async Task<IActionResult> Charts(DateTime? startDate, DateTime? endDate, int? companyId)
+    {
+        var isSuperAdmin = User.IsInRole("SuperAdmin");
+        var model = new ChartsViewModel();
+        if (isSuperAdmin)
+        {
+            try
+            {
+                var companies = await _companyService.GetAllAsync();
+                model.Companies = companies?.Data?.Select(c => new CompanySelectVm
+                {
+                    Id = c.Id,
+                    Name = c.Name
+                }).ToList() ?? new List<CompanySelectVm>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning("Şirket listesi alınamadı: {Message}", ex.Message);
+            }
         }
         else
         {
-            if (isSuperAdmin)
+            var companyIdClaim = User.FindFirst("CompanyId")?.Value;
+            if (!string.IsNullOrEmpty(companyIdClaim) && int.TryParse(companyIdClaim, out var parsedCompanyId))
             {
-                try
-                {
-                    var companies = await _companyService.GetAllAsync();
-                    ViewBag.Companies = companies?.Data?.Select(c => new Dashboard.Web.Models.CompanySelectVm
-                    {
-                        Id = c.Id,
-                        Name = c.Name
-                    }).ToList() ?? new List<Dashboard.Web.Models.CompanySelectVm>();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning("Şirket listesi alınamadı: {Message}", ex.Message);
-                }
+                companyId = parsedCompanyId;
             }
-            return View(response.Data);
         }
-    }
 
-            // ...existing code...
-    #region AJAX Endpoints for Charts
+        model.KpiData = await _dashboardApiService.GetKpiAsync(companyId: companyId, startDate: startDate, endDate: endDate);
+        model.StartDate = startDate;
+        model.EndDate = endDate;
+        model.SelectedCompanyId = companyId;
+        return View(model);
+    }
 
     /// <summary>
     /// Satış trendi verilerini getirir (Line Chart)
@@ -118,8 +168,9 @@ public class HomeController : Controller
     public async Task<IActionResult> GetSalesTrend(DateTime? startDate, DateTime? endDate, int? companyId)
     {
         companyId = ResolveCompanyId(companyId);
-        var kpiData = (await _dashboardService.GetAllAsync())?.Data?.FirstOrDefault();
-        var data = kpiData?.RevenueTrend?.Select(r => new
+        var trendData = await _dashboardApiService.GetRevenueTrendAsync(companyId);
+
+        var data = trendData?.Select(r => new
         {
             date = r.Date.ToString("dd MMM"),
             fullDate = r.Date.ToString("yyyy-MM-dd"),
@@ -136,10 +187,16 @@ public class HomeController : Controller
     public async Task<IActionResult> GetCategorySales(DateTime? startDate, DateTime? endDate, int? companyId)
     {
         companyId = ResolveCompanyId(companyId);
-        var kpiData = (await _dashboardService.GetAllAsync())?.Data?.FirstOrDefault();
+        var categorySales = await _dashboardApiService.GetCategorySalesAsync(startDate, endDate, companyId);
 
-        // DashboardKpiViewModel'de CategorySales yok, dummy boş koleksiyon döndürülüyor
-        return Json(Enumerable.Empty<object>());
+        return Json(categorySales?.Select(c => new
+        {
+            id = c.CategoryId,
+            name = c.CategoryName,
+            value = c.TotalSales,
+            percentage = c.Percentage,
+            color = c.Color
+        }) ?? Enumerable.Empty<object>());
     }
 
     /// <summary>
@@ -149,10 +206,16 @@ public class HomeController : Controller
     public async Task<IActionResult> GetCategoryStock(DateTime? startDate, DateTime? endDate, int? companyId)
     {
         companyId = ResolveCompanyId(companyId);
-        var kpiData = (await _dashboardService.GetAllAsync())?.Data?.FirstOrDefault();
+        var categoryStock = await _dashboardApiService.GetCategoryStockAsync(startDate, endDate, companyId);
 
-        // DashboardKpiViewModel'de CategoryStock yok, dummy boş koleksiyon döndürülüyor
-        return Json(Enumerable.Empty<object>());
+        return Json(categoryStock?.Select(c => new
+        {
+            id = c.CategoryId,
+            name = c.CategoryName,
+            value = c.StockQuantity,
+            percentage = c.Percentage,
+            color = c.Color
+        }) ?? Enumerable.Empty<object>());
     }
 
     /// <summary>
@@ -162,7 +225,7 @@ public class HomeController : Controller
     public async Task<IActionResult> GetCustomerSegmentation(DateTime? startDate, DateTime? endDate, int? companyId)
     {
         companyId = ResolveCompanyId(companyId);
-        var kpiData = (await _dashboardService.GetAllAsync())?.Data?.FirstOrDefault();
+        var kpiData = await _dashboardApiService.GetKpiAsync(startDate, endDate, companyId);
 
         var segment = kpiData?.CustomerSegmentation;
         return Json(new
@@ -183,10 +246,16 @@ public class HomeController : Controller
     public async Task<IActionResult> GetOrderStatusDistribution(DateTime? startDate, DateTime? endDate, int? companyId)
     {
         companyId = ResolveCompanyId(companyId);
-        var kpiData = (await _dashboardService.GetAllAsync())?.Data?.FirstOrDefault();
+        var distribution = await _dashboardApiService.GetOrderStatusDistributionAsync(startDate, endDate, companyId);
 
-        // DashboardKpiViewModel'de OrderStatusDistribution yok, dummy boş koleksiyon döndürülüyor
-        return Json(Enumerable.Empty<object>());
+        return Json(distribution?.Select(d => new
+        {
+            date = d.Date.ToString("dd MMM"),
+            pending = d.PendingCount,
+            shipped = d.ShippedCount,
+            delivered = d.DeliveredCount,
+            cancelled = d.CancelledCount
+        }) ?? Enumerable.Empty<object>());
     }
 
     /// <summary>
@@ -196,10 +265,16 @@ public class HomeController : Controller
     public async Task<IActionResult> GetGeographicDistribution(DateTime? startDate, DateTime? endDate, int? companyId)
     {
         companyId = ResolveCompanyId(companyId);
-        var kpiData = (await _dashboardService.GetAllAsync())?.Data?.FirstOrDefault();
+        var geographicData = await _dashboardApiService.GetGeographicDistributionAsync(startDate, endDate, companyId);
 
-        // DashboardKpiViewModel'de GeographicDistribution yok, dummy boş koleksiyon döndürülüyor
-        return Json(Enumerable.Empty<object>());
+        return Json(geographicData?.Select(g => new
+        {
+            country = g.Country,
+            city = g.City,
+            latitude = g.Latitude,
+            longitude = g.Longitude,
+            value = g.OrderCount
+        }) ?? Enumerable.Empty<object>());
     }
 
     /// <summary>
@@ -209,10 +284,14 @@ public class HomeController : Controller
     public async Task<IActionResult> GetAverageCartTrend(DateTime? startDate, DateTime? endDate, int? companyId)
     {
         companyId = ResolveCompanyId(companyId);
-        var kpiData = (await _dashboardService.GetAllAsync())?.Data?.FirstOrDefault();
+        var averageCartTrend = await _dashboardApiService.GetAverageCartTrendAsync(startDate, endDate, companyId);
 
-        // DashboardKpiViewModel'de AverageCartTrend yok, dummy boş koleksiyon döndürülüyor
-        return Json(Enumerable.Empty<object>());
+        return Json(averageCartTrend?.Select(t => new
+        {
+            date = t.Date.ToString("dd MMM"),
+            fullDate = t.Date.ToString("yyyy-MM-dd"),
+            averageCartValue = t.AverageCartValue
+        }) ?? Enumerable.Empty<object>());
     }
 
     /// <summary>
@@ -222,12 +301,12 @@ public class HomeController : Controller
     public async Task<IActionResult> GetTopProducts(DateTime? startDate, DateTime? endDate, int? companyId)
     {
         companyId = ResolveCompanyId(companyId);
-        var kpiData = (await _dashboardService.GetAllAsync())?.Data?.FirstOrDefault();
+        var topProducts = await _dashboardApiService.GetTopProductsAsync(startDate, endDate, companyId);
 
-        return Json(kpiData?.TopProducts?.Select(p => new
+        return Json(topProducts?.Select(p => new
         {
-            id = p.Id,
-            name = !string.IsNullOrEmpty(p.Name) ? p.Name : p.ProductName,
+            id = p.ProductId,
+            name = p.ProductName,
             quantity = p.QuantitySold,
             revenue = p.Revenue,
             category = p.CategoryName
@@ -425,7 +504,8 @@ public class HomeController : Controller
     public async Task<IActionResult> GetCampaignSummary()
     {
         var allCampaigns = await _campaignService.GetAllAsync();
-        var summary = new {
+        var summary = new
+        {
             Total = allCampaigns?.Data?.Count ?? 0,
             Active = allCampaigns?.Data != null ? allCampaigns.Data.Count(c => c.IsActive) : 0
         };
@@ -436,12 +516,12 @@ public class HomeController : Controller
     /// Yeni kampanya oluşturur
     /// </summary>
     [HttpPost]
-    public async Task<IActionResult> CreateCampaign([FromBody] Models.CampaignCreateVm model)
+    public async Task<IActionResult> CreateCampaign([FromBody] Dashboard.Web.Models.CampaignCreateVm model)
     {
         try
         {
             model.CompanyId = GetCurrentCompanyId();
-            var success = await _campaignService.CreateAsync<Models.CampaignCreateVm>(model);
+            var success = await _campaignService.CreateAsync<Dashboard.Web.Models.CampaignCreateVm>(model);
             return Json(new { success = success, message = success ? "Kampanya başarıyla oluşturuldu" : "Kampanya oluşturulamadı" });
         }
         catch (Exception ex)

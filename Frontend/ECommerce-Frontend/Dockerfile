@@ -44,7 +44,7 @@ HEALTHCHECK CMD wget --no-verbose --tries=1 --spider http://localhost:4000 || ex
 
 # SSR başlatma komutu (Render için)
 ENV PORT=4000
-ENV API_URL=http://localhost:5000/api
+ENV API_URL=http://localhost:5010/api
 CMD ["node", "dist/ECommerce-Frontend/server/server.mjs"]
 
 EXPOSE 4000

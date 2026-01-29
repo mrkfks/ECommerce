@@ -38,7 +38,7 @@ namespace ECommerce.Infrastructure.Services
 
             var product = Product.Create(
                 dto.Name,
-                dto.Description,
+                dto.Description ?? string.Empty,
                 dto.Price,
                 dto.CategoryId,
                 dto.BrandId,
@@ -114,7 +114,7 @@ namespace ECommerce.Infrastructure.Services
                 query = query.Where(p => p.CompanyId == companyId.Value);
 
             var totalCount = await query.CountAsync();
-            
+
             var products = await query
                 .Include(p => p.Category)
                 .Include(p => p.Brand)
@@ -214,7 +214,7 @@ namespace ECommerce.Infrastructure.Services
 
             product.Update(
                 dto.Name,
-                dto.Description,
+                dto.Description ?? string.Empty,
                 dto.Price
             );
 

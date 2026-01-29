@@ -8,6 +8,4 @@ public class CategorySalesVm
     public int TotalQuantity { get; set; }
     public decimal Percentage { get; set; }
     public string Color { get; set; } = string.Empty;
-
-    public string TotalSalesFormatted => TotalSales.ToString("C0", new System.Globalization.CultureInfo("tr-TR"));
 }

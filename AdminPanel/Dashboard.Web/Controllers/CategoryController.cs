@@ -1,26 +1,28 @@
+using System.Text.Json;
+using Dashboard.Web.Models;
+using Dashboard.Web.Services;
+using ECommerce.Application.DTOs;
+using ECommerce.Application.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Dashboard.Web.Services;
-using Dashboard.Web.Models;
-using System.Text.Json;
-using ModelDto = Dashboard.Web.Models.ModelDto;
+using GlobalAttributeCreateDto = Dashboard.Web.Models.GlobalAttributeCreateDto;
 using GlobalAttributeDto = Dashboard.Web.Models.GlobalAttributeDto;
 using ModelCreateDto = Dashboard.Web.Models.ModelCreateDto;
-using GlobalAttributeCreateDto = Dashboard.Web.Models.GlobalAttributeCreateDto;
+using ModelDto = Dashboard.Web.Models.ModelDto;
 
 namespace Dashboard.Web.Controllers
 {
     [Authorize(Roles = "SuperAdmin")]
     public class CategoryController : Controller
     {
-        private readonly IApiService<CategoryViewModel> _categoryService;
-        private readonly IApiService<BrandDto> _brandService;
+        private readonly IApiService<CategoryDto> _categoryService;
+        private readonly IApiService<ECommerce.Application.DTOs.BrandDto> _brandService;
         private readonly IApiService<ModelDto> _modelService;
         private readonly IApiService<GlobalAttributeDto> _globalAttributeService;
 
         public CategoryController(
-            IApiService<CategoryViewModel> categoryService,
-            IApiService<BrandDto> brandService,
+            IApiService<CategoryDto> categoryService,
+            IApiService<ECommerce.Application.DTOs.BrandDto> brandService,
             IApiService<ModelDto> modelService,
             IApiService<GlobalAttributeDto> globalAttributeService)
         {
@@ -35,7 +37,7 @@ namespace Dashboard.Web.Controllers
         {
             var response = await _categoryService.GetAllAsync();
             if (response == null || response.Data == null)
-                return View(new List<CategoryViewModel>());
+                return View(new List<CategoryDto>());
             return View(response.Data);
         }
 
@@ -54,121 +56,108 @@ namespace Dashboard.Web.Controllers
         public async Task<IActionResult> Create()
         {
             var categoriesResponse = await _categoryService.GetAllAsync();
-            var categories = categoriesResponse?.Data ?? new List<CategoryViewModel>();
+            var categories = categoriesResponse?.Data ?? new List<CategoryDto>();
             var viewModel = new CategoryViewModel
             {
-                AvailableParentCategories = categories.Select(x => new CategoryDto {
-                    Id = x.Id,
-                    Name = x.Name,
-                    Description = x.Description,
-                    ImageUrl = x.ImageUrl,
-                    IsActive = x.IsActive,
-                    ProductCount = x.ProductCount,
-                    ParentCategoryId = x.ParentCategoryId,
-                    DisplayOrder = x.DisplayOrder,
-                    CreatedAt = x.CreatedAt,
-                    UpdatedAt = x.UpdatedAt
-                }).ToList()
+                AvailableParentCategories = categories.ToList()
             };
             return View(viewModel);
         }
 
         // Ana kategori ekleme - POST (Basit)
         [HttpPost]
-            public async Task<IActionResult> CreateCategory(CategoryDto categoryDto, IFormFile? ImageFile)
+        public async Task<IActionResult> CreateCategory(CategoryDto categoryDto, IFormFile? ImageFile)
         {
             try
             {
-                    // Dosya yükleme işlemi
-                    if (ImageFile != null && ImageFile.Length > 0)
+                // Dosya yükleme işlemi
+                if (ImageFile != null && ImageFile.Length > 0)
+                {
+                    var fileName = $"{Guid.NewGuid()}_{ImageFile.FileName}";
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "categories");
+
+                    // Klasör yoksa oluştur
+                    if (!Directory.Exists(uploadsFolder))
+                        Directory.CreateDirectory(uploadsFolder);
+
+                    var filePath = Path.Combine(uploadsFolder, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
                     {
-                        var fileName = $"{Guid.NewGuid()}_{ImageFile.FileName}";
-                        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "categories");
-                    
-                        // Klasör yoksa oluştur
-                        if (!Directory.Exists(uploadsFolder))
-                            Directory.CreateDirectory(uploadsFolder);
-                    
-                        var filePath = Path.Combine(uploadsFolder, fileName);
-                    
-                        using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                            await ImageFile.CopyToAsync(stream);
+                        await ImageFile.CopyToAsync(stream);
                     }
-                    
-                        categoryDto.ImageUrl = $"/uploads/categories/{fileName}";
-                    }
-                
+
+                    categoryDto.ImageUrl = $"/uploads/categories/{fileName}";
+                }
+
                 categoryDto.ParentCategoryId = null; // Ana kategori
-                var success = await _categoryService.CreateAsync(categoryDto);
-                
-                if (success)
+                var response = await _categoryService.CreateAsync(categoryDto);
+                if (response != null && response.Success)
                 {
-                        TempData["Success"] = "Ana kategori başarıyla eklendi.";
+                    TempData["Success"] = "Ana kategori başarıyla eklendi.";
                 }
                 else
                 {
-                        TempData["Error"] = "Kategori eklenirken hata oluştu.";
-                }
-            }
-            catch (Exception ex)
-            {
-                    TempData["Error"] = $"Hata: {ex.Message}";
-            }
-            
-            return RedirectToAction(nameof(Index));
-        }
-
-        // Alt kategori ekleme - POST
-        [HttpPost]
-            public async Task<IActionResult> CreateSubCategory(CategoryDto categoryDto, IFormFile? ImageFile)
-        {
-            try
-            {
-                    // Dosya yükleme işlemi
-                    if (ImageFile != null && ImageFile.Length > 0)
-                    {
-                        var fileName = $"{Guid.NewGuid()}_{ImageFile.FileName}";
-                        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "categories");
-                    
-                        // Klasör yoksa oluştur
-                        if (!Directory.Exists(uploadsFolder))
-                            Directory.CreateDirectory(uploadsFolder);
-                    
-                        var filePath = Path.Combine(uploadsFolder, fileName);
-                    
-                        using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                            await ImageFile.CopyToAsync(stream);
-                    }
-                    
-                        categoryDto.ImageUrl = $"/uploads/categories/{fileName}";
-                    }
-                
-                if (!categoryDto.ParentCategoryId.HasValue)
-                {
-                        TempData["Error"] = "Üst kategori seçilmelidir.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                var success = await _categoryService.CreateAsync(categoryDto);
-                
-                if (success)
-                {
-                        TempData["Success"] = "Alt kategori başarıyla eklendi.";
-                }
-                else
-                {
-                        TempData["Error"] = "Alt kategori eklenirken hata oluştu.";
+                    TempData["Error"] = "Kategori eklenirken hata oluştu.";
                 }
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Hata: {ex.Message}";
             }
-            
-                return RedirectToAction(nameof(Index));
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // Alt kategori ekleme - POST
+        [HttpPost]
+        public async Task<IActionResult> CreateSubCategory(CategoryDto categoryDto, IFormFile? ImageFile)
+        {
+            try
+            {
+                // Dosya yükleme işlemi
+                if (ImageFile != null && ImageFile.Length > 0)
+                {
+                    var fileName = $"{Guid.NewGuid()}_{ImageFile.FileName}";
+                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "categories");
+
+                    // Klasör yoksa oluştur
+                    if (!Directory.Exists(uploadsFolder))
+                        Directory.CreateDirectory(uploadsFolder);
+
+                    var filePath = Path.Combine(uploadsFolder, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await ImageFile.CopyToAsync(stream);
+                    }
+
+                    categoryDto.ImageUrl = $"/uploads/categories/{fileName}";
+                }
+
+                if (!categoryDto.ParentCategoryId.HasValue)
+                {
+                    TempData["Error"] = "Üst kategori seçilmelidir.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var response = await _categoryService.CreateAsync(categoryDto);
+                if (response != null && response.Success)
+                {
+                    TempData["Success"] = "Alt kategori başarıyla eklendi.";
+                }
+                else
+                {
+                    TempData["Error"] = "Alt kategori eklenirken hata oluştu.";
+                }
             }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Hata: {ex.Message}";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
         // Recursive kategori oluşturma methodları kaldırıldı (Eski kodlar temizlendi)
 
         /// Düzen Leme - GET
@@ -182,7 +171,7 @@ namespace Dashboard.Web.Controllers
 
             // Alt kategorileri yükle
             var categoriesResponse = await _categoryService.GetAllAsync();
-            var categories = categoriesResponse?.Data ?? new List<CategoryViewModel>();
+            var categories = categoriesResponse?.Data ?? new List<CategoryDto>();
             ViewBag.SubCategories = categories.Where(c => c.ParentCategoryId == id).ToList();
 
             return View(category);
@@ -197,9 +186,8 @@ namespace Dashboard.Web.Controllers
                 return View(category);
             }
 
-            var success = await _categoryService.UpdateAsync(category.Id, category);
-
-            if (success)
+            var response = await _categoryService.UpdateAsync(category.Id, category);
+            if (response != null && response.Success)
             {
                 TempData["Success"] = "Kategori başarıyla güncellendi";
                 return RedirectToAction(nameof(Index));
@@ -240,7 +228,7 @@ namespace Dashboard.Web.Controllers
 
         // Marka ekleme - POST
         [HttpPost]
-        public async Task<IActionResult> CreateBrand(BrandDto brandDto, IFormFile? ImageFile)
+        public async Task<IActionResult> CreateBrand(ECommerce.Application.DTOs.BrandDto brandDto, IFormFile? ImageFile)
         {
             try
             {
@@ -297,14 +285,14 @@ namespace Dashboard.Web.Controllers
             var brand = await _brandService.GetByIdAsync(id);
             if (brand == null)
                 return NotFound();
-            
+
             var models = await _modelService.GetListAsync($"brand/{id}");
             return Json(new { brand, models });
         }
 
         // Marka düzenleme - POST
         [HttpPost]
-        public async Task<IActionResult> EditBrand(int id, BrandDto brandDto, IFormFile? ImageFile)
+        public async Task<IActionResult> EditBrand(int id, ECommerce.Application.DTOs.BrandDto brandDto, IFormFile? ImageFile)
         {
             try
             {
@@ -374,7 +362,7 @@ namespace Dashboard.Web.Controllers
                 {
                     return Json(new { success = false, message = "Model bilgileri boş" });
                 }
-                
+
                 // ModelCreateDto'dan ModelDto'ya dönüştür (BrandId ile birlikte yeni model oluştur)
                 var model = new ModelDto
                 {
@@ -388,14 +376,14 @@ namespace Dashboard.Web.Controllers
                 };
                 var response = await _modelService.CreateAsync(model);
                 var success = response != null && response.Success;
-                
+
                 // AJAX isteği ise sadece JSON döndür
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || 
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
                     Request.Headers["Accept"].ToString().Contains("application/json"))
                 {
                     return Json(new { success, message = success ? "Model başarıyla eklendi." : "Model eklenirken hata oluştu." });
                 }
-                
+
                 TempData[success ? "Success" : "Error"] = success
                     ? "Model başarıyla eklendi."
                     : "Model eklenirken hata oluştu.";
@@ -404,12 +392,12 @@ namespace Dashboard.Web.Controllers
             catch (Exception ex)
             {
                 // AJAX isteği ise sadece JSON döndür
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || 
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
                     Request.Headers["Accept"].ToString().Contains("application/json"))
                 {
                     return Json(new { success = false, message = $"Hata: {ex.Message}" });
                 }
-                
+
                 TempData["Error"] = $"Hata: {ex.Message}";
                 return RedirectToAction(nameof(Brands));
             }
@@ -422,26 +410,26 @@ namespace Dashboard.Web.Controllers
             try
             {
                 await _modelService.DeleteAsync(id);
-                
+
                 // AJAX isteği ise sadece JSON döndür
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || 
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
                     Request.Headers["Accept"].ToString().Contains("application/json"))
                 {
                     return Json(new { success = true, message = "Model başarıyla silindi." });
                 }
-                
+
                 TempData["Success"] = "Model başarıyla silindi.";
                 return RedirectToAction(nameof(Brands));
             }
             catch (Exception ex)
             {
                 // AJAX isteği ise sadece JSON döndür
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || 
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
                     Request.Headers["Accept"].ToString().Contains("application/json"))
                 {
                     return Json(new { success = false, message = $"Hata: {ex.Message}" });
                 }
-                
+
                 TempData["Error"] = $"Hata: {ex.Message}";
                 return RedirectToAction(nameof(Brands));
             }
@@ -460,7 +448,7 @@ namespace Dashboard.Web.Controllers
         {
             // Values null ise boş liste kullan, değilse filtrele
             dto.Values = dto.Values?.Where(v => !string.IsNullOrWhiteSpace(v.Value)).ToList() ?? new List<GlobalAttributeValueFormDto>();
-            
+
             var success = await _globalAttributeService.CreateAsync<GlobalAttributeCreateDto>(dto);
             TempData[success ? "Success" : "Error"] = success ? "Özellik eklendi." : "Özellik eklenemedi.";
             return RedirectToAction(nameof(Attributes));

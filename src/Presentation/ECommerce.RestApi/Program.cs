@@ -1,53 +1,37 @@
+using System.Text;
 using ECommerce.Application;
-using ECommerce.Application.Interfaces;
 using ECommerce.Infrastructure;
 using ECommerce.Infrastructure.Data;
-using ECommerce.Infrastructure.Services;
 using ECommerce.RestApi.Filters;
 using ECommerce.RestApi.Middleware;
 using ECommerce.RestApi.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+// SignalR ve Distributed Cache servisleri
+builder.Services.AddSignalR();
+builder.Services.AddDistributedMemoryCache();
 
-// Load shared logging configuration if present
-builder.Configuration.AddJsonFile("logging.common.json", optional: true, reloadOnChange: true);
-
-// CORS origins from environment or config
-var corsOrigins = (Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS")
-    ?? builder.Configuration["Cors:AllowedOrigins"]
-    ?? "http://localhost:4200,http://localhost:5001,http://localhost:5000,http://localhost:3000,https://your-frontend-onrender.com")
-    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-// Serilog Configuration (read from configuration) and programmatic file sink to shared backend folder
-var logDir = Environment.GetEnvironmentVariable("BACKEND_LOG_DIR")
-    ?? Path.Combine(builder.Environment.ContentRootPath, "logs");
-if (!Directory.Exists(logDir)) Directory.CreateDirectory(logDir);
-
-var logFilePath = Path.Combine(logDir, "backend-log-.json");
-
-var loggerConfig = new LoggerConfiguration()
+// Serilog Configuration
+Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
-    .Enrich.FromLogContext();
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File("Logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
 
-// Programmatically add a file sink that writes to the shared backend directory
-loggerConfig = loggerConfig.WriteTo.File(logFilePath, rollingInterval: RollingInterval.Day);
-
-Log.Logger = loggerConfig.CreateLogger();
 builder.Host.UseSerilog();
 
 // Controllers
@@ -59,9 +43,9 @@ builder.Services.AddControllers(options =>
 // CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins(corsOrigins)
+        policy.AllowAnyOrigin()
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
@@ -159,13 +143,6 @@ builder.Services.AddAuthorization(options =>
             context.User.HasClaim(c => c.Type == "CompanyId")));
 });
 
-// SignalR
-builder.Services.AddSignalR();
-
-// Cache (Default to Memory, change to Redis for prod)
-builder.Services.AddDistributedMemoryCache();
-// builder.Services.AddStackExchangeRedisCache(options => { options.Configuration = "localhost"; });
-
 builder.Services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationHandler,
     ECommerce.RestApi.Authorization.SameCompanyAuthorizationHandler>();
 
@@ -191,17 +168,17 @@ builder.Services.AddSwaggerGen(c =>
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
-        {
-            new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
+                new OpenApiSecurityScheme
                 {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                Array.Empty<string>()
+            }
     });
 
     // Swagger için ek ayarlar
@@ -214,30 +191,139 @@ builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 
-// DI: CustomerMessageService
-builder.Services.AddScoped<ICustomerMessageService, CustomerMessageService>();
-
 var app = builder.Build();
 
-// Database Migration & Seed
+// Database Migration & SuperAdmin Seed
 using (var scope = app.Services.CreateScope())
 {
-    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    try 
-    {
-        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        logger.LogInformation("Applying Database Migrations...");
-        context.Database.Migrate(); // Bu işlem veritabanı dosyasını oluşturur
-        logger.LogInformation("Database Migrations Applied Successfully.");
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
 
-        logger.LogInformation("Starting Data Seeding...");
-        var seeder = scope.ServiceProvider.GetRequiredService<ECommerce.Infrastructure.Data.DataSeeder>();
-        await seeder.SeedAsync();
-        logger.LogInformation("Data Seeding Completed Successfully.");
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        await context.Database.MigrateAsync();
+        logger.LogInformation("✅ Database migrations completed");
+
+        // ========== SUPER ADMIN SEED ==========
+        // Önce Company var mı kontrol et, yoksa oluştur
+        var systemCompany = await context.Companies.FirstOrDefaultAsync(c => c.Name == "System");
+        if (systemCompany == null)
+        {
+            systemCompany = ECommerce.Domain.Entities.Company.Create(
+                name: "System",
+                address: "System Address",
+                phoneNumber: "0000000000",
+                email: "system@ecommerce.com",
+                taxNumber: "0000000000"
+            );
+            // Şirketi aktif ve onaylı yap
+            systemCompany.Approve();
+            
+            // Localhost domainini ve renkleri ata
+            systemCompany.UpdateBranding("localhost", "", "#3f51b5", "#f50057");
+            
+            context.Companies.Add(systemCompany);
+            await context.SaveChangesAsync();
+            logger.LogInformation("✅ System company created with ID: {CompanyId}", systemCompany.Id);
+        }
+        else if (string.IsNullOrEmpty(systemCompany.Domain))
+        {
+            // Eğer domain atanmamışsa ata
+            systemCompany.UpdateBranding("localhost", systemCompany.LogoUrl ?? "", systemCompany.PrimaryColor ?? "#3f51b5", systemCompany.SecondaryColor ?? "#f50057");
+            await context.SaveChangesAsync();
+            logger.LogInformation("✅ System company branding updated with domain 'localhost'");
+        }
+
+        // SuperAdmin rolü var mı kontrol et
+        var superAdminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "SuperAdmin");
+        if (superAdminRole == null)
+        {
+            superAdminRole = ECommerce.Domain.Entities.Role.Create("SuperAdmin", "Sistem yöneticisi - tüm yetkilere sahip");
+            context.Roles.Add(superAdminRole);
+            await context.SaveChangesAsync();
+            logger.LogInformation("✅ SuperAdmin role created");
+        }
+
+        // Admin rolü var mı kontrol et
+        var adminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+        if (adminRole == null)
+        {
+            adminRole = ECommerce.Domain.Entities.Role.Create("Admin", "Şirket yöneticisi");
+            context.Roles.Add(adminRole);
+            await context.SaveChangesAsync();
+            logger.LogInformation("✅ Admin role created");
+        }
+
+        // User rolü var mı kontrol et
+        var userRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "User");
+        if (userRole == null)
+        {
+            userRole = ECommerce.Domain.Entities.Role.Create("User", "Standart kullanıcı");
+            context.Roles.Add(userRole);
+            await context.SaveChangesAsync();
+            logger.LogInformation("✅ User role created");
+        }
+
+        // CompanyAdmin rolü var mı kontrol et (Şirket kayıt için gerekli)
+        var companyAdminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "CompanyAdmin");
+        if (companyAdminRole == null)
+        {
+            companyAdminRole = ECommerce.Domain.Entities.Role.Create("CompanyAdmin", "Şirket yöneticisi - kendi şirketinin tüm yetkilerine sahip");
+            context.Roles.Add(companyAdminRole);
+            await context.SaveChangesAsync();
+            logger.LogInformation("✅ CompanyAdmin role created");
+        }
+
+        // Customer rolü var mı kontrol et (Genel müşteri kaydı için gerekli)
+        var customerRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Customer");
+        if (customerRole == null)
+        {
+            customerRole = ECommerce.Domain.Entities.Role.Create("Customer", "Genel müşteri - alışveriş yapabilir");
+            context.Roles.Add(customerRole);
+            await context.SaveChangesAsync();
+            logger.LogInformation("✅ Customer role created");
+        }
+
+        // SuperAdmin kullanıcısı var mı kontrol et
+        var superAdminEmail = "superadmin@ecommerce.com";
+        var existingSuperAdmin = await context.Users.FirstOrDefaultAsync(u => u.Email == superAdminEmail);
+
+        if (existingSuperAdmin == null)
+        {
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword("SuperAdmin123!");
+            var superAdminUser = ECommerce.Domain.Entities.User.Create(
+                companyId: systemCompany.Id,
+                username: "superadmin",
+                email: superAdminEmail,
+                passwordHash: passwordHash,
+                firstName: "Super",
+                lastName: "Admin"
+            );
+
+            context.Users.Add(superAdminUser);
+            await context.SaveChangesAsync();
+
+            // Kullanıcıya SuperAdmin rolü ata
+            var superAdminUserRole = ECommerce.Domain.Entities.UserRole.Create(
+                userId: superAdminUser.Id,
+                roleId: superAdminRole.Id,
+                roleName: "SuperAdmin"
+            );
+            context.UserRoles.Add(superAdminUserRole);
+            await context.SaveChangesAsync();
+
+            logger.LogInformation("✅ SuperAdmin user created - Email: {Email}", superAdminEmail);
+        }
+        else
+        {
+            logger.LogInformation("ℹ️ SuperAdmin user already exists");
+        }
+        // ========== SUPER ADMIN SEED END ==========
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "An error occurred while migrating the database.");
+        logger.LogError(ex, "❌ Migration/Seed error: {Message}", ex.Message);
     }
 }
 
@@ -256,7 +342,7 @@ app.UseSwaggerUI(c =>
 
 app.UseStaticFiles();
 app.UseRouting();
-app.UseCors("AllowFrontend");
+app.UseCors("AllowAll");
 app.UseMiddleware<ApiKeyMiddleware>();
 app.UseRateLimiter();
 app.UseResponseCaching();
@@ -267,212 +353,31 @@ app.UseAuthorization();
 // Ana sayfa - API bilgisi
 app.MapGet("/", () => Results.Content(@"
 <!DOCTYPE html>
-<html lang='tr'>
+<html>
 <head>
-    <meta charset='UTF-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <title>ECommerce API</title>
-    <link href='https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap' rel='stylesheet'>
     <style>
-        :root {
-            --primary: #4F46E5;
-            --primary-hover: #4338ca;
-            --bg-gradient-start: #f3f4f6;
-            --bg-gradient-end: #e5e7eb;
-            --card-bg: #ffffff;
-            --text-main: #111827;
-            --text-secondary: #6b7280;
-            --success: #10B981;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
-            color: var(--text-main);
-        }
-
-        .container {
-            background: var(--card-bg);
-            padding: 3rem;
-            border-radius: 24px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            max-width: 500px;
-            width: 90%;
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-
-        .container:hover {
-            transform: translateY(-5px);
-        }
-
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(to right, #4F46E5, #7C3AED);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 800;
-        }
-
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.5rem 1rem;
-            background-color: #D1FAE5;
-            color: var(--success);
-            border-radius: 9999px;
-            font-weight: 600;
-            font-size: 0.875rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 0 0 1px #A7F3D0;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background-color: var(--success);
-            border-radius: 50%;
-            margin-right: 8px;
-            animation: pulse 2s infinite;
-        }
-
-        p {
-            color: var(--text-secondary);
-            margin-bottom: 2rem;
-            line-height: 1.6;
-        }
-
-        .actions {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-primary {
-            background-color: var(--primary);
-            color: white;
-            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
-        }
-
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 8px -1px rgba(79, 70, 229, 0.3);
-        }
-
-        .btn-secondary {
-            background-color: white;
-            color: var(--text-main);
-            border: 1px solid #E5E7EB;
-        }
-
-        .btn-secondary:hover {
-            background-color: #F9FAFB;
-            border-color: #D1D5DB;
-        }
-
-        .endpoints {
-            margin-top: 2rem;
-            text-align: left;
-            background: #F8FAFC;
-            padding: 1.5rem;
-            border-radius: 12px;
-            border: 1px solid #F1F5F9;
-        }
-
-        .endpoints h3 {
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #64748B;
-            margin-top: 0;
-            margin-bottom: 1rem;
-        }
-
-        .endpoint-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 0.75rem;
-            font-size: 0.9rem;
-            color: #334155;
-        }
-
-        .method {
-            font-family: monospace;
-            font-weight: 700;
-            font-size: 0.75rem;
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            margin-right: 0.75rem;
-            min-width: 50px;
-            text-align: center;
-        }
-
-        .get { background: #DBEAFE; color: #1E40AF; }
-        .post { background: #D1FAE5; color: #065F46; }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        h1 { color: #2c3e50; }
+        .link { display: inline-block; margin: 10px 0; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px; }
+        .link:hover { background: #2980b9; }
+        .status { color: #27ae60; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class='container'>
-        <h1>ECommerce API</h1>
-        <div class='status-badge'>
-            <span class='status-dot'></span>
-            Sistem Aktif & Çalışıyor
-        </div>
-        
-        <p>E-Ticaret projesi için geliştirilmiş, yüksek performanslı RESTful API servisine hoş geldiniz.</p>
-
-        <div class='actions'>
-            <a href='/swagger' class='btn btn-primary'>
-                <span>📖 Dokümantasyonu İncele (Swagger)</span>
-            </a>
-            <a href='/health' class='btn btn-secondary'>
-                <span>❤️ Sistem Sağlığı (Health Check)</span>
-            </a>
-        </div>
-
-        <div class='endpoints'>
-            <h3>Öne Çıkan Endpointler</h3>
-            <div class='endpoint-item'>
-                <span class='method get'>GET</span>
-                <span>/api/products - Ürün Listesi</span>
-            </div>
-            <div class='endpoint-item'>
-                <span class='method get'>GET</span>
-                <span>/api/categories - Kategoriler</span>
-            </div>
-            <div class='endpoint-item'>
-                <span class='method post'>POST</span>
-                <span>/api/auth/login - Kullanıcı Girişi</span>
-            </div>
-        </div>
-    </div>
+    <h1>🛒 ECommerce REST API</h1>
+    <p class='status'>✅ API Çalışıyor</p>
+    <p>Bu bir REST API servisidir. Aşağıdaki linkleri kullanabilirsiniz:</p>
+    <a class='link' href='/swagger'>📖 Swagger API Dokümantasyonu</a><br>
+    <a class='link' href='/health'>❤️ Health Check</a><br>
+    <a class='link' href='/api/products'>📦 Ürünler API</a>
+    <h3>Endpoints:</h3>
+    <ul>
+        <li><code>GET /api/products</code> - Ürün listesi</li>
+        <li><code>GET /api/categories</code> - Kategori listesi</li>
+        <li><code>GET /api/brands</code> - Marka listesi</li>
+        <li><code>POST /api/auth/login</code> - Giriş</li>
+    </ul>
 </body>
 </html>
 ", "text/html"));
@@ -480,16 +385,5 @@ app.MapGet("/", () => Results.Content(@"
 app.MapControllers();
 app.MapHealthChecks("/health");
 
-app.MapHub<ECommerce.Infrastructure.Hubs.NotificationHub>("/hub/notifications");
-app.Logger.LogInformation("🚀 ECommerce API başlatıldı - http://localhost:5030");
-
-try
-{
-    app.Run();
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"API başlatma hatası: {ex.Message}");
-    Console.WriteLine($"Stack Trace: {ex.StackTrace}");
-    throw;
-}
+app.Logger.LogInformation("🚀 ECommerce API başlatıldı - http://localhost:5010");
+app.Run();

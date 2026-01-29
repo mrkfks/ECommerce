@@ -1,53 +1,43 @@
-import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class CompanyContextService {
   private readonly storageKey = 'companyId';
-  private companyId: number | null = null;
   private readonly isBrowser: boolean;
+
+  // Use a signal for reactivity
+  companyId = signal<number | null>(null);
 
   constructor(@Inject(PLATFORM_ID) platformId: Object) {
     this.isBrowser = isPlatformBrowser(platformId);
 
-    if (this.isBrowser) {
-      const stored = localStorage.getItem(this.storageKey);
-      if (stored) {
-        const parsed = Number(stored);
-        this.companyId = Number.isFinite(parsed) ? parsed : null;
-      } else if (typeof environment.defaultCompanyId === 'number') {
-        this.companyId = environment.defaultCompanyId;
-        try {
-          localStorage.setItem(this.storageKey, String(environment.defaultCompanyId));
-        } catch {
-          // ignore storage write errors
-        }
-      }
-    } else {
-      // SSR ortamında sadece bellek içinde değer tut
-      if (typeof environment.defaultCompanyId === 'number') {
-        this.companyId = environment.defaultCompanyId;
-      }
-    }
+    // We start with null and wait for DesignService to set the correct ID
+    // based on the current domain. This prevents stale IDs from localStorage
+    // causing 400/500 errors on the first API calls.
+    this.companyId.set(null);
   }
 
   setCompanyId(id: number | null): void {
-    this.companyId = id;
-    if (this.isBrowser) {
+    this.companyId.set(id);
+    if (this.isBrowser && id !== null) {
       try {
-        if (id === null) {
-          localStorage.removeItem(this.storageKey);
-        } else {
-          localStorage.setItem(this.storageKey, String(id));
-        }
+        localStorage.setItem(this.storageKey, String(id));
       } catch {
         // ignore storage errors
       }
     }
   }
 
+  clearCompanyId(): void {
+    this.companyId.set(null);
+    if (this.isBrowser) {
+      localStorage.removeItem(this.storageKey);
+    }
+  }
+
   getCompanyId(): number | null {
-    return this.companyId;
+    return this.companyId();
   }
 }

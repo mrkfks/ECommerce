@@ -3,9 +3,9 @@ using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Entities;
 using ECommerce.Domain.Enums;
 using ECommerce.Infrastructure.Data;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.SignalR;
 
 namespace ECommerce.Infrastructure.Services
 {
@@ -83,28 +83,31 @@ namespace ECommerce.Infrastructure.Services
                 // 3. Sipariş Oluşturma
                 if (!dto.CompanyId.HasValue)
                     throw new Exception("Şirket bilgisi gereklidir.");
-                
+
                 var order = Order.Create(dto.CustomerId, addressId, dto.CompanyId.Value);
 
                 _context.Orders.Add(order);
                 await _context.SaveChangesAsync();
 
                 // 3. Kalemleri Ekle ve Stok Düş
-                foreach (var itemDto in dto.Items)
+                if (dto.Items != null)
                 {
-                    var product = await _context.Products.FindAsync(itemDto.ProductId);
-                    if (product == null)
-                        throw new Exception($"Ürün bulunamadı: {itemDto.ProductId}");
+                    foreach (var itemDto in dto.Items)
+                    {
+                        var product = await _context.Products.FindAsync(itemDto.ProductId);
+                        if (product == null)
+                            throw new Exception($"Ürün bulunamadı: {itemDto.ProductId}");
 
-                    if (!product.IsActive)
-                        throw new Exception($"Ürün satışa kapalı: {product.Name}");
+                        if (!product.IsActive)
+                            throw new Exception($"Ürün satışa kapalı: {product.Name}");
 
-                    // Safe Atomic Stock Update via ProductService (SQL based)
-                    await _productService.DecreaseStockAsync(product.Id, itemDto.Quantity);
+                        // Safe Atomic Stock Update via ProductService (SQL based)
+                        await _productService.DecreaseStockAsync(product.Id, itemDto.Quantity);
 
-                    // OrderItem oluştur
-                    var orderItem = OrderItem.Create(product.Id, itemDto.Quantity, product.Price);
-                    order.AddItem(orderItem);
+                        // OrderItem oluştur
+                        var orderItem = OrderItem.Create(product.Id, itemDto.Quantity, product.Price);
+                        order.AddItem(orderItem);
+                    }
                 }
 
                 // Tüm kalemler eklendi ve stok düştü, şimdi siparişi tamamlandı olarak işaretle

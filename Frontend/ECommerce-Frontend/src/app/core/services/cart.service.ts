@@ -1,9 +1,10 @@
-import { Injectable, computed, signal, Signal, PLATFORM_ID, inject } from '@angular/core';
+import { Injectable, computed, signal, Signal, PLATFORM_ID, inject, effect } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap, map } from 'rxjs';
 import { Product, ApiResponse } from '../models';
 import { isPlatformBrowser } from '@angular/common';
+import { CompanyContextService } from './company-context.service';
 
 export interface CartItem {
   id: number;
@@ -35,6 +36,8 @@ export interface AddToCartRequest {
 export class CartService {
   private readonly basePath = '/cart';
   private readonly platformId = inject(PLATFORM_ID);
+  private companyContext = inject(CompanyContextService);
+
   private cartSubject = new BehaviorSubject<Cart | null>(null);
   public cart$ = this.cartSubject.asObservable();
 
@@ -45,9 +48,14 @@ export class CartService {
   readonly totalPrice = computed(() => this.cart()?.totalAmount ?? 0);
 
   constructor(private http: HttpClient) {
-    // Only load cart on browser platform
+    // Reload cart whenever company ID changes
     if (isPlatformBrowser(this.platformId)) {
-      this.loadCart();
+      effect(() => {
+        const companyId = this.companyContext.companyId();
+        if (companyId) {
+          this.loadCart();
+        }
+      });
     }
   }
 
@@ -55,7 +63,7 @@ export class CartService {
     if (!isPlatformBrowser(this.platformId)) {
       return 'server-session';
     }
-    
+
     let sessionId = localStorage.getItem('cart_session_id');
     if (!sessionId) {
       sessionId = crypto.randomUUID();

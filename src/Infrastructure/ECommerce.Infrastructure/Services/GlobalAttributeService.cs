@@ -62,7 +62,7 @@ public class GlobalAttributeService : IGlobalAttributeService
 
         var entity = GlobalAttribute.Create(
             dto.Name,
-            dto.DisplayName,
+            dto.DisplayName ?? string.Empty,
             dto.Description ?? string.Empty,
             companyId,
             Enum.Parse<AttributeType>(dto.AttributeType),
@@ -74,9 +74,9 @@ public class GlobalAttributeService : IGlobalAttributeService
         _context.GlobalAttributes.Add(entity);
         await _context.SaveChangesAsync();
 
-        if (dto.Values.Any())
+        if (dto.Values != null && dto.Values.Any())
         {
-            foreach (var valueDto in dto.Values)
+            foreach (var valueDto in dto.Values ?? new List<GlobalAttributeValueFormDto>())
             {
                 var value = GlobalAttributeValue.Create(entity.Id, valueDto.Value, valueDto.ColorCode, valueDto.DisplayOrder);
                 if (!valueDto.IsActive)
@@ -104,7 +104,7 @@ public class GlobalAttributeService : IGlobalAttributeService
         if (entity == null)
             throw new KeyNotFoundException($"Global attribute with ID {dto.Id} not found");
 
-        entity.Update(dto.DisplayName, dto.Description ?? string.Empty, Enum.Parse<AttributeType>(dto.AttributeType), dto.DisplayOrder);
+        entity.Update(dto.DisplayName ?? string.Empty, dto.Description ?? string.Empty, Enum.Parse<AttributeType>(dto.AttributeType), dto.DisplayOrder);
         if (dto.IsActive) entity.Activate(); else entity.Deactivate();
 
         // replace values for simplicity
@@ -114,12 +114,15 @@ public class GlobalAttributeService : IGlobalAttributeService
             _context.GlobalAttributeValues.RemoveRange(existingValues);
         }
 
-        foreach (var valueDto in dto.Values)
+        if (dto.Values != null)
         {
-            var value = GlobalAttributeValue.Create(entity.Id, valueDto.Value, valueDto.ColorCode, valueDto.DisplayOrder);
-            if (!valueDto.IsActive)
-                value.Deactivate();
-            _context.GlobalAttributeValues.Add(value);
+            foreach (var valueDto in dto.Values)
+            {
+                var value = GlobalAttributeValue.Create(entity.Id, valueDto.Value, valueDto.ColorCode, valueDto.DisplayOrder);
+                if (!valueDto.IsActive)
+                    value.Deactivate();
+                _context.GlobalAttributeValues.Add(value);
+            }
         }
 
         await _context.SaveChangesAsync();

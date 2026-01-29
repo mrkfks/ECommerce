@@ -22,7 +22,7 @@ public class NotificationApiService
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<List<NotificationVm>>("api/Notification");
+            return await _httpClient.GetFromJsonAsync<List<NotificationVm>>("api/notifications");
         }
         catch (Exception ex)
         {
@@ -38,7 +38,7 @@ public class NotificationApiService
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<NotificationSummaryVm>("api/Notification/summary");
+            return await _httpClient.GetFromJsonAsync<NotificationSummaryVm>("api/notifications/summary");
         }
         catch (Exception ex)
         {
@@ -54,7 +54,7 @@ public class NotificationApiService
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<List<NotificationVm>>("api/Notification/unread");
+            return await _httpClient.GetFromJsonAsync<List<NotificationVm>>("api/notifications/unread");
         }
         catch (Exception ex)
         {

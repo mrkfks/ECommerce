@@ -4,12 +4,23 @@
     ViewData["Title"] = "Şirket Detayları";
 }
 
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
 <div class="row mb-4">
     <div class="col-md-6">
         <h2 class="section-title">Şirket Detayları</h2>
         <p class="text-muted">@Model.Name şirketinin detaylı bilgileri</p>
     </div>
     <div class="col-md-6 text-end">
+        <a asp-action="Branding" asp-route-id="@Model.Id" class="btn btn-primary me-2">
+            <i class="fa-solid fa-palette me-2"></i> Marka Ayarları
+        </a>
         <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning me-2">
             <i class="fa-solid fa-edit me-2"></i> Düzenle
         </a>
@@ -21,7 +32,7 @@
 
 <div class="row">
     <div class="col-md-8">
-        <div class="card shadow-sm border-0">
+        <div class="card shadow-sm border-0 mb-4">
             <div class="card-header bg-white py-3">
                 <h5 class="mb-0 text-primary fw-bold">Şirket Bilgileri</h5>
             </div>
@@ -124,6 +135,64 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Branding Card -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-primary fw-bold">
+                    <i class="fa-solid fa-palette me-2"></i>Marka Ayarları
+                </h5>
+                <a asp-action="Branding" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary">
+                    <i class="fa-solid fa-edit me-1"></i> Düzenle
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>Domain:</strong>
+                        <div class="mt-1">
+                            @if (!string.IsNullOrEmpty(Model.Domain))
+                            {
+                                <code class="fs-6">@Model.Domain</code>
+                            }
+                            else
+                            {
+                                <span class="text-muted fst-italic">Tanımlanmamış</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Logo:</strong>
+                        <div class="mt-1">
+                            @if (!string.IsNullOrEmpty(Model.LogoUrl))
+                            {
+                                <img src="@Model.LogoUrl" alt="Logo" style="max-height: 50px;" class="border rounded p-1" />
+                            }
+                            else
+                            {
+                                <span class="text-muted fst-italic">Yüklenmemiş</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>Ana Renk:</strong>
+                        <div class="mt-1 d-flex align-items-center gap-2">
+                            <span class="rounded" style="width: 24px; height: 24px; background-color: @(Model.PrimaryColor ?? "#3b82f6"); display: inline-block; border: 1px solid #ddd;"></span>
+                            <code>@(Model.PrimaryColor ?? "#3b82f6")</code>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>İkincil Renk:</strong>
+                        <div class="mt-1 d-flex align-items-center gap-2">
+                            <span class="rounded" style="width: 24px; height: 24px; background-color: @(Model.SecondaryColor ?? "#1e40af"); display: inline-block; border: 1px solid #ddd;"></span>
+                            <code>@(Model.SecondaryColor ?? "#1e40af")</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     
     <div class="col-md-4">
@@ -206,3 +275,4 @@
         </div>
     </div>
 </div>
+

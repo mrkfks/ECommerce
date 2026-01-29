@@ -25,9 +25,10 @@
         <thead>
           <tr>
             <th>#</th>
+            <th>Logo</th>
             <th>Ad</th>
+            <th>Domain</th>
             <th>Email</th>
-            <th>Vergi No</th>
             <th>Onay</th>
             <th>Durum</th>
             <th class="text-end">İşlemler</th>
@@ -41,9 +42,36 @@
             {
                 <tr>
                     <td>@i</td>
-                    <td>@c.Name</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(c.LogoUrl))
+                        {
+                            <img src="@c.LogoUrl" alt="Logo" style="height: 32px; max-width: 60px; object-fit: contain;" />
+                        }
+                        else
+                        {
+                            <span class="badge bg-light text-muted"><i class="fa-solid fa-building"></i></span>
+                        }
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            @if (!string.IsNullOrEmpty(c.PrimaryColor))
+                            {
+                                <span class="rounded" style="width: 12px; height: 12px; background-color: @c.PrimaryColor; display: inline-block;"></span>
+                            }
+                            @c.Name
+                        </div>
+                    </td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(c.Domain))
+                        {
+                            <code class="small">@c.Domain</code>
+                        }
+                        else
+                        {
+                            <span class="text-muted small">—</span>
+                        }
+                    </td>
                     <td>@c.Email</td>
-                    <td>@c.TaxNumber</td>
                     <td>
                         @if (c.IsApproved)
                         { <span class="badge text-bg-success">Onaylı</span> }
@@ -57,36 +85,46 @@
                         { <span class="badge text-bg-secondary">Pasif</span> }
                     </td>
                     <td class="text-end">
-                        <a asp-action="Details" asp-route-id="@c.Id" class="btn btn-sm btn-info me-1">
-                            <i class="fa-solid fa-eye me-1"></i> Detay
-                        </a>
-                        <a asp-action="Edit" asp-route-id="@c.Id" class="btn btn-sm btn-warning me-1">
-                            <i class="fa-solid fa-edit me-1"></i> Düzenle
-                        </a>
-                        <form asp-action="Approve" asp-controller="Company" method="post" class="d-inline">
-                            <input type="hidden" name="id" value="@c.Id" />
-                            <button type="submit" class="btn btn-sm btn-success" @(c.IsApproved ? "disabled" : null)>
-                                <i class="fa-solid fa-check me-1"></i> Onayla
-                            </button>
-                        </form>
-                        @if (c.IsActive)
-                        {
-                            <form asp-action="Deactivate" asp-controller="Company" method="post" class="d-inline ms-1">
-                                <input type="hidden" name="id" value="@c.Id" />
-                                <button type="submit" class="btn btn-sm btn-outline-danger">
-                                    <i class="fa-solid fa-ban me-1"></i> Pasifleştir
-                                </button>
-                            </form>
-                        }
-                        else
-                        {
-                            <form asp-action="Activate" asp-controller="Company" method="post" class="d-inline ms-1">
-                                <input type="hidden" name="id" value="@c.Id" />
-                                <button type="submit" class="btn btn-sm btn-outline-success">
-                                    <i class="fa-solid fa-power-off me-1"></i> Aktif Yap
-                                </button>
-                            </form>
-                        }
+                        <div class="btn-group btn-group-sm" role="group">
+                            <a asp-action="Details" asp-route-id="@c.Id" class="btn btn-info" title="Detay">
+                                <i class="fa-solid fa-eye"></i>
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@c.Id" class="btn btn-warning" title="Düzenle">
+                                <i class="fa-solid fa-edit"></i>
+                            </a>
+                            <a asp-action="Branding" asp-route-id="@c.Id" class="btn btn-primary" title="Marka Ayarları">
+                                <i class="fa-solid fa-palette"></i>
+                            </a>
+                        </div>
+                        <div class="btn-group btn-group-sm ms-2" role="group">
+                            @if (!c.IsApproved)
+                            {
+                                <form asp-action="Approve" asp-controller="Company" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@c.Id" />
+                                    <button type="submit" class="btn btn-success" title="Onayla">
+                                        <i class="fa-solid fa-check"></i>
+                                    </button>
+                                </form>
+                            }
+                            @if (c.IsActive)
+                            {
+                                <form asp-action="Deactivate" asp-controller="Company" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@c.Id" />
+                                    <button type="submit" class="btn btn-outline-danger" title="Pasifleştir">
+                                        <i class="fa-solid fa-ban"></i>
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-action="Activate" asp-controller="Company" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@c.Id" />
+                                    <button type="submit" class="btn btn-outline-success" title="Aktif Yap">
+                                        <i class="fa-solid fa-power-off"></i>
+                                    </button>
+                                </form>
+                            }
+                        </div>
                     </td>
                 </tr>
                 i++;
@@ -94,7 +132,7 @@
         }
         else
         {
-            <tr><td colspan="7" class="text-center py-4 text-muted">Kayıt bulunamadı</td></tr>
+            <tr><td colspan="8" class="text-center py-4 text-muted">Kayıt bulunamadı</td></tr>
         }
         </tbody>
       </table>

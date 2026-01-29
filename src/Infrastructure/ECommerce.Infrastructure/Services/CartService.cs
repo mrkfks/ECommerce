@@ -5,6 +5,7 @@ using ECommerce.Domain.Entities;
 using ECommerce.Infrastructure.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace ECommerce.Infrastructure.Services;
 
@@ -13,12 +14,17 @@ public class CartService : ICartService
     private readonly AppDbContext _context;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ITenantService _tenantService;
+    private readonly ILogger<CartService> _logger;
 
-    public CartService(AppDbContext context, IHttpContextAccessor httpContextAccessor, ITenantService tenantService)
+    public CartService(AppDbContext context, 
+        IHttpContextAccessor httpContextAccessor, 
+        ITenantService tenantService,
+        ILogger<CartService> logger)
     {
         _context = context;
         _httpContextAccessor = httpContextAccessor;
         _tenantService = tenantService;
+        _logger = logger;
     }
 
     public async Task<CartDto> GetCartAsync(string? sessionId = null)
@@ -130,7 +136,6 @@ public class CartService : ICartService
         {
             currentUserId = uid;
         }
-
         int? companyId = _tenantService.GetCompanyId();
         
         if (!companyId.HasValue)
@@ -138,6 +143,13 @@ public class CartService : ICartService
             // Eğer hala companyId yoksa, sepet işlemini gerçekleştiremeyiz.
             // Çünkü sepet hangi dükkana/organizasyona ait bilinmeli.
             throw new Application.Exceptions.BadRequestException("Şirket bilgisi eksik. Lütfen siteyi doğru kanal üzerinden ziyaret ettiğinizden emin olun.");
+        }
+
+        // Şirketin varlığını kontrol et (Geçersiz veya eski ID gönderilmesini engellemek için)
+        var companyExists = await _context.Companies.AnyAsync(c => c.Id == companyId.Value);
+        if (!companyExists)
+        {
+            throw new Application.Exceptions.BadRequestException("Geçersiz şirket bilgisi. Lütfen sayfayı yenileyiniz.");
         }
 
         Cart? cart = null;

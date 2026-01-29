@@ -1,10 +1,10 @@
 using ECommerce.Application.DTOs;
 using ECommerce.Application.Interfaces;
-using Microsoft.Extensions.Caching.Distributed;
 using ECommerce.Domain.Entities;
 using ECommerce.Domain.Enums;
 using ECommerce.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 
 namespace ECommerce.Infrastructure.Services;
@@ -166,24 +166,30 @@ public class DashboardService : IDashboardService
             query = FilterOrders(query, startDate, endDate, companyId);
 
             // Flatten items
-            var items = query.SelectMany(o => o.Items);
+            var items = await query.SelectMany(o => o.Items).ToListAsync();
 
-            return await items
+            var grouped = items
                 .GroupBy(i => i.ProductId)
-                .Select(g => new TopProductDto
+                .Select(g => new
                 {
                     ProductId = g.Key,
                     ProductName = g.Select(i => i.Product!.Name).FirstOrDefault() ?? string.Empty,
                     QuantitySold = g.Sum(i => i.Quantity),
                     Revenue = g.Sum(i => i.UnitPrice * i.Quantity),
-                    ImageUrl = g.SelectMany(i => i.Product != null
-                            ? i.Product.Images.Where(img => img.IsPrimary).Select(img => img.ImageUrl)
-                            : Enumerable.Empty<string>())
-                        .FirstOrDefault()
+                    Product = g.Select(i => i.Product).FirstOrDefault()
                 })
                 .OrderByDescending(x => x.Revenue)
                 .Take(5)
-                .ToListAsync();
+                .ToList();
+
+            return grouped.Select(g => new TopProductDto
+            {
+                ProductId = g.ProductId,
+                ProductName = g.ProductName,
+                QuantitySold = g.QuantitySold,
+                Revenue = g.Revenue,
+                ImageUrl = g.Product?.Images?.Where(img => img.IsPrimary).Select(img => img.ImageUrl).FirstOrDefault() ?? ""
+            }).ToList();
 
         }, companyId);
     }

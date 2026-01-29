@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using ECommerce.Application.DTOs;
 using Dashboard.Web.Services;
+using ECommerce.Application.DTOs;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Dashboard.Web.Controllers
 {
@@ -18,8 +18,18 @@ namespace Dashboard.Web.Controllers
         // Listeleme
         public async Task<IActionResult> Index()
         {
-            var customers = await _customerService.GetAllAsync();
-            return View(customers);
+            try
+            {
+                var customers = await _customerService.GetAllAsync();
+                return View(customers.Data ?? new List<CustomerDto>());
+            }
+            catch (Exception ex)
+            {
+                // Hata loglama
+                Console.WriteLine($"[CustomerController][Index] Hata: {ex.Message}\n{ex.StackTrace}");
+                ViewBag.ErrorMessage = ex.Message;
+                return View(new List<CustomerDto>());
+            }
         }
 
         // Detay

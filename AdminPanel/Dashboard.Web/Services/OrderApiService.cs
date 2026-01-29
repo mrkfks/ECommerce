@@ -4,7 +4,7 @@ namespace Dashboard.Web.Services
 {
     public class OrderApiService : ApiService<OrderDto>
     {
-        public OrderApiService(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public OrderApiService(HttpClient httpClient) : base(httpClient)
         {
         }
         public async Task<bool> UpdateStatusAsync(int id, ECommerce.Domain.Enums.OrderStatus status)

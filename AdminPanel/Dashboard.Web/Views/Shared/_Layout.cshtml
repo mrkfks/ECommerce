@@ -63,8 +63,6 @@
     <!-- Sidebar -->
     <aside class="sidebar d-flex flex-column">
         <div class="brand">DASHBOARD</div>
-        <!-- Şirket Bilgisi -->
-        <vc:company-profile />
         <nav class="flex-grow-1">
             @if (User?.Identity?.IsAuthenticated ?? false)
             {
@@ -82,9 +80,18 @@
                     <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Home" && ViewContext.RouteData.Values["action"]?.ToString()=="Notifications" ? "active" : "")" asp-controller="Home" asp-action="Notifications">
                         <i class="fa-solid fa-bell me-2"></i> Bildirimler
                     </a>
-                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Product" ? "active" : "")" asp-controller="Product" asp-action="List">
-                        <i class="fa-solid fa-boxes-stacked me-2"></i> Ürün Yönetimi
-                    </a>
+                    @if (User.IsInRole("SuperAdmin"))
+                    {
+                        <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Product" ? "active" : "")" asp-controller="Product" asp-action="Index">
+                            <i class="fa-solid fa-warehouse me-2"></i> Envanter Yönetimi
+                        </a>
+                    }
+                    else
+                    {
+                        <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Product" ? "active" : "")" asp-controller="Product" asp-action="List">
+                            <i class="fa-solid fa-boxes-stacked me-2"></i> Ürün Yönetimi
+                        </a>
+                    }
                     <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Order" ? "active" : "")" asp-controller="Order" asp-action="Index">
                         <i class="fa-solid fa-cart-shopping me-2"></i> Siparişler
                     </a>
@@ -93,9 +100,6 @@
                     </a>
                     <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Review" ? "active" : "")" asp-controller="Review" asp-action="Index">
                         <i class="fa-regular fa-comment-dots me-2"></i> Yorumlar
-                    </a>
-                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Banner" ? "active" : "")" asp-controller="Banner" asp-action="Index">
-                        <i class="fa-solid fa-images me-2"></i> Bannerlar
                     </a>
                     
                     @* Kullanıcı Yönetimi Bölümü *@
@@ -129,10 +133,10 @@
                 @if (User.IsInRole("CompanyAdmin") && !User.IsInRole("SuperAdmin"))
                 {
                     <div class="sidebar-divider" style="border-top: 1px solid rgba(255,255,255,0.1); margin: 0.5rem 1rem;"></div>
-                    <a is-active-route asp-controller="Request" asp-action="Create">
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Request" && ViewContext.RouteData.Values["action"]?.ToString()=="Create" ? "active" : "")" asp-controller="Request" asp-action="Create">
                         <i class="fa-solid fa-plus me-2"></i> Talep Oluştur
                     </a>
-                    <a is-active-route asp-controller="Request" asp-action="MyRequests">
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Request" && ViewContext.RouteData.Values["action"]?.ToString()=="MyRequests" ? "active" : "")" asp-controller="Request" asp-action="MyRequests">
                         <i class="fa-solid fa-list-check me-2"></i> Taleplerim
                     </a>
                 }
@@ -144,23 +148,13 @@
                     <div style="padding: 0.5rem 1.25rem; font-size: 0.7rem; text-transform: uppercase; color: rgba(255,255,255,0.4); letter-spacing: 1px;">
                         <i class="fa-solid fa-crown me-1" style="color: #ffc107;"></i> SuperAdmin
                     </div>
-                    <a is-active-route asp-controller="Category" asp-action="Index">
-                        <i class="fa-solid fa-list me-2"></i> Kategoriler
-                    </a>
-                    <a is-active-route asp-controller="Category" asp-action="Brands">
-                        <i class="fa-solid fa-tags me-2"></i> Markalar
-                    </a>
-                    <a is-active-route asp-controller="Category" asp-action="Attributes">
-                        <i class="fa-solid fa-sliders me-2"></i> Özellikler
-                    </a>
-
-                    <a is-active-route asp-controller="Company" asp-action="Index">
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Company" ? "active" : "")" asp-controller="Company" asp-action="Index">
                         <i class="fa-solid fa-building me-2"></i> Şirketler
                     </a>
-                    <a is-active-route asp-controller="Request" asp-action="Index">
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Request" && ViewContext.RouteData.Values["action"]?.ToString()=="Index" ? "active" : "")" asp-controller="Request" asp-action="Index">
                         <i class="fa-solid fa-envelope-open-text me-2"></i> Talepler
                     </a>
-                    <a is-active-route asp-controller="User" asp-action="SuspiciousLogins">
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="User" && ViewContext.RouteData.Values["action"]?.ToString()=="SuspiciousLogins" ? "active" : "")" asp-controller="User" asp-action="SuspiciousLogins">
                         <i class="fa-solid fa-shield-halved me-2 text-warning"></i> Güvenlik
                     </a>
                 }
@@ -253,22 +247,150 @@
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@4.0.0/jquery.validate.unobtrusive.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@3.2.12/dist/jquery.validate.unobtrusive.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     
     <!-- Notification Center Script -->
-    <!-- Custom Modules -->
-    <script type="module" src="~/js/modules/ui-base.js"></script>
-    <script type="module" src="~/js/modules/ui-notifications.js"></script>
-    
     <script>
-        // Global error handler for AJAX
-        $(document).ajaxError(function(event, jqxhr, settings, thrownError) {
-            if (jqxhr.status === 401) {
-                window.location.href = '/Auth/Login';
+    (function() {
+        // Notification polling interval (30 seconds)
+        const POLL_INTERVAL = 30000;
+        let pollTimer = null;
+        
+        // Load notifications
+        function loadNotifications() {
+            fetch('/Home/GetNotificationSummary')
+                .then(response => response.json())
+                .then(data => {
+                    updateNotificationBadge(data.unreadCount);
+                    renderNotifications(data.recentNotifications || []);
+                })
+                .catch(err => console.log('Notification load error:', err));
+        }
+        
+        // Update badge count
+        function updateNotificationBadge(count) {
+            const badge = document.getElementById('notificationBadge');
+            if (badge) {
+                if (count > 0) {
+                    badge.style.display = 'flex';
+                    badge.textContent = count > 99 ? '99+' : count;
+                } else {
+                    badge.style.display = 'none';
+                }
             }
+        }
+        
+        // Render notification items
+        function renderNotifications(notifications) {
+            const list = document.getElementById('notificationList');
+            if (!list) return;
+            
+            if (notifications.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-4 text-muted">
+                        <i class="fa-regular fa-bell-slash fa-2x mb-2"></i>
+                        <p class="mb-0">Yeni bildirim yok</p>
+                    </div>`;
+                return;
+            }
+            
+            let html = '';
+            notifications.forEach(n => {
+                const iconClass = getIconClass(n.type);
+                const colorClass = getColorClass(n.type, n.priority);
+                const itemClass = !n.isRead ? 'unread' : '';
+                const priorityClass = n.priority >= 3 ? (n.priority === 4 ? 'critical' : 'warning') : '';
+                
+                html += `
+                    <div class="notification-item ${itemClass} ${priorityClass}" 
+                         onclick="handleNotificationClick(${n.id}, '${n.actionUrl || ''}')">
+                        <div class="d-flex align-items-start">
+                            <div class="notification-icon ${colorClass} me-3">
+                                <i class="fa-solid ${iconClass}"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <strong class="d-block">${escapeHtml(n.title)}</strong>
+                                    <span class="notification-time">${n.timeAgo}</span>
+                                </div>
+                                <small class="text-muted">${escapeHtml(n.message)}</small>
+                                ${n.actionText ? `<div class="mt-1"><span class="badge bg-primary">${escapeHtml(n.actionText)}</span></div>` : ''}
+                            </div>
+                        </div>
+                    </div>`;
+            });
+            
+            list.innerHTML = html;
+        }
+        
+        // Get icon class by type
+        function getIconClass(type) {
+            const icons = {
+                1: 'fa-box-open',      // LowStock
+                2: 'fa-shopping-cart', // NewOrder
+                3: 'fa-undo',          // ReturnRequest
+                4: 'fa-credit-card',   // PaymentFailed
+                5: 'fa-truck',         // OrderStatusChanged
+                6: 'fa-bell'           // System
+            };
+            return icons[type] || 'fa-bell';
+        }
+        
+        // Get color class by type and priority
+        function getColorClass(type, priority) {
+            if (priority === 4) return 'danger';  // Critical
+            if (priority === 3) return 'warning'; // High
+            
+            const colors = {
+                1: 'danger',  // LowStock
+                2: 'success', // NewOrder
+                3: 'warning', // ReturnRequest
+                4: 'danger',  // PaymentFailed
+                5: 'info',    // OrderStatusChanged
+                6: 'info'     // System
+            };
+            return colors[type] || 'info';
+        }
+        
+        // Escape HTML
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Handle notification click
+        window.handleNotificationClick = function(id, actionUrl) {
+            // Mark as read
+            fetch(`/Home/MarkNotificationAsRead?id=${id}`, { method: 'POST' })
+                .then(() => {
+                    if (actionUrl) {
+                        window.location.href = actionUrl;
+                    } else {
+                        loadNotifications();
+                    }
+                });
+        };
+        
+        // Mark all as read
+        document.getElementById('markAllRead')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            fetch('/Home/MarkAllNotificationsAsRead', { method: 'POST' })
+                .then(() => loadNotifications());
         });
+        
+        // Start polling when authenticated
+        if (document.getElementById('notificationBell')) {
+            loadNotifications();
+            pollTimer = setInterval(loadNotifications, POLL_INTERVAL);
+            
+            // Reload on dropdown open
+            document.getElementById('notificationBell')?.addEventListener('click', loadNotifications);
+        }
+    })();
     </script>
     
     @RenderSection("Scripts", required: false)

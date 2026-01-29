@@ -15,6 +15,7 @@ namespace ECommerce.RestApi.Controllers
         private readonly ICategoryService _categoryService;
         private readonly IBrandService _brandService;
         private readonly IBannerService _bannerService;
+        private readonly ICompanyService _companyService;
         private readonly ILogger<FileUploadController> _logger;
 
         public FileUploadController(
@@ -23,6 +24,7 @@ namespace ECommerce.RestApi.Controllers
             ICategoryService categoryService,
             IBrandService brandService,
             IBannerService bannerService,
+            ICompanyService companyService,
             ILogger<FileUploadController> logger)
         {
             _fileUploadService = fileUploadService;
@@ -30,6 +32,7 @@ namespace ECommerce.RestApi.Controllers
             _categoryService = categoryService;
             _brandService = brandService;
             _bannerService = bannerService;
+            _companyService = companyService;
             _logger = logger;
         }
 
@@ -160,5 +163,41 @@ namespace ECommerce.RestApi.Controllers
                 return StatusCode(500, new { message = "Dosya yüklenirken hata oluştu." });
             }
         }
+
+        // Upload Company Logo
+        [HttpPost("company/{companyId}")]
+        [Authorize(Policy = "SuperAdminOnly")]
+        public async Task<IActionResult> UploadCompanyLogo(int companyId, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest(new { message = "Lütfen geçerli bir dosya seçin." });
+            }
+
+            try
+            {
+                using (var memoryStream = new MemoryStream())
+                {
+                    await file.CopyToAsync(memoryStream);
+                    var fileBytes = memoryStream.ToArray();
+                    
+                    var imageUrl = await _fileUploadService.UploadImageAsync(fileBytes, file.FileName, "companies");
+                    
+                    await _companyService.UpdateLogoAsync(companyId, imageUrl);
+                    
+                    return Ok(new ApiResponseDto<string> { Success = true, Data = imageUrl, Message = "Şirket logosu yüklendi" });
+                }
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { message = "Şirket bulunamadı" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Şirket logosu yükleme hatası");
+                return StatusCode(500, new { message = "Dosya yüklenirken hata oluştu: " + ex.Message });
+            }
+        }
     }
 }
+

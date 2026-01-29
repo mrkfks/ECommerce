@@ -39,14 +39,14 @@ RUN mkdir -p /app/data && chown -R appuser:appuser /app
 USER appuser
 
 # Environment variables
-ENV ASPNETCORE_URLS=http://+:5000
+ENV ASPNETCORE_URLS=http://+:5010
 ENV ASPNETCORE_ENVIRONMENT=Production
 ENV ConnectionStrings__DefaultConnection="Data Source=/app/data/ECommerce.db"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl --fail http://localhost:5000/health || exit 1
+    CMD curl --fail http://localhost:5010/health || exit 1
 
-EXPOSE 5000
+EXPOSE 5010
 
 ENTRYPOINT ["dotnet", "ECommerce.RestApi.dll"]

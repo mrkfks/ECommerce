@@ -14,5 +14,6 @@ public interface ICompanyService
     Task ActivateAsync(int id);
     Task DeactivateAsync(int id);
     Task<CompanyDto?> GetByDomainAsync(string domain);
-    Task UpdateBrandingAsync(int id, object dto); // Receiving DTO from controller (using dynamic/object for now to avoid compilation error if DTO not moved)
+    Task UpdateBrandingAsync(int id, BrandingUpdateDto dto);
+    Task UpdateLogoAsync(int id, string logoUrl);
 }

@@ -1,5 +1,5 @@
-using Dashboard.Web.Models;
 using System.Net.Http.Json;
+using Dashboard.Web.Models;
 
 namespace Dashboard.Web.Services;
 
@@ -28,7 +28,7 @@ public class DashboardApiService
             if (companyId.HasValue) query.Add($"companyId={companyId}");
 
             var queryString = query.Count > 0 ? "?" + string.Join("&", query) : "";
-            return await _httpClient.GetFromJsonAsync<DashboardKpiViewModel>($"api/Dashboard/kpi{queryString}");
+            return await _httpClient.GetFromJsonAsync<DashboardKpiViewModel>($"api/dashboard/kpi{queryString}");
         }
         catch (Exception ex)
         {
@@ -45,7 +45,7 @@ public class DashboardApiService
         try
         {
             var query = companyId.HasValue ? $"?companyId={companyId}" : "";
-            return await _httpClient.GetFromJsonAsync<SalesKpiVm>($"api/Dashboard/sales{query}");
+            return await _httpClient.GetFromJsonAsync<SalesKpiVm>($"api/dashboard/sales{query}");
         }
         catch (Exception ex)
         {
@@ -62,7 +62,7 @@ public class DashboardApiService
         try
         {
             var query = companyId.HasValue ? $"?companyId={companyId}" : "";
-            return await _httpClient.GetFromJsonAsync<List<LowStockProductVm>>($"api/Dashboard/low-stock{query}");
+            return await _httpClient.GetFromJsonAsync<List<LowStockProductVm>>($"api/dashboard/low-stock{query}");
         }
         catch (Exception ex)
         {
@@ -79,7 +79,7 @@ public class DashboardApiService
         try
         {
             var query = companyId.HasValue ? $"?companyId={companyId}" : "";
-            return await _httpClient.GetFromJsonAsync<List<RevenueTrendVm>>($"api/Dashboard/revenue-trend{query}");
+            return await _httpClient.GetFromJsonAsync<List<RevenueTrendVm>>($"api/dashboard/revenue-trend{query}");
         }
         catch (Exception ex)
         {
@@ -100,7 +100,7 @@ public class DashboardApiService
             if (endDate.HasValue) queryParams.Add($"endDate={endDate:yyyy-MM-dd}");
             if (companyId.HasValue) queryParams.Add($"companyId={companyId}");
             var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
-            return await _httpClient.GetFromJsonAsync<List<CategorySalesVm>>($"api/Dashboard/category-sales{query}");
+            return await _httpClient.GetFromJsonAsync<List<CategorySalesVm>>($"api/dashboard/category-sales{query}");
         }
         catch (Exception ex)
         {
@@ -110,8 +110,25 @@ public class DashboardApiService
     }
 
     /// <summary>
-    /// Coğrafi dağılım verilerini getirir
+    /// Kategori bazlı stok dağılımını getirir
     /// </summary>
+    public async Task<List<CategoryStockVm>?> GetCategoryStockAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
+    {
+        try
+        {
+            var queryParams = new List<string>();
+            if (startDate.HasValue) queryParams.Add($"startDate={startDate:yyyy-MM-dd}");
+            if (endDate.HasValue) queryParams.Add($"endDate={endDate:yyyy-MM-dd}");
+            if (companyId.HasValue) queryParams.Add($"companyId={companyId}");
+            var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
+            return await _httpClient.GetFromJsonAsync<List<CategoryStockVm>>($"api/dashboard/category-stock{query}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DashboardApiService] Error fetching category stock: {ex.Message}");
+            return null;
+        }
+    }
     public async Task<List<GeographicDistributionVm>?> GetGeographicDistributionAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
     {
         try
@@ -121,7 +138,7 @@ public class DashboardApiService
             if (endDate.HasValue) queryParams.Add($"endDate={endDate:yyyy-MM-dd}");
             if (companyId.HasValue) queryParams.Add($"companyId={companyId}");
             var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
-            return await _httpClient.GetFromJsonAsync<List<GeographicDistributionVm>>($"api/Dashboard/geographic-distribution{query}");
+            return await _httpClient.GetFromJsonAsync<List<GeographicDistributionVm>>($"api/dashboard/geographic-distribution{query}");
         }
         catch (Exception ex)
         {
@@ -142,7 +159,7 @@ public class DashboardApiService
             if (endDate.HasValue) queryParams.Add($"endDate={endDate:yyyy-MM-dd}");
             if (companyId.HasValue) queryParams.Add($"companyId={companyId}");
             var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
-            return await _httpClient.GetFromJsonAsync<List<AverageCartTrendVm>>($"api/Dashboard/average-cart-trend{query}");
+            return await _httpClient.GetFromJsonAsync<List<AverageCartTrendVm>>($"api/dashboard/average-cart-trend{query}");
         }
         catch (Exception ex)
         {
@@ -163,7 +180,7 @@ public class DashboardApiService
             if (endDate.HasValue) queryParams.Add($"endDate={endDate:yyyy-MM-dd}");
             if (companyId.HasValue) queryParams.Add($"companyId={companyId}");
             var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
-            return await _httpClient.GetFromJsonAsync<List<OrderStatusDistributionVm>>($"api/Dashboard/order-status-distribution{query}");
+            return await _httpClient.GetFromJsonAsync<List<OrderStatusDistributionVm>>($"api/dashboard/order-status-distribution{query}");
         }
         catch (Exception ex)
         {
@@ -184,7 +201,7 @@ public class DashboardApiService
             if (endDate.HasValue) queryParams.Add($"endDate={endDate:yyyy-MM-dd}");
             if (companyId.HasValue) queryParams.Add($"companyId={companyId}");
             var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
-            return await _httpClient.GetFromJsonAsync<List<TopProductVm>>($"api/Dashboard/top-products{query}");
+            return await _httpClient.GetFromJsonAsync<List<TopProductVm>>($"api/dashboard/top-products{query}");
         }
         catch (Exception ex)
         {

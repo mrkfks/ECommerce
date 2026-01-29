@@ -29,9 +29,15 @@ namespace ECommerce.Infrastructure.Services
 
         public async Task<AuthResponseDto> LoginAsync(LoginDto loginDto)
         {
+            var identifier = !string.IsNullOrEmpty(loginDto.LoginIdentifier) 
+                ? loginDto.LoginIdentifier 
+                : loginDto.UsernameOrEmail;
+
+            _logger.LogWarning($"[LOGIN] Giriş denemesi: {identifier}");
+            
             var userData = await _context.Users
-                .IgnoreQueryFilters() // Bypass tenant filter for authentication
-                .Where(u => u.Email == loginDto.UsernameOrEmail || u.Username == loginDto.UsernameOrEmail)
+                .IgnoreQueryFilters()
+                .Where(u => u.Email == identifier || u.Username == identifier)
                 .Select(u => new
                 {
                     u.Id,
@@ -42,17 +48,18 @@ namespace ECommerce.Infrastructure.Services
                     Roles = u.UserRoles.Select(ur => ur.Role != null ? ur.Role.Name : "").ToList()
                 })
                 .FirstOrDefaultAsync();
-
             if (userData == null)
             {
+                _logger.LogWarning($"[LOGIN] Kullanıcı bulunamadı: {loginDto.LoginIdentifier}");
                 throw new UnauthorizedException("Invalid credentials");
             }
-
+            _logger.LogWarning($"[LOGIN] Kullanıcı bulundu: {userData.Username} (id={userData.Id})");
             var passwordOk = BCrypt.Net.BCrypt.Verify(loginDto.Password, userData.PasswordHash);
+            _logger.LogWarning($"[LOGIN] BCrypt kontrol sonucu: {passwordOk}");
             if (!passwordOk)
             {
-                // Legacy SHA256 kontrolü
                 var legacy = LegacyHashPassword(loginDto.Password);
+                _logger.LogWarning($"[LOGIN] Legacy hash kontrolü: {legacy == userData.PasswordHash}");
                 if (legacy == userData.PasswordHash)
                 {
                     var userToUpdate = await _context.Users.FirstOrDefaultAsync(u => u.Id == userData.Id);
@@ -61,25 +68,25 @@ namespace ECommerce.Infrastructure.Services
                         userToUpdate.UpdatePassword(BCrypt.Net.BCrypt.HashPassword(loginDto.Password));
                         await _context.SaveChangesAsync();
                         passwordOk = true;
+                        _logger.LogWarning($"[LOGIN] Legacy hash güncellendi ve şifre doğrulandı.");
                     }
                 }
             }
-
             if (!passwordOk)
             {
+                _logger.LogWarning($"[LOGIN] Şifre doğrulanamadı: {loginDto.LoginIdentifier}");
                 throw new UnauthorizedException("Invalid credentials");
             }
-
-            // Şirket onay kontrolü - CompanyAdmin veya CompanyUser için
             var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == userData.CompanyId);
+            _logger.LogWarning($"[LOGIN] Şirket kontrolü: id={userData.CompanyId}, isApproved={(company != null ? company.IsApproved.ToString() : "null")}");
             if (company != null && !company.IsApproved)
             {
+                _logger.LogWarning($"[LOGIN] Şirket onaysız: {company.Name}");
                 throw new ForbiddenException("Şirketiniz henüz onaylanmamıştır. Lütfen süper admin onayını bekleyiniz.");
             }
-
             var token = GenerateJwtToken(userData.Id, userData.Username, userData.Email, userData.CompanyId, userData.Roles);
             var refreshToken = GenerateRefreshToken();
-
+            _logger.LogWarning($"[LOGIN] Giriş başarılı: {userData.Username}");
             return new AuthResponseDto
             {
                 AccessToken = token,
@@ -96,7 +103,7 @@ namespace ECommerce.Infrastructure.Services
             var existingUser = await _context.Users
                 .IgnoreQueryFilters()
                 .FirstOrDefaultAsync(u => u.Email == registerDto.Email || u.Username == registerDto.Username);
-            
+
             if (existingUser != null)
             {
                 if (existingUser.Email == registerDto.Email)
@@ -123,7 +130,7 @@ namespace ECommerce.Infrastructure.Services
                     // Şirketin mevcut ve onaylı olduğunu kontrol et
                     var company = await _context.Companies
                         .FirstOrDefaultAsync(c => c.Id == registerDto.CompanyId);
-                    
+
                     if (company == null)
                     {
                         throw new NotFoundException("Belirtilen şirket bulunamadı.");
@@ -186,34 +193,17 @@ namespace ECommerce.Infrastructure.Services
 
         public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken)
         {
-            // Bu basit implementasyonda refresh token'ı aslında bir JWT değil, random base64 string olarak saklıyoruz.
-            // Gerçek uygulamada, refresh token'ları DB'de "RefreshToken" entity'si ile userId, expiry, isRevoked vb. alanlarla saklamalısınız.
-            // Şu anki akışta, Login/Register'da GenerateRefreshToken ile üretilen string'i veriyoruz ama RefreshTokenAsync 
-            // bunu ValidateToken ile doğrulamaya çalışıyor. Bu bir hata.
-
-            // Şimdilik sadece User'ı context'ten veya refresh token'ı bir şekilde resolve etmemiz lazım.
-            // MVP için: Refresh token'ın kendisini JWT olarak gönderirsek çalışır, ama random string gönderirsek DB kontrolü şart.
-            
-            // HATA DÜZELTME: Eğer refreshToken bir JWT değilse (random base64 ise), DB araması yapmalıyız.
-            // Ancak mevcut User entities'inde RefreshToken alanı yok. 
-            // Bu yüzden şu anki yapıda "refresh" işlemini simüle etmek için gelen token'ı bir JWT gibi parse etmeyi deniyoruz 
-            // ama bu sadece "token süresi dolmuş olsa bile bilgilerini al" mantığında çalışır.
-            
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtSettings = _configuration.GetSection("Jwt");
             var key = Encoding.UTF8.GetBytes(jwtSettings["Key"] ?? "SecretKeySecretKey12345678");
 
             try
             {
-                // NOT: Eğer refreshToken random string ise bu ValidateToken patlar.
-                // Gerçek çözüm: DB'ye RefreshToken tablosu eklemek.
-                // Geçici çözüm: ValidateToken'ı bypass edip sadece claim'leri oku veya yetkilendirilmiş bir istek bekle.
-                
                 var principal = tokenHandler.ValidateToken(refreshToken, new TokenValidationParameters
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
-                    ValidateLifetime = false, // Süresi dolmuş olabilir, refresh amacı bu
+                    ValidateLifetime = false,
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = jwtSettings["Issuer"],
                     ValidAudience = jwtSettings["Audience"],
@@ -260,7 +250,6 @@ namespace ECommerce.Infrastructure.Services
 
         public async Task LogoutAsync(int userId)
         {
-            // Refresh token revocation can be implemented here
             await Task.CompletedTask;
         }
 
@@ -413,15 +402,15 @@ namespace ECommerce.Infrastructure.Services
                 var emailExists = await _context.Users.AnyAsync(u => u.Email == dto.Email && u.Id != userId);
                 if (emailExists) throw new ConflictException("Bu email adresi zaten kullanılıyor.");
             }
-            
+
             if (user.Username != dto.Username)
             {
                 var usernameExists = await _context.Users.AnyAsync(u => u.Username == dto.Username && u.Id != userId);
                 if (usernameExists) throw new ConflictException("Bu kullanıcı adı zaten kullanılıyor.");
             }
 
-            user.UpdateProfile(dto.FirstName, dto.LastName, dto.Email, dto.Username);
-            
+            user.UpdateProfile(dto.FirstName, dto.LastName, dto.Email ?? string.Empty, dto.Username);
+
             await _context.SaveChangesAsync();
 
             return await GetUserByIdAsync(userId) ?? throw new Exception("Updated user not found");
@@ -447,7 +436,7 @@ namespace ECommerce.Infrastructure.Services
                 var legacy = LegacyHashPassword(dto.CurrentPassword);
                 if (legacy == user.PasswordHash)
                 {
-                   passwordOk = true; 
+                    passwordOk = true;
                 }
             }
 

@@ -53,4 +53,13 @@ public record CompanyFormDto
     public string? ResponsiblePersonEmail { get; init; }
 }
 
-
+/// <summary>
+/// Şirket branding (marka) bilgileri güncelleme DTO
+/// </summary>
+public record BrandingUpdateDto
+{
+    public string? Domain { get; init; }
+    public string? LogoUrl { get; init; }
+    public string? PrimaryColor { get; init; }
+    public string? SecondaryColor { get; init; }
+}

@@ -162,11 +162,14 @@ public record CategoryStockDto
 public record GeographicDistributionDto
 {
     public string City { get; init; } = string.Empty;
+    public string Country { get; init; } = string.Empty;
     public string State { get; init; } = string.Empty;
     public int OrderCount { get; init; }
     public decimal TotalRevenue { get; init; }
     public decimal Percentage { get; init; }
     public string Intensity { get; init; } = "low";
+    public double Latitude { get; init; }
+    public double Longitude { get; init; }
 }
 
 /// <summary>

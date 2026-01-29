@@ -17,4 +17,11 @@ public class CompanyVm
     public string? ResponsiblePersonName { get; set; }
     public string? ResponsiblePersonPhone { get; set; }
     public string? ResponsiblePersonEmail { get; set; }
+    
+    // Branding Bilgileri
+    public string? Domain { get; set; }
+    public string? LogoUrl { get; set; }
+    public string? PrimaryColor { get; set; }
+    public string? SecondaryColor { get; set; }
 }
+

@@ -8,6 +8,4 @@ public class OrderStatusDistributionVm
     public int DeliveredCount { get; set; }
     public int ReturnedCount { get; set; }
     public int CancelledCount { get; set; }
-
-    public int TotalCount => PendingCount + ShippedCount + DeliveredCount + ReturnedCount + CancelledCount;
 }

@@ -6,42 +6,26 @@ namespace Dashboard.Web.Services;
 
 
 
+
 public class ApiService<T> : IApiService<T> where T : class
 {
     protected readonly HttpClient _httpClient;
     protected readonly string _endpoint;
-    private static readonly JsonSerializerOptions _jsonOptions = new() 
-    { 
-        PropertyNameCaseInsensitive = true 
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
     };
 
-    public ApiService(IHttpClientFactory httpClientFactory) : this(httpClientFactory, null) { }
-
-    public ApiService(IHttpClientFactory httpClientFactory, string? customEndpoint)
+    public ApiService(HttpClient httpClient)
     {
-        _httpClient = httpClientFactory.CreateClient("ECommerceApi");
-        
-        if (!string.IsNullOrEmpty(customEndpoint))
-        {
-            _endpoint = customEndpoint;
-        }
-        else
-        {
-            var name = typeof(T).Name;
-            if (name.EndsWith("Dto")) name = name[..^3];
-            else if (name.EndsWith("ViewModel")) name = name[..^9];
-            
-            // Basic pluralization attempt or just use the name
-            // For this project, most are simple: Products, Categories, Brands, etc.
-            // But some are CustomerMessages (with s). 
-            // The API uses: products, categories, customers, customer-messages
-            
-            _endpoint = ToKebabCase(name);
-            if (!_endpoint.EndsWith("s")) _endpoint += "s";
-            
-            // Special cases
-            if (_endpoint == "customer-message") _endpoint = "customer-messages";
-        }
+        _httpClient = httpClient;
+        var name = typeof(T).Name;
+        if (name.EndsWith("Dto")) name = name[..^3];
+        else if (name.EndsWith("ViewModel")) name = name[..^9];
+
+        _endpoint = ToKebabCase(name);
+        if (!_endpoint.EndsWith("s")) _endpoint += "s";
+        if (_endpoint == "customer-message") _endpoint = "customer-messages";
     }
 
     private static string ToKebabCase(string str)
@@ -91,7 +75,7 @@ public class ApiService<T> : IApiService<T> where T : class
             }
 
             var content = await response.Content.ReadAsStringAsync();
-            
+
             // Try wrapped ApiResponseDto<PagedResult<T>>
             try
             {

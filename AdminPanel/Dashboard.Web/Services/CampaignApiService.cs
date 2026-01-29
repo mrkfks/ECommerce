@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using Dashboard.Web.Models;
 
 namespace Dashboard.Web.Services;
 
@@ -149,24 +150,6 @@ public class CampaignVm
     public string RemainingDaysText => RemainingDays > 0 ? $"{RemainingDays} gün kaldı" : "Sona erdi";
 }
 
-public class CampaignCreateVm
-{
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public decimal DiscountPercent { get; set; }
-    public DateTime StartDate { get; set; } = DateTime.Now;
-    public DateTime EndDate { get; set; } = DateTime.Now.AddDays(7);
-    public int CompanyId { get; set; }
-}
-
-public class CampaignUpdateVm
-{
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public decimal DiscountPercent { get; set; }
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
-}
 
 public class CampaignSummaryVm
 {

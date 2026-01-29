@@ -1,7 +1,7 @@
+using Dashboard.Web.Services;
+using ECommerce.Application.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ECommerce.Application.DTOs;
-using Dashboard.Web.Services;
 
 namespace Dashboard.Web.Controllers
 {
@@ -19,7 +19,7 @@ namespace Dashboard.Web.Controllers
         public async Task<IActionResult> Index()
         {
             var reviews = await _reviewService.GetAllAsync();
-            return View(reviews);
+            return View(reviews.Data ?? new List<ReviewDto>());
         }
 
         // Detay

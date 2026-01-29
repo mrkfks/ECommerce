@@ -272,20 +272,22 @@ public class CompanyService : ICompanyService
         };
     }
 
-    public async Task UpdateBrandingAsync(int id, object dto)
+    public async Task UpdateBrandingAsync(int id, BrandingUpdateDto dto)
     {
         var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
         if (company == null) throw new KeyNotFoundException("Şirket bulunamadı");
         
-        // Use reflection to get properties since we don't have access to the DTO type here
-        // Ideally this DTO should be in Application layer
-        var type = dto.GetType();
-        string? domain = (string?)type.GetProperty("Domain")?.GetValue(dto);
-        string? logoUrl = (string?)type.GetProperty("LogoUrl")?.GetValue(dto);
-        string? primaryColor = (string?)type.GetProperty("PrimaryColor")?.GetValue(dto);
-        string? secondaryColor = (string?)type.GetProperty("SecondaryColor")?.GetValue(dto);
+        company.UpdateBranding(dto.Domain, dto.LogoUrl, dto.PrimaryColor, dto.SecondaryColor);
+        await _context.SaveChangesAsync();
+    }
 
-        company.UpdateBranding(domain, logoUrl, primaryColor, secondaryColor);
+    public async Task UpdateLogoAsync(int id, string logoUrl)
+    {
+        var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
+        if (company == null) throw new KeyNotFoundException("Şirket bulunamadı");
+        
+        company.UpdateBranding(company.Domain, logoUrl, company.PrimaryColor, company.SecondaryColor);
         await _context.SaveChangesAsync();
     }
 }
+

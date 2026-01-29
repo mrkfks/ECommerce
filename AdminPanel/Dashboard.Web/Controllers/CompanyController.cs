@@ -10,10 +10,17 @@ namespace Dashboard.Web.Controllers
     public class CompanyController : Controller
     {
         private readonly IApiService<CompanyDto> _companyService;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _configuration;
 
-        public CompanyController(IApiService<CompanyDto> companyService)
+        public CompanyController(
+            IApiService<CompanyDto> companyService,
+            IHttpClientFactory httpClientFactory,
+            IConfiguration configuration)
         {
             _companyService = companyService;
+            _httpClientFactory = httpClientFactory;
+            _configuration = configuration;
         }
 
         public async Task<IActionResult> Index()
@@ -34,7 +41,12 @@ namespace Dashboard.Web.Controllers
                 IsActive = c.IsActive,
                 IsApproved = c.IsApproved,
                 CreatedAt = c.CreatedAt,
-                UpdatedAt = c.UpdatedAt
+                UpdatedAt = c.UpdatedAt,
+                // Branding fields
+                Domain = c.Domain,
+                LogoUrl = c.LogoUrl,
+                PrimaryColor = c.PrimaryColor,
+                SecondaryColor = c.SecondaryColor
             }).ToList();
             return View(companyVms);
         }
@@ -85,7 +97,12 @@ namespace Dashboard.Web.Controllers
                 IsActive = company.IsActive,
                 IsApproved = company.IsApproved,
                 CreatedAt = company.CreatedAt,
-                UpdatedAt = company.UpdatedAt
+                UpdatedAt = company.UpdatedAt,
+                // Branding fields
+                Domain = company.Domain,
+                LogoUrl = company.LogoUrl,
+                PrimaryColor = company.PrimaryColor,
+                SecondaryColor = company.SecondaryColor
             };
             return View(companyVm);
         }
@@ -120,6 +137,82 @@ namespace Dashboard.Web.Controllers
             return View(company);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Branding(int id)
+        {
+            var response = await _companyService.GetByIdAsync(id);
+            var company = response?.Data;
+            if (company == null)
+                return NotFound();
+            
+            var vm = new CompanyBrandingVm
+            {
+                Id = company.Id,
+                Name = company.Name,
+                Domain = company.Domain,
+                LogoUrl = company.LogoUrl,
+                PrimaryColor = company.PrimaryColor ?? "#3b82f6",
+                SecondaryColor = company.SecondaryColor ?? "#1e40af"
+            };
+            return View(vm);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Branding(int id, CompanyBrandingVm model, IFormFile? logoFile)
+        {
+            if (id != model.Id)
+                return BadRequest();
+
+            try
+            {
+                var client = _httpClientFactory.CreateClient("ApiClient");
+                
+                // Upload logo if provided
+                if (logoFile != null && logoFile.Length > 0)
+                {
+                    using var content = new MultipartFormDataContent();
+                    using var stream = logoFile.OpenReadStream();
+                    var fileContent = new StreamContent(stream);
+                    content.Add(fileContent, "file", logoFile.FileName);
+                    
+                    var uploadResponse = await client.PostAsync($"api/files/company/{id}", content);
+                    if (uploadResponse.IsSuccessStatusCode)
+                    {
+                        var result = await uploadResponse.Content.ReadFromJsonAsync<ApiResult<string>>();
+                        if (result?.Data != null)
+                        {
+                            model.LogoUrl = result.Data;
+                        }
+                    }
+                }
+
+                // Update branding
+                var brandingDto = new
+                {
+                    Domain = model.Domain,
+                    LogoUrl = model.LogoUrl,
+                    PrimaryColor = model.PrimaryColor,
+                    SecondaryColor = model.SecondaryColor
+                };
+
+                var brandingResponse = await client.PutAsJsonAsync($"api/companies/{id}/branding", brandingDto);
+                
+                if (brandingResponse.IsSuccessStatusCode)
+                {
+                    TempData["Success"] = "Marka ayarları başarıyla güncellendi";
+                    return RedirectToAction(nameof(Details), new { id });
+                }
+                
+                TempData["Error"] = "Marka ayarları güncellenirken hata oluştu";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Hata: {ex.Message}";
+            }
+
+            return View(model);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Approve(int id)
         {
@@ -144,4 +237,12 @@ namespace Dashboard.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
     }
+
+    public class ApiResult<T>
+    {
+        public bool Success { get; set; }
+        public T? Data { get; set; }
+        public string? Message { get; set; }
+    }
 }
+

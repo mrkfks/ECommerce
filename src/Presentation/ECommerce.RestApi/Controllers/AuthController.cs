@@ -25,9 +25,9 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
         var result = await _authService.RegisterAsync(dto);
-        return Ok(result);
+        return Ok(ECommerce.Application.Responses.ApiResponse<AuthResponseDto>.Ok(result, "Kayıt başarılı"));
     }
-
+ 
     /// <summary>
     /// Login user
     /// </summary>
@@ -36,7 +36,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
         var result = await _authService.LoginAsync(dto);
-        return Ok(result);
+        return Ok(ECommerce.Application.Responses.ApiResponse<AuthResponseDto>.Ok(result, "Giriş başarılı"));
     }
 
     /// <summary>

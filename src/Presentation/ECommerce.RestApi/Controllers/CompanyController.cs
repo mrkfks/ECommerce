@@ -165,7 +165,6 @@ namespace ECommerce.RestApi.Controllers
 
             try
             {
-                // Service method will be implemented next
                 var company = await _companyService.GetByDomainAsync(domain);
                 if (company == null)
                     return NotFound(new { message = "Bu domain için şirket bulunamadı" });
@@ -177,7 +176,10 @@ namespace ECommerce.RestApi.Controllers
                     logoUrl = company.LogoUrl,
                     primaryColor = company.PrimaryColor,
                     secondaryColor = company.SecondaryColor,
-                    faviconUrl = "/favicon.ico" // Placeholder
+                    faviconUrl = company.LogoUrl, // Use logo as favicon if no specific favicon
+                    isActive = company.IsActive,
+                    isApproved = company.IsApproved,
+                    domain = company.Domain
                 });
             }
             catch (Exception ex)
@@ -187,13 +189,13 @@ namespace ECommerce.RestApi.Controllers
             }
         }
 
+
         [HttpPut("{id:int}/branding")]
-        [Authorize(Policy = "CompanyAccess")] 
+        [Authorize(Policy = "SuperAdminOnly")] 
         public async Task<IActionResult> UpdateBranding(int id, [FromBody] BrandingUpdateDto dto)
         {
             try
             {
-                // Service method will be implemented next
                 await _companyService.UpdateBrandingAsync(id, dto);
                 return Ok(new { message = "Marka bilgileri güncellendi" });
             }
@@ -207,12 +209,5 @@ namespace ECommerce.RestApi.Controllers
             }
         }
     }
-    
-    public class BrandingUpdateDto
-    {
-        public string? Domain { get; set; }
-        public string? LogoUrl { get; set; }
-        public string? PrimaryColor { get; set; }
-        public string? SecondaryColor { get; set; }
-    }
 }
+

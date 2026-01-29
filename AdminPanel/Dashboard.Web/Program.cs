@@ -1,10 +1,11 @@
+
+using System.Text;
+using Dashboard.Web.Infrastructure;
+using Dashboard.Web.Middleware;
+using Dashboard.Web.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using Dashboard.Web.Infrastructure;
-using Dashboard.Web.Services;
-using Dashboard.Web.Middleware;
 using Serilog;
 // using ECommerce.Application; // Removed direct dependency on service registrations
 // using ECommerce.Infrastructure; // Removed direct dependency on service registrations
@@ -60,18 +61,32 @@ builder.Services.AddSignalR();
 builder.Services.AddResponseCaching();
 
 // HttpClient for API calls
+
+builder.Services.AddHttpClient<CompanyApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+
 builder.Services.AddHttpClient("ECommerceApi", client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
-})
-    .AddHttpMessageHandler<AuthTokenHandler>();
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+// ReviewApiService DI kaydı (sadece burada ve apiBaseUrl'den sonra olmalı)
+builder.Services.AddHttpClient<ReviewApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
 
 // CORS (Angular veya başka frontend bağlanacaksa)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowDashboard",
-        policy => policy.WithOrigins(dashboardCorsOrigins)
+        policy => policy.WithOrigins("http://localhost:5001")
                         .AllowAnyHeader()
                         .AllowAnyMethod());
 });
@@ -117,18 +132,12 @@ builder.Services.AddHttpClient<DashboardApiService>(client =>
     client.Timeout = TimeSpan.FromSeconds(30);
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
+
 builder.Services.AddHttpClient<UserApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
 }).AddHttpMessageHandler<AuthTokenHandler>();
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowDashboard",
-        policy => policy.WithOrigins("http://localhost:5041") // Dashboard domain
-                        .AllowAnyHeader()
-                        .AllowAnyMethod());
-});
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<AuthTokenHandler>();
@@ -220,6 +229,7 @@ builder.Services.AddAuthorization(options =>
 // Configure Helpers
 Dashboard.Web.Helpers.ImageHelper.Configure(builder.Configuration);
 
+
 var app = builder.Build();
 
 // Global Exception Handler
@@ -232,22 +242,19 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// Development'ta HTTP kullanıldığı için HTTPS redirect kapalı
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-}
-app.UseStaticFiles(); // wwwroot için gerekli
-app.UseRouting();
 
-app.UseResponseCaching(); // VaryByQueryKeys desteği
-app.UseCors("AllowDashboard"); // CORS aktif
-app.UseAuthentication();       // JWT aktif
-app.UseAuthorization();        // Authorize attribute aktif
+app.UseStaticFiles();
+app.UseRouting();
+// Response Caching middleware, UseRouting'den sonra ve UseAuthorization'dan önce olmalı
+app.UseResponseCaching();
+app.UseCors("AllowDashboard");
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Auth}/{action=Login}/{id?}");
+
 
 try
 {

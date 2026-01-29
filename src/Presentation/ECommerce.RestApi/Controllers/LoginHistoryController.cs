@@ -239,7 +239,7 @@ public class LoginHistoryController : ControllerBase
 
         var loginHistory = LoginHistory.Create(
             dto.UserId,
-            dto.IpAddress,
+            dto.IpAddress ?? "Unknown",
             dto.UserAgent,
             dto.Browser,
             dto.OperatingSystem,

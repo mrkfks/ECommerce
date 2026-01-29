@@ -1,12 +1,12 @@
+using Dashboard.Web.Models;
 using ECommerce.Application.DTOs;
 using ECommerce.Application.Responses;
-using Dashboard.Web.Models;
 
 namespace Dashboard.Web.Services
 {
     public class UserApiService : ApiService<UserDto>
     {
-        public UserApiService(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        public UserApiService(HttpClient httpClient) : base(httpClient)
         {
         }
 

@@ -1,0 +1,190 @@
+@model Dashboard.Web.Models.CompanyBrandingVm
+
+@{
+    ViewData["Title"] = "Marka Ayarları - " + Model.Name;
+}
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h2 class="section-title">Marka Ayarları</h2>
+        <p class="text-muted">@Model.Name için görsel kimlik ve domain ayarları</p>
+    </div>
+    <div class="col-md-6 text-end">
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-info me-2">
+            <i class="fa-solid fa-eye me-2"></i> Detay
+        </a>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fa-solid fa-arrow-left me-2"></i> Listeye Dön
+        </a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-exclamation-circle me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-primary fw-bold">
+                    <i class="fa-solid fa-palette me-2"></i>Görsel Kimlik
+                </h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Branding" method="post" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="Name" />
+                    <input type="hidden" asp-for="LogoUrl" />
+                    
+                    <div class="mb-4">
+                        <label asp-for="Domain" class="form-label fw-bold">
+                            <i class="fa-solid fa-globe me-2"></i>Domain
+                        </label>
+                        <input asp-for="Domain" class="form-control" placeholder="ornek.myshop.com" />
+                        <small class="text-muted">
+                            Frontend'in bu domain üzerinden şirket bilgilerini almasını sağlar. 
+                            Örn: abc.shop.com, xyz.eticaret.com
+                        </small>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">
+                            <i class="fa-solid fa-image me-2"></i>Şirket Logosu
+                        </label>
+                        
+                        @if (!string.IsNullOrEmpty(Model.LogoUrl))
+                        {
+                            <div class="mb-3">
+                                <img src="@Model.LogoUrl" alt="Şirket Logosu" class="img-thumbnail" style="max-height: 120px;" />
+                                <p class="text-muted small mt-2">Mevcut logo</p>
+                            </div>
+                        }
+                        
+                        <input type="file" name="logoFile" class="form-control" accept="image/*" />
+                        <small class="text-muted">PNG, JPG veya SVG formatında, maksimum 2MB</small>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="PrimaryColor" class="form-label fw-bold">
+                                <i class="fa-solid fa-fill-drip me-2"></i>Ana Renk (Primary)
+                            </label>
+                            <div class="input-group">
+                                <input type="color" asp-for="PrimaryColor" class="form-control form-control-color" style="width: 60px;" />
+                                <input type="text" class="form-control" id="primaryColorText" value="@Model.PrimaryColor" readonly />
+                            </div>
+                            <small class="text-muted">Butonlar, linkler ve vurgular için kullanılır</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="SecondaryColor" class="form-label fw-bold">
+                                <i class="fa-solid fa-fill me-2"></i>İkincil Renk (Secondary)
+                            </label>
+                            <div class="input-group">
+                                <input type="color" asp-for="SecondaryColor" class="form-control form-control-color" style="width: 60px;" />
+                                <input type="text" class="form-control" id="secondaryColorText" value="@Model.SecondaryColor" readonly />
+                            </div>
+                            <small class="text-muted">Hover durumları ve arka planlar için kullanılır</small>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-times me-2"></i> İptal
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-save me-2"></i> Kaydet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Preview Card -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-primary fw-bold">
+                    <i class="fa-solid fa-eye me-2"></i>Önizleme
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="previewContainer" class="border rounded p-3" style="min-height: 200px;">
+                    <div class="text-center mb-3">
+                        @if (!string.IsNullOrEmpty(Model.LogoUrl))
+                        {
+                            <img src="@Model.LogoUrl" alt="Logo" style="max-height: 60px;" class="mb-2" />
+                        }
+                        else
+                        {
+                            <div class="bg-light rounded d-flex align-items-center justify-content-center mb-2" style="height: 60px; width: 120px; margin: 0 auto;">
+                                <i class="fa-solid fa-building text-muted fs-4"></i>
+                            </div>
+                        }
+                        <h6 class="mb-0">@Model.Name</h6>
+                        <small class="text-muted">@(Model.Domain ?? "domain.com")</small>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="button" id="previewPrimaryBtn" class="btn" style="background-color: @Model.PrimaryColor; color: white;">
+                            Ana Renk Butonu
+                        </button>
+                        <button type="button" id="previewSecondaryBtn" class="btn" style="background-color: @Model.SecondaryColor; color: white;">
+                            İkincil Renk Butonu
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Help Card -->
+        <div class="card shadow-sm border-0 mt-3">
+            <div class="card-body">
+                <h6 class="fw-bold text-primary mb-3">
+                    <i class="fa-solid fa-info-circle me-2"></i>Bilgi
+                </h6>
+                <ul class="small text-muted mb-0">
+                    <li class="mb-2">Domain, frontend uygulamasının hangi şirket verilerini göstereceğini belirler.</li>
+                    <li class="mb-2">Logo, sitenin header kısmında görünür.</li>
+                    <li class="mb-2">Renkler, sitenin genel görünümünü etkiler.</li>
+                    <li>Değişiklikler kaydedildikten sonra frontend'de otomatik yansır.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Update color text inputs
+        document.getElementById('PrimaryColor').addEventListener('input', function() {
+            document.getElementById('primaryColorText').value = this.value;
+            document.getElementById('previewPrimaryBtn').style.backgroundColor = this.value;
+        });
+        
+        document.getElementById('SecondaryColor').addEventListener('input', function() {
+            document.getElementById('secondaryColorText').value = this.value;
+            document.getElementById('previewSecondaryBtn').style.backgroundColor = this.value;
+        });
+    </script>
+}
