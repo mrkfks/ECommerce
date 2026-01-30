@@ -20,7 +20,8 @@ public class ApiService<T> : IApiService<T> where T : class
     {
         _httpClient = httpClient;
         var name = typeof(T).Name;
-        if (name.EndsWith("Dto")) name = name[..^3];
+        if (name.EndsWith("FormDto")) name = name[..^7];
+        else if (name.EndsWith("Dto")) name = name[..^3];
         else if (name.EndsWith("ViewModel")) name = name[..^9];
 
         _endpoint = ToKebabCase(name);

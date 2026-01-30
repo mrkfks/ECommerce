@@ -1,7 +1,7 @@
+using Dashboard.Web.Services;
+using ECommerce.Application.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ECommerce.Application.DTOs;
-using Dashboard.Web.Services;
 
 namespace Dashboard.Web.Controllers
 {
@@ -36,7 +36,7 @@ namespace Dashboard.Web.Controllers
 
             // Şirket listesini ViewBag'e ekle
             var companiesResponse = await _companyService.GetAllAsync();
-            ViewBag.Companies = companiesResponse?.Data ?? new List<Dashboard.Web.Models.CompanyDto>();
+            ViewBag.Companies = companiesResponse?.Data ?? new List<ECommerce.Application.DTOs.CompanyDto>();
             ViewBag.SelectedCompanyId = companyId;
             ViewBag.Roles = await _userService.GetRolesAsync();
 
@@ -174,7 +174,8 @@ namespace Dashboard.Web.Controllers
             ViewBag.AllRoles = roles ?? new List<string>();
 
             // SuperAdmin için şirket listesi
-            ViewBag.Companies = await _companyService.GetAllAsync();
+            var companiesResponse = await _companyService.GetAllAsync();
+            ViewBag.Companies = companiesResponse?.Data ?? new List<ECommerce.Application.DTOs.CompanyDto>();
 
             return View();
         }
@@ -187,7 +188,8 @@ namespace Dashboard.Web.Controllers
             {
                 var roles = await _userService.GetRolesAsync();
                 ViewBag.AllRoles = roles ?? new List<string>();
-                ViewBag.Companies = await _companyService.GetAllAsync();
+                var companiesResponse = await _companyService.GetAllAsync();
+                ViewBag.Companies = companiesResponse?.Data ?? new List<ECommerce.Application.DTOs.CompanyDto>();
                 return View(dto);
             }
 
@@ -213,7 +215,8 @@ namespace Dashboard.Web.Controllers
             ModelState.AddModelError("", "Kullanıcı oluşturulurken hata oluştu.");
             var roleList = await _userService.GetRolesAsync();
             ViewBag.AllRoles = roleList ?? new List<string>();
-            ViewBag.Companies = await _companyService.GetAllAsync();
+            var companiesResponse2 = await _companyService.GetAllAsync();
+            ViewBag.Companies = companiesResponse2?.Data ?? new List<ECommerce.Application.DTOs.CompanyDto>();
             return View(dto);
         }
 
@@ -221,30 +224,37 @@ namespace Dashboard.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            var user = await _userService.GetByIdAsync(id);
-
-            if (user == null)
+            var userRes = await _userService.GetByIdAsync(id);
+            if (userRes == null || !userRes.Success || userRes.Data == null)
                 return NotFound();
-
-            return View(user);
+            return View(userRes.Data);
         }
 
         // Rol atama/düzenleme
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var user = await _userService.GetByIdAsync(id);
-
-            if (user == null)
+            var userRes = await _userService.GetByIdAsync(id);
+            if (userRes == null || !userRes.Success || userRes.Data == null)
                 return NotFound();
-
             var roles = await _userService.GetRolesAsync();
             ViewBag.AllRoles = roles ?? new List<string>();
-
             // SuperAdmin için şirket listesi
-            ViewBag.Companies = await _companyService.GetAllAsync();
-
-            return View(user);
+            var companiesResponse = await _companyService.GetAllAsync();
+            ViewBag.Companies = companiesResponse?.Data ?? new List<ECommerce.Application.DTOs.CompanyDto>();
+            var vm = new Dashboard.Web.Models.UserEditViewModel
+            {
+                Id = userRes.Data.Id,
+                FirstName = userRes.Data.FirstName,
+                LastName = userRes.Data.LastName,
+                Username = userRes.Data.Username,
+                Email = userRes.Data.Email,
+                CompanyId = userRes.Data.CompanyId,
+                CompanyName = userRes.Data.CompanyName,
+                IsActive = userRes.Data.IsActive,
+                CreatedAt = userRes.Data.CreatedAt
+            };
+            return View(vm);
         }
 
         [HttpPost]
@@ -254,11 +264,12 @@ namespace Dashboard.Web.Controllers
             {
                 var roles = await _userService.GetRolesAsync();
                 ViewBag.AllRoles = roles ?? new List<string>();
-                ViewBag.Companies = await _companyService.GetAllAsync();
+                var companiesResponse = await _companyService.GetAllAsync();
+                ViewBag.Companies = companiesResponse?.Data ?? new List<ECommerce.Application.DTOs.CompanyDto>();
                 return View(user);
             }
 
-            // DTO'ya dönüştür
+            // ViewModel'den DTO'ya dönüştür
             var updateDto = new UserUpdateDto
             {
                 Id = user.Id,
@@ -279,7 +290,8 @@ namespace Dashboard.Web.Controllers
             ModelState.AddModelError("", "Kullanıcı güncellenirken hata oluştu.");
             var roleList = await _userService.GetRolesAsync();
             ViewBag.AllRoles = roleList ?? new List<string>();
-            ViewBag.Companies = await _companyService.GetAllAsync();
+            var companiesResponse2 = await _companyService.GetAllAsync();
+            ViewBag.Companies = companiesResponse2?.Data ?? new List<ECommerce.Application.DTOs.CompanyDto>();
             return View(user);
         }
 
@@ -287,12 +299,12 @@ namespace Dashboard.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
-            var user = await _userService.GetByIdAsync(id);
-
-            if (user == null)
+            var userRes = await _userService.GetByIdAsync(id);
+            if (userRes == null || !userRes.Success || userRes.Data == null)
                 return NotFound();
-
-            return View(user);
+            var companiesResponse = await _companyService.GetAllAsync();
+            ViewBag.Companies = companiesResponse?.Data ?? new List<ECommerce.Application.DTOs.CompanyDto>();
+            return View(userRes.Data);
         }
 
         [HttpPost, ActionName("Delete")]
@@ -305,7 +317,10 @@ namespace Dashboard.Web.Controllers
 
             ModelState.AddModelError("", "Kullanıcı silinirken hata oluştu.");
             var userRes = await _userService.GetByIdAsync(id);
-            return View(userRes?.Data);
+            if (userRes != null && userRes.Success && userRes.Data != null)
+                return View(userRes.Data);
+            ModelState.AddModelError("", userRes?.Message ?? "Kullanıcı bulunamadı.");
+            return View(new ECommerce.Application.DTOs.UserDto());
         }
 
         // Profil Görüntüleme ve Düzenleme - Giriş yapmış kullanıcılar erişebilir

@@ -29,12 +29,12 @@ namespace ECommerce.Infrastructure.Services
 
         public async Task<AuthResponseDto> LoginAsync(LoginDto loginDto)
         {
-            var identifier = !string.IsNullOrEmpty(loginDto.LoginIdentifier) 
-                ? loginDto.LoginIdentifier 
+            var identifier = !string.IsNullOrEmpty(loginDto.LoginIdentifier)
+                ? loginDto.LoginIdentifier
                 : loginDto.UsernameOrEmail;
 
             _logger.LogWarning($"[LOGIN] Giriş denemesi: {identifier}");
-            
+
             var userData = await _context.Users
                 .IgnoreQueryFilters()
                 .Where(u => u.Email == identifier || u.Username == identifier)
@@ -168,6 +168,22 @@ namespace ECommerce.Infrastructure.Services
                     _context.UserRoles.Add(userRole);
                     await _context.SaveChangesAsync();
                     roles.Add(roleName);
+                }
+
+                // Eğer müşteri ise Customer tablosuna da ekle
+                if (roleName == "Customer")
+                {
+                    var customer = Customer.Create(
+                        companyId,
+                        registerDto.FirstName,
+                        registerDto.LastName,
+                        registerDto.Email,
+                        registerDto.PhoneNumber,
+                        DateTime.UtcNow, // Doğum tarihi zorunlu değilse şimdilik şimdi ver
+                        user.Id
+                    );
+                    _context.Customers.Add(customer);
+                    await _context.SaveChangesAsync();
                 }
 
                 await transaction.CommitAsync();

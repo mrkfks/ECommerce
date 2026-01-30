@@ -172,6 +172,28 @@
                 </div>
               </div>
 
+
+              <div class="mb-3">
+                <label for="companyName" class="form-label">Şirket Adı</label>
+                <input type="text" class="form-control" id="companyName" [(ngModel)]="formData.companyName" name="companyName" required>
+              </div>
+              <div class="mb-3">
+                <label for="companyAddress" class="form-label">Şirket Adresi</label>
+                <input type="text" class="form-control" id="companyAddress" [(ngModel)]="formData.companyAddress" name="companyAddress" required>
+              </div>
+              <div class="mb-3">
+                <label for="companyPhoneNumber" class="form-label">Şirket Telefonu</label>
+                <input type="text" class="form-control" id="companyPhoneNumber" [(ngModel)]="formData.companyPhoneNumber" name="companyPhoneNumber" required>
+              </div>
+              <div class="mb-3">
+                <label for="companyEmail" class="form-label">Şirket E-posta</label>
+                <input type="email" class="form-control" id="companyEmail" [(ngModel)]="formData.companyEmail" name="companyEmail" required>
+              </div>
+              <div class="mb-3">
+                <label for="taxNumber" class="form-label">Vergi Numarası</label>
+                <input type="text" class="form-control" id="taxNumber" [(ngModel)]="formData.taxNumber" name="taxNumber" required>
+              </div>
+
               <div class="mb-4">
                 <div class="form-check">
                   <input 

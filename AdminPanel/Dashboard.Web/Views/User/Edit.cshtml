@@ -1,4 +1,4 @@
-@model ECommerce.Application.DTOs.UserDto
+@model Dashboard.Web.Models.UserEditViewModel
 
 @{
     ViewData["Title"] = "Kullanıcı Düzenle";
@@ -19,6 +19,8 @@
 <div class="card shadow-sm border-0">
     <div class="card-body p-4">
         <form asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="CreatedAt" />
 

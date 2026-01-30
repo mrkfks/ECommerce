@@ -1,6 +1,6 @@
 namespace Dashboard.Web.Models;
 
-public class AverageCartTrendVm
+public class AverageCartTrendDto
 {
     public DateTime Date { get; set; }
     public decimal AverageCartValue { get; set; }

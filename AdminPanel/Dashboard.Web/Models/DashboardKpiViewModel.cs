@@ -10,15 +10,15 @@ public class DashboardKpiViewModel
     public SalesKpiVm Sales { get; set; } = new();
     public OrderKpiVm Orders { get; set; } = new();
     public CustomerKpiVm Customers { get; set; } = new();
-    public List<TopProductVm> TopProducts { get; set; } = new();
+    public List<TopProductDto> TopProducts { get; set; } = new();
     public List<LowStockProductVm> LowStockProducts { get; set; } = new();
-    public List<RevenueTrendVm> RevenueTrend { get; set; } = new();
+    public List<RevenueTrendDto> RevenueTrend { get; set; } = new();
     public CustomerSegmentationVm CustomerSegmentation { get; set; } = new();
     public List<CategorySalesVm> CategorySales { get; set; } = new();
-    public List<CategoryStockVm> CategoryStock { get; set; } = new();
-    public List<GeographicDistributionVm> GeographicDistribution { get; set; } = new();
-    public List<AverageCartTrendVm> AverageCartTrend { get; set; } = new();
-    public List<OrderStatusDistributionVm> OrderStatusDistribution { get; set; } = new();
+    public List<CategoryStockDto> CategoryStock { get; set; } = new();
+    public List<GeographicDistributionDto> GeographicDistribution { get; set; } = new();
+    public List<AverageCartTrendDto> AverageCartTrend { get; set; } = new();
+    public List<OrderStatusDistributionDto> OrderStatusDistribution { get; set; } = new();
 
     // Helper properties for view
     public string RevenueTrendJson => System.Text.Json.JsonSerializer.Serialize(

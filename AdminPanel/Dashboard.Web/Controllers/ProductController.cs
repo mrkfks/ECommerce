@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Dashboard.Web.Models;
 using Dashboard.Web.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ProductBulkUpdateDto = Dashboard.Web.Models.ProductBulkUpdateDto;
 
 
@@ -13,13 +13,13 @@ namespace Dashboard.Web.Controllers
         private readonly IApiService<ProductViewModel> _productService;
         private readonly IApiService<CategoryViewModel> _categoryService;
         private readonly IApiService<Dashboard.Web.Models.BrandDto> _brandService;
-        private readonly IApiService<Dashboard.Web.Models.CompanyDto> _companyService;
+        private readonly IApiService<ECommerce.Application.DTOs.CompanyDto> _companyService;
 
         public ProductController(
             IApiService<ProductViewModel> productService,
             IApiService<CategoryViewModel> categoryService,
             IApiService<BrandDto> brandService,
-            IApiService<CompanyDto> companyService)
+            IApiService<ECommerce.Application.DTOs.CompanyDto> companyService)
         {
             _productService = productService;
             _categoryService = categoryService;
@@ -34,7 +34,7 @@ namespace Dashboard.Web.Controllers
             {
                 return RedirectToAction("List");
             }
-            
+
             // Envanter yönetimi ana sayfası - sadece SuperAdmin için
             return View();
         }
@@ -65,16 +65,16 @@ namespace Dashboard.Web.Controllers
         {
             var categories = await _categoryService.GetAllAsync();
             var brands = await _brandService.GetAllAsync();
-        
+
             ViewBag.Categories = categories;
             ViewBag.Brands = brands;
-        
+
             if (User.IsInRole("SuperAdmin"))
             {
                 var companies = await _companyService.GetAllAsync();
                 ViewBag.Companies = companies;
             }
-        
+
             return View();
         }
 

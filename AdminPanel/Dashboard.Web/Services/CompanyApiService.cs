@@ -1,4 +1,4 @@
-using Dashboard.Web.Models;
+using ECommerce.Application.DTOs;
 
 namespace Dashboard.Web.Services
 {

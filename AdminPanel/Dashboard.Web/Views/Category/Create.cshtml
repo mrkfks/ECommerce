@@ -35,29 +35,29 @@
             <div class="card-body">
                 <form method="post" asp-action="CreateCategory" enctype="multipart/form-data">
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Kategori Adı <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="Name" required placeholder="Örn: Elektronik" />
+                        <label class="form-label fw-bold" for="categoryName">Kategori Adı <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="Name" id="categoryName" required placeholder="Örn: Elektronik" autocomplete="name" />
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Açıklama <span class="text-danger">*</span></label>
-                        <textarea class="form-control" name="Description" rows="4" required placeholder="Kategori açıklaması..."></textarea>
+                        <label class="form-label fw-bold" for="categoryDescription">Açıklama <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="Description" id="categoryDescription" rows="4" required placeholder="Kategori açıklaması..." autocomplete="off"></textarea>
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Kategori Resimi</label>
-                        <input type="file" class="form-control" name="ImageFile" accept="image/*" />
+                        <label class="form-label fw-bold" for="categoryImage">Kategori Resimi</label>
+                        <input type="file" class="form-control" name="ImageFile" id="categoryImage" accept="image/*" autocomplete="off" />
                         <small class="text-muted">JPG, PNG, GIF formatında resim seçin (Max 5MB)</small>
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Sıralama</label>
-                        <input type="number" class="form-control" name="DisplayOrder" value="0" />
+                        <label class="form-label fw-bold" for="categoryOrder">Sıralama</label>
+                        <input type="number" class="form-control" name="DisplayOrder" id="categoryOrder" value="0" autocomplete="off" />
                         <small class="text-muted">Kategorilerin gösterim sırası (küçük sayı önce gelir)</small>
                     </div>
                     
                     <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" name="IsActive" checked id="isActive" value="true" />
+                        <input class="form-check-input" type="checkbox" name="IsActive" checked id="isActive" value="true" autocomplete="on" />
                         <label class="form-check-label fw-bold" for="isActive">
                             Aktif
                         </label>

@@ -149,21 +149,21 @@
                 <form method="post" asp-action="CreateCategory" enctype="multipart/form-data">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Kategori Adı <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="Name" required />
+                        <label class="form-label fw-bold" for="modalCategoryName">Kategori Adı <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="Name" id="modalCategoryName" required autocomplete="name" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Açıklama <span class="text-danger">*</span></label>
-                        <textarea class="form-control" name="Description" rows="3" required></textarea>
+                        <label class="form-label fw-bold" for="modalCategoryDescription">Açıklama <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="Description" id="modalCategoryDescription" rows="3" required autocomplete="off"></textarea>
                     </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Kategori Resimi</label>
-                            <input type="file" class="form-control" name="ImageFile" accept="image/*" />
+                            <label class="form-label fw-bold" for="modalCategoryImage">Kategori Resimi</label>
+                            <input type="file" class="form-control" name="ImageFile" id="modalCategoryImage" accept="image/*" autocomplete="off" />
                             <small class="text-muted d-block mt-1">JPG, PNG, GIF formatında resim seçin</small>
                         </div>
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="IsActive" checked id="isActive" value="true" />
-                        <label class="form-check-label" for="isActive">
+                        <input class="form-check-input" type="checkbox" name="IsActive" checked id="modalIsActive" value="true" autocomplete="on" />
+                        <label class="form-check-label" for="modalIsActive">
                             Aktif
                         </label>
                     </div>

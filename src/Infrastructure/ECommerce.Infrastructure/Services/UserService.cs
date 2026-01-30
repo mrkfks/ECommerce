@@ -58,7 +58,9 @@ public class UserService : IUserService
             query = query.Where(u => u.CompanyId == currentCompanyId);
         }
 
-        var users = await query.ToListAsync();
+        var users = await query
+            .Where(u => u.UserRoles.Any(ur => ur.Role != null && ur.Role.Name != "Customer"))
+            .ToListAsync();
 
         return users.Select(u => new UserDto
         {
@@ -81,6 +83,7 @@ public class UserService : IUserService
             .ThenInclude(ur => ur.Role)
             .Include(u => u.Company)
             .Where(u => u.CompanyId == companyId)
+            .Where(u => u.UserRoles.Any(ur => ur.Role != null && ur.Role.Name != "Customer"))
             .ToListAsync();
 
         return users.Select(u => new UserDto

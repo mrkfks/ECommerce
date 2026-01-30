@@ -1,6 +1,6 @@
 namespace Dashboard.Web.Models;
 
-public class CategoryStockVm
+public class CategoryStockDto
 {
     public int CategoryId { get; set; }
     public string CategoryName { get; set; } = string.Empty;

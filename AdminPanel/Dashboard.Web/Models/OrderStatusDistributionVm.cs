@@ -1,6 +1,6 @@
 namespace Dashboard.Web.Models;
 
-public class OrderStatusDistributionVm
+public class OrderStatusDistributionDto
 {
     public DateTime Date { get; set; }
     public int PendingCount { get; set; }

@@ -1,11 +1,11 @@
-using System.Text.Json;
 using System.Collections.Generic;
+using System.Text.Json;
 
 namespace Dashboard.Web.Models
 {
     public class DashboardStatsVm
     {
-        public List<TopProductVm> TopProducts { get; set; } = new();
+        public List<TopProductDto> TopProducts { get; set; } = new();
         public List<LowStockProductVm> LowStockProducts { get; set; } = new();
         public int TotalUsers { get; set; }
         public int ActiveUsers { get; set; }

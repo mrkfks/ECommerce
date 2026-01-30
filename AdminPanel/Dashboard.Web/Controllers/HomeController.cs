@@ -22,7 +22,7 @@ public class HomeController : Controller
     private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.ProductDto> _productService;
     private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.OrderDto> _orderService;
     private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CustomerDto> _customerService;
-    private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CompanyDto> _companyService;
+    private readonly Dashboard.Web.Services.IApiService<ECommerce.Application.DTOs.CompanyDto> _companyService;
     private readonly Dashboard.Web.Services.IApiService<CategoryDto> _categoryService;
     private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.BrandDto> _brandService;
     private readonly Dashboard.Web.Services.NotificationApiService _notificationService;
@@ -37,7 +37,7 @@ public class HomeController : Controller
         Dashboard.Web.Services.IApiService<Dashboard.Web.Models.ProductDto> productService,
         Dashboard.Web.Services.IApiService<Dashboard.Web.Models.OrderDto> orderService,
         Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CustomerDto> customerService,
-        Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CompanyDto> companyService,
+        Dashboard.Web.Services.IApiService<ECommerce.Application.DTOs.CompanyDto> companyService,
         Dashboard.Web.Services.IApiService<CategoryDto> categoryService,
         Dashboard.Web.Services.IApiService<Dashboard.Web.Models.BrandDto> brandService,
         Dashboard.Web.Services.NotificationApiService notificationService,
@@ -349,7 +349,7 @@ public class HomeController : Controller
         var viewModel = new NotificationsViewModel
         {
             Summary = summary ?? new NotificationSummaryVm(),
-            AllNotifications = allNotifications ?? new List<NotificationVm>(),
+            AllNotifications = allNotifications,
             LowStockProducts = lowStockProducts ?? new List<LowStockItemVm>(),
             RecentOrders = recentOrders ?? new List<RecentOrderVm>()
         };
@@ -465,7 +465,7 @@ public class HomeController : Controller
         try
         {
             var companyId = GetCurrentCompanyId();
-            var dto = new ProductCreateDto
+            var dto = new ECommerce.Application.DTOs.ProductCreateDto
             {
                 Name = model.Name,
                 Description = model.Description ?? "",
@@ -494,7 +494,7 @@ public class HomeController : Controller
     public async Task<IActionResult> GetActiveCampaigns()
     {
         var campaigns = await _campaignService.GetAllAsync();
-        return Json(campaigns?.Data != null ? campaigns.Data.Where(c => c.IsActive) : new List<CampaignDto>());
+        return Json(campaigns?.Data != null ? campaigns.Data.Where(c => c.IsActive) : new List<Dashboard.Web.Models.CampaignDto>());
     }
 
     /// <summary>

@@ -18,11 +18,11 @@ public class NotificationApiService
     /// <summary>
     /// Tüm bildirimleri getirir
     /// </summary>
-    public async Task<List<NotificationVm>?> GetAllAsync()
+    public async Task<List<NotificationDto>?> GetAllAsync()
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<List<NotificationVm>>("api/notifications");
+            return await _httpClient.GetFromJsonAsync<List<NotificationDto>>("api/notifications");
         }
         catch (Exception ex)
         {
@@ -50,11 +50,11 @@ public class NotificationApiService
     /// <summary>
     /// Okunmamış bildirimleri getirir
     /// </summary>
-    public async Task<List<NotificationVm>?> GetUnreadAsync()
+    public async Task<List<NotificationDto>?> GetUnreadAsync()
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<List<NotificationVm>>("api/notifications/unread");
+            return await _httpClient.GetFromJsonAsync<List<NotificationDto>>("api/notifications/unread");
         }
         catch (Exception ex)
         {
@@ -66,11 +66,11 @@ public class NotificationApiService
     /// <summary>
     /// Belirli bir bildirimi getirir
     /// </summary>
-    public async Task<NotificationVm?> GetByIdAsync(int id)
+    public async Task<NotificationDto?> GetByIdAsync(int id)
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<NotificationVm>($"api/Notification/{id}");
+            return await _httpClient.GetFromJsonAsync<NotificationDto>($"api/Notification/{id}");
         }
         catch (Exception ex)
         {
@@ -82,11 +82,11 @@ public class NotificationApiService
     /// <summary>
     /// Türe göre bildirimleri getirir
     /// </summary>
-    public async Task<List<NotificationVm>?> GetByTypeAsync(int type)
+    public async Task<List<NotificationDto>?> GetByTypeAsync(int type)
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<List<NotificationVm>>($"api/Notification/by-type/{type}");
+            return await _httpClient.GetFromJsonAsync<List<NotificationDto>>($"api/Notification/by-type/{type}");
         }
         catch (Exception ex)
         {

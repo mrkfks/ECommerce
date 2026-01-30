@@ -24,6 +24,11 @@ export interface RegisterRequest {
   username: string;
   phoneNumber: string;
   companyId?: number;
+  companyName?: string;
+  companyAddress?: string;
+  companyPhoneNumber?: string;
+  companyEmail?: string;
+  taxNumber?: string;
 }
 
 export interface AuthResponse {

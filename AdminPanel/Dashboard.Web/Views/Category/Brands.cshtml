@@ -97,20 +97,20 @@
             <form method="post" asp-action="CreateBrand" enctype="multipart/form-data">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Marka Adı</label>
-                        <input type="text" class="form-control" name="Name" required />
+                        <label class="form-label" for="brandName">Marka Adı</label>
+                        <input type="text" class="form-control" name="Name" id="brandName" required autocomplete="organization" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Açıklama</label>
-                        <textarea class="form-control" name="Description" rows="3"></textarea>
+                        <label class="form-label" for="brandDescription">Açıklama</label>
+                        <textarea class="form-control" name="Description" id="brandDescription" rows="3" autocomplete="off"></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Logo</label>
-                        <input type="file" class="form-control" name="ImageFile" accept="image/*" />
+                        <label class="form-label" for="brandImage">Logo</label>
+                        <input type="file" class="form-control" name="ImageFile" id="brandImage" accept="image/*" autocomplete="off" />
                         <small class="text-muted d-block mt-1">JPG, PNG, GIF formatında logo seçin</small>
                     </div>
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="IsActive" value="true" checked id="isActiveBrand" />
+                        <input class="form-check-input" type="checkbox" name="IsActive" value="true" checked id="isActiveBrand" autocomplete="on" />
                         <label class="form-check-label" for="isActiveBrand">Aktif</label>
                     </div>
                 </div>
@@ -145,24 +145,24 @@
                     <div class="tab-content">
                         <div class="tab-pane fade show active" id="brand-info">
                             <div class="mb-3">
-                                <label class="form-label">Marka Adı</label>
-                                <input type="text" class="form-control" id="editBrandName" name="Name" required />
+                                <label class="form-label" for="editBrandName">Marka Adı</label>
+                                <input type="text" class="form-control" id="editBrandName" name="Name" required autocomplete="organization" />
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Açıklama</label>
-                                <textarea class="form-control" id="editBrandDescription" name="Description" rows="3"></textarea>
+                                <label class="form-label" for="editBrandDescription">Açıklama</label>
+                                <textarea class="form-control" id="editBrandDescription" name="Description" rows="3" autocomplete="off"></textarea>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Mevcut Logo</label>
                                 <div class="mb-2">
                                     <img id="currentImagePreview" src="" alt="Mevcut logo" style="max-width: 100px; max-height: 100px; display: none;" />
                                 </div>
-                                <label class="form-label">Yeni Logo</label>
-                                <input type="file" class="form-control" name="ImageFile" accept="image/*" />
+                                <label class="form-label" for="editBrandImage">Yeni Logo</label>
+                                <input type="file" class="form-control" name="ImageFile" id="editBrandImage" accept="image/*" autocomplete="off" />
                                 <small class="text-muted d-block mt-1">JPG, PNG, GIF formatında yeni logo seçin (opsiyonel)</small>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="editBrandIsActive" name="IsActive" value="true" />
+                                <input class="form-check-input" type="checkbox" id="editBrandIsActive" name="IsActive" value="true" autocomplete="on" />
                                 <label class="form-check-label" for="editBrandIsActive">Aktif</label>
                             </div>
                         </div>

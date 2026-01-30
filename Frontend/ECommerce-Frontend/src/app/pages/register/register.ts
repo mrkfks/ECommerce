@@ -23,7 +23,12 @@ export class Register {
     firstName: '',
     lastName: '',
     username: '',
-    phoneNumber: ''
+    phoneNumber: '',
+    companyName: '',
+    companyAddress: '',
+    companyPhoneNumber: '',
+    companyEmail: '',
+    taxNumber: ''
   };
 
   isLoading = false;
@@ -38,7 +43,7 @@ export class Register {
   usernameChecking = false;
 
   onSubmit(): void {
-    if (!this.formData.email || !this.formData.password || !this.formData.firstName || !this.formData.lastName || !this.formData.username || !this.formData.phoneNumber) {
+    if (!this.formData.email || !this.formData.password || !this.formData.firstName || !this.formData.lastName || !this.formData.username || !this.formData.phoneNumber || !this.formData.companyName || !this.formData.companyAddress || !this.formData.companyPhoneNumber || !this.formData.companyEmail || !this.formData.taxNumber) {
       this.error = 'Lütfen tüm alanları doldurun.';
       return;
     }

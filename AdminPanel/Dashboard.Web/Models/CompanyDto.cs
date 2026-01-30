@@ -10,8 +10,8 @@ namespace Dashboard.Web.Models
         public string TaxNumber { get; set; } = string.Empty;
         public bool IsActive { get; set; }
         public bool IsApproved { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
         public int UserCount { get; set; }
         public int CustomerCount { get; set; }
         public string? ResponsiblePersonName { get; set; }

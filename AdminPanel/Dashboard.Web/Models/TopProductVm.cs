@@ -1,6 +1,6 @@
 namespace Dashboard.Web.Models
 {
-    public class TopProductVm
+    public class TopProductDto
     {
         public int Id { get; set; }
         public int ProductId => Id;

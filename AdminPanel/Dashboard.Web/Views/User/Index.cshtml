@@ -23,7 +23,7 @@
                 <div class="col-auto">
                     <select name="companyId" class="form-select form-select-sm" onchange="this.form.submit()">
                         <option value="">Tüm Şirketler</option>
-                        @foreach (var company in (List<Dashboard.Web.Models.CompanyDto>)ViewBag.Companies)
+                        @foreach (var company in (List<ECommerce.Application.DTOs.CompanyDto>)ViewBag.Companies)
                         {
                             var isSelected = ViewBag.SelectedCompanyId == company.Id;
                             <option value="@company.Id" selected="@isSelected">

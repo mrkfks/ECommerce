@@ -74,12 +74,12 @@ public class DashboardApiService
     /// <summary>
     /// Gelir trendi verilerini getirir
     /// </summary>
-    public async Task<List<RevenueTrendVm>?> GetRevenueTrendAsync(int? companyId = null)
+    public async Task<List<RevenueTrendDto>?> GetRevenueTrendAsync(int? companyId = null)
     {
         try
         {
             var query = companyId.HasValue ? $"?companyId={companyId}" : "";
-            return await _httpClient.GetFromJsonAsync<List<RevenueTrendVm>>($"api/dashboard/revenue-trend{query}");
+            return await _httpClient.GetFromJsonAsync<List<RevenueTrendDto>>($"api/dashboard/revenue-trend{query}");
         }
         catch (Exception ex)
         {
@@ -112,7 +112,7 @@ public class DashboardApiService
     /// <summary>
     /// Kategori bazlı stok dağılımını getirir
     /// </summary>
-    public async Task<List<CategoryStockVm>?> GetCategoryStockAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
+    public async Task<List<CategoryStockDto>?> GetCategoryStockAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
     {
         try
         {
@@ -121,7 +121,7 @@ public class DashboardApiService
             if (endDate.HasValue) queryParams.Add($"endDate={endDate:yyyy-MM-dd}");
             if (companyId.HasValue) queryParams.Add($"companyId={companyId}");
             var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
-            return await _httpClient.GetFromJsonAsync<List<CategoryStockVm>>($"api/dashboard/category-stock{query}");
+            return await _httpClient.GetFromJsonAsync<List<CategoryStockDto>>($"api/dashboard/category-stock{query}");
         }
         catch (Exception ex)
         {
@@ -129,7 +129,7 @@ public class DashboardApiService
             return null;
         }
     }
-    public async Task<List<GeographicDistributionVm>?> GetGeographicDistributionAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
+    public async Task<List<GeographicDistributionDto>?> GetGeographicDistributionAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
     {
         try
         {
@@ -138,7 +138,7 @@ public class DashboardApiService
             if (endDate.HasValue) queryParams.Add($"endDate={endDate:yyyy-MM-dd}");
             if (companyId.HasValue) queryParams.Add($"companyId={companyId}");
             var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
-            return await _httpClient.GetFromJsonAsync<List<GeographicDistributionVm>>($"api/dashboard/geographic-distribution{query}");
+            return await _httpClient.GetFromJsonAsync<List<GeographicDistributionDto>>($"api/dashboard/geographic-distribution{query}");
         }
         catch (Exception ex)
         {
@@ -150,7 +150,7 @@ public class DashboardApiService
     /// <summary>
     /// Ortalama sepet tutarı trendini getirir
     /// </summary>
-    public async Task<List<AverageCartTrendVm>?> GetAverageCartTrendAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
+    public async Task<List<AverageCartTrendDto>?> GetAverageCartTrendAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
     {
         try
         {
@@ -159,7 +159,7 @@ public class DashboardApiService
             if (endDate.HasValue) queryParams.Add($"endDate={endDate:yyyy-MM-dd}");
             if (companyId.HasValue) queryParams.Add($"companyId={companyId}");
             var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
-            return await _httpClient.GetFromJsonAsync<List<AverageCartTrendVm>>($"api/dashboard/average-cart-trend{query}");
+            return await _httpClient.GetFromJsonAsync<List<AverageCartTrendDto>>($"api/dashboard/average-cart-trend{query}");
         }
         catch (Exception ex)
         {
@@ -171,7 +171,7 @@ public class DashboardApiService
     /// <summary>
     /// Sipariş durumu dağılımını zaman bazlı getirir
     /// </summary>
-    public async Task<List<OrderStatusDistributionVm>?> GetOrderStatusDistributionAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
+    public async Task<List<OrderStatusDistributionDto>?> GetOrderStatusDistributionAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
     {
         try
         {
@@ -180,7 +180,7 @@ public class DashboardApiService
             if (endDate.HasValue) queryParams.Add($"endDate={endDate:yyyy-MM-dd}");
             if (companyId.HasValue) queryParams.Add($"companyId={companyId}");
             var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
-            return await _httpClient.GetFromJsonAsync<List<OrderStatusDistributionVm>>($"api/dashboard/order-status-distribution{query}");
+            return await _httpClient.GetFromJsonAsync<List<OrderStatusDistributionDto>>($"api/dashboard/order-status-distribution{query}");
         }
         catch (Exception ex)
         {
@@ -192,7 +192,7 @@ public class DashboardApiService
     /// <summary>
     /// En çok satan ürünleri getirir
     /// </summary>
-    public async Task<List<TopProductVm>?> GetTopProductsAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
+    public async Task<List<TopProductDto>?> GetTopProductsAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
     {
         try
         {
@@ -201,7 +201,7 @@ public class DashboardApiService
             if (endDate.HasValue) queryParams.Add($"endDate={endDate:yyyy-MM-dd}");
             if (companyId.HasValue) queryParams.Add($"companyId={companyId}");
             var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
-            return await _httpClient.GetFromJsonAsync<List<TopProductVm>>($"api/dashboard/top-products{query}");
+            return await _httpClient.GetFromJsonAsync<List<TopProductDto>>($"api/dashboard/top-products{query}");
         }
         catch (Exception ex)
         {

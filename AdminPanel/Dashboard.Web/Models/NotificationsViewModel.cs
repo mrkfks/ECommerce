@@ -1,4 +1,5 @@
 using Dashboard.Web.Services;
+using ECommerce.Domain.Enums;
 
 namespace Dashboard.Web.Models;
 
@@ -15,7 +16,7 @@ public class NotificationsViewModel
     /// <summary>
     /// Tüm bildirimler
     /// </summary>
-    public List<NotificationVm> AllNotifications { get; set; } = new();
+    public List<NotificationDto> AllNotifications { get; set; } = new();
 
     /// <summary>
     /// Düşük stoklu ürünler
@@ -28,10 +29,10 @@ public class NotificationsViewModel
     public List<RecentOrderVm> RecentOrders { get; set; } = new();
 
     // Filtrelenmiş listeler
-    public IEnumerable<NotificationVm> UnreadNotifications => AllNotifications.Where(n => !n.IsRead);
-    public IEnumerable<NotificationVm> LowStockNotifications => AllNotifications.Where(n => n.Type == 1);
-    public IEnumerable<NotificationVm> NewOrderNotifications => AllNotifications.Where(n => n.Type == 2);
-    public IEnumerable<NotificationVm> ReturnRequestNotifications => AllNotifications.Where(n => n.Type == 3);
-    public IEnumerable<NotificationVm> PaymentFailedNotifications => AllNotifications.Where(n => n.Type == 4);
-    public IEnumerable<NotificationVm> CriticalNotifications => AllNotifications.Where(n => n.Priority == 4);
+    public IEnumerable<NotificationDto> UnreadNotifications => AllNotifications.Where(n => !n.IsRead);
+    public IEnumerable<NotificationDto> LowStockNotifications => AllNotifications.Where(n => n.Type == NotificationType.LowStock);
+    public IEnumerable<NotificationDto> NewOrderNotifications => AllNotifications.Where(n => n.Type == NotificationType.NewOrder);
+    public IEnumerable<NotificationDto> ReturnRequestNotifications => AllNotifications.Where(n => n.Type == NotificationType.ReturnRequest);
+    public IEnumerable<NotificationDto> PaymentFailedNotifications => AllNotifications.Where(n => n.Type == NotificationType.PaymentFailed);
+    public IEnumerable<NotificationDto> CriticalNotifications => AllNotifications.Where(n => n.Priority == NotificationPriority.Critical);
 }

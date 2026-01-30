@@ -1,20 +1,20 @@
+using Dashboard.Web.Models;
+using Dashboard.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Dashboard.Web.Services;
-using Dashboard.Web.Models;
-using CompanyDto = Dashboard.Web.Models.CompanyDto;
+using CompanyDto = ECommerce.Application.DTOs.CompanyDto;
 
 namespace Dashboard.Web.Controllers
 {
     [Authorize(Roles = "SuperAdmin")]
     public class CompanyController : Controller
     {
-        private readonly IApiService<CompanyDto> _companyService;
+        private readonly IApiService<ECommerce.Application.DTOs.CompanyDto> _companyService;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
 
         public CompanyController(
-            IApiService<CompanyDto> companyService,
+            IApiService<ECommerce.Application.DTOs.CompanyDto> companyService,
             IHttpClientFactory httpClientFactory,
             IConfiguration configuration)
         {
@@ -62,15 +62,15 @@ namespace Dashboard.Web.Controllers
         {
             if (!ModelState.IsValid)
                 return View(dto);
-            
+
             var response = await _companyService.CreateAsync(dto);
-            
+
             if (response != null && response.Success)
             {
                 TempData["Success"] = "Şirket başarıyla kaydedildi";
                 return RedirectToAction(nameof(Index));
             }
-            
+
             ModelState.AddModelError("", "Şirket kaydedilirken hata oluştu");
             return View(dto);
         }
@@ -82,7 +82,7 @@ namespace Dashboard.Web.Controllers
             var company = response?.Data;
             if (company == null)
                 return NotFound();
-            
+
             var companyVm = new CompanyVm
             {
                 Id = company.Id,
@@ -114,7 +114,7 @@ namespace Dashboard.Web.Controllers
             var company = response?.Data;
             if (company == null)
                 return NotFound();
-            
+
             return View(company);
         }
 
@@ -123,10 +123,10 @@ namespace Dashboard.Web.Controllers
         {
             if (id != company.Id)
                 return BadRequest();
-            
+
             if (!ModelState.IsValid)
                 return View(company);
-            
+
             var response = await _companyService.UpdateAsync(id, company);
             if (response != null && response.Success)
             {
@@ -144,7 +144,7 @@ namespace Dashboard.Web.Controllers
             var company = response?.Data;
             if (company == null)
                 return NotFound();
-            
+
             var vm = new CompanyBrandingVm
             {
                 Id = company.Id,
@@ -166,7 +166,7 @@ namespace Dashboard.Web.Controllers
             try
             {
                 var client = _httpClientFactory.CreateClient("ApiClient");
-                
+
                 // Upload logo if provided
                 if (logoFile != null && logoFile.Length > 0)
                 {
@@ -174,7 +174,7 @@ namespace Dashboard.Web.Controllers
                     using var stream = logoFile.OpenReadStream();
                     var fileContent = new StreamContent(stream);
                     content.Add(fileContent, "file", logoFile.FileName);
-                    
+
                     var uploadResponse = await client.PostAsync($"api/files/company/{id}", content);
                     if (uploadResponse.IsSuccessStatusCode)
                     {
@@ -196,13 +196,13 @@ namespace Dashboard.Web.Controllers
                 };
 
                 var brandingResponse = await client.PutAsJsonAsync($"api/companies/{id}/branding", brandingDto);
-                
+
                 if (brandingResponse.IsSuccessStatusCode)
                 {
                     TempData["Success"] = "Marka ayarları başarıyla güncellendi";
                     return RedirectToAction(nameof(Details), new { id });
                 }
-                
+
                 TempData["Error"] = "Marka ayarları güncellenirken hata oluştu";
             }
             catch (Exception ex)
