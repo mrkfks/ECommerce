@@ -1,0 +1,47 @@
+/* Karosel Kontrol Butonları */
+.card-img-top {
+  transition: opacity 0.3s ease;
+}
+
+.btn.start-0,
+.btn.end-0 {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+}
+
+.card:hover .btn.start-0,
+.card:hover .btn.end-0 {
+  opacity: 1;
+}
+
+.btn-light {
+  background-color: rgba(255, 255, 255, 0.9);
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-light:hover {
+  background-color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Resim Önizlemesi */
+.img-thumbnail {
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.img-thumbnail:hover {
+  opacity: 0.7;
+  border-color: var(--bs-primary);
+}
+
+.img-thumbnail.border-primary {
+  border-color: var(--bs-primary) !important;
+  opacity: 1;
+}
+
+.img-thumbnail.border-3 {
+  border-width: 3px !important;
+}

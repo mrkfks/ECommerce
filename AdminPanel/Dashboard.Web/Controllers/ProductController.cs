@@ -1,8 +1,8 @@
 using Dashboard.Web.Models;
+using Dashboard.Web.Services;
+using ECommerce.Application.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ECommerce.Application.DTOs;
-using Dashboard.Web.Services;
 
 namespace Dashboard.Web.Controllers
 {
@@ -33,7 +33,7 @@ namespace Dashboard.Web.Controllers
             {
                 return RedirectToAction("List");
             }
-            
+
             // Envanter yönetimi ana sayfası - sadece SuperAdmin için
             return View();
         }
@@ -44,13 +44,13 @@ namespace Dashboard.Web.Controllers
             Console.WriteLine("[ProductController.List] Starting...");
             var response = await _productService.GetPagedListAsync(1, 100); // İlk 100 ürünü getir
             Console.WriteLine($"[ProductController.List] Response: Items count={response?.Items?.Count() ?? 0}");
-            
+
             if (response == null || response.Items == null)
             {
                 Console.WriteLine("[ProductController.List] Response or Items is NULL - returning empty list");
                 return View(new List<ProductViewModel>());
             }
-            
+
             var itemsList = response.Items.ToList();
             Console.WriteLine($"[ProductController.List] Sending {itemsList.Count} items to view");
             return View(itemsList);
@@ -72,30 +72,30 @@ namespace Dashboard.Web.Controllers
         public async Task<IActionResult> Create()
         {
             Console.WriteLine("[ProductController.Create] Starting...");
-            
+
             var categories = await _categoryService.GetAllAsync();
             Console.WriteLine($"[ProductController.Create] Categories response: Success={categories?.Success}, Data count={categories?.Data?.Count()}");
-            
+
             var brands = await _brandService.GetAllAsync();
             Console.WriteLine($"[ProductController.Create] Brands response: Success={brands?.Success}, Data count={brands?.Data?.Count()}");
 
             // API CategoryDto döndürüyor, CategoryViewModel değil
-            var categoryDtos = categories?.Data?.Select(c => new ECommerce.Application.DTOs.CategoryDto 
-            { 
-                Id = c.Id, 
+            var categoryDtos = categories?.Data?.Select(c => new ECommerce.Application.DTOs.CategoryDto
+            {
+                Id = c.Id,
                 Name = c.Name,
                 Description = c.Description,
                 ImageUrl = c.ImageUrl,
                 ParentCategoryId = c.ParentCategoryId,
                 IsActive = c.IsActive
             }).ToList() ?? new List<ECommerce.Application.DTOs.CategoryDto>();
-            
+
             var categoryList = categoryDtos.Where(x => x.Id != 0 && !string.IsNullOrEmpty(x.Name)).ToList();
             var brandList = (brands?.Data ?? new List<ECommerce.Application.DTOs.BrandDto>()).Where(x => x.Id != 0 && !string.IsNullOrEmpty(x.Name)).ToList();
-            
+
             Console.WriteLine($"[ProductController.Create] Filtered Categories count: {categoryList.Count}");
             Console.WriteLine($"[ProductController.Create] Filtered Brands count: {brandList.Count}");
-            
+
             ViewBag.Categories = categoryList;
             ViewBag.Brands = brandList;
 
@@ -104,10 +104,10 @@ namespace Dashboard.Web.Controllers
                 Console.WriteLine("[ProductController.Create] User is SuperAdmin, fetching companies...");
                 var companies = await _companyService.GetAllAsync();
                 Console.WriteLine($"[ProductController.Create] Companies response: Success={companies?.Success}, Data count={companies?.Data?.Count()}");
-                
+
                 var companyList = (companies?.Data ?? new List<ECommerce.Application.DTOs.CompanyDto>()).Where(x => x.Id != 0 && !string.IsNullOrEmpty(x.Name)).ToList();
                 Console.WriteLine($"[ProductController.Create] Filtered Companies count: {companyList.Count}");
-                
+
                 ViewBag.Companies = companyList;
             }
 
@@ -121,7 +121,7 @@ namespace Dashboard.Web.Controllers
         {
             Console.WriteLine($"[ProductController.Create POST] STARTED - Product Name: {product?.Name}");
             Console.WriteLine($"[ProductController.Create POST] ModelState.IsValid: {ModelState.IsValid}");
-            
+
             if (!ModelState.IsValid)
             {
                 Console.WriteLine("[ProductController.Create POST] ModelState is INVALID");
@@ -130,12 +130,12 @@ namespace Dashboard.Web.Controllers
                     Console.WriteLine($"[ProductController.Create POST] ERROR: {error.ErrorMessage}");
                 }
             }
-            
+
             // CompanyId kontrolü - eğer set edilmemişse claim'den al
             if (product.CompanyId == 0)
             {
                 var companyIdClaim = User.FindFirst("CompanyId")?.Value;
-                if (companyIdClaim != null && int.TryParse(companyIdClaim, out var companyId))
+                if (!string.IsNullOrEmpty(companyIdClaim) && int.TryParse(companyIdClaim, out var companyId))
                 {
                     product = new ProductCreateDto
                     {
@@ -186,7 +186,8 @@ namespace Dashboard.Web.Controllers
                 return View(product);
             }
 
-            var productVm = new Dashboard.Web.Models.ProductViewModel {
+            var productVm = new Dashboard.Web.Models.ProductViewModel
+            {
                 Name = product.Name,
                 Description = product.Description ?? string.Empty,
                 Price = product.Price,
@@ -228,7 +229,7 @@ namespace Dashboard.Web.Controllers
             Console.WriteLine($"[ProductController.Edit] Loading product with id: {id}");
             var response = await _productService.GetByIdAsync(id);
             Console.WriteLine($"[ProductController.Edit] Response: Success={response?.Success}, Data={response?.Data?.Name}");
-            
+
             if (response == null || response.Data == null)
             {
                 Console.WriteLine("[ProductController.Edit] Product not found!");
@@ -238,7 +239,7 @@ namespace Dashboard.Web.Controllers
             // Dropdown'lar için kategorileri ve markaları yükle
             var categories = await _categoryService.GetAllAsync();
             var brands = await _brandService.GetAllAsync();
-            
+
             ViewBag.Categories = (categories?.Data ?? new List<ECommerce.Application.DTOs.CategoryDto>()).Where(x => x.Id != 0 && !string.IsNullOrEmpty(x.Name)).ToList();
             ViewBag.Brands = (brands?.Data ?? new List<ECommerce.Application.DTOs.BrandDto>()).Where(x => x.Id != 0 && !string.IsNullOrEmpty(x.Name)).ToList();
 
@@ -254,8 +255,23 @@ namespace Dashboard.Web.Controllers
             if (!ModelState.IsValid)
                 return View(product);
 
-            var response = await _productService.UpdateAsync(product.Id, product);
-            if (response != null && response.Success)
+            // ProductViewModel'i ProductFormDto'ya dönüştür
+            var productFormDto = new ProductFormDto
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Description = product.Description,
+                Price = product.Price,
+                StockQuantity = product.StockQuantity,
+                CategoryId = product.CategoryId,
+                BrandId = product.BrandId,
+                ModelId = product.ModelId,
+                ImageUrl = product.ImageUrl,
+                IsActive = product.IsActive
+            };
+
+            var response = await _productService.UpdateAsync<ProductFormDto>(product.Id, productFormDto);
+            if (response)
                 return RedirectToAction(nameof(List));
 
             ModelState.AddModelError("", "Ürün güncellenirken hata oluştu.");

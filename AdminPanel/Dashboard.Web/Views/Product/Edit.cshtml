@@ -127,6 +127,16 @@
                 </div>
             </div>
 
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-check mb-3">
+                        <input asp-for="IsActive" class="form-check-input" type="checkbox" id="isActiveCheckbox" />
+                        <label class="form-check-label fw-semibold" for="isActiveCheckbox">Ürün Durumu: Aktif</label>
+                    </div>
+                </div>
+            </div>
+
             <div class="mb-3">
                 <label asp-for="Description" class="form-label fw-semibold">Açıklama</label>
                 <textarea asp-for="Description" class="form-control" rows="4" placeholder="Ürün açıklamasını giriniz"></textarea>

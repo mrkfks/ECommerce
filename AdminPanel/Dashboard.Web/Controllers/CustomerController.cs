@@ -20,8 +20,9 @@ namespace Dashboard.Web.Controllers
         {
             try
             {
-                var customers = await _customerService.GetAllAsync();
-                return View(customers.Data ?? new List<CustomerDto>());
+                // Varsayılan olarak ilk sayfa ve 100 kayıt çekiliyor, ihtiyaca göre değiştirilebilir
+                var pagedResult = await _customerService.GetPagedListAsync(1, 100);
+                return View(pagedResult.Items?.ToList() ?? new List<CustomerDto>());
             }
             catch (Exception ex)
             {
@@ -37,10 +38,10 @@ namespace Dashboard.Web.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var customer = await _customerService.GetByIdAsync(id);
-            if (customer == null)
+            if (customer == null || customer.Data == null)
                 return NotFound();
 
-            return View(customer);
+            return View(customer.Data);
         }
 
         // Düzenleme
@@ -49,10 +50,10 @@ namespace Dashboard.Web.Controllers
         public async Task<IActionResult> Edit(int id)
         {
             var customer = await _customerService.GetByIdAsync(id);
-            if (customer == null)
+            if (customer == null || customer.Data == null)
                 return NotFound();
 
-            return View(customer);
+            return View(customer.Data);
         }
 
         [HttpPost]
@@ -76,10 +77,10 @@ namespace Dashboard.Web.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var customer = await _customerService.GetByIdAsync(id);
-            if (customer == null)
+            if (customer == null || customer.Data == null)
                 return NotFound();
 
-            return View(customer);
+            return View(customer.Data);
         }
 
         [HttpPost, ActionName("Delete")]

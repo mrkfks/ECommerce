@@ -13,6 +13,9 @@ import { Product } from '../../core/models';
   styleUrl: './product-detail.css',
 })
 export class ProductDetail implements OnInit {
+    onImgError(event: Event) {
+      (event.target as HTMLImageElement).src = 'assets/images/no-image.svg';
+    }
   private route = inject(ActivatedRoute);
   private productService = inject(ProductService);
   private cartService = inject(CartService);
@@ -35,7 +38,10 @@ export class ProductDetail implements OnInit {
     this.isLoading = true;
     this.productService.getById(id).subscribe({
       next: (product) => {
+        console.log('API Response:', product);
+        console.log('Images:', product.images);
         this.product = this.mapProduct(product);
+        console.log('Mapped Product:', this.product);
         this.isLoading = false;
         this.loadRelatedProducts();
       },
@@ -54,7 +60,8 @@ export class ProductDetail implements OnInit {
       description: apiProduct.description || '',
       price: apiProduct.price,
       originalPrice: apiProduct.originalPrice,
-      imageUrl: apiProduct.imageUrl || 'https://via.placeholder.com/600x400',
+      imageUrl: apiProduct.imageUrl || 'assets/images/no-image.svg',
+      images: apiProduct.images || [],
       categoryId: apiProduct.categoryId,
       categoryName: apiProduct.categoryName,
       brandId: apiProduct.brandId,
@@ -65,6 +72,7 @@ export class ProductDetail implements OnInit {
       reviewCount: apiProduct.reviewCount || 0,
       isNew: apiProduct.isNew || false,
       discount: apiProduct.discount,
+      isActive: apiProduct.isActive || false,
       inStock: apiProduct.stockQuantity > 0,
       createdAt: new Date(apiProduct.createdAt)
     };
@@ -78,6 +86,29 @@ export class ProductDetail implements OnInit {
       price: 1299.99,
       originalPrice: 1599.99,
       imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=400&fit=crop',
+      images: [
+        {
+          id: 1,
+          productId: id,
+          imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=400&fit=crop',
+          order: 0,
+          isPrimary: true
+        },
+        {
+          id: 2,
+          productId: id,
+          imageUrl: 'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=600&h=400&fit=crop',
+          order: 1,
+          isPrimary: false
+        },
+        {
+          id: 3,
+          productId: id,
+          imageUrl: 'https://images.unsplash.com/photo-1487215078519-e21cc028cb29?w=600&h=400&fit=crop',
+          order: 2,
+          isPrimary: false
+        }
+      ],
       categoryId: 1,
       categoryName: 'Elektronik',
       brandId: 1,
@@ -88,6 +119,7 @@ export class ProductDetail implements OnInit {
       reviewCount: 128,
       isNew: true,
       discount: 20,
+      isActive: true,
       inStock: true,
       createdAt: new Date()
     };
@@ -98,7 +130,7 @@ export class ProductDetail implements OnInit {
       this.productService.getByCategory(this.product.categoryId).subscribe({
         next: (products) => {
           this.relatedProducts = products
-            .filter(p => p.id !== this.product?.id)
+            .filter(p => p.id !== this.product?.id && p.isActive)
             .slice(0, 4)
             .map(p => this.mapProduct(p));
         },
@@ -128,6 +160,24 @@ export class ProductDetail implements OnInit {
     if (this.quantity > 1) {
       this.quantity--;
     }
+  }
+
+  nextImage(): void {
+    if (this.product?.images && this.product.images.length > 1) {
+      this.selectedImageIndex = (this.selectedImageIndex + 1) % this.product.images.length;
+    }
+  }
+
+  previousImage(): void {
+    if (this.product?.images && this.product.images.length > 1) {
+      this.selectedImageIndex = this.selectedImageIndex === 0 
+        ? this.product.images.length - 1 
+        : this.selectedImageIndex - 1;
+    }
+  }
+
+  selectImage(index: number): void {
+    this.selectedImageIndex = index;
   }
 
   get discountPercentage(): number {

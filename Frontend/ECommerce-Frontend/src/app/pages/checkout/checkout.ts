@@ -92,7 +92,9 @@ export class Checkout implements OnInit {
       this.shippingInfo.email &&
       this.shippingInfo.phone &&
       this.shippingInfo.address &&
-      this.shippingInfo.city
+      this.shippingInfo.city &&
+      this.shippingInfo.district &&
+      this.shippingInfo.postalCode
     );
   }
 
@@ -142,7 +144,10 @@ export class Checkout implements OnInit {
         state: this.shippingInfo.district,
         zipCode: this.shippingInfo.postalCode,
         country: 'Turkey'
-      }
+      },
+      cardNumber: this.paymentInfo.cardNumber || undefined,
+      cardExpiry: this.paymentInfo.expiryDate || undefined,
+      cardCvv: this.paymentInfo.cvv || undefined
     };
 
     this.orderService.create(orderRequest).subscribe({

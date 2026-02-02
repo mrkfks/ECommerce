@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, map, shareReplay } from 'rxjs';
 import { Category, CategoryCreateRequest, ApiResponse } from '../models';
 
 @Injectable({
@@ -8,18 +8,23 @@ import { Category, CategoryCreateRequest, ApiResponse } from '../models';
 })
 export class CategoryService {
   private readonly basePath = '/categories';
+  private allCategoriesCache$: Observable<Category[]> | null = null;
 
   constructor(private http: HttpClient) {}
 
   getAll(): Observable<Category[]> {
-    return this.http.get<Category[] | ApiResponse<Category[]>>(this.basePath).pipe(
-      map((response: any) => {
-        if (Array.isArray(response)) return response;
-        if (response?.data?.data && Array.isArray(response.data.data)) return response.data.data;
-        if (response?.data && Array.isArray(response.data)) return response.data;
-        return [];
-      })
-    );
+    if (!this.allCategoriesCache$) {
+      this.allCategoriesCache$ = this.http.get<Category[] | ApiResponse<Category[]>>(this.basePath).pipe(
+        map((response: any) => {
+          if (Array.isArray(response)) return response;
+          if (response?.data?.data && Array.isArray(response.data.data)) return response.data.data;
+          if (response?.data && Array.isArray(response.data)) return response.data;
+          return [];
+        }),
+        shareReplay(1)
+      );
+    }
+    return this.allCategoriesCache$;
   }
 
   getById(id: number): Observable<Category> {

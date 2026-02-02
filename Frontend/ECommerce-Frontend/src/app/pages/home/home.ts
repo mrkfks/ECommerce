@@ -115,7 +115,7 @@ export class Home implements OnInit, OnDestroy {
           this.isLoading = false;
           return;
         }
-        const mappedProducts = products.map(p => this.mapProduct(p));
+        const mappedProducts = products.map(p => this.mapProduct(p)).filter(p => p.isActive);
         this.featuredProducts = mappedProducts.slice(0, 4);
         this.newProducts = mappedProducts.filter(p => p.isNew).slice(0, 4);
         this.bestSellers = mappedProducts.slice(0, 4);
@@ -137,7 +137,8 @@ export class Home implements OnInit, OnDestroy {
       description: apiProduct.description || '',
       price: apiProduct.price,
       originalPrice: apiProduct.originalPrice,
-      imageUrl: apiProduct.imageUrl || 'https://via.placeholder.com/400x300',
+      imageUrl: apiProduct.imageUrl || 'assets/images/no-image.svg',
+      images: apiProduct.images || [],
       categoryId: apiProduct.categoryId,
       categoryName: apiProduct.categoryName,
       brandId: apiProduct.brandId,
@@ -148,6 +149,7 @@ export class Home implements OnInit, OnDestroy {
       reviewCount: apiProduct.reviewCount || 0,
       isNew: apiProduct.isNew || false,
       discount: apiProduct.discount,
+      isActive: apiProduct.isActive || false,
       inStock: (apiProduct.stockQuantity || 0) > 0,
       createdAt: new Date(apiProduct.createdAt)
     };
@@ -163,7 +165,7 @@ export class Home implements OnInit, OnDestroy {
         originalPrice: 1599.99,
         imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop',
         categoryId: 1, brandId: 1, companyId: 1, stockQuantity: 50,
-        rating: 4.5, reviewCount: 128, isNew: true, discount: 20, inStock: true, createdAt: new Date()
+        rating: 4.5, reviewCount: 128, isNew: true, discount: 20, isActive: true, inStock: true, createdAt: new Date()
       },
       {
         id: 2,
@@ -172,7 +174,7 @@ export class Home implements OnInit, OnDestroy {
         price: 2499.99,
         imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=300&fit=crop',
         categoryId: 1, brandId: 1, companyId: 1, stockQuantity: 30,
-        rating: 4.8, reviewCount: 256, inStock: true, createdAt: new Date()
+        rating: 4.8, reviewCount: 256, isActive: true, inStock: true, createdAt: new Date()
       },
       {
         id: 3,
@@ -182,7 +184,7 @@ export class Home implements OnInit, OnDestroy {
         originalPrice: 1199.99,
         imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=300&fit=crop',
         categoryId: 2, brandId: 2, companyId: 1, stockQuantity: 100,
-        rating: 4.3, reviewCount: 89, discount: 25, inStock: true, createdAt: new Date()
+        rating: 4.3, reviewCount: 89, discount: 25, isActive: true, inStock: true, createdAt: new Date()
       },
       {
         id: 4,
@@ -191,7 +193,7 @@ export class Home implements OnInit, OnDestroy {
         price: 349.99,
         imageUrl: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400&h=300&fit=crop',
         categoryId: 1, brandId: 3, companyId: 1, stockQuantity: 75,
-        rating: 4.6, reviewCount: 67, isNew: true, inStock: true, createdAt: new Date()
+        rating: 4.6, reviewCount: 67, isNew: true, isActive: true, inStock: true, createdAt: new Date()
       }
     ];
 

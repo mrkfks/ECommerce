@@ -1,8 +1,8 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+using Dashboard.Web.Models;
 using Dashboard.Web.Services;
 using ECommerce.Application.DTOs;
-using Dashboard.Web.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Dashboard.Web.Controllers
 {
@@ -24,9 +24,9 @@ namespace Dashboard.Web.Controllers
         {
             _logger.LogInformation("[CompanyController.Index] START - Fetching companies...");
             var companies = await _companyService.GetAllAsync();
-            _logger.LogInformation("[CompanyController.Index] API Response - Success: {Success}, Message: {Message}, Data is null: {IsNull}, Count: {Count}", 
+            _logger.LogInformation("[CompanyController.Index] API Response - Success: {Success}, Message: {Message}, Data is null: {IsNull}, Count: {Count}",
                 companies?.Success, companies?.Message, companies?.Data == null, companies?.Data?.Count() ?? 0);
-            
+
             if (companies?.Data != null)
             {
                 foreach (var c in companies.Data)
@@ -34,8 +34,8 @@ namespace Dashboard.Web.Controllers
                     _logger.LogInformation("[CompanyController.Index] Company: Id={Id}, Name={Name}, Email={Email}", c.Id, c.Name, c.Email);
                 }
             }
-            
-            var companyVms = companies.Data?.Select(c => new CompanyVm
+
+            var companyVms = (companies?.Data ?? new List<CompanyDto>()).Select(c => new CompanyVm
             {
                 Id = c.Id,
                 Name = c.Name,
@@ -64,22 +64,22 @@ namespace Dashboard.Web.Controllers
         public async Task<IActionResult> Create(CompanyFormDto dto)
         {
             _logger.LogInformation("[CompanyController.Create] Starting - Name: {Name}, Email: {Email}", dto.Name, dto.Email);
-            
+
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("[CompanyController.Create] ModelState is invalid");
                 return View(dto);
             }
-            
+
             try
             {
                 var httpClient = _httpClientFactory.CreateClient("CompanyApi");
                 _logger.LogInformation("[CompanyController.Create] Sending POST request to /api/companies");
-                
+
                 var response = await httpClient.PostAsJsonAsync("/api/companies", dto);
-                
+
                 _logger.LogInformation("[CompanyController.Create] Response: {StatusCode}", response.StatusCode);
-                
+
                 if (response.IsSuccessStatusCode)
                 {
                     var content = await response.Content.ReadAsStringAsync();
@@ -87,7 +87,7 @@ namespace Dashboard.Web.Controllers
                     TempData["Success"] = "Şirket başarıyla kaydedildi";
                     return RedirectToAction(nameof(Index));
                 }
-                
+
                 var errorContent = await response.Content.ReadAsStringAsync();
                 _logger.LogError("[CompanyController.Create] Failed - Status: {StatusCode}, Error: {Error}", response.StatusCode, errorContent);
                 ModelState.AddModelError("", $"Şirket kaydedilirken hata oluştu: {response.StatusCode} - {errorContent}");
@@ -107,7 +107,7 @@ namespace Dashboard.Web.Controllers
             var company = await _companyService.GetByIdAsync(id);
             if (company == null)
                 return NotFound();
-            
+
             var companyVm = new CompanyVm
             {
                 Id = company.Data?.Id ?? 0,
@@ -137,7 +137,7 @@ namespace Dashboard.Web.Controllers
             var response = await _companyService.GetByIdAsync(id);
             if (response?.Data == null)
                 return NotFound();
-            
+
             return View(response.Data);
         }
 
@@ -146,10 +146,10 @@ namespace Dashboard.Web.Controllers
         {
             if (id != company.Id)
                 return BadRequest();
-            
+
             if (!ModelState.IsValid)
                 return View(company);
-            
+
             var response = await _companyService.UpdateAsync(id, company);
             if (response != null && response.Success)
             {

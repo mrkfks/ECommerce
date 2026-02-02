@@ -21,22 +21,57 @@
       </nav>
 
       <div class="row">
-        <!-- Ürün Görseli -->
+        <!-- Ürün Görseli ve Karosel -->
         <div class="col-lg-6 mb-4">
           <div class="card border-0 shadow-sm">
+            <!-- Ana Resim -->
             <div class="position-relative">
               <img 
-                [src]="product.imageUrl" 
+                [src]="(product.images && product.images.length > 0 ? product.images[selectedImageIndex]?.imageUrl : null) || product.imageUrl || 'assets/images/no-image.svg'"
                 [alt]="product.name"
                 class="card-img-top"
-                style="height: 450px; object-fit: cover;">
+                style="height: 450px; object-fit: cover;"
+                (error)="onImgError($event)">
               @if (product.isNew) {
                 <span class="badge bg-success position-absolute top-0 start-0 m-3">Yeni</span>
               }
               @if (discountPercentage > 0) {
                 <span class="badge bg-danger position-absolute top-0 end-0 m-3">%{{ discountPercentage }} İndirim</span>
               }
+              
+              <!-- Karosel Kontrolleri -->
+              @if (product.images && product.images.length > 1) {
+                <button 
+                  class="btn btn-light position-absolute start-0 top-50 translate-middle-y ms-2"
+                  (click)="previousImage()"
+                  title="Önceki Resim">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+                <button 
+                  class="btn btn-light position-absolute end-0 top-50 translate-middle-y me-2"
+                  (click)="nextImage()"
+                  title="Sonraki Resim">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              }
             </div>
+
+            <!-- Resim Önizlemesi Kütüphanesi -->
+            @if (product.images && product.images.length > 1) {
+              <div class="d-flex gap-2 p-3 border-top overflow-auto">
+                @for (image of product.images; track image.id; let i = $index) {
+                  <img 
+                    [src]="image.imageUrl"
+                    [alt]="'Resim ' + (i + 1)"
+                    class="img-thumbnail"
+                    style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;"
+                    [class.border-primary]="selectedImageIndex === i"
+                    [class.border-3]="selectedImageIndex === i"
+                    (click)="selectImage(i)"
+                    (error)="onImgError($event)">
+                }
+              </div>
+            }
           </div>
         </div>
 

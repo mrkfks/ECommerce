@@ -27,7 +27,6 @@ public class CategoryService : ICategoryService
     public async Task<IReadOnlyList<CategoryDto>> GetAllAsync()
     {
         var currentCompanyId = _tenantService.GetCompanyId();
-        _logger.LogInformation("CategoryService.GetAllAsync - CompanyId from TenantService: {CompanyId}", currentCompanyId);
 
         // EF Query Filter'ları bypass et, manuel filtre uygulayacağız
         IQueryable<Category> query = _context.Categories.IgnoreQueryFilters();
@@ -43,13 +42,8 @@ public class CategoryService : ICategoryService
         // Company ID varsa filtrele (SuperAdmin dahil)
         if (currentCompanyId.HasValue)
         {
-            _logger.LogInformation("Filtering categories by CompanyId: {CompanyId}", currentCompanyId.Value);
             query = query.Where(c => c.CompanyId == currentCompanyId.Value);
             productsQuery = productsQuery.Where(p => p.CompanyId == currentCompanyId.Value);
-        }
-        else
-        {
-            _logger.LogWarning("No CompanyId filter applied - will return all categories");
         }
 
         var categoriesWithCounts = await query
@@ -70,7 +64,6 @@ public class CategoryService : ICategoryService
             })
             .ToListAsync();
 
-        _logger.LogInformation("Found {Count} categories", categoriesWithCounts.Count);
         return categoriesWithCounts;
     }
 
@@ -138,12 +131,12 @@ public class CategoryService : ICategoryService
 
         await _context.SaveChangesAsync();
     }
-    
+
     public async Task UpdateImageAsync(int id, string imageUrl)
     {
         var category = await _context.Categories.FindAsync(id);
         if (category == null) throw new KeyNotFoundException("Category not found");
-        
+
         category.Update(category.Name, category.Description, imageUrl, category.ParentCategoryId, category.DisplayOrder);
         await _context.SaveChangesAsync();
     }

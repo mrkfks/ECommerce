@@ -3,10 +3,11 @@
     <!-- Ürün Resmi -->
     <div class="position-relative overflow-hidden">
       <img 
-        [src]="product.imageUrl" 
+        [src]="product.imageUrl || 'assets/images/no-image.svg'" 
         [alt]="product.name" 
         class="card-img-top product-image"
-        loading="lazy">
+        loading="lazy"
+        (error)="onImgError($event)">
       
       <!-- Badges -->
       @if (product.isNew) {

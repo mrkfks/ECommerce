@@ -17,7 +17,8 @@ export interface CompanySettings {
 
 // Default theme settings
 const DEFAULT_SETTINGS: CompanySettings = {
-  companyName: 'E-Commerce Store',
+  id: 1, // Süper adminin şirketi
+  companyName: 'Süper Admin Şirketi',
   primaryColor: '#3b82f6',
   secondaryColor: '#1e40af'
 };
@@ -91,6 +92,7 @@ export class DesignService {
     if (!isPlatformBrowser(this.platformId)) return;
 
     this.settings.set(DEFAULT_SETTINGS);
+    this.companyContext.setCompanyId(DEFAULT_SETTINGS.id ?? 1);
     this.applyTheme(DEFAULT_SETTINGS);
   }
 

@@ -57,7 +57,7 @@ export class CategoryProducts implements OnInit {
     this.isLoading = true;
     this.productService.getByCategory(categoryId).subscribe({
       next: (products) => {
-        this.products = products.map(p => this.mapProduct(p));
+        this.products = products.filter(p => p.isActive).map(p => this.mapProduct(p));
         this.applyFilters();
         this.isLoading = false;
       },
@@ -74,7 +74,7 @@ export class CategoryProducts implements OnInit {
     this.isLoading = true;
     this.productService.getAll().subscribe({
       next: (response) => {
-        this.products = response.items.map(p => this.mapProduct(p));
+        this.products = response.items.filter(p => p.isActive).map(p => this.mapProduct(p));
         this.applyFilters();
         this.isLoading = false;
       },
@@ -92,7 +92,8 @@ export class CategoryProducts implements OnInit {
       description: apiProduct.description || '',
       price: apiProduct.price,
       originalPrice: apiProduct.originalPrice,
-      imageUrl: apiProduct.imageUrl || 'https://via.placeholder.com/400x300',
+      imageUrl: apiProduct.imageUrl || 'assets/images/no-image.svg',
+      images: apiProduct.images || [],
       categoryId: apiProduct.categoryId,
       categoryName: apiProduct.categoryName,
       brandId: apiProduct.brandId,
@@ -103,6 +104,7 @@ export class CategoryProducts implements OnInit {
       reviewCount: apiProduct.reviewCount || 0,
       isNew: apiProduct.isNew || false,
       discount: apiProduct.discount,
+      isActive: apiProduct.isActive || false,
       inStock: apiProduct.stockQuantity > 0,
       createdAt: new Date(apiProduct.createdAt)
     };
@@ -110,16 +112,19 @@ export class CategoryProducts implements OnInit {
 
   private loadMockProducts(): void {
     this.products = [
-      { id: 1, name: 'Kablosuz Kulaklık', description: 'ANC özellikli', price: 1299.99, imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400', categoryId: 1, brandId: 1, companyId: 1, stockQuantity: 50, rating: 4.5, reviewCount: 128, inStock: true, createdAt: new Date() },
-      { id: 2, name: 'Akıllı Saat', description: 'GPS ve sağlık takibi', price: 2499.99, imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400', categoryId: 1, brandId: 1, companyId: 1, stockQuantity: 30, rating: 4.8, reviewCount: 256, inStock: true, createdAt: new Date() },
-      { id: 3, name: 'Spor Ayakkabı', description: 'Hafif ve konforlu', price: 899.99, originalPrice: 1199.99, imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400', categoryId: 2, brandId: 2, companyId: 1, stockQuantity: 100, rating: 4.3, reviewCount: 89, discount: 25, inStock: true, createdAt: new Date() },
-      { id: 4, name: 'Laptop Stand', description: 'Ergonomik tasarım', price: 349.99, imageUrl: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400', categoryId: 1, brandId: 3, companyId: 1, stockQuantity: 75, rating: 4.6, reviewCount: 67, isNew: true, inStock: true, createdAt: new Date() }
+      { id: 1, name: 'Kablosuz Kulaklık', description: 'ANC özellikli', price: 1299.99, imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400', categoryId: 1, brandId: 1, companyId: 1, stockQuantity: 50, rating: 4.5, reviewCount: 128, isActive: true, inStock: true, createdAt: new Date() },
+      { id: 2, name: 'Akıllı Saat', description: 'GPS ve sağlık takibi', price: 2499.99, imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400', categoryId: 1, brandId: 1, companyId: 1, stockQuantity: 30, rating: 4.8, reviewCount: 256, isActive: true, inStock: true, createdAt: new Date() },
+      { id: 3, name: 'Spor Ayakkabı', description: 'Hafif ve konforlu', price: 899.99, originalPrice: 1199.99, imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400', categoryId: 2, brandId: 2, companyId: 1, stockQuantity: 100, rating: 4.3, reviewCount: 89, discount: 25, isActive: true, inStock: true, createdAt: new Date() },
+      { id: 4, name: 'Laptop Stand', description: 'Ergonomik tasarım', price: 349.99, imageUrl: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400', categoryId: 1, brandId: 3, companyId: 1, stockQuantity: 75, rating: 4.6, reviewCount: 67, isNew: true, isActive: true, inStock: true, createdAt: new Date() }
     ];
     this.applyFilters();
   }
 
   applyFilters(): void {
     let filtered = [...this.products];
+
+    // Aktif olmayan ürünleri filtrele
+    filtered = filtered.filter(p => p.isActive);
 
     // Arama filtresi
     if (this.searchTerm) {

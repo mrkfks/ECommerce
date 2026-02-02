@@ -23,12 +23,7 @@ export interface RegisterRequest {
   lastName: string;
   username: string;
   phoneNumber: string;
-  companyId?: number;
-  companyName?: string;
-  companyAddress?: string;
-  companyPhoneNumber?: string;
-  companyEmail?: string;
-  taxNumber?: string;
+  // Şirketle ilgili alanlar kaldırıldı
 }
 
 export interface AuthResponse {
@@ -56,6 +51,17 @@ export interface ChangePasswordRequest {
   confirmPassword: string;
 }
 
+// Product Image Model
+export interface ProductImage {
+  id: number;
+  productId: number;
+  imageUrl: string;
+  displayOrder?: number;
+  order: number;
+  isMain?: boolean;
+  isPrimary: boolean;
+}
+
 // Product Models
 export interface Product {
   id: number;
@@ -64,6 +70,7 @@ export interface Product {
   price: number;
   originalPrice?: number;
   imageUrl: string;
+  images?: ProductImage[];
   categoryId: number;
   categoryName?: string;
   brandId: number;
@@ -74,6 +81,7 @@ export interface Product {
   reviewCount: number;
   isNew?: boolean;
   discount?: number;
+  isActive: boolean;
   inStock: boolean;
   createdAt: Date;
   updatedAt?: Date;
@@ -141,6 +149,9 @@ export interface OrderCreateRequest {
   companyId: number;
   items: OrderItemCreateRequest[];
   shippingAddress?: AddressCreateRequest;
+  cardNumber?: string;
+  cardExpiry?: string;
+  cardCvv?: string;
 }
 
 export interface AddressCreateRequest {

@@ -11,6 +11,9 @@ import { Product } from '../../core/models';
   styleUrl: './product-card.css',
 })
 export class ProductCard {
+    onImgError(event: Event) {
+      (event.target as HTMLImageElement).src = 'assets/images/no-image.svg';
+    }
   @Input() product!: Product;
   @Output() addToCart = new EventEmitter<Product>();
   @Output() addToWishlist = new EventEmitter<Product>();

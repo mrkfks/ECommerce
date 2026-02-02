@@ -1,3 +1,5 @@
+@model List<ECommerce.Application.DTOs.ProductDto>
+
 @{
     var isSuperAdmin = User.IsInRole("SuperAdmin");
     ViewData["Title"] = isSuperAdmin ? "Envanter Yönetimi" : "Ürün Yönetimi";

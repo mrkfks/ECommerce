@@ -378,6 +378,8 @@ namespace ECommerce.Infrastructure.Services
 
         private static ProductDto MapToDto(Product p)
         {
+            var imageUrl = p.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl ?? p.Images.FirstOrDefault()?.ImageUrl;
+
             return new ProductDto
             {
                 Id = p.Id,
@@ -389,11 +391,38 @@ namespace ECommerce.Infrastructure.Services
                 CategoryName = p.Category?.Name ?? string.Empty,
                 BrandId = p.BrandId,
                 BrandName = p.Brand?.Name ?? string.Empty,
+                CompanyId = p.CompanyId,
+                CompanyName = string.Empty,
                 ModelId = p.ModelId,
                 ModelName = p.Model?.Name,
-                CompanyId = p.CompanyId,
                 IsActive = p.IsActive,
-                ImageUrl = p.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl ?? p.Images.FirstOrDefault()?.ImageUrl
+                ImageUrl = imageUrl ?? p.ImageUrl,
+                CreatedAt = p.CreatedAt,
+                UpdatedAt = p.UpdatedAt,
+                ReviewCount = 0,
+                AverageRating = 0,
+                Images = (p.Images != null && p.Images.Any())
+                    ? p.Images.OrderBy(i => i.Order).Select(i => new ProductImageDto
+                    {
+                        Id = i.Id,
+                        ProductId = i.ProductId,
+                        ImageUrl = i.ImageUrl,
+                        Order = i.Order,
+                        IsPrimary = i.IsPrimary
+                    }).ToList()
+                    : (string.IsNullOrEmpty(imageUrl ?? p.ImageUrl)
+                        ? new List<ProductImageDto>()
+                        : new List<ProductImageDto>
+                        {
+                            new ProductImageDto
+                            {
+                                Id = 0,
+                                ProductId = p.Id,
+                                ImageUrl = imageUrl ?? p.ImageUrl,
+                                Order = 0,
+                                IsPrimary = true
+                            }
+                        })
             };
         }
     }

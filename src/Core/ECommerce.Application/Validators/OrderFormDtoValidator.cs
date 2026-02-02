@@ -11,7 +11,8 @@ public class OrderFormDtoValidator : AbstractValidator<OrderFormDto>
             .GreaterThan(0).WithMessage("Müşteri seçilmelidir");
 
         RuleFor(x => x.AddressId)
-            .GreaterThan(0).WithMessage("Teslimat adresi seçilmelidir");
+            .Must((dto, addressId) => addressId > 0 || dto.ShippingAddress != null)
+            .WithMessage("Teslimat adresi seçilmelidir veya yeni adres bilgileri girilmelidir");
 
         RuleFor(x => x.CompanyId)
             .GreaterThan(0).When(x => x.CompanyId.HasValue).WithMessage("Şirket seçilmelidir");
@@ -21,6 +22,31 @@ public class OrderFormDtoValidator : AbstractValidator<OrderFormDto>
 
         RuleForEach(x => x.Items)
             .SetValidator(new OrderItemFormDtoValidator());
+
+        RuleFor(x => x.ShippingAddress)
+            .SetValidator(new ShippingAddressDtoValidator())
+            .When(x => x.ShippingAddress != null);
+    }
+}
+
+public class ShippingAddressDtoValidator : AbstractValidator<ShippingAddressDto>
+{
+    public ShippingAddressDtoValidator()
+    {
+        RuleFor(x => x.Street)
+            .NotEmpty().WithMessage("Sokak adresi gereklidir");
+
+        RuleFor(x => x.City)
+            .NotEmpty().WithMessage("Şehir gereklidir");
+
+        RuleFor(x => x.State)
+            .NotEmpty().WithMessage("İlçe/Bölge gereklidir");
+
+        RuleFor(x => x.ZipCode)
+            .NotEmpty().WithMessage("Posta kodu gereklidir");
+
+        RuleFor(x => x.Country)
+            .NotEmpty().WithMessage("Ülke gereklidir");
     }
 }
 
