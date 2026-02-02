@@ -44,9 +44,14 @@
                         </select>
                         <span asp-validation-for="CategoryId" class="text-danger small"></span>
                     </div>
-                     <div class="mb-3">
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
                         <label asp-for="BrandId" class="form-label fw-semibold">Marka</label>
-                         <select asp-for="BrandId" class="form-select" asp-items="@(new SelectList(ViewBag.Brands, "Id", "Name"))">
+                        <select asp-for="BrandId" class="form-select" asp-items="@(new SelectList(ViewBag.Brands, "Id", "Name"))">
                             <option value="">-- Marka Seçiniz --</option>
                         </select>
                         <span asp-validation-for="BrandId" class="text-danger small"></span>

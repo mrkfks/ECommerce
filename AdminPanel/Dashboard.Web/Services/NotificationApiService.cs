@@ -1,5 +1,7 @@
-using System.Net.Http.Json;
 using Dashboard.Web.Models;
+using System.Net.Http.Json;
+using System.Net.Http.Json;
+using ECommerce.Application.DTOs;
 
 namespace Dashboard.Web.Services;
 
@@ -70,7 +72,7 @@ public class NotificationApiService
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<NotificationDto>($"api/Notification/{id}");
+            return await _httpClient.GetFromJsonAsync<NotificationDto>($"api/notifications/{id}");
         }
         catch (Exception ex)
         {
@@ -86,7 +88,7 @@ public class NotificationApiService
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<List<NotificationDto>>($"api/Notification/by-type/{type}");
+            return await _httpClient.GetFromJsonAsync<List<NotificationDto>>($"api/notifications/by-type/{type}");
         }
         catch (Exception ex)
         {
@@ -102,7 +104,7 @@ public class NotificationApiService
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<List<LowStockItemVm>>($"api/Notification/low-stock?threshold={threshold}");
+            return await _httpClient.GetFromJsonAsync<List<LowStockItemVm>>($"api/notifications/low-stock?threshold={threshold}");
         }
         catch (Exception ex)
         {
@@ -118,7 +120,7 @@ public class NotificationApiService
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<List<RecentOrderVm>>($"api/Notification/recent-orders?count={count}");
+            return await _httpClient.GetFromJsonAsync<List<RecentOrderVm>>($"api/notifications/recent-orders?count={count}");
         }
         catch (Exception ex)
         {
@@ -134,7 +136,7 @@ public class NotificationApiService
     {
         try
         {
-            var response = await _httpClient.PutAsync($"api/Notification/{id}/read", null);
+            var response = await _httpClient.PutAsync($"api/notifications/{id}/read", null);
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
@@ -151,7 +153,7 @@ public class NotificationApiService
     {
         try
         {
-            var response = await _httpClient.PutAsync("api/Notification/read-all", null);
+            var response = await _httpClient.PutAsync("api/notifications/read-all", null);
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)

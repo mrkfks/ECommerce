@@ -8,7 +8,7 @@
 <div class="mb-3">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index">Ürün Yönetimi</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index">Envanter Yönetimi</a></li>
             <li class="breadcrumb-item active">Kategori Yönetimi</li>
         </ol>
     </nav>
@@ -26,23 +26,8 @@
     </div>
 </div>
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="fa-solid fa-check-circle me-2"></i>
-        @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
 
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="fa-solid fa-exclamation-circle me-2"></i>
-        @TempData["Error"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
+@await Html.PartialAsync("~/Views/Shared/_InventoryAlert.cshtml")
 
 <div class="row">
     @if (topCategories != null && topCategories.Any())

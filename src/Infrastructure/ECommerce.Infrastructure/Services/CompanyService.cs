@@ -148,6 +148,7 @@ public class CompanyService : ICompanyService
     public async Task<IReadOnlyList<CompanyDto>> GetAllAsync()
     {
         return await _context.Companies
+            .IgnoreQueryFilters() // SuperAdmin tüm şirketleri görebilmeli
             .AsNoTracking()
             .Select(c => new CompanyDto
             {

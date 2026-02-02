@@ -1,0 +1,14 @@
+@{
+    var alert = TempData["InventoryAlert"] as string;
+    var alertType = TempData["InventoryAlertType"] as string ?? "info";
+}
+@if (!string.IsNullOrEmpty(alert))
+{
+    var alertClass = alertType == "success" ? "alert-success" : alertType == "error" ? "alert-danger" : "alert-info";
+    var iconClass = alertType == "success" ? "fa-check-circle" : alertType == "error" ? "fa-exclamation-circle" : "fa-info-circle";
+    <div class="alert @alertClass alert-dismissible fade show" role="alert">
+        <i class="fa-solid @iconClass me-2"></i>
+        @alert
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}

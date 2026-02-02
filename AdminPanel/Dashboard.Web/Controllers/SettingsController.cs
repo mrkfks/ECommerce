@@ -1,3 +1,4 @@
+using ECommerce.Application.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Dashboard.Web.Services;
@@ -77,6 +78,7 @@ public class SettingsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(GlobalAttributeCreateViewModel model)
     {
+
         if (!ModelState.IsValid)
         {
             await LoadCompaniesAsync();
@@ -85,28 +87,53 @@ public class SettingsController : Controller
 
         try
         {
-            var attribute = new GlobalAttributeViewModel
+
+            var attribute = new GlobalAttributeFormDto
             {
-                Key = model.Key,
-                Value = model.Value,
+                Name = model.Key,
+                DisplayName = model.DisplayName ?? model.Key,
                 Description = model.Description,
-                Group = model.Group,
-                CompanyId = model.CompanyId
+                AttributeType = string.IsNullOrEmpty(model.AttributeType) ? "Text" : model.AttributeType,
+                DisplayOrder = model.DisplayOrder ?? 0,
+                IsActive = model.IsActive,
+                Values = model.Values?.Select(v => new GlobalAttributeValueFormDto
+                {
+                    Value = v.Value,
+                    DisplayValue = v.DisplayValue,
+                    DisplayOrder = v.DisplayOrder,
+                    IsActive = v.IsActive,
+                    ColorCode = v.ColorCode
+                }).ToList()
             };
 
-            var success = await _attributeService.CreateAsync(attribute);
-            if (success)
+
+            // Log klasörü otomatik oluşturulsun
+            var logsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "logs");
+            if (!Directory.Exists(logsDir))
+                Directory.CreateDirectory(logsDir);
+
+            // İstek logu
+            var logPath = Path.Combine(logsDir, "attribute-create-request-log.txt");
+            System.IO.File.AppendAllText(logPath, $"[{DateTime.Now}] Request: {System.Text.Json.JsonSerializer.Serialize(attribute)}\n");
+
+            var response = await _attributeService.CreateAsync(attribute);
+
+            // Yanıt logu
+            var logResponsePath = Path.Combine(logsDir, "attribute-create-response-log.txt");
+            System.IO.File.AppendAllText(logResponsePath, $"[{DateTime.Now}] Response: {System.Text.Json.JsonSerializer.Serialize(response)}\n");
+
+            if (response)
             {
-                TempData["Success"] = "Ayar başarıyla oluşturuldu.";
+                TempData["AttributeSuccess"] = "Ayar başarıyla oluşturuldu.";
                 return RedirectToAction(nameof(Index), new { group = model.Group });
             }
 
-            TempData["Error"] = "Ayar oluşturulurken hata oluştu.";
+            TempData["AttributeError"] = "Ayar oluşturulurken hata oluştu.";
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ayar oluşturulurken hata");
-            TempData["Error"] = ex.Message;
+            TempData["AttributeError"] = ex.Message;
         }
 
         await LoadCompaniesAsync();
@@ -170,18 +197,18 @@ public class SettingsController : Controller
             };
 
             var success = await _attributeService.UpdateAsync(id, attribute);
-            if (success)
+            if (success == true)
             {
-                TempData["Success"] = "Ayar başarıyla güncellendi.";
+                TempData["AttributeSuccess"] = "Ayar başarıyla güncellendi.";
                 return RedirectToAction(nameof(Index), new { group = model.Group });
             }
 
-            TempData["Error"] = "Ayar güncellenirken hata oluştu.";
+            TempData["AttributeError"] = "Ayar güncellenirken hata oluştu.";
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ayar güncellenirken hata");
-            TempData["Error"] = ex.Message;
+            TempData["AttributeError"] = ex.Message;
         }
 
         await LoadCompaniesAsync();
@@ -200,17 +227,17 @@ public class SettingsController : Controller
             var success = await _attributeService.DeleteAsync(id);
             if (success)
             {
-                TempData["Success"] = "Ayar başarıyla silindi.";
+                TempData["AttributeSuccess"] = "Ayar başarıyla silindi.";
             }
             else
             {
-                TempData["Error"] = "Ayar silinirken hata oluştu.";
+                TempData["AttributeError"] = "Ayar silinirken hata oluştu.";
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ayar silinirken hata");
-            TempData["Error"] = ex.Message;
+            TempData["AttributeError"] = ex.Message;
         }
 
         return RedirectToAction(nameof(Index), new { group });
@@ -233,7 +260,7 @@ public class SettingsController : Controller
             attribute.Value = model.Value;
             var success = await _attributeService.UpdateAsync(model.Id, attribute);
             
-            return Json(new { success, message = success ? "Güncellendi" : "Hata oluştu" });
+            return Json(new { success = success, message = success ? "Güncellendi" : "Hata oluştu" });
         }
         catch (Exception ex)
         {

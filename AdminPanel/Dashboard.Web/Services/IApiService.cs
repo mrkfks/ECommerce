@@ -7,7 +7,6 @@ public interface IApiService<T> where T : class
     Task<ApiResponse<List<T>>> GetAllAsync();
     Task<ApiResponse<T?>> GetByIdAsync(int id);
     Task<ApiResponse<T>> CreateAsync(T entity);
-    Task<bool> CreateAsync<TCreate>(TCreate entity);
     Task<ApiResponse<T>> UpdateAsync(int id, T entity);
     Task<bool> UpdateAsync<TUpdate>(int id, TUpdate entity);
     Task<ApiResponse<bool>> DeleteAsync(int id);

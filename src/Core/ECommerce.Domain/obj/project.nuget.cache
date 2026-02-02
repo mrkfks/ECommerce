@@ -1,12 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "73TJEV6F/mE=",
+  "dgSpecHash": "k1p7hN+THZY=",
   "success": true,
-  "projectFilePath": "C:\\Users\\mrkfk\\OneDrive\\Desktop\\Projelerim\\ECommerce\\src\\Core\\ECommerce.Domain\\ECommerce.Domain.csproj",
+  "projectFilePath": "D:\\Ömer Kafkas\\Projects\\ECommerce\\src\\Core\\ECommerce.Domain\\ECommerce.Domain.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\mrkfk\\.nuget\\packages\\microsoft.netcore.app.ref\\9.0.11\\microsoft.netcore.app.ref.9.0.11.nupkg.sha512",
-    "C:\\Users\\mrkfk\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\9.0.11\\microsoft.windowsdesktop.app.ref.9.0.11.nupkg.sha512",
-    "C:\\Users\\mrkfk\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\9.0.11\\microsoft.aspnetcore.app.ref.9.0.11.nupkg.sha512"
+    "C:\\Users\\mrkfks\\.nuget\\packages\\microsoft.netcore.app.ref\\9.0.11\\microsoft.netcore.app.ref.9.0.11.nupkg.sha512",
+    "C:\\Users\\mrkfks\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\9.0.11\\microsoft.windowsdesktop.app.ref.9.0.11.nupkg.sha512",
+    "C:\\Users\\mrkfks\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\9.0.11\\microsoft.aspnetcore.app.ref.9.0.11.nupkg.sha512",
+    "C:\\Users\\mrkfks\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\9.0.11\\microsoft.netcore.app.host.win-x64.9.0.11.nupkg.sha512"
   ],
   "logs": []
 }

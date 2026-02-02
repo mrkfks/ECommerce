@@ -36,7 +36,13 @@ public class ModelController : ControllerBase
     public async Task<IActionResult> GetByBrandId(int brandId)
     {
         var models = await _modelService.GetByBrandIdAsync(brandId);
-        return Ok(models);
+        var response = new ECommerce.Application.Responses.ApiResponse<List<ModelDto>>
+        {
+            Success = true,
+            Data = models.ToList(),
+            Message = ""
+        };
+        return Ok(response);
     }
 
     /// <summary>
@@ -59,8 +65,25 @@ public class ModelController : ControllerBase
     [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
     public async Task<IActionResult> Create([FromBody] ModelFormDto dto)
     {
-        var model = await _modelService.CreateAsync(dto);
-        return CreatedAtAction(nameof(GetById), new { id = model.Id }, model);
+        try
+        {
+            var model = await _modelService.CreateAsync(dto);
+            return Ok(new ECommerce.Application.Responses.ApiResponse<ModelDto>
+            {
+                Success = true,
+                Data = model,
+                Message = ""
+            });
+        }
+        catch (Exception ex)
+        {
+            return Ok(new ECommerce.Application.Responses.ApiResponse<ModelDto>
+            {
+                Success = false,
+                Data = null,
+                Message = $"Model eklenirken hata oluştu: {ex.Message}"
+            });
+        }
     }
 
     /// <summary>

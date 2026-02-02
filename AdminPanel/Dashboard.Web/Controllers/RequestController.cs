@@ -66,15 +66,22 @@ namespace Dashboard.Web.Controllers
                     CreatedAt = DateTime.UtcNow
                 };
                 
-                var success = await _requestService.CreateAsync<RequestCreateDto>(createDto);
+                var requestDto = new ECommerce.Application.DTOs.RequestDto {
+                    CompanyId = createDto.CompanyId,
+                    Title = createDto.Title,
+                    Description = createDto.Description,
+                    Status = 0,
+                    CreatedAt = createDto.CreatedAt
+                };
+                var response = await _requestService.CreateAsync(requestDto);
 
-                if (success)
+                if (response.Success)
                 {
                     TempData["SuccessMessage"] = "Talep başarıyla gönderildi!";
                     return RedirectToAction("MyRequests");
                 }
 
-                ModelState.AddModelError("", "Talep gönderilirken hata oluştu.");
+                ModelState.AddModelError("", $"Talep gönderilirken hata oluştu: {response.Message}");
                 return View(dto);
             }
             catch (Exception ex)

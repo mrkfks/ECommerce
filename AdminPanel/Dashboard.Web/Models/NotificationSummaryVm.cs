@@ -8,6 +8,6 @@ namespace Dashboard.Web.Models
         public int NewOrderCount { get; set; }
         public int ReturnRequestCount { get; set; }
         public int PaymentFailedCount { get; set; }
-        public List<NotificationDto> RecentNotifications { get; set; } = new();
+        public List<ECommerce.Application.DTOs.NotificationDto> RecentNotifications { get; set; } = new();
     }
 }

@@ -1,19 +1,37 @@
-
-using System.Text;
-using Dashboard.Web.Infrastructure;
-using Dashboard.Web.Middleware;
-using Dashboard.Web.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.IdentityModel.Tokens;
 using Serilog;
-// using ECommerce.Application; // Removed direct dependency on service registrations
-// using ECommerce.Infrastructure; // Removed direct dependency on service registrations
+using Serilog.Events;
+using ECommerce.Application.DTOs;
+using Dashboard.Web.Models;
+using Dashboard.Web.Services;
+using Dashboard.Web.Infrastructure;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Text;
+using Dashboard.Web.Middleware;
+
+
+
+// Base URL config - Environment variable veya appsettings'den
+var apiBaseUrl = Environment.GetEnvironmentVariable("API_BASE_URL")
+    ?? (WebApplication.CreateBuilder().Configuration.GetSection("ApiSettings")["BaseUrl"])
+    ?? throw new InvalidOperationException("API BaseUrl not found");
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load shared logging configuration if present
-builder.Configuration.AddJsonFile("logging.common.json", optional: true, reloadOnChange: true);
+
+builder.Services.AddHttpClient<ApiService<GlobalAttributeFormDto>>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+builder.Services.AddTransient<IApiService<GlobalAttributeFormDto>>(sp => 
+    sp.GetRequiredService<ApiService<GlobalAttributeFormDto>>());
+builder.Services.AddTransient<IApiService<CategoryFormDto>>(sp =>
+{
+    var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient("CategoryApi");
+    return new ApiService<CategoryFormDto>(httpClient);
+});
+
 
 // Serilog Configuration (read from configuration) and programmatic file sink to shared backend folder
 var logDir = Environment.GetEnvironmentVariable("BACKEND_LOG_DIR")
@@ -33,9 +51,7 @@ Log.Logger = loggerConfig.CreateLogger();
 builder.Host.UseSerilog();
 
 // Base URL config - Environment variable veya appsettings'den
-var apiBaseUrl = Environment.GetEnvironmentVariable("API_BASE_URL")
-    ?? builder.Configuration.GetSection("ApiSettings")["BaseUrl"]
-    ?? throw new InvalidOperationException("API BaseUrl not found");
+
 
 // CORS origins from environment or config
 var dashboardCorsOrigins = (Environment.GetEnvironmentVariable("DASHBOARD_CORS_ALLOWED_ORIGINS")
@@ -43,9 +59,19 @@ var dashboardCorsOrigins = (Environment.GetEnvironmentVariable("DASHBOARD_CORS_A
     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
 Console.WriteLine($"🔗 API Base URL: {apiBaseUrl}");
+Log.Information($"[Startup] API Base URL: {apiBaseUrl}");
 
 // Add services to the container
-builder.Services.AddControllersWithViews();
+// Development: Runtime compilation for faster builds (no Razor compilation during build)
+// Production: Precompiled views for better performance
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
+}
+else
+{
+    builder.Services.AddControllersWithViews();
+}
 
 // Infrastructure services (DbContext, Repositories, etc.) are NOT needed for Dashboard.Web
 // as it communicates via API.
@@ -58,6 +84,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 
 // Response Caching for VaryByQueryKeys support
+
 builder.Services.AddResponseCaching();
 
 // HttpClient for API calls
@@ -92,8 +119,103 @@ builder.Services.AddCors(options =>
 });
 
 
-// Generic API Service Registration
-builder.Services.AddScoped(typeof(IApiService<>), typeof(ApiService<>));
+// API Service registrations for each DTO type
+builder.Services.AddHttpClient<IApiService<CategoryViewModel>, ApiService<CategoryViewModel>>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+// Each controller needs its specific API services registered with HttpClient
+
+// CategoryController services
+
+// BrandDto için HttpClient DI kaydı 'BrandApi' ismiyle sabitleniyor
+builder.Services.AddHttpClient<IApiService<BrandDto>, ApiService<BrandDto>>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+// ModelDto için HttpClient DI kaydı 'ModelApi' ismiyle sabitleniyor
+builder.Services.AddHttpClient<IApiService<ModelDto>, ApiService<ModelDto>>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+
+builder.Services.AddHttpClient<IApiService<GlobalAttributeDto>, ApiService<GlobalAttributeDto>>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+
+// ProductController services
+builder.Services.AddHttpClient<IApiService<ProductViewModel>, ApiService<ProductViewModel>>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+// Removed duplicate BrandDto and CompanyDto registrations
+// Using ECommerce.Application.DTOs.BrandDto and CompanyDto instead
+
+// Other controllers
+builder.Services.AddHttpClient<IApiService<RequestDto>, ApiService<RequestDto>>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+builder.Services.AddHttpClient<IApiService<OrderDto>, ApiService<OrderDto>>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+builder.Services.AddHttpClient<IApiService<CustomerDto>, ApiService<CustomerDto>>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+builder.Services.AddHttpClient<IApiService<CompanyDto>, ApiService<CompanyDto>>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+// CompanyApi named client for company creation
+builder.Services.AddHttpClient("CompanyApi", client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+builder.Services.AddHttpClient<IApiService<CategoryDto>, ApiService<CategoryDto>>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+builder.Services.AddHttpClient<IApiService<ProductDto>, ApiService<ProductDto>>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+builder.Services.AddHttpClient<IApiService<CampaignDto>, ApiService<CampaignDto>>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+builder.Services.AddHttpClient<IApiService<BannerViewModel>, ApiService<BannerViewModel>>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
 
 // Typed API Services with custom logic
 builder.Services.AddHttpClient<AuthApiService>(client =>

@@ -1,4 +1,4 @@
-@model ECommerce.Application.DTOs.CompanyDto
+@model ECommerce.Application.DTOs.CompanyFormDto
 
 @{
     ViewData["Title"] = "Yeni Şirket Kaydı";
@@ -24,6 +24,7 @@
             </div>
             <div class="card-body p-4">
                 <form asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
                     
                     <div class="border-bottom pb-3 mb-4">
                         <h6 class="text-primary fw-bold mb-3"><i class="fa-solid fa-building me-2"></i>Şirket Bilgileri</h6>

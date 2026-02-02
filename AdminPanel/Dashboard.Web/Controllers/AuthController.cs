@@ -100,5 +100,18 @@ namespace Dashboard.Web.Controllers
             HttpContext.Response.Cookies.Delete("RefreshToken");
             return RedirectToAction("Login");
         }
+
+        // Token'ı cookie'den al ve JSON olarak dön
+        [Authorize]
+        [HttpGet]
+        public IActionResult GetToken()
+        {
+            var token = Request.Cookies["AuthToken"];
+            if (string.IsNullOrEmpty(token))
+            {
+                return Json(new { success = false, message = "Token bulunamadı" });
+            }
+            return Json(new { success = true, token = token });
+        }
     }
 }

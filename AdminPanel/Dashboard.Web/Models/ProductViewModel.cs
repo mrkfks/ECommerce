@@ -22,10 +22,10 @@ namespace Dashboard.Web.Models
         public string CompanyName { get; set; } = string.Empty;
         public string? ImageUrl { get; set; }
         public bool IsActive { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
         public int ReviewCount { get; set; }
         public double AverageRating { get; set; }
-        public List<ProductImageDto> Images { get; set; } = new();
+        public List<ProductImageDto>? Images { get; set; }
     }
 }

@@ -5,6 +5,19 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RollForward>LatestMajor</RollForward>
+    
+    <!-- BUILD OPTIMIZATION -->
+    <!-- Runtime Razor compilation for development -->
+    <MvcRazorCompileOnBuild Condition="'$(Configuration)' == 'Debug'">false</MvcRazorCompileOnBuild>
+    <MvcRazorCompileOnPublish>true</MvcRazorCompileOnPublish>
+    
+    <!-- Build cache optimization -->
+    <Deterministic>true</Deterministic>
+    <BuildInParallel>true</BuildInParallel>
+    
+    <!-- Disable analyzers in development for faster builds -->
+    <RunAnalyzersDuringBuild Condition="'$(Configuration)' == 'Debug'">false</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringLiveAnalysis>false</RunAnalyzersDuringLiveAnalysis>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,10 +27,17 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.4" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0" />
+    
+    <!-- Runtime Razor compilation for faster development -->
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="9.0.0" />
+    
+    <!-- REMOVED: EF Core Design - Not needed in Dashboard (uses API only) -->
+    <!-- <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0" /> -->
   
   </ItemGroup>
 
+  <!-- Project references restored - Dashboard still uses some types from these projects -->
+  <!-- TODO: Refactor to use API-only communication for better build performance -->
   <ItemGroup>
     <ProjectReference Include="..\..\src\Core\ECommerce.Application\ECommerce.Application.csproj" />
     <ProjectReference Include="..\..\src\Infrastructure\ECommerce.Infrastructure\ECommerce.Infrastructure.csproj" />

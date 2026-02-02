@@ -55,8 +55,19 @@ public class ProductController : ControllerBase
     {
         _logger.LogInformation("Fetching product with ID: {ProductId}", id);
         var result = await _productService.GetByIdAsync(id);
-        if (result == null) return NotFound(new { message = "Ürün bulunamadı" });
-        return Ok(new { Data = result, Success = true });
+        if (result == null) 
+            return NotFound(new ECommerce.Application.Responses.ApiResponse<ProductDto> 
+            { 
+                Success = false, 
+                Message = "Ürün bulunamadı" 
+            });
+        
+        return Ok(new ECommerce.Application.Responses.ApiResponse<ProductDto> 
+        { 
+            Success = true, 
+            Data = result, 
+            Message = "" 
+        });
     }
     
     /// <summary>
@@ -86,7 +97,12 @@ public class ProductController : ControllerBase
     {
         _logger.LogInformation("Fetching products for category: {CategoryId}", categoryId);
         var result = await _productService.GetByCategoryIdAsync(categoryId);
-         return Ok(new { Data = result, Success = true });
+        return Ok(new ECommerce.Application.Responses.ApiResponse<IEnumerable<ProductDto>> 
+        { 
+            Success = true, 
+            Data = result, 
+            Message = "" 
+        });
     }
 
     /// <summary>

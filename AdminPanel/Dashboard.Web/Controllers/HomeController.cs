@@ -1,16 +1,12 @@
-
-
+using Dashboard.Web.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Dashboard.Web.Models;
 using Dashboard.Web.Services;
 using ECommerce.Application.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-
-
 
 namespace Dashboard.Web.Controllers;
 
@@ -19,14 +15,14 @@ public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
     private readonly Dashboard.Web.Services.DashboardApiService _dashboardApiService;
-    private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.ProductDto> _productService;
-    private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.OrderDto> _orderService;
-    private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CustomerDto> _customerService;
+    private readonly Dashboard.Web.Services.IApiService<ECommerce.Application.DTOs.ProductDto> _productService;
+    private readonly Dashboard.Web.Services.IApiService<ECommerce.Application.DTOs.OrderDto> _orderService;
+    private readonly Dashboard.Web.Services.IApiService<ECommerce.Application.DTOs.CustomerDto> _customerService;
     private readonly Dashboard.Web.Services.IApiService<ECommerce.Application.DTOs.CompanyDto> _companyService;
     private readonly Dashboard.Web.Services.IApiService<CategoryDto> _categoryService;
-    private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.BrandDto> _brandService;
+    private readonly Dashboard.Web.Services.IApiService<ECommerce.Application.DTOs.BrandDto> _brandService;
     private readonly Dashboard.Web.Services.NotificationApiService _notificationService;
-    private readonly Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CampaignDto> _campaignService;
+    private readonly Dashboard.Web.Services.IApiService<ECommerce.Application.DTOs.CampaignDto> _campaignService;
     private readonly Dashboard.Web.Services.LoginHistoryApiService _loginHistoryService;
     private readonly Dashboard.Web.Services.UserManagementApiService _userManagementService;
     private readonly Dashboard.Web.Services.CustomerMessageApiService _messageService;
@@ -34,14 +30,14 @@ public class HomeController : Controller
     public HomeController(
         Microsoft.Extensions.Logging.ILogger<HomeController> logger,
         Dashboard.Web.Services.DashboardApiService dashboardApiService,
-        Dashboard.Web.Services.IApiService<Dashboard.Web.Models.ProductDto> productService,
-        Dashboard.Web.Services.IApiService<Dashboard.Web.Models.OrderDto> orderService,
-        Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CustomerDto> customerService,
+        Dashboard.Web.Services.IApiService<ECommerce.Application.DTOs.ProductDto> productService,
+        Dashboard.Web.Services.IApiService<ECommerce.Application.DTOs.OrderDto> orderService,
+        Dashboard.Web.Services.IApiService<ECommerce.Application.DTOs.CustomerDto> customerService,
         Dashboard.Web.Services.IApiService<ECommerce.Application.DTOs.CompanyDto> companyService,
         Dashboard.Web.Services.IApiService<CategoryDto> categoryService,
-        Dashboard.Web.Services.IApiService<Dashboard.Web.Models.BrandDto> brandService,
+        Dashboard.Web.Services.IApiService<ECommerce.Application.DTOs.BrandDto> brandService,
         Dashboard.Web.Services.NotificationApiService notificationService,
-        Dashboard.Web.Services.IApiService<Dashboard.Web.Models.CampaignDto> campaignService,
+        Dashboard.Web.Services.IApiService<ECommerce.Application.DTOs.CampaignDto> campaignService,
         Dashboard.Web.Services.LoginHistoryApiService loginHistoryService,
         Dashboard.Web.Services.UserManagementApiService userManagementService,
         Dashboard.Web.Services.CustomerMessageApiService messageService)
@@ -349,7 +345,7 @@ public class HomeController : Controller
         var viewModel = new NotificationsViewModel
         {
             Summary = summary ?? new NotificationSummaryVm(),
-            AllNotifications = allNotifications,
+            AllNotifications = allNotifications ?? new List<NotificationDto>(),
             LowStockProducts = lowStockProducts ?? new List<LowStockItemVm>(),
             RecentOrders = recentOrders ?? new List<RecentOrderVm>()
         };
@@ -477,8 +473,21 @@ public class HomeController : Controller
                 ImageUrl = model.ImageUrl
             };
 
-            var result = await _productService.CreateAsync(dto);
-            return Json(new { success = result, message = result ? "Ürün başarıyla eklendi" : "Ürün eklenemedi" });
+            var productDto = new ECommerce.Application.DTOs.ProductDto {
+                Name = dto.Name,
+                Description = dto.Description,
+                Price = dto.Price,
+                StockQuantity = dto.StockQuantity,
+                CategoryId = dto.CategoryId,
+                BrandId = dto.BrandId,
+                CompanyId = dto.CompanyId,
+                ImageUrl = dto.ImageUrl,
+                IsActive = true,
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
+            };
+            var response = await _productService.CreateAsync(productDto);
+            return Json(new { success = response.Success, message = response.Success ? "Ürün başarıyla eklendi" : $"Ürün eklenemedi: {response.Message}" });
         }
         catch (Exception ex)
         {
@@ -494,7 +503,7 @@ public class HomeController : Controller
     public async Task<IActionResult> GetActiveCampaigns()
     {
         var campaigns = await _campaignService.GetAllAsync();
-        return Json(campaigns?.Data != null ? campaigns.Data.Where(c => c.IsActive) : new List<Dashboard.Web.Models.CampaignDto>());
+        return Json(campaigns?.Data != null ? campaigns.Data.Where(c => c.IsActive) : new List<ECommerce.Application.DTOs.CampaignDto>());
     }
 
     /// <summary>
@@ -521,8 +530,17 @@ public class HomeController : Controller
         try
         {
             model.CompanyId = GetCurrentCompanyId();
-            var success = await _campaignService.CreateAsync<Dashboard.Web.Models.CampaignCreateVm>(model);
-            return Json(new { success = success, message = success ? "Kampanya başarıyla oluşturuldu" : "Kampanya oluşturulamadı" });
+            var campaignDto = new ECommerce.Application.DTOs.CampaignDto {
+                Name = model.Name,
+                Description = model.Description,
+                DiscountPercent = model.DiscountPercent,
+                StartDate = model.StartDate,
+                EndDate = model.EndDate,
+                CompanyId = model.CompanyId,
+                CreatedAt = DateTime.Now
+            };
+            var response = await _campaignService.CreateAsync(campaignDto);
+            return Json(new { success = response.Success, message = response.Success ? "Kampanya başarıyla oluşturuldu" : $"Kampanya oluşturulamadı: {response.Message}" });
         }
         catch (Exception ex)
         {

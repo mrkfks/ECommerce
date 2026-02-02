@@ -25,10 +25,17 @@
     </div>
 
     <!-- Alerts -->
-    @if (TempData["Success"] != null)
+    @if (TempData["AttributeSuccess"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+            <i class="bi bi-check-circle me-2"></i>@TempData["AttributeSuccess"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["AttributeError"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-circle me-2"></i>@TempData["AttributeError"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }

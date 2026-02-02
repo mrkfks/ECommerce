@@ -8,7 +8,7 @@ namespace Dashboard.Web.Services;
 public class GlobalAttributeApiService
 {
     private readonly HttpClient _httpClient;
-    private readonly string _endpoint = "globalattribute";
+    private readonly string _endpoint = "global-attributes";
 
     public GlobalAttributeApiService(IHttpClientFactory httpClientFactory)
     {
@@ -40,7 +40,7 @@ public class GlobalAttributeApiService
         }
     }
 
-    public async Task<bool> CreateAsync(GlobalAttributeViewModel attribute)
+    public async Task<bool> CreateAsync(ECommerce.Application.DTOs.GlobalAttributeFormDto attribute)
     {
         try
         {
@@ -106,6 +106,22 @@ public class GlobalAttributeCreateViewModel
     public string? Description { get; set; }
     public string? Group { get; set; }
     public int? CompanyId { get; set; }
+
+    // Eksik property'ler eklendi
+    public string? DisplayName { get; set; }
+    public string? AttributeType { get; set; }
+    public int? DisplayOrder { get; set; }
+    public bool IsActive { get; set; } = true;
+    public List<GlobalAttributeValueCreateViewModel>? Values { get; set; }
+}
+
+public class GlobalAttributeValueCreateViewModel
+{
+    public string Value { get; set; } = string.Empty;
+    public string? DisplayValue { get; set; }
+    public int DisplayOrder { get; set; }
+    public bool IsActive { get; set; } = true;
+    public string? ColorCode { get; set; }
 }
 
 /// <summary>

@@ -1,5 +1,7 @@
-using System.Net.Http.Json;
 using Dashboard.Web.Models;
+using System.Net.Http.Json;
+using System.Net.Http.Json;
+using ECommerce.Application.DTOs;
 
 namespace Dashboard.Web.Services;
 
@@ -74,12 +76,12 @@ public class DashboardApiService
     /// <summary>
     /// Gelir trendi verilerini getirir
     /// </summary>
-    public async Task<List<RevenueTrendDto>?> GetRevenueTrendAsync(int? companyId = null)
+    public async Task<List<ECommerce.Application.DTOs.RevenueTrendDto>?> GetRevenueTrendAsync(int? companyId = null)
     {
         try
         {
             var query = companyId.HasValue ? $"?companyId={companyId}" : "";
-            return await _httpClient.GetFromJsonAsync<List<RevenueTrendDto>>($"api/dashboard/revenue-trend{query}");
+            return await _httpClient.GetFromJsonAsync<List<ECommerce.Application.DTOs.RevenueTrendDto>>($"api/dashboard/revenue-trend{query}");
         }
         catch (Exception ex)
         {
@@ -112,7 +114,7 @@ public class DashboardApiService
     /// <summary>
     /// Kategori bazlı stok dağılımını getirir
     /// </summary>
-    public async Task<List<CategoryStockDto>?> GetCategoryStockAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
+    public async Task<List<ECommerce.Application.DTOs.CategoryStockDto>?> GetCategoryStockAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
     {
         try
         {
@@ -121,7 +123,7 @@ public class DashboardApiService
             if (endDate.HasValue) queryParams.Add($"endDate={endDate:yyyy-MM-dd}");
             if (companyId.HasValue) queryParams.Add($"companyId={companyId}");
             var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
-            return await _httpClient.GetFromJsonAsync<List<CategoryStockDto>>($"api/dashboard/category-stock{query}");
+            return await _httpClient.GetFromJsonAsync<List<ECommerce.Application.DTOs.CategoryStockDto>>($"api/dashboard/category-stock{query}");
         }
         catch (Exception ex)
         {
@@ -129,7 +131,7 @@ public class DashboardApiService
             return null;
         }
     }
-    public async Task<List<GeographicDistributionDto>?> GetGeographicDistributionAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
+    public async Task<List<ECommerce.Application.DTOs.GeographicDistributionDto>?> GetGeographicDistributionAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
     {
         try
         {
@@ -138,7 +140,7 @@ public class DashboardApiService
             if (endDate.HasValue) queryParams.Add($"endDate={endDate:yyyy-MM-dd}");
             if (companyId.HasValue) queryParams.Add($"companyId={companyId}");
             var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
-            return await _httpClient.GetFromJsonAsync<List<GeographicDistributionDto>>($"api/dashboard/geographic-distribution{query}");
+            return await _httpClient.GetFromJsonAsync<List<ECommerce.Application.DTOs.GeographicDistributionDto>>($"api/dashboard/geographic-distribution{query}");
         }
         catch (Exception ex)
         {
@@ -150,7 +152,7 @@ public class DashboardApiService
     /// <summary>
     /// Ortalama sepet tutarı trendini getirir
     /// </summary>
-    public async Task<List<AverageCartTrendDto>?> GetAverageCartTrendAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
+    public async Task<List<ECommerce.Application.DTOs.AverageCartTrendDto>?> GetAverageCartTrendAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
     {
         try
         {
@@ -159,7 +161,7 @@ public class DashboardApiService
             if (endDate.HasValue) queryParams.Add($"endDate={endDate:yyyy-MM-dd}");
             if (companyId.HasValue) queryParams.Add($"companyId={companyId}");
             var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
-            return await _httpClient.GetFromJsonAsync<List<AverageCartTrendDto>>($"api/dashboard/average-cart-trend{query}");
+            return await _httpClient.GetFromJsonAsync<List<ECommerce.Application.DTOs.AverageCartTrendDto>>($"api/dashboard/average-cart-trend{query}");
         }
         catch (Exception ex)
         {
@@ -171,7 +173,7 @@ public class DashboardApiService
     /// <summary>
     /// Sipariş durumu dağılımını zaman bazlı getirir
     /// </summary>
-    public async Task<List<OrderStatusDistributionDto>?> GetOrderStatusDistributionAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
+    public async Task<List<ECommerce.Application.DTOs.OrderStatusDistributionDto>?> GetOrderStatusDistributionAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
     {
         try
         {
@@ -180,7 +182,7 @@ public class DashboardApiService
             if (endDate.HasValue) queryParams.Add($"endDate={endDate:yyyy-MM-dd}");
             if (companyId.HasValue) queryParams.Add($"companyId={companyId}");
             var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
-            return await _httpClient.GetFromJsonAsync<List<OrderStatusDistributionDto>>($"api/dashboard/order-status-distribution{query}");
+            return await _httpClient.GetFromJsonAsync<List<ECommerce.Application.DTOs.OrderStatusDistributionDto>>($"api/dashboard/order-status-distribution{query}");
         }
         catch (Exception ex)
         {
@@ -192,7 +194,7 @@ public class DashboardApiService
     /// <summary>
     /// En çok satan ürünleri getirir
     /// </summary>
-    public async Task<List<TopProductDto>?> GetTopProductsAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
+    public async Task<List<ECommerce.Application.DTOs.TopProductDto>?> GetTopProductsAsync(DateTime? startDate = null, DateTime? endDate = null, int? companyId = null)
     {
         try
         {
@@ -201,7 +203,7 @@ public class DashboardApiService
             if (endDate.HasValue) queryParams.Add($"endDate={endDate:yyyy-MM-dd}");
             if (companyId.HasValue) queryParams.Add($"companyId={companyId}");
             var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
-            return await _httpClient.GetFromJsonAsync<List<TopProductDto>>($"api/dashboard/top-products{query}");
+            return await _httpClient.GetFromJsonAsync<List<ECommerce.Application.DTOs.TopProductDto>>($"api/dashboard/top-products{query}");
         }
         catch (Exception ex)
         {

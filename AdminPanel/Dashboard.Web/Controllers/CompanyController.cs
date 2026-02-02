@@ -1,33 +1,41 @@
-using Dashboard.Web.Models;
-using Dashboard.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using CompanyDto = ECommerce.Application.DTOs.CompanyDto;
+using Dashboard.Web.Services;
+using ECommerce.Application.DTOs;
+using Dashboard.Web.Models;
 
 namespace Dashboard.Web.Controllers
 {
     [Authorize(Roles = "SuperAdmin")]
     public class CompanyController : Controller
     {
-        private readonly IApiService<ECommerce.Application.DTOs.CompanyDto> _companyService;
+        private readonly IApiService<CompanyDto> _companyService;
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IConfiguration _configuration;
+        private readonly ILogger<CompanyController> _logger;
 
-        public CompanyController(
-            IApiService<ECommerce.Application.DTOs.CompanyDto> companyService,
-            IHttpClientFactory httpClientFactory,
-            IConfiguration configuration)
+        public CompanyController(IApiService<CompanyDto> companyService, IHttpClientFactory httpClientFactory, ILogger<CompanyController> logger)
         {
             _companyService = companyService;
             _httpClientFactory = httpClientFactory;
-            _configuration = configuration;
+            _logger = logger;
         }
 
         public async Task<IActionResult> Index()
         {
-            var response = await _companyService.GetAllAsync();
-            var companies = response?.Data ?? new List<CompanyDto>();
-            var companyVms = companies.Select(c => new CompanyVm
+            _logger.LogInformation("[CompanyController.Index] START - Fetching companies...");
+            var companies = await _companyService.GetAllAsync();
+            _logger.LogInformation("[CompanyController.Index] API Response - Success: {Success}, Message: {Message}, Data is null: {IsNull}, Count: {Count}", 
+                companies?.Success, companies?.Message, companies?.Data == null, companies?.Data?.Count() ?? 0);
+            
+            if (companies?.Data != null)
+            {
+                foreach (var c in companies.Data)
+                {
+                    _logger.LogInformation("[CompanyController.Index] Company: Id={Id}, Name={Name}, Email={Email}", c.Id, c.Name, c.Email);
+                }
+            }
+            
+            var companyVms = companies.Data?.Select(c => new CompanyVm
             {
                 Id = c.Id,
                 Name = c.Name,
@@ -41,68 +49,84 @@ namespace Dashboard.Web.Controllers
                 IsActive = c.IsActive,
                 IsApproved = c.IsApproved,
                 CreatedAt = c.CreatedAt,
-                UpdatedAt = c.UpdatedAt,
-                // Branding fields
-                Domain = c.Domain,
-                LogoUrl = c.LogoUrl,
-                PrimaryColor = c.PrimaryColor,
-                SecondaryColor = c.SecondaryColor
-            }).ToList();
+                UpdatedAt = c.UpdatedAt
+            }).ToList() ?? new List<CompanyVm>();
             return View(companyVms);
         }
 
         [HttpGet]
         public IActionResult Create()
         {
-            return View();
+            return View(new CompanyFormDto());
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CompanyDto dto)
+        public async Task<IActionResult> Create(CompanyFormDto dto)
         {
+            _logger.LogInformation("[CompanyController.Create] Starting - Name: {Name}, Email: {Email}", dto.Name, dto.Email);
+            
             if (!ModelState.IsValid)
-                return View(dto);
-
-            var response = await _companyService.CreateAsync(dto);
-
-            if (response != null && response.Success)
             {
-                TempData["Success"] = "Şirket başarıyla kaydedildi";
-                return RedirectToAction(nameof(Index));
+                _logger.LogWarning("[CompanyController.Create] ModelState is invalid");
+                return View(dto);
             }
-
-            ModelState.AddModelError("", "Şirket kaydedilirken hata oluştu");
-            return View(dto);
+            
+            try
+            {
+                var httpClient = _httpClientFactory.CreateClient("CompanyApi");
+                _logger.LogInformation("[CompanyController.Create] Sending POST request to /api/companies");
+                
+                var response = await httpClient.PostAsJsonAsync("/api/companies", dto);
+                
+                _logger.LogInformation("[CompanyController.Create] Response: {StatusCode}", response.StatusCode);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    _logger.LogInformation("[CompanyController.Create] Success - Response: {Content}", content);
+                    TempData["Success"] = "Şirket başarıyla kaydedildi";
+                    return RedirectToAction(nameof(Index));
+                }
+                
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError("[CompanyController.Create] Failed - Status: {StatusCode}, Error: {Error}", response.StatusCode, errorContent);
+                ModelState.AddModelError("", $"Şirket kaydedilirken hata oluştu: {response.StatusCode} - {errorContent}");
+                return View(dto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[CompanyController.Create] Exception occurred");
+                ModelState.AddModelError("", $"Şirket kaydedilirken hata oluştu: {ex.Message}");
+                return View(dto);
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            var response = await _companyService.GetByIdAsync(id);
-            var company = response?.Data;
+            var company = await _companyService.GetByIdAsync(id);
             if (company == null)
                 return NotFound();
-
+            
             var companyVm = new CompanyVm
             {
-                Id = company.Id,
-                Name = company.Name,
-                Address = company.Address,
-                PhoneNumber = company.PhoneNumber,
-                Email = company.Email,
-                TaxNumber = company.TaxNumber,
-                ResponsiblePersonName = company.ResponsiblePersonName,
-                ResponsiblePersonPhone = company.ResponsiblePersonPhone,
-                ResponsiblePersonEmail = company.ResponsiblePersonEmail,
-                IsActive = company.IsActive,
-                IsApproved = company.IsApproved,
-                CreatedAt = company.CreatedAt,
-                UpdatedAt = company.UpdatedAt,
-                // Branding fields
-                Domain = company.Domain,
-                LogoUrl = company.LogoUrl,
-                PrimaryColor = company.PrimaryColor,
-                SecondaryColor = company.SecondaryColor
+                Id = company.Data?.Id ?? 0,
+                Name = company.Data?.Name ?? string.Empty,
+                Address = company.Data?.Address ?? string.Empty,
+                PhoneNumber = company.Data?.PhoneNumber ?? string.Empty,
+                Email = company.Data?.Email ?? string.Empty,
+                TaxNumber = company.Data?.TaxNumber ?? string.Empty,
+                ResponsiblePersonName = company.Data?.ResponsiblePersonName,
+                ResponsiblePersonPhone = company.Data?.ResponsiblePersonPhone,
+                ResponsiblePersonEmail = company.Data?.ResponsiblePersonEmail,
+                IsActive = company.Data?.IsActive ?? false,
+                IsApproved = company.Data?.IsApproved ?? false,
+                CreatedAt = company.Data?.CreatedAt,
+                UpdatedAt = company.Data?.UpdatedAt,
+                Domain = company.Data?.Domain,
+                LogoUrl = company.Data?.LogoUrl,
+                PrimaryColor = company.Data?.PrimaryColor,
+                SecondaryColor = company.Data?.SecondaryColor
             };
             return View(companyVm);
         }
@@ -111,11 +135,10 @@ namespace Dashboard.Web.Controllers
         public async Task<IActionResult> Edit(int id)
         {
             var response = await _companyService.GetByIdAsync(id);
-            var company = response?.Data;
-            if (company == null)
+            if (response?.Data == null)
                 return NotFound();
-
-            return View(company);
+            
+            return View(response.Data);
         }
 
         [HttpPost]
@@ -123,10 +146,10 @@ namespace Dashboard.Web.Controllers
         {
             if (id != company.Id)
                 return BadRequest();
-
+            
             if (!ModelState.IsValid)
                 return View(company);
-
+            
             var response = await _companyService.UpdateAsync(id, company);
             if (response != null && response.Success)
             {
@@ -135,82 +158,6 @@ namespace Dashboard.Web.Controllers
             }
             ModelState.AddModelError("", "Şirket güncellenirken hata oluştu");
             return View(company);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Branding(int id)
-        {
-            var response = await _companyService.GetByIdAsync(id);
-            var company = response?.Data;
-            if (company == null)
-                return NotFound();
-
-            var vm = new CompanyBrandingVm
-            {
-                Id = company.Id,
-                Name = company.Name,
-                Domain = company.Domain,
-                LogoUrl = company.LogoUrl,
-                PrimaryColor = company.PrimaryColor ?? "#3b82f6",
-                SecondaryColor = company.SecondaryColor ?? "#1e40af"
-            };
-            return View(vm);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Branding(int id, CompanyBrandingVm model, IFormFile? logoFile)
-        {
-            if (id != model.Id)
-                return BadRequest();
-
-            try
-            {
-                var client = _httpClientFactory.CreateClient("ApiClient");
-
-                // Upload logo if provided
-                if (logoFile != null && logoFile.Length > 0)
-                {
-                    using var content = new MultipartFormDataContent();
-                    using var stream = logoFile.OpenReadStream();
-                    var fileContent = new StreamContent(stream);
-                    content.Add(fileContent, "file", logoFile.FileName);
-
-                    var uploadResponse = await client.PostAsync($"api/files/company/{id}", content);
-                    if (uploadResponse.IsSuccessStatusCode)
-                    {
-                        var result = await uploadResponse.Content.ReadFromJsonAsync<ApiResult<string>>();
-                        if (result?.Data != null)
-                        {
-                            model.LogoUrl = result.Data;
-                        }
-                    }
-                }
-
-                // Update branding
-                var brandingDto = new
-                {
-                    Domain = model.Domain,
-                    LogoUrl = model.LogoUrl,
-                    PrimaryColor = model.PrimaryColor,
-                    SecondaryColor = model.SecondaryColor
-                };
-
-                var brandingResponse = await client.PutAsJsonAsync($"api/companies/{id}/branding", brandingDto);
-
-                if (brandingResponse.IsSuccessStatusCode)
-                {
-                    TempData["Success"] = "Marka ayarları başarıyla güncellendi";
-                    return RedirectToAction(nameof(Details), new { id });
-                }
-
-                TempData["Error"] = "Marka ayarları güncellenirken hata oluştu";
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Hata: {ex.Message}";
-            }
-
-            return View(model);
         }
 
         [HttpPost]
@@ -236,13 +183,57 @@ namespace Dashboard.Web.Controllers
             TempData[success ? "Success" : "Error"] = success ? "Şirket aktif hale getirildi" : "Aktivasyon başarısız";
             return RedirectToAction(nameof(Index));
         }
-    }
 
-    public class ApiResult<T>
-    {
-        public bool Success { get; set; }
-        public T? Data { get; set; }
-        public string? Message { get; set; }
+        [HttpGet]
+        public async Task<IActionResult> Branding(int id)
+        {
+            var response = await _companyService.GetByIdAsync(id);
+            if (response?.Data == null)
+                return NotFound();
+
+            var brandingVm = new CompanyBrandingVm
+            {
+                Id = response.Data.Id,
+                Name = response.Data.Name,
+                Domain = response.Data.Domain,
+                LogoUrl = response.Data.LogoUrl,
+                PrimaryColor = response.Data.PrimaryColor ?? "#3b82f6",
+                SecondaryColor = response.Data.SecondaryColor ?? "#1e40af"
+            };
+
+            return View(brandingVm);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Branding(int id, CompanyBrandingVm vm)
+        {
+            if (id != vm.Id)
+                return BadRequest();
+
+            if (!ModelState.IsValid)
+                return View(vm);
+
+            try
+            {
+                var httpClient = _httpClientFactory.CreateClient("CompanyApi");
+                var response = await httpClient.PutAsJsonAsync($"/api/companies/{id}/branding", vm);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    TempData["Success"] = "Marka ayarları başarıyla güncellendi";
+                    return RedirectToAction(nameof(Details), new { id });
+                }
+
+                var errorContent = await response.Content.ReadAsStringAsync();
+                ModelState.AddModelError("", $"Güncelleme başarısız: {errorContent}");
+                return View(vm);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[CompanyController.Branding] Exception occurred");
+                ModelState.AddModelError("", $"Hata oluştu: {ex.Message}");
+                return View(vm);
+            }
+        }
     }
 }
-

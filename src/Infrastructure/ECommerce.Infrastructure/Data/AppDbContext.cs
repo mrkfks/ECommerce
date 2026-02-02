@@ -65,6 +65,10 @@ namespace ECommerce.Infrastructure.Data
             // Apply all configurations from assembly automatically
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
+            // UserRole composite key
+            modelBuilder.Entity<UserRole>()
+                .HasKey(ur => new { ur.UserId, ur.RoleId });
+
             // Seed data - Not: Seed data manuel olarak veya ayrı bir DbInitializer ile eklenecek
             // Seed.DataSeeder.SeedData(modelBuilder);
 

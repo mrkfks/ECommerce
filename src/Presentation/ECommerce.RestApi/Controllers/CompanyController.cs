@@ -11,10 +11,12 @@ namespace ECommerce.RestApi.Controllers
     public class CompanyController : ControllerBase
     {
         private readonly ICompanyService _companyService;
+        private readonly ILogger<CompanyController> _logger;
 
-        public CompanyController(ICompanyService companyService)
+        public CompanyController(ICompanyService companyService, ILogger<CompanyController> logger)
         {
             _companyService = companyService;
+            _logger = logger;
         }
 
         [HttpPost("register")]
@@ -40,29 +42,55 @@ namespace ECommerce.RestApi.Controllers
         }
 
         [HttpPost]
-        [Authorize(Policy = "SuperAdminOnly")]
+        [Authorize(Roles = "SuperAdmin")]
         public async Task<IActionResult> Create([FromBody] CompanyFormDto dto)
         {
+            _logger.LogInformation("[CompanyController.Create] Request received - Name: {Name}, Email: {Email}", dto?.Name, dto?.Email);
+            
             try
             {
+                if (dto == null)
+                {
+                    _logger.LogWarning("[CompanyController.Create] DTO is null");
+                    return BadRequest(new { success = false, message = "Geçersiz veri" });
+                }
+                
                 var company = await _companyService.CreateAsync(dto);
+                _logger.LogInformation("[CompanyController.Create] Company created successfully - ID: {Id}", company.Id);
+                
                 return Ok(new 
                 { 
+                    success = true,
                     message = "Şirket başarıyla kaydedildi.",
                     companyId = company.Id
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = "Kayıt sırasında hata oluştu: " + ex.Message });
+                _logger.LogError(ex, "[CompanyController.Create] Exception occurred");
+                return BadRequest(new { success = false, data = (object?)null, message = ex.Message });
             }
         }
 
         [HttpGet]
-        [Authorize(Policy = "SuperAdminOnly")]
+        [Authorize(Roles = "SuperAdmin,CompanyAdmin")]
         public async Task<IActionResult> GetAll()
         {
+            _logger.LogInformation("[CompanyController.GetAll] START - User: {User}, Roles: {Roles}", User.Identity?.Name, string.Join(",", User.Claims.Where(c => c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value)));
+            
             var companies = await _companyService.GetAllAsync();
+            
+            _logger.LogInformation("[CompanyController.GetAll] Service returned {Count} companies", companies?.Count() ?? 0);
+            
+            if (companies != null)
+            {
+                foreach (var c in companies)
+                {
+                    _logger.LogInformation("[CompanyController.GetAll] Company: Id={Id}, Name={Name}, Email={Email}, IsActive={IsActive}, IsApproved={IsApproved}", 
+                        c.Id, c.Name, c.Email, c.IsActive, c.IsApproved);
+                }
+            }
+            
             return Ok(companies);
         }
 

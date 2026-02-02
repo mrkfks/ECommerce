@@ -1,4 +1,14 @@
+
 @model List<ECommerce.Application.DTOs.BrandDto>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
 
 @{
     ViewData["Title"] = "Marka Yönetimi";
@@ -7,7 +17,7 @@
 <div class="mb-3">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index">Ürün Yönetimi</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index">Envanter Yönetimi</a></li>
             <li class="breadcrumb-item active">Marka Yönetimi</li>
         </ol>
     </nav>
@@ -233,8 +243,13 @@
             renderModels();
             
             // Modal aç
-            const modal = new bootstrap.Modal(document.getElementById('editBrandModal'));
+            const modalEl = document.getElementById('editBrandModal');
+            const modal = new bootstrap.Modal(modalEl);
+            modalEl.removeAttribute('aria-hidden');
             modal.show();
+            modalEl.addEventListener('hidden.bs.modal', function () {
+                modalEl.setAttribute('aria-hidden', 'true');
+            }, { once: true });
         } catch (error) {
             console.error('Hata:', error);
             alert('Bir hata oluştu.');

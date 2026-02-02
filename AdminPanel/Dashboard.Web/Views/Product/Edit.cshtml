@@ -1,15 +1,20 @@
-@model ECommerce.Application.DTOs.ProductDto
+@using Microsoft.Extensions.Configuration
+@model Dashboard.Web.Models.ProductViewModel
 @inject IConfiguration Configuration
 
 @{
-    ViewData["Title"] = "Ürün Güncelle";
+    ViewData["Title"] = $"Ürün Güncelle - {Model.Name}";
 }
 
 <div class="card">
     <div class="card-header bg-warning text-white">
-        <h5 class="mb-0"><i class="fa-solid fa-pencil me-2"></i> Ürün Güncelle</h5>
+        <h5 class="mb-0"><i class="fa-solid fa-pencil me-2"></i> Ürün Güncelle: @Model.Name</h5>
     </div>
     <div class="card-body">
+        <div class="alert alert-info mb-3">
+            <i class="fa-solid fa-info-circle me-2"></i>
+            <strong>Güncellenen Ürün:</strong> @Model.Name (ID: @Model.Id)
+        </div>
         <form asp-action="Edit" method="post">
             <input type="hidden" asp-for="Id" />
 
@@ -81,6 +86,43 @@
                         <div id="imagePreviewDiv" class="mt-3" style="@(string.IsNullOrEmpty(Model.ImageUrl) ? "display: none;" : "")">
                             <img id="imagePreviewImg" src="@displayImageUrl" alt="Resim Önizlemesi" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid #dee2e6;">
                         </div>
+                        
+                        @if (Model.Images != null && Model.Images.Any())
+                        {
+                            <div class="mt-3">
+                                <label class="form-label fw-semibold">Tüm Ürün Resimleri (@Model.Images.Count)</label>
+                                <div class="d-flex flex-wrap gap-2" id="productImagesGallery">
+                                    @foreach (var image in Model.Images)
+                                    {
+                                        var imageDisplayUrl = string.IsNullOrWhiteSpace(image.ImageUrl)
+                                            ? ""
+                                            : (image.ImageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                                                ? image.ImageUrl
+                                                : (image.ImageUrl.StartsWith("/", StringComparison.Ordinal)
+                                                    ? $"{apiBaseUrl}{image.ImageUrl}"
+                                                    : $"{apiBaseUrl}/{image.ImageUrl}"));
+                                        
+                                        <div class="position-relative" data-image-id="@image.Id">
+                                            <img src="@imageDisplayUrl" alt="Ürün Resmi" 
+                                                 style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 2px solid #dee2e6; cursor: pointer;"
+                                                 onclick="setMainImage('@image.ImageUrl')">
+                                            @if (image.IsPrimary)
+                                            {
+                                                <span class="badge bg-success position-absolute top-0 start-0 m-1">Ana</span>
+                                            }
+                                            <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1" 
+                                                    onclick="deleteProductImage(@image.Id, this)" title="Sil">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                                <small class="text-muted d-block mt-2">
+                                    <i class="fa-solid fa-info-circle me-1"></i>
+                                    Resme tıklayarak ana resim yapabilirsiniz
+                                </small>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -116,16 +158,81 @@ function setupImageUpload(type) {
         document.getElementById('imageUrlHidden').value = imageUrl;
         document.getElementById('imagePreviewImg').src = resolvedUrl;
         document.getElementById('imagePreviewDiv').style.display = 'block';
+        
+        // Sayfayı yenile ve galeriyi güncelle
+        setTimeout(() => {
+            location.reload();
+        }, 1000);
     };
     
     // Upload URL'ini REST API'nin base URL'sine göre ayarla
-    document.getElementById('imageUploadForm').setAttribute('data-upload-url', apiBaseUrl + '/api/fileupload/product/@Model.Id');
+    document.getElementById('imageUploadForm').setAttribute('data-upload-url', apiBaseUrl + '/api/files/product/@Model.Id');
     
     // Token'ı form'a ekle (opsiyonel)
     var token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
     if (token) {
         document.getElementById('imageUploadForm').setAttribute('data-token', token);
     }
+}
+
+function setMainImage(imageUrl) {
+    const apiBaseUrl = '@((Configuration["ApiSettings:BaseUrl"] ?? "").TrimEnd('/'))';
+    const resolvedUrl = (imageUrl && !imageUrl.startsWith('http'))
+        ? (imageUrl.startsWith('/') ? (apiBaseUrl + imageUrl) : (apiBaseUrl + '/' + imageUrl))
+        : imageUrl;
+    
+    document.getElementById('imageUrl').value = imageUrl;
+    document.getElementById('imageUrlHidden').value = imageUrl;
+    document.getElementById('imagePreviewImg').src = resolvedUrl;
+    document.getElementById('imagePreviewDiv').style.display = 'block';
+}
+
+async function deleteProductImage(imageId, button) {
+    if (!confirm('Bu resmi silmek istediğinizden emin misiniz?')) {
+        return;
+    }
+    
+    try {
+        button.disabled = true;
+        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        
+        // TODO: API'ye silme isteği gönder
+        const apiBaseUrl = '@((Configuration["ApiSettings:BaseUrl"] ?? "").TrimEnd('/'))';
+        const response = await fetch(`${apiBaseUrl}/api/product-images/${imageId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': 'Bearer ' + (await getAuthToken())
+            }
+        });
+        
+        if (response.ok) {
+            // Resmi DOM'dan kaldır
+            const imageDiv = button.closest('[data-image-id]');
+            imageDiv.remove();
+            
+            // Galeri sayısını güncelle
+            const gallery = document.getElementById('productImagesGallery');
+            const remainingCount = gallery.children.length;
+            if (remainingCount === 0) {
+                location.reload();
+            }
+        } else {
+            alert('Resim silinirken hata oluştu');
+            button.disabled = false;
+            button.innerHTML = '<i class="fa-solid fa-trash"></i>';
+        }
+    } catch (error) {
+        console.error('Silme hatası:', error);
+        alert('Resim silinirken hata oluştu: ' + error.message);
+        button.disabled = false;
+        button.innerHTML = '<i class="fa-solid fa-trash"></i>';
+    }
+}
+
+async function getAuthToken() {
+    const response = await fetch('/Auth/GetToken');
+    const data = await response.json();
+    return data.token;
 }
 </script>
 

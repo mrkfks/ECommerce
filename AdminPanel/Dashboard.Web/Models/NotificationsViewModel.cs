@@ -16,7 +16,7 @@ public class NotificationsViewModel
     /// <summary>
     /// Tüm bildirimler
     /// </summary>
-    public List<NotificationDto> AllNotifications { get; set; } = new();
+    public List<ECommerce.Application.DTOs.NotificationDto> AllNotifications { get; set; } = new();
 
     /// <summary>
     /// Düşük stoklu ürünler
@@ -29,10 +29,10 @@ public class NotificationsViewModel
     public List<RecentOrderVm> RecentOrders { get; set; } = new();
 
     // Filtrelenmiş listeler
-    public IEnumerable<NotificationDto> UnreadNotifications => AllNotifications.Where(n => !n.IsRead);
-    public IEnumerable<NotificationDto> LowStockNotifications => AllNotifications.Where(n => n.Type == NotificationType.LowStock);
-    public IEnumerable<NotificationDto> NewOrderNotifications => AllNotifications.Where(n => n.Type == NotificationType.NewOrder);
-    public IEnumerable<NotificationDto> ReturnRequestNotifications => AllNotifications.Where(n => n.Type == NotificationType.ReturnRequest);
-    public IEnumerable<NotificationDto> PaymentFailedNotifications => AllNotifications.Where(n => n.Type == NotificationType.PaymentFailed);
-    public IEnumerable<NotificationDto> CriticalNotifications => AllNotifications.Where(n => n.Priority == NotificationPriority.Critical);
+    public IEnumerable<ECommerce.Application.DTOs.NotificationDto> UnreadNotifications => AllNotifications.Where(n => !n.IsRead);
+    public IEnumerable<ECommerce.Application.DTOs.NotificationDto> LowStockNotifications => AllNotifications.Where(n => n.Type == NotificationType.LowStock);
+    public IEnumerable<ECommerce.Application.DTOs.NotificationDto> NewOrderNotifications => AllNotifications.Where(n => n.Type == NotificationType.NewOrder);
+    public IEnumerable<ECommerce.Application.DTOs.NotificationDto> ReturnRequestNotifications => AllNotifications.Where(n => n.Type == NotificationType.ReturnRequest);
+    public IEnumerable<ECommerce.Application.DTOs.NotificationDto> PaymentFailedNotifications => AllNotifications.Where(n => n.Type == NotificationType.PaymentFailed);
+    public IEnumerable<ECommerce.Application.DTOs.NotificationDto> CriticalNotifications => AllNotifications.Where(n => n.Priority == NotificationPriority.Critical);
 }

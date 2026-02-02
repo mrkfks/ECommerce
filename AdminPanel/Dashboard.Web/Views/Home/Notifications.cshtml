@@ -1,4 +1,5 @@
 @model Dashboard.Web.Models.NotificationsViewModel
+@using Dashboard.Web.Helpers
 @{
     ViewData["Title"] = "Bildirimler ve Uyarılar";
 }
@@ -198,11 +199,11 @@
                                 {
                                     @foreach (var notification in Model.AllNotifications.Take(20))
                                     {
-                                        <div class="notification-item @(!notification.IsRead ? "unread" : "") @notification.TypeColor" 
+                                        <div class="notification-item @(!notification.IsRead ? "unread" : "") @notification.TypeColor()" 
                                              id="notification-@notification.Id">
                                             <div class="d-flex align-items-start">
-                                                <div class="icon-circle @notification.TypeColor me-3">
-                                                    <i class="fa-solid @notification.TypeIcon"></i>
+                                                <div class="icon-circle @notification.TypeColor() me-3">
+                                                    <i class="fa-solid @notification.TypeIcon()"></i>
                                                 </div>
                                                 <div class="flex-grow-1">
                                                     <div class="d-flex justify-content-between align-items-start">

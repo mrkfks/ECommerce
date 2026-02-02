@@ -41,11 +41,16 @@ namespace ECommerce.RestApi.Controllers
         [Authorize]
         public async Task<IActionResult> UploadProductImage(int productId, IFormFile file)
         {
+            _logger.LogInformation("Upload request received for product {ProductId}", productId);
+            
             if (file == null || file.Length == 0)
             {
-                return BadRequest(new { message = "Lütfen geçerli bir dosya seçin." });
+                _logger.LogWarning("No file provided in upload request");
+                return BadRequest(new { success = false, message = "Lütfen geçerli bir dosya seçin." });
             }
 
+            _logger.LogInformation("File received: {FileName}, Size: {Size} bytes", file.FileName, file.Length);
+            
             try
             {
                 using (var memoryStream = new MemoryStream())
@@ -53,18 +58,21 @@ namespace ECommerce.RestApi.Controllers
                     await file.CopyToAsync(memoryStream);
                     var fileBytes = memoryStream.ToArray();
                     
+                    _logger.LogInformation("Uploading image to storage...");
                     var imageUrl = await _fileUploadService.UploadImageAsync(fileBytes, file.FileName, "products");
+                    _logger.LogInformation("Image uploaded successfully: {ImageUrl}", imageUrl);
                     
                     // Add as not primary by default
-                    var result = await _productService.AddImageAsync(productId, imageUrl, 0, false);
+                    await _productService.AddImageAsync(productId, imageUrl, 0, false);
+                    _logger.LogInformation("Image added to product {ProductId}", productId);
                     
-                    return Ok(new ApiResponseDto<object> { Success = true, Data = result, Message = "Ürün resmi yüklendi" });
+                    return Ok(new { success = true, imageUrl = imageUrl, message = "Ürün resmi yüklendi" });
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Ürün resmi yükleme hatası");
-                return StatusCode(500, new { message = "Dosya yüklenirken hata oluştu: " + ex.Message });
+                return StatusCode(500, new { success = false, message = "Dosya yüklenirken hata oluştu: " + ex.Message });
             }
         }
 
