@@ -39,19 +39,19 @@
               <div class="row g-3">
                 <div class="col-md-6">
                   <label class="form-label">Ad *</label>
-                  <input type="text" class="form-control" [(ngModel)]="shippingInfo.firstName" required>
+                  <input type="text" class="form-control" [(ngModel)]="shippingInfo.firstName" id="firstName" name="firstName" required>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Soyad *</label>
-                  <input type="text" class="form-control" [(ngModel)]="shippingInfo.lastName" required>
+                  <input type="text" class="form-control" [(ngModel)]="shippingInfo.lastName" id="lastName" name="lastName" required>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">E-posta *</label>
-                  <input type="email" class="form-control" [(ngModel)]="shippingInfo.email" required>
+                  <input type="email" class="form-control" [(ngModel)]="shippingInfo.email" id="email" name="email" required>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Telefon *</label>
-                  <input type="tel" class="form-control" [(ngModel)]="shippingInfo.phone" required>
+                  <input type="tel" class="form-control" [(ngModel)]="shippingInfo.phone" id="phone" name="phone" required>
                 </div>
                 <div class="col-12">
                   <label class="form-label">Adres *</label>
@@ -59,15 +59,15 @@
                 </div>
                 <div class="col-md-4">
                   <label class="form-label">İl *</label>
-                  <input type="text" class="form-control" [(ngModel)]="shippingInfo.city" required>
+                  <input type="text" class="form-control" [(ngModel)]="shippingInfo.city" id="city" name="city" required>
                 </div>
                 <div class="col-md-4">
                   <label class="form-label">İlçe</label>
-                  <input type="text" class="form-control" [(ngModel)]="shippingInfo.district">
+                  <input type="text" class="form-control" [(ngModel)]="shippingInfo.district" id="district" name="district">
                 </div>
                 <div class="col-md-4">
                   <label class="form-label">Posta Kodu *</label>
-                  <input type="text" class="form-control" [(ngModel)]="shippingInfo.postalCode" required>
+                  <input type="text" class="form-control" [(ngModel)]="shippingInfo.postalCode" id="postalCode" name="postalCode" required>
                 </div>
                 <div class="col-12">
                   <label class="form-label">Sipariş Notu</label>

@@ -378,7 +378,7 @@ namespace ECommerce.Infrastructure.Services
 
         private static ProductDto MapToDto(Product p)
         {
-            var imageUrl = p.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl ?? p.Images.FirstOrDefault()?.ImageUrl;
+            var imageUrl = p.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl ?? p.Images.FirstOrDefault()?.ImageUrl ?? string.Empty;
 
             return new ProductDto
             {
@@ -396,7 +396,7 @@ namespace ECommerce.Infrastructure.Services
                 ModelId = p.ModelId,
                 ModelName = p.Model?.Name,
                 IsActive = p.IsActive,
-                ImageUrl = imageUrl ?? p.ImageUrl,
+                ImageUrl = imageUrl,
                 CreatedAt = p.CreatedAt,
                 UpdatedAt = p.UpdatedAt,
                 ReviewCount = 0,
@@ -410,7 +410,7 @@ namespace ECommerce.Infrastructure.Services
                         Order = i.Order,
                         IsPrimary = i.IsPrimary
                     }).ToList()
-                    : (string.IsNullOrEmpty(imageUrl ?? p.ImageUrl)
+                    : (string.IsNullOrEmpty(imageUrl)
                         ? new List<ProductImageDto>()
                         : new List<ProductImageDto>
                         {
@@ -418,7 +418,7 @@ namespace ECommerce.Infrastructure.Services
                             {
                                 Id = 0,
                                 ProductId = p.Id,
-                                ImageUrl = imageUrl ?? p.ImageUrl,
+                                ImageUrl = imageUrl,
                                 Order = 0,
                                 IsPrimary = true
                             }

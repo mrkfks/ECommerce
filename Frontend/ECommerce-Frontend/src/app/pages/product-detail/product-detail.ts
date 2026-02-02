@@ -1,9 +1,11 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { ProductService, CartService } from '../../core/services';
+import { ProductService, CartService, ImageUrlService } from '../../core/services';
+import { CompanyContextService } from '../../core/services/company-context.service';
 import { Product } from '../../core/models';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-product-detail',
@@ -12,13 +14,15 @@ import { Product } from '../../core/models';
   templateUrl: './product-detail.html',
   styleUrl: './product-detail.css',
 })
-export class ProductDetail implements OnInit {
+export class ProductDetail implements OnInit, OnDestroy {
     onImgError(event: Event) {
       (event.target as HTMLImageElement).src = 'assets/images/no-image.svg';
     }
   private route = inject(ActivatedRoute);
   private productService = inject(ProductService);
   private cartService = inject(CartService);
+  private companyContext = inject(CompanyContextService);
+  private imageUrlService = inject(ImageUrlService);
 
   product: Product | null = null;
   relatedProducts: Product[] = [];
@@ -27,21 +31,38 @@ export class ProductDetail implements OnInit {
   quantity = 1;
   selectedImageIndex = 0;
 
+  private destroy$ = new Subject<void>();
+
   ngOnInit(): void {
-    this.route.params.subscribe(params => {
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const productId = +params['productId'];
       this.loadProduct(productId);
     });
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadProduct(id: number): void {
     this.isLoading = true;
-    this.productService.getById(id).subscribe({
+    this.productService.getById(id).pipe(takeUntil(this.destroy$)).subscribe({
       next: (product) => {
         console.log('API Response:', product);
         console.log('Images:', product.images);
         this.product = this.mapProduct(product);
         console.log('Mapped Product:', this.product);
+
+        // Set company context from product if not already set
+        if (product.companyId && !this.companyContext.getCompanyId()) {
+          this.companyContext.setCompanyId(product.companyId);
+        }
+
+        setTimeout(() => {
+          this.selectedImageIndex = 0;
+        });
+
         this.isLoading = false;
         this.loadRelatedProducts();
       },
@@ -60,8 +81,8 @@ export class ProductDetail implements OnInit {
       description: apiProduct.description || '',
       price: apiProduct.price,
       originalPrice: apiProduct.originalPrice,
-      imageUrl: apiProduct.imageUrl || 'assets/images/no-image.svg',
-      images: apiProduct.images || [],
+      imageUrl: this.imageUrlService.normalize(apiProduct.imageUrl),
+      images: this.imageUrlService.normalizeImages(apiProduct.images || []),
       categoryId: apiProduct.categoryId,
       categoryName: apiProduct.categoryName,
       brandId: apiProduct.brandId,
@@ -123,11 +144,16 @@ export class ProductDetail implements OnInit {
       inStock: true,
       createdAt: new Date()
     };
+    
+    // Set company context from mock product
+    if (this.product.companyId && !this.companyContext.getCompanyId()) {
+      this.companyContext.setCompanyId(this.product.companyId);
+    }
   }
 
   private loadRelatedProducts(): void {
     if (this.product?.categoryId) {
-      this.productService.getByCategory(this.product.categoryId).subscribe({
+      this.productService.getByCategory(this.product.categoryId).pipe(takeUntil(this.destroy$)).subscribe({
         next: (products) => {
           this.relatedProducts = products
             .filter(p => p.id !== this.product?.id && p.isActive)
@@ -143,7 +169,7 @@ export class ProductDetail implements OnInit {
 
   addToCart(): void {
     if (this.product) {
-      this.cartService.addToCart(this.product.id, this.quantity).subscribe({
+      this.cartService.addToCart(this.product.id, this.quantity).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => alert(`${this.product!.name} sepete eklendi!`),
         error: (err) => console.error('Sepete eklenirken hata:', err)
       });

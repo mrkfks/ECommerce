@@ -1,9 +1,10 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CartService, CartItem } from '../../core/services/cart.service';
 import { OrderService, AuthService } from '../../core/services';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-checkout',
@@ -12,7 +13,7 @@ import { OrderService, AuthService } from '../../core/services';
   templateUrl: './checkout.html',
   styleUrl: './checkout.css',
 })
-export class Checkout implements OnInit {
+export class Checkout implements OnInit, OnDestroy {
   private cartService = inject(CartService);
   private orderService = inject(OrderService);
   private authService = inject(AuthService);
@@ -44,9 +45,11 @@ export class Checkout implements OnInit {
     cvv: ''
   };
 
+  private destroy$ = new Subject<void>();
+
   ngOnInit(): void {
     // Subscribe to cart changes
-    this.cartService.cart$.subscribe(cart => {
+    this.cartService.cart$.pipe(takeUntil(this.destroy$)).subscribe(cart => {
       this.cartItems = cart ? cart.items : [];
       // Cart boşsa yönlendirme yapılabilir ancak ilk yüklemede boş gelebilir, dikkatli olunmalı.
       // if (cart && cart.items.length === 0) { ... }
@@ -59,6 +62,11 @@ export class Checkout implements OnInit {
       this.shippingInfo.lastName = user.lastName;
       this.shippingInfo.email = user.email;
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   get subtotal(): number {
@@ -150,7 +158,7 @@ export class Checkout implements OnInit {
       cardCvv: this.paymentInfo.cvv || undefined
     };
 
-    this.orderService.create(orderRequest).subscribe({
+    this.orderService.create(orderRequest).pipe(takeUntil(this.destroy$)).subscribe({
       next: (order) => {
         this.isLoading = false;
         this.cartService.clearCart();

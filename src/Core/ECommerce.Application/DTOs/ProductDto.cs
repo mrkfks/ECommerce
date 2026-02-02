@@ -56,8 +56,8 @@ public record ProductCreateDto
     public int StockQuantity { get; init; }
     public int CategoryId { get; init; }
     public int BrandId { get; init; }
-    public int CompanyId { get; init; }
+    public int CompanyId { get; set; }
     public int? ModelId { get; init; }
-    public string? ImageUrl { get; init; }
+    public string? ImageUrl { get; set; }
     public bool IsActive { get; init; } = true;
 }

@@ -2,7 +2,7 @@ import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
-import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
+import { provideClientHydration, withEventReplay, withNoHttpTransferCache as withNoHttpTransferCacheHydration } from '@angular/platform-browser';
 import { routes } from './app.routes';
 import { apiInterceptor } from './core/interceptors/api.interceptor';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
@@ -18,6 +18,6 @@ export const appConfig: ApplicationConfig = {
       withFetch(),
       withInterceptors([loadingInterceptor, tenantInterceptor, apiInterceptor, authInterceptor, errorInterceptor])
     ),
-    provideClientHydration(withEventReplay())
+    provideClientHydration(withEventReplay(), withNoHttpTransferCacheHydration())
   ]
 };

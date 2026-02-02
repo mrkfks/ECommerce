@@ -1,15 +1,15 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { DesignService } from '../services/design.service';
+import { CompanyContextService } from '../services/company-context.service';
 
 export const tenantInterceptor: HttpInterceptorFn = (req, next) => {
-  const designService = inject(DesignService);
-  const settings = designService.settings();
+  const companyContext = inject(CompanyContextService);
+  const companyId = companyContext.getCompanyId();
 
-  if (settings && settings.id) {
+  if (companyId) {
     req = req.clone({
       setHeaders: {
-        'X-Company-Id': settings.id.toString()
+        'X-Company-Id': companyId.toString()
       }
     });
   }

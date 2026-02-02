@@ -28,8 +28,8 @@
                     type="text" 
                     class="form-control" 
                     id="firstName" 
-                    [(ngModel)]="formData.firstName"
                     name="firstName"
+                    [(ngModel)]="formData.firstName"
                     autocomplete="given-name"
                     placeholder="Adınız"
                     required>
@@ -40,8 +40,8 @@
                     type="text" 
                     class="form-control" 
                     id="lastName" 
-                    [(ngModel)]="formData.lastName"
                     name="lastName"
+                    [(ngModel)]="formData.lastName"
                     autocomplete="family-name"
                     placeholder="Soyadınız"
                     required>
@@ -56,8 +56,8 @@
                     type="tel" 
                     class="form-control" 
                     id="phoneNumber" 
-                    [(ngModel)]="formData.phoneNumber"
                     name="phoneNumber"
+                    [(ngModel)]="formData.phoneNumber"
                     autocomplete="tel"
                     placeholder="05xx xxx xx xx"
                     required>
@@ -74,9 +74,9 @@
                     [class.is-invalid]="usernameError ? true : false"
                     [class.is-valid]="usernameValid ? true : false"
                     id="username" 
+                    name="username"
                     [(ngModel)]="formData.username"
                     (blur)="onUsernameBlur()"
-                    name="username"
                     autocomplete="username"
                     placeholder="kullanici_adi"
                     required>
@@ -110,9 +110,9 @@
                     [class.is-invalid]="emailError ? true : false"
                     [class.is-valid]="emailValid ? true : false"
                     id="email" 
+                    name="email"
                     [(ngModel)]="formData.email"
                     (blur)="onEmailBlur()"
-                    name="email"
                     autocomplete="email"
                     placeholder="ornek&#64;email.com"
                     required>
@@ -142,8 +142,8 @@
                     [type]="showPassword ? 'text' : 'password'" 
                     class="form-control" 
                     id="password" 
-                    [(ngModel)]="formData.password"
                     name="password"
+                    [(ngModel)]="formData.password"
                     autocomplete="new-password"
                     placeholder="En az 6 karakter"
                     required>
@@ -164,8 +164,8 @@
                     [type]="showPassword ? 'text' : 'password'" 
                     class="form-control" 
                     id="confirmPassword" 
-                    [(ngModel)]="formData.confirmPassword"
                     name="confirmPassword"
+                    [(ngModel)]="formData.confirmPassword"
                     autocomplete="new-password"
                     placeholder="Şifrenizi tekrar girin"
                     required>

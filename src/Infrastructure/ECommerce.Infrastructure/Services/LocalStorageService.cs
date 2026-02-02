@@ -56,24 +56,12 @@ namespace ECommerce.Infrastructure.Services
             image.Mutate(x => x.AutoOrient());
             await image.SaveAsWebpAsync(webpPath);
 
-            var request = _httpContextAccessor.HttpContext?.Request;
-            var scheme = request?.Scheme ?? "http";
-            string host;
-            if (request?.Host.HasValue == true)
-            {
-                host = request.Host.Value;
-            }
-            else
-            {
-                host = "localhost";
-            }
-            var baseUrl = $"{scheme}://{host}";
-
+            // Göreceli URL kullan - frontend proxy üzerinden erişebilir
             return new ImageUploadResultDto
             {
-                OriginalUrl = $"{baseUrl}/uploads/{tenantPathFragment}/{folder}/{uniqueFileName}",
-                WebPUrl = $"{baseUrl}/uploads/{tenantPathFragment}/{folder}/{webpFileName}",
-                ThumbnailUrl = $"{baseUrl}/uploads/{tenantPathFragment}/{folder}/{thumbFileName}"
+                OriginalUrl = $"/uploads/{tenantPathFragment}/{folder}/{uniqueFileName}",
+                WebPUrl = $"/uploads/{tenantPathFragment}/{folder}/{webpFileName}",
+                ThumbnailUrl = $"/uploads/{tenantPathFragment}/{folder}/{thumbFileName}"
             };
         }
 

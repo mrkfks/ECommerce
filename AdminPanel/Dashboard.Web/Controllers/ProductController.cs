@@ -117,60 +117,53 @@ namespace Dashboard.Web.Controllers
         // POST: Yeni ürün ekleme
         [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
         [HttpPost]
-        public async Task<IActionResult> Create(ProductCreateDto product)
+        [HttpPost]
+        public async Task<IActionResult> Create(ProductCreateDto product, IFormFile? imageFile)
         {
-            Console.WriteLine($"[ProductController.Create POST] STARTED - Product Name: {product?.Name}");
-            Console.WriteLine($"[ProductController.Create POST] ModelState.IsValid: {ModelState.IsValid}");
-
-            if (!ModelState.IsValid)
+            if (product == null || string.IsNullOrEmpty(product.Name) || product.CompanyId == 0)
             {
-                Console.WriteLine("[ProductController.Create POST] ModelState is INVALID");
-                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-                {
-                    Console.WriteLine($"[ProductController.Create POST] ERROR: {error.ErrorMessage}");
-                }
+                Console.WriteLine("[ProductController] Product details are invalid.");
+                return BadRequest("Product details are invalid.");
             }
 
             // CompanyId kontrolü - eğer set edilmemişse claim'den al
-            if (product.CompanyId == 0)
+            if (product != null && product.CompanyId == 0)
             {
                 var companyIdClaim = User.FindFirst("CompanyId")?.Value;
                 if (!string.IsNullOrEmpty(companyIdClaim) && int.TryParse(companyIdClaim, out var companyId))
                 {
-                    product = new ProductCreateDto
-                    {
-                        Name = product.Name,
-                        Description = product.Description,
-                        Price = product.Price,
-                        StockQuantity = product.StockQuantity,
-                        CategoryId = product.CategoryId,
-                        BrandId = product.BrandId,
-                        CompanyId = companyId,
-                        ModelId = product.ModelId,
-                        ImageUrl = product.ImageUrl,
-                        IsActive = product.IsActive
-                    };
-                }
-                else
-                {
-                    // Hata veya default değer
-                    product = new ProductCreateDto
-                    {
-                        Name = product.Name,
-                        Description = product.Description,
-                        Price = product.Price,
-                        StockQuantity = product.StockQuantity,
-                        CategoryId = product.CategoryId,
-                        BrandId = product.BrandId,
-                        CompanyId = 0,
-                        ModelId = product.ModelId,
-                        ImageUrl = product.ImageUrl,
-                        IsActive = product.IsActive
-                    };
+                    product.CompanyId = companyId;
                 }
             }
 
-            Console.WriteLine($"[ProductController] Creating product: {product.Name}, CompanyId: {product.CompanyId}");
+            // Eğer dosya seçildiyse önce resmi API'ye yükle
+            if (imageFile != null && imageFile.Length > 0)
+            {
+                using var ms = new MemoryStream();
+                await imageFile.CopyToAsync(ms);
+                ms.Position = 0;
+                var content = new MultipartFormDataContent();
+                var fileContent = new ByteArrayContent(ms.ToArray());
+                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(imageFile.ContentType);
+                content.Add(fileContent, "file", imageFile.FileName);
+
+                // API dosya upload endpointi
+                var apiBaseUrl = Environment.GetEnvironmentVariable("ApiBaseUrl") ?? "http://localhost:5010";
+                var uploadUrl = $"{apiBaseUrl}/api/fileupload/product";
+                using var httpClient = new HttpClient();
+                var uploadResponse = await httpClient.PostAsync(uploadUrl, content);
+                if (uploadResponse.IsSuccessStatusCode)
+                {
+                    var json = await uploadResponse.Content.ReadAsStringAsync();
+                    var result = System.Text.Json.JsonSerializer.Deserialize<ECommerce.Application.DTOs.ImageUploadResultDto>(json);
+                    if (result != null && !string.IsNullOrEmpty(result.OriginalUrl))
+                    {
+                        product.ImageUrl = result.OriginalUrl;
+                    }
+                }
+            }
+
+            Console.WriteLine($"[ProductController] Creating product: {product!.Name}, CompanyId: {product.CompanyId}");
 
             if (!ModelState.IsValid)
             {

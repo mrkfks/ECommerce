@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Order, OrderStatus } from '../../core/models';
 import { AuthService, OrderService } from '../../core/services';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-order-history',
@@ -11,7 +12,7 @@ import { AuthService, OrderService } from '../../core/services';
   templateUrl: './order-history.html',
   styleUrl: './order-history.css',
 })
-export class OrderHistory implements OnInit {
+export class OrderHistory implements OnInit, OnDestroy {
   private orderService = inject(OrderService);
   private authService = inject(AuthService);
 
@@ -19,13 +20,20 @@ export class OrderHistory implements OnInit {
   isLoading = true;
   selectedOrder: Order | null = null;
 
+  private destroy$ = new Subject<void>();
+
   ngOnInit(): void {
     this.loadOrders();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadOrders(): void {
     this.isLoading = true;
-    this.orderService.getMyOrders().subscribe({
+    this.orderService.getMyOrders().pipe(takeUntil(this.destroy$)).subscribe({
       next: (orders) => {
         this.orders = orders;
         this.isLoading = false;

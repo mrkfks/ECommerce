@@ -7,6 +7,7 @@ export * from './category.service';
 export * from './company-context.service';
 export * from './customer-message.service';
 export * from './design.service';
+export * from './image-url.service';
 export * from './loading.service';
 export * from './notification.service';
 export * from './order.service';

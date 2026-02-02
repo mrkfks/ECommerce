@@ -3,7 +3,8 @@ import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ProductCard } from '../../components/product-card/product-card';
 import { Category, Product } from '../../core/models';
-import { BannerService, CartService, CategoryService, ProductService } from '../../core/services';
+import { BannerService, CartService, CategoryService, ProductService, ImageUrlService } from '../../core/services';
+import { Subject, takeUntil } from 'rxjs';
 
 interface Banner {
   id: number;
@@ -28,6 +29,7 @@ export class Home implements OnInit, OnDestroy {
   private categoryService = inject(CategoryService);
   private cartService = inject(CartService);
   private bannerService = inject(BannerService);
+  private imageUrlService = inject(ImageUrlService);
 
   banners: Banner[] = [];
   categories: Category[] = [];
@@ -39,6 +41,7 @@ export class Home implements OnInit, OnDestroy {
   error: string | null = null;
 
   private bannerInterval: any;
+  private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
     this.loadBanners();
@@ -51,10 +54,12 @@ export class Home implements OnInit, OnDestroy {
     if (this.bannerInterval) {
       clearInterval(this.bannerInterval);
     }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadBanners(): void {
-    this.bannerService.getAll().subscribe({
+    this.bannerService.getAll().pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.banners = response.data.map(b => ({
@@ -72,7 +77,7 @@ export class Home implements OnInit, OnDestroy {
   }
 
   loadCategories(): void {
-    this.categoryService.getAll().subscribe({
+    this.categoryService.getAll().pipe(takeUntil(this.destroy$)).subscribe({
       next: (categories) => {
         this.categories = categories.map(cat => ({
           ...cat,
@@ -96,7 +101,7 @@ export class Home implements OnInit, OnDestroy {
 
   loadProducts(): void {
     this.isLoading = true;
-    this.productService.getAll(1, 10).subscribe({
+    this.productService.getAll(1, 10).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {
         // Check if response has data property (ApiResponse wrapper)
         const responseData = (response as any).items ? response : (response as any).data;
@@ -137,8 +142,8 @@ export class Home implements OnInit, OnDestroy {
       description: apiProduct.description || '',
       price: apiProduct.price,
       originalPrice: apiProduct.originalPrice,
-      imageUrl: apiProduct.imageUrl || 'assets/images/no-image.svg',
-      images: apiProduct.images || [],
+      imageUrl: this.imageUrlService.normalize(apiProduct.imageUrl),
+      images: this.imageUrlService.normalizeImages(apiProduct.images || []),
       categoryId: apiProduct.categoryId,
       categoryName: apiProduct.categoryName,
       brandId: apiProduct.brandId,
@@ -226,7 +231,7 @@ export class Home implements OnInit, OnDestroy {
   }
 
   onAddToCart(product: Product): void {
-    this.cartService.addToCart(product.id, 1).subscribe({
+    this.cartService.addToCart(product.id, 1).pipe(takeUntil(this.destroy$)).subscribe({
       next: () => console.log('Sepete eklendi:', product.name),
       error: (err) => console.error('Sepete eklenemedi:', err)
     });

@@ -10,7 +10,7 @@
         <h5 class="mb-0"><i class="fa-solid fa-plus me-2"></i> Yeni Ürün Ekle</h5>
     </div>
     <div class="card-body">
-        <form asp-action="Create" method="post">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
             <div class="row">
                 <div class="col-md-6">
                     <div class="mb-3">
@@ -77,13 +77,8 @@
 
             <div class="mb-3">
                 <label class="form-label fw-semibold">Ürün Resmi</label>
-                <small class="form-text text-muted d-block mb-2">
-                    <i class="fa-solid fa-info-circle me-1"></i>
-                    Resim, ürün oluşturulduktan sonra eklenebilir.
-                </small>
-                <input type="text" class="form-control" id="imageUrl" placeholder="URL buraya gösterilecek" readonly>
+                <input type="file" class="form-control" id="imageFile" name="imageFile" accept="image/*" onchange="previewImage(event)">
                 <input type="hidden" asp-for="ImageUrl" id="imageUrlHidden" />
-                
                 <div id="imagePreviewDiv" class="mt-3" style="display: none;">
                     <img id="imagePreviewImg" src="" alt="Resim Önizlemesi" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid #dee2e6;">
                 </div>
@@ -108,20 +103,16 @@
 </div>
 
 <script>
-function setupImageUpload(type) {
-    const apiBaseUrl = '@((Configuration["ApiSettings:BaseUrl"] ?? "").TrimEnd('/'))';
-    window.imageUploadCallback = function(imageUrl) {
-        const resolvedUrl = (imageUrl && !imageUrl.startsWith('http'))
-            ? (imageUrl.startsWith('/') ? (apiBaseUrl + imageUrl) : (apiBaseUrl + '/' + imageUrl))
-            : imageUrl;
-        document.getElementById('imageUrl').value = imageUrl;
-        document.getElementById('imageUrlHidden').value = imageUrl;
-        document.getElementById('imagePreviewImg').src = resolvedUrl;
-        document.getElementById('imagePreviewDiv').style.display = 'block';
-    };
-    
-    // Upload form'unu ayarla
-    document.getElementById('imageUploadForm').setAttribute('data-upload-url', apiBaseUrl + '/api/fileupload/product/0');
+function previewImage(event) {
+    const input = event.target;
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('imagePreviewImg').src = e.target.result;
+            document.getElementById('imagePreviewDiv').style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
 }
 </script>
 

@@ -1,10 +1,11 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { ProductService, CategoryService, CartService } from '../../core/services';
+import { ProductService, CategoryService, CartService, ImageUrlService } from '../../core/services';
 import { Product, Category } from '../../core/models';
 import { ProductCard } from '../../components/product-card/product-card';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-category-products',
@@ -13,11 +14,12 @@ import { ProductCard } from '../../components/product-card/product-card';
   templateUrl: './category-products.html',
   styleUrl: './category-products.css',
 })
-export class CategoryProducts implements OnInit {
+export class CategoryProducts implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private productService = inject(ProductService);
   private categoryService = inject(CategoryService);
   private cartService = inject(CartService);
+  private imageUrlService = inject(ImageUrlService);
 
   category: Category | null = null;
   products: Product[] = [];
@@ -30,8 +32,10 @@ export class CategoryProducts implements OnInit {
   priceRange = { min: 0, max: 10000 };
   searchTerm = '';
 
+  private destroy$ = new Subject<void>();
+
   ngOnInit(): void {
-    this.route.params.subscribe(params => {
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const categoryId = params['categoryId'];
       if (categoryId === 'all') {
         this.loadAllProducts();
@@ -42,8 +46,13 @@ export class CategoryProducts implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadCategory(id: number): void {
-    this.categoryService.getById(id).subscribe({
+    this.categoryService.getById(id).pipe(takeUntil(this.destroy$)).subscribe({
       next: (category) => {
         this.category = category;
       },
@@ -55,7 +64,7 @@ export class CategoryProducts implements OnInit {
 
   loadProducts(categoryId: number): void {
     this.isLoading = true;
-    this.productService.getByCategory(categoryId).subscribe({
+    this.productService.getByCategory(categoryId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (products) => {
         this.products = products.filter(p => p.isActive).map(p => this.mapProduct(p));
         this.applyFilters();
@@ -92,8 +101,8 @@ export class CategoryProducts implements OnInit {
       description: apiProduct.description || '',
       price: apiProduct.price,
       originalPrice: apiProduct.originalPrice,
-      imageUrl: apiProduct.imageUrl || 'assets/images/no-image.svg',
-      images: apiProduct.images || [],
+      imageUrl: this.imageUrlService.normalize(apiProduct.imageUrl),
+      images: this.imageUrlService.normalizeImages(apiProduct.images || []),
       categoryId: apiProduct.categoryId,
       categoryName: apiProduct.categoryName,
       brandId: apiProduct.brandId,

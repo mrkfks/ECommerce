@@ -1,38 +1,64 @@
 import { Routes } from '@angular/router';
-import { Cart } from './pages/cart/cart';
-import { CategoryProducts } from './pages/category-products/category-products';
-import { Checkout } from './pages/checkout/checkout';
-import { NotFoundComponent } from './pages/error/not-found/not-found.component';
-import { ServerErrorComponent } from './pages/error/server-error/server-error.component';
-import { Home } from './pages/home/home';
-import { Login } from './pages/login/login';
-import { OrderConfirmation } from './pages/order-confirmation/order-confirmation';
-import { OrderHistory } from './pages/order-history/order-history';
-import { ProductDetail } from './pages/product-detail/product-detail';
-import { Profile } from './pages/profile/profile';
-import { Register } from './pages/register/register';
-
-
 import { authGuard } from './guards/auth-guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
 
-  { path: 'home', component: Home },
-  { path: 'products/:categoryId', component: CategoryProducts },
-  { path: 'product/:productId', component: ProductDetail },
-  { path: 'cart', component: Cart },
-  { path: 'checkout', component: Checkout, canActivate: [authGuard] },
-  { path: 'order/:orderId', component: OrderConfirmation, canActivate: [authGuard] },
-
-  { path: 'orders', component: OrderHistory, canActivate: [authGuard] },
-  { path: 'profile', component: Profile, canActivate: [authGuard] },
-
-  { path: 'login', component: Login },
-  { path: 'register', component: Register },
-
-  { path: 'error', component: ServerErrorComponent },
-  { path: '404', component: NotFoundComponent },
-  { path: '**', component: NotFoundComponent }
+  { 
+    path: 'home', 
+    loadComponent: () => import('./pages/home/home').then(m => m.Home)
+  },
+  { 
+    path: 'products/:categoryId', 
+    loadComponent: () => import('./pages/category-products/category-products').then(m => m.CategoryProducts)
+  },
+  { 
+    path: 'product/:productId', 
+    loadComponent: () => import('./pages/product-detail/product-detail').then(m => m.ProductDetail)
+  },
+  { 
+    path: 'cart', 
+    loadComponent: () => import('./pages/cart/cart').then(m => m.Cart)
+  },
+  { 
+    path: 'checkout', 
+    loadComponent: () => import('./pages/checkout/checkout').then(m => m.Checkout),
+    canActivate: [authGuard]
+  },
+  { 
+    path: 'order/:orderId', 
+    loadComponent: () => import('./pages/order-confirmation/order-confirmation').then(m => m.OrderConfirmation),
+    canActivate: [authGuard]
+  },
+  { 
+    path: 'orders', 
+    loadComponent: () => import('./pages/order-history/order-history').then(m => m.OrderHistory),
+    canActivate: [authGuard]
+  },
+  { 
+    path: 'profile', 
+    loadComponent: () => import('./pages/profile/profile').then(m => m.Profile),
+    canActivate: [authGuard]
+  },
+  { 
+    path: 'login', 
+    loadComponent: () => import('./pages/login/login').then(m => m.Login)
+  },
+  { 
+    path: 'register', 
+    loadComponent: () => import('./pages/register/register').then(m => m.Register)
+  },
+  { 
+    path: 'error', 
+    loadComponent: () => import('./pages/error/server-error/server-error.component').then(m => m.ServerErrorComponent)
+  },
+  { 
+    path: '404', 
+    loadComponent: () => import('./pages/error/not-found/not-found.component').then(m => m.NotFoundComponent)
+  },
+  { 
+    path: '**', 
+    loadComponent: () => import('./pages/error/not-found/not-found.component').then(m => m.NotFoundComponent)
+  }
 ];
 

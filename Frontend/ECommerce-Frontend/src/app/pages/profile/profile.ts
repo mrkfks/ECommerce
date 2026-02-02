@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ChangePasswordRequest, User, UserProfileUpdateRequest } from '../../core/models';
 import { AuthService } from '../../core/services';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-profile',
@@ -12,7 +13,7 @@ import { AuthService } from '../../core/services';
   templateUrl: './profile.html',
   styleUrl: './profile.css',
 })
-export class Profile implements OnInit {
+export class Profile implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private router = inject(Router);
 
@@ -34,8 +35,10 @@ export class Profile implements OnInit {
     confirmPassword: ''
   };
 
+  private destroy$ = new Subject<void>();
+
   ngOnInit(): void {
-    this.authService.getCurrentUser().subscribe({
+    this.authService.getCurrentUser().pipe(takeUntil(this.destroy$)).subscribe({
       next: (user) => {
         this.user = user;
         this.resetForm();
@@ -45,6 +48,11 @@ export class Profile implements OnInit {
         // Should rely on Interceptors/Guard mostly.
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   resetForm(): void {
@@ -76,7 +84,7 @@ export class Profile implements OnInit {
       username: this.user.username
     };
 
-    this.authService.updateProfile(request).subscribe({
+    this.authService.updateProfile(request).pipe(takeUntil(this.destroy$)).subscribe({
       next: (updatedUser) => {
         this.user = updatedUser;
         this.isSaving = false;
@@ -103,7 +111,7 @@ export class Profile implements OnInit {
       confirmPassword: this.passwordForm.confirmPassword
     };
 
-    this.authService.changePassword(request).subscribe({
+    this.authService.changePassword(request).pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
         alert('Şifreniz başarıyla değiştirildi.');
         this.passwordForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
