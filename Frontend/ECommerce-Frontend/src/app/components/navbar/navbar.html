@@ -2,7 +2,11 @@
   <div class="container">
     <a class="navbar-brand fw-bold text-primary" routerLink="/home">
       @if (designService.settings()?.logoUrl) {
-        <img [src]="designService.settings()?.logoUrl" alt="Logo" height="40" class="me-2">
+        <img [src]="designService.settings()?.logoUrl" 
+          alt="Logo" 
+          height="40" 
+          class="me-2"
+          (error)="onImageError($event)">
       } @else {
         <i class="bi bi-shop me-2"></i>
       }

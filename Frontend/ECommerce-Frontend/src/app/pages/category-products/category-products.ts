@@ -1,8 +1,8 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { ProductService, CategoryService, CartService, ImageUrlService } from '../../core/services';
+import { ProductService, CategoryService, CartService, ImageUrlService, WishlistService } from '../../core/services';
 import { Product, Category } from '../../core/models';
 import { ProductCard } from '../../components/product-card/product-card';
 import { Subject, takeUntil } from 'rxjs';
@@ -19,7 +19,9 @@ export class CategoryProducts implements OnInit, OnDestroy {
   private productService = inject(ProductService);
   private categoryService = inject(CategoryService);
   private cartService = inject(CartService);
+  private wishlistService = inject(WishlistService);
   private imageUrlService = inject(ImageUrlService);
+  private platformId = inject(PLATFORM_ID);
 
   category: Category | null = null;
   products: Product[] = [];
@@ -35,15 +37,18 @@ export class CategoryProducts implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
-    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
-      const categoryId = params['categoryId'];
-      if (categoryId === 'all') {
-        this.loadAllProducts();
-      } else {
-        this.loadCategory(+categoryId);
-        this.loadProducts(+categoryId);
-      }
-    });
+    // SSR sırasında API istekleri yapma
+    if (isPlatformBrowser(this.platformId)) {
+      this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
+        const categoryId = params['categoryId'];
+        if (categoryId === 'all') {
+          this.loadAllProducts();
+        } else {
+          this.loadCategory(+categoryId);
+          this.loadProducts(+categoryId);
+        }
+      });
+    }
   }
 
   ngOnDestroy(): void {
@@ -169,10 +174,16 @@ export class CategoryProducts implements OnInit, OnDestroy {
   }
 
   onAddToCart(product: Product): void {
-    this.cartService.addToCart(product.id);
+    this.cartService.addToCart(product.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => console.log('Sepete eklendi:', product.name),
+      error: (err) => console.error('Sepete eklenemedi:', err)
+    });
   }
 
   onAddToWishlist(product: Product): void {
-    console.log('Favorilere eklendi:', product.name);
+    this.wishlistService.addToWishlist(product.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => console.log('Favorilere eklendi:', product.name),
+      error: (err) => console.error('Favorilere eklenemedi:', err)
+    });
   }
 }

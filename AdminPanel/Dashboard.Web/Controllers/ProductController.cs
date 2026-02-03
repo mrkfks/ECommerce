@@ -120,7 +120,13 @@ namespace Dashboard.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(ProductCreateDto product, IFormFile? imageFile)
         {
-            if (product == null || string.IsNullOrEmpty(product.Name) || product.CompanyId == 0)
+            if (product == null)
+            {
+                Console.WriteLine("[ProductController] Product is null.");
+                return BadRequest("Product is null.");
+            }
+
+            if (string.IsNullOrEmpty(product.Name) || product.CompanyId == 0)
             {
                 Console.WriteLine("[ProductController] Product details are invalid.");
                 return BadRequest("Product details are invalid.");
@@ -156,62 +162,55 @@ namespace Dashboard.Web.Controllers
                 {
                     var json = await uploadResponse.Content.ReadAsStringAsync();
                     var result = System.Text.Json.JsonSerializer.Deserialize<ECommerce.Application.DTOs.ImageUploadResultDto>(json);
-                    if (result != null && !string.IsNullOrEmpty(result.OriginalUrl))
+                    if (product != null && result != null && !string.IsNullOrEmpty(result.OriginalUrl))
                     {
                         product.ImageUrl = result.OriginalUrl;
                     }
                 }
             }
 
-            Console.WriteLine($"[ProductController] Creating product: {product!.Name}, CompanyId: {product.CompanyId}");
-
-            if (!ModelState.IsValid)
+            if (product != null)
             {
-                var categories = await _categoryService.GetAllAsync();
-                var brands = await _brandService.GetAllAsync();
-                ViewBag.Categories = (categories?.Data ?? new List<ECommerce.Application.DTOs.CategoryDto>()).Where(x => x.Id != 0 && !string.IsNullOrEmpty(x.Name)).ToList();
-                ViewBag.Brands = (brands?.Data ?? new List<ECommerce.Application.DTOs.BrandDto>()).Where(x => x.Id != 0 && !string.IsNullOrEmpty(x.Name)).ToList();
+                var productViewModel = new Dashboard.Web.Models.ProductViewModel
+                {
+                    Name = product.Name,
+                    Description = product.Description ?? string.Empty,
+                    Price = product.Price,
+                    StockQuantity = product.StockQuantity,
+                    CategoryId = product.CategoryId,
+                    BrandId = product.BrandId,
+                    CompanyId = product.CompanyId,
+                    ModelId = product.ModelId,
+                    ImageUrl = product.ImageUrl ?? string.Empty,
+                    IsActive = product.IsActive,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                };
+
+                var createResponse = await _productService.CreateAsync(productViewModel);
+                if (createResponse.Success)
+                {
+                    TempData["SuccessMessage"] = "Ürün başarıyla eklendi.";
+                    return RedirectToAction(nameof(List));
+                }
+
+                ModelState.AddModelError("", $"Ürün eklenirken hata oluştu: {createResponse.Message}");
+                var cats = await _categoryService.GetAllAsync();
+                var brds = await _brandService.GetAllAsync();
+                ViewBag.Categories = (cats?.Data ?? new List<ECommerce.Application.DTOs.CategoryDto>()).Where(x => x.Id != 0 && !string.IsNullOrEmpty(x.Name)).ToList();
+                ViewBag.Brands = (brds?.Data ?? new List<ECommerce.Application.DTOs.BrandDto>()).Where(x => x.Id != 0 && !string.IsNullOrEmpty(x.Name)).ToList();
                 if (User.IsInRole("SuperAdmin"))
                 {
                     var companies = await _companyService.GetAllAsync();
                     ViewBag.Companies = (companies?.Data ?? new List<ECommerce.Application.DTOs.CompanyDto>()).Where(x => x.Id != 0 && !string.IsNullOrEmpty(x.Name)).ToList();
                 }
-                return View(product);
-            }
 
-            var productVm = new Dashboard.Web.Models.ProductViewModel
-            {
-                Name = product.Name,
-                Description = product.Description ?? string.Empty,
-                Price = product.Price,
-                StockQuantity = product.StockQuantity,
-                CategoryId = product.CategoryId,
-                BrandId = product.BrandId,
-                CompanyId = product.CompanyId,
-                ModelId = product.ModelId,
-                ImageUrl = product.ImageUrl ?? string.Empty,
-                IsActive = product.IsActive,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
-            };
-            var response = await _productService.CreateAsync(productVm);
-            if (response.Success)
-            {
-                TempData["SuccessMessage"] = "Ürün başarıyla eklendi.";
-                return RedirectToAction(nameof(List));
+                return View(productViewModel);
             }
-
-            ModelState.AddModelError("", $"Ürün eklenirken hata oluştu: {response.Message}");
-            var cats = await _categoryService.GetAllAsync();
-            var brds = await _brandService.GetAllAsync();
-            ViewBag.Categories = (cats?.Data ?? new List<ECommerce.Application.DTOs.CategoryDto>()).Where(x => x.Id != 0 && !string.IsNullOrEmpty(x.Name)).ToList();
-            ViewBag.Brands = (brds?.Data ?? new List<ECommerce.Application.DTOs.BrandDto>()).Where(x => x.Id != 0 && !string.IsNullOrEmpty(x.Name)).ToList();
-            if (User.IsInRole("SuperAdmin"))
+            else
             {
-                var comps = await _companyService.GetAllAsync();
-                ViewBag.Companies = (comps?.Data ?? new List<ECommerce.Application.DTOs.CompanyDto>()).Where(x => x.Id != 0 && !string.IsNullOrEmpty(x.Name)).ToList();
+                return View("Error"); // Hata sayfasına yönlendirme
             }
-            return View(product);
         }
 
         // GET: Edit formu

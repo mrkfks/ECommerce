@@ -1,4 +1,5 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { Category } from '../../core/models';
 import { AuthService, CartService, CategoryService, DesignService } from '../../core/services';
@@ -16,6 +17,7 @@ export class Navbar implements OnInit {
   private categoryService = inject(CategoryService);
   private router = inject(Router);
   public designService = inject(DesignService);
+  private platformId = inject(PLATFORM_ID);
 
   cartItemCount = this.cartService.totalItems;
   isAuthenticated = this.authService.isAuthenticated;
@@ -25,7 +27,10 @@ export class Navbar implements OnInit {
   searchTerm: string = '';
 
   ngOnInit() {
-    this.loadCategories();
+    // SSR sırasında API istekleri yapma
+    if (isPlatformBrowser(this.platformId)) {
+      this.loadCategories();
+    }
   }
 
   loadCategories() {
@@ -43,5 +48,9 @@ export class Navbar implements OnInit {
 
   logout(): void {
     this.authService.logout();
+  }
+
+  onImageError(event: Event): void {
+    (event.target as HTMLImageElement).src = 'assets/images/no-image.svg';
   }
 }

@@ -83,7 +83,7 @@ builder.Services.AddApiVersioning(options =>
     options.ReportApiVersions = true;
 });
 
-// Rate Limiting
+// Rate Limiting - Development için çok daha yüksek limit
 builder.Services.AddRateLimiter(options =>
 {
     options.GlobalLimiter = System.Threading.RateLimiting.PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
@@ -92,8 +92,8 @@ builder.Services.AddRateLimiter(options =>
             factory: partition => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
             {
                 AutoReplenishment = true,
-                PermitLimit = 1000,
-                QueueLimit = 2,
+                PermitLimit = builder.Environment.IsDevelopment() ? 10000 : 1000,
+                QueueLimit = builder.Environment.IsDevelopment() ? 100 : 2,
                 Window = TimeSpan.FromMinutes(1)
             }));
 
@@ -219,10 +219,10 @@ using (var scope = app.Services.CreateScope())
             );
             // Şirketi aktif ve onaylı yap
             systemCompany.Approve();
-            
+
             // Localhost domainini ve renkleri ata
             systemCompany.UpdateBranding("localhost", "", "#3f51b5", "#f50057");
-            
+
             context.Companies.Add(systemCompany);
             await context.SaveChangesAsync();
             logger.LogInformation("✅ System company created with ID: {CompanyId}", systemCompany.Id);
@@ -340,7 +340,38 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
 });
 
-app.UseStaticFiles();
+// Static Files - wwwroot klasöründen dosya servisi
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        // CORS headers for images
+        ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+        ctx.Context.Response.Headers.Append("Access-Control-Allow-Methods", "GET");
+        ctx.Context.Response.Headers.Append("Cache-Control", "public,max-age=600");
+    }
+});
+
+// Uploads klasöründen dosya servisi - /uploads path'ine map et
+var uploadsPath = Path.Combine(app.Environment.ContentRootPath, "uploads");
+if (!Directory.Exists(uploadsPath))
+{
+    Directory.CreateDirectory(uploadsPath);
+}
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsPath),
+    RequestPath = "/uploads",
+    OnPrepareResponse = ctx =>
+    {
+        // CORS headers for uploaded images
+        ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+        ctx.Context.Response.Headers.Append("Access-Control-Allow-Methods", "GET");
+        ctx.Context.Response.Headers.Append("Cache-Control", "public,max-age=600");
+    }
+});
+
 app.UseRouting();
 app.UseCors("AllowAll");
 app.UseMiddleware<ApiKeyMiddleware>();

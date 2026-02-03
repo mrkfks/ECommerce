@@ -1,5 +1,5 @@
-import { Component, OnInit, inject, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ProductService, CartService, ImageUrlService } from '../../core/services';
@@ -16,13 +16,20 @@ import { Subject, takeUntil } from 'rxjs';
 })
 export class ProductDetail implements OnInit, OnDestroy {
     onImgError(event: Event) {
+      console.log('Image load error, showing placeholder');
       (event.target as HTMLImageElement).src = 'assets/images/no-image.svg';
     }
+
+    onImageLoad(event: Event): void {
+      console.log('Image loaded successfully:', (event.target as HTMLImageElement).src);
+    }
+
   private route = inject(ActivatedRoute);
   private productService = inject(ProductService);
   private cartService = inject(CartService);
   private companyContext = inject(CompanyContextService);
   private imageUrlService = inject(ImageUrlService);
+  private platformId = inject(PLATFORM_ID);
 
   product: Product | null = null;
   relatedProducts: Product[] = [];
@@ -34,10 +41,13 @@ export class ProductDetail implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
-    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
-      const productId = +params['productId'];
-      this.loadProduct(productId);
-    });
+    // SSR sırasında API istekleri yapma
+    if (isPlatformBrowser(this.platformId)) {
+      this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
+        const productId = +params['productId'];
+        this.loadProduct(productId);
+      });
+    }
   }
 
   ngOnDestroy(): void {
@@ -49,20 +59,12 @@ export class ProductDetail implements OnInit, OnDestroy {
     this.isLoading = true;
     this.productService.getById(id).pipe(takeUntil(this.destroy$)).subscribe({
       next: (product) => {
-        console.log('API Response:', product);
-        console.log('Images:', product.images);
         this.product = this.mapProduct(product);
-        console.log('Mapped Product:', this.product);
 
-        // Set company context from product if not already set
-        if (product.companyId && !this.companyContext.getCompanyId()) {
-          this.companyContext.setCompanyId(product.companyId);
-        }
+        // Don't set company context here - it should be set before navigation
+        // to avoid ExpressionChangedAfterItHasBeenCheckedError
 
-        setTimeout(() => {
-          this.selectedImageIndex = 0;
-        });
-
+        this.selectedImageIndex = 0;
         this.isLoading = false;
         this.loadRelatedProducts();
       },

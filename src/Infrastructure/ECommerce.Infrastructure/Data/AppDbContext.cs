@@ -1,8 +1,7 @@
+using System.Reflection;
 using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Entities;
-
 using Microsoft.EntityFrameworkCore;
-using System.Reflection;
 
 namespace ECommerce.Infrastructure.Data
 {
@@ -48,6 +47,8 @@ namespace ECommerce.Infrastructure.Data
         public DbSet<CustomerMessage> CustomerMessages { get; set; }
         public DbSet<LoginHistory> LoginHistories { get; set; }
         public DbSet<Cart> Carts { get; set; }
+        public DbSet<Wishlist> Wishlists { get; set; }
+        public DbSet<WishlistItem> WishlistItems { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
 
         // Tenant context

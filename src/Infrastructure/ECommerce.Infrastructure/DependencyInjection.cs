@@ -46,6 +46,7 @@ public static class DependencyInjection
         services.AddScoped<IModelService, ModelService>();
         services.AddScoped<IGlobalAttributeService, GlobalAttributeService>();
         services.AddScoped<ICartService, CartService>();
+        services.AddScoped<IWishlistService, WishlistService>();
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IBannerService, BannerService>();
         services.AddScoped<INotificationService, NotificationService>();

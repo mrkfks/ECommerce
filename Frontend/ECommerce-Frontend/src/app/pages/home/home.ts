@@ -1,9 +1,9 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ProductCard } from '../../components/product-card/product-card';
 import { Category, Product } from '../../core/models';
-import { BannerService, CartService, CategoryService, ProductService, ImageUrlService } from '../../core/services';
+import { BannerService, CartService, CategoryService, ProductService, ImageUrlService, WishlistService } from '../../core/services';
 import { Subject, takeUntil } from 'rxjs';
 
 interface Banner {
@@ -28,8 +28,10 @@ export class Home implements OnInit, OnDestroy {
   private productService = inject(ProductService);
   private categoryService = inject(CategoryService);
   private cartService = inject(CartService);
+  private wishlistService = inject(WishlistService);
   private bannerService = inject(BannerService);
   private imageUrlService = inject(ImageUrlService);
+  private platformId = inject(PLATFORM_ID);
 
   banners: Banner[] = [];
   categories: Category[] = [];
@@ -44,10 +46,12 @@ export class Home implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
-    this.loadBanners();
-    this.loadCategories();
-    this.loadProducts();
-    this.startBannerRotation();
+    // SSR sırasında API istekleri yapma
+    if (isPlatformBrowser(this.platformId)) {
+      this.loadBanners();
+      this.loadCategories();
+      this.loadProducts();
+    }
   }
 
   ngOnDestroy(): void {
@@ -70,6 +74,12 @@ export class Home implements OnInit, OnDestroy {
             buttonLink: b.link || '/',
             imageUrl: b.imageUrl
           }));
+          
+          // Banner yüklendikten sonra rotation'ı yeniden başlat
+          if (this.bannerInterval) {
+            clearInterval(this.bannerInterval);
+          }
+          this.startBannerRotation();
         }
       },
       error: (err) => console.error('Bannerlar yüklenemedi:', err)
@@ -221,8 +231,15 @@ export class Home implements OnInit, OnDestroy {
   }
 
   startBannerRotation(): void {
+    // Banner rotation sadece banner varsa başlar
+    if (this.banners.length === 0) {
+      return;
+    }
+    
     this.bannerInterval = setInterval(() => {
-      this.currentBannerIndex = (this.currentBannerIndex + 1) % this.banners.length;
+      if (this.banners.length > 0) {
+        this.currentBannerIndex = (this.currentBannerIndex + 1) % this.banners.length;
+      }
     }, 5000);
   }
 
@@ -238,7 +255,9 @@ export class Home implements OnInit, OnDestroy {
   }
 
   onAddToWishlist(product: Product): void {
-    console.log('Favorilere eklendi:', product.name);
-    // TODO: Wishlist service ile entegre edilecek
+    this.wishlistService.addToWishlist(product.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => console.log('Favorilere eklendi:', product.name),
+      error: (err) => console.error('Favorilere eklenemedi:', err)
+    });
   }
 }

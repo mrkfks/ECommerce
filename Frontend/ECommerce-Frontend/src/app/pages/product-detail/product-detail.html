@@ -27,11 +27,13 @@
             <!-- Ana Resim -->
             <div class="position-relative">
               <img 
-                [src]="(product.images && product.images.length > 0 ? product.images[selectedImageIndex]?.imageUrl : null) || product.imageUrl || 'assets/images/no-image.svg'"
+                [src]="(product.images && product.images.length > 0 ? product.images[selectedImageIndex]?.imageUrl : null) || product.imageUrl"
                 [alt]="product.name"
                 class="card-img-top"
-                style="height: 450px; object-fit: cover;"
-                (error)="onImgError($event)">
+                style="height: 450px; object-fit: cover; display: block; background-color: #f5f5f5;"
+                appImageFallback="assets/images/no-image.svg"
+                (load)="onImageLoad($event)"
+                loading="eager">
               @if (product.isNew) {
                 <span class="badge bg-success position-absolute top-0 start-0 m-3">Yeni</span>
               }
@@ -67,8 +69,8 @@
                     style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;"
                     [class.border-primary]="selectedImageIndex === i"
                     [class.border-3]="selectedImageIndex === i"
-                    (click)="selectImage(i)"
-                    (error)="onImgError($event)">
+                    appImageFallback="assets/images/no-image.svg"
+                    (click)="selectImage(i)">
                 }
               </div>
             }
@@ -122,29 +124,35 @@
 
           <!-- Miktar Seçimi -->
           @if (product.inStock) {
-            <div class="d-flex align-items-center mb-4">
-              <label class="me-3">Miktar:</label>
-              <div class="input-group" style="width: 140px;">
+            <div class="mb-4">
+              <label class="form-label d-block mb-2">Miktar:</label>
+              <div class="input-group" style="max-width: 160px;">
                 <button 
-                  class="btn btn-outline-secondary" 
+                  class="btn btn-outline-primary fw-bold" 
                   type="button"
                   (click)="decrementQuantity()"
-                  [disabled]="quantity <= 1">
-                  <i class="bi bi-dash"></i>
+                  [disabled]="quantity <= 1"
+                  title="Miktarı azalt">
+                  <i class="bi bi-dash-lg"></i>
                 </button>
                 <input 
-                  type="text" 
-                  class="form-control text-center" 
+                  type="number" 
+                  class="form-control text-center fw-bold" 
                   [value]="quantity"
-                  readonly>
+                  min="1"
+                  [max]="product.stockQuantity"
+                  readonly
+                  style="font-size: 1.1rem;">
                 <button 
-                  class="btn btn-outline-secondary" 
+                  class="btn btn-outline-primary fw-bold" 
                   type="button"
                   (click)="incrementQuantity()"
-                  [disabled]="quantity >= product.stockQuantity">
-                  <i class="bi bi-plus"></i>
+                  [disabled]="quantity >= product.stockQuantity"
+                  title="Miktarı artır">
+                  <i class="bi bi-plus-lg"></i>
                 </button>
               </div>
+              <small class="text-muted d-block mt-2">Maks: {{ product.stockQuantity }} adet</small>
             </div>
 
             <!-- Butonlar -->
@@ -188,7 +196,11 @@
             @for (related of relatedProducts; track related.id) {
               <div class="col-6 col-md-3">
                 <div class="card h-100 shadow-sm">
-                  <img [src]="related.imageUrl" [alt]="related.name" class="card-img-top" style="height: 150px; object-fit: cover;">
+                  <img [src]="related.imageUrl || 'assets/images/no-image.svg'" 
+                    [alt]="related.name" 
+                    class="card-img-top" 
+                    style="height: 150px; object-fit: cover;"
+                    appImageFallback="assets/images/no-image.svg">
                   <div class="card-body">
                     <h6 class="card-title text-truncate">{{ related.name }}</h6>
                     <p class="text-primary fw-bold mb-0">{{ related.price | currency:'TRY':'symbol-narrow':'1.2-2' }}</p>

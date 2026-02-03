@@ -5,34 +5,48 @@ import { Injectable } from '@angular/core';
 })
 export class ImageUrlService {
   private readonly defaultImage = 'assets/images/no-image.svg';
+  private readonly apiBaseUrl = 'http://localhost:5010'; // API base URL
 
   /**
    * API'den gelen resim URL'lerini normalize eder
    * Mutlak URL'leri göreceli URL'lere dönüştürür
    */
   normalize(url: string | null | undefined): string {
-    if (!url) return this.defaultImage;
+    if (!url || url.trim() === '') return this.defaultImage;
+    
+    const trimmedUrl = url.trim();
+    console.log('ImageUrlService.normalize() input:', trimmedUrl);
     
     // Zaten göreceli URL ise veya assets ile başlıyorsa aynen döndür
-    if (url.startsWith('/') || url.startsWith('assets/')) {
-      return url;
-    }
-    
-    // Mutlak URL ise (http:// veya https://) göreceli hale getir
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      try {
-        const urlObj = new URL(url);
-        // /uploads ile başlayan yolu döndür
-        if (urlObj.pathname.startsWith('/uploads')) {
-          return urlObj.pathname;
-        }
-        return url; // Harici URL ise aynen döndür (örn: unsplash)
-      } catch {
-        return url;
+    if (trimmedUrl.startsWith('/') || trimmedUrl.startsWith('assets/')) {
+      // Eğer /uploads ile başlıyorsa API base URL'ine ekle
+      if (trimmedUrl.startsWith('/uploads')) {
+        const result = `${this.apiBaseUrl}${trimmedUrl}`;
+        console.log('ImageUrlService.normalize() output (relative /uploads):', result);
+        return result;
       }
+      console.log('ImageUrlService.normalize() output (already relative):', trimmedUrl);
+      return trimmedUrl;
     }
     
-    return url;
+    // Mutlak URL ise kontrol et
+    if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+      // Zaten tam URL ise aynen döndür
+      console.log('ImageUrlService.normalize() output (absolute URL):', trimmedUrl);
+      return trimmedUrl;
+    }
+    
+    // "uploads/" ile başlıyorsa API URL'ine ekle
+    if (trimmedUrl.startsWith('uploads/')) {
+      const result = `${this.apiBaseUrl}/${trimmedUrl}`;
+      console.log('ImageUrlService.normalize() output (relative uploads/):', result);
+      return result;
+    }
+    
+    // Hiçbir pattern'e uymuyorsa olduğu gibi döndür
+    const result = trimmedUrl;
+    console.log('ImageUrlService.normalize() output:', result);
+    return result;
   }
 
   /**

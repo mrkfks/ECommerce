@@ -1,3 +1,5 @@
+using System.Net.Http.Json;
+using System.Text.Json;
 using Dashboard.Web.Models;
 using Dashboard.Web.Services;
 using ECommerce.Application.DTOs;
@@ -205,7 +207,7 @@ namespace Dashboard.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Branding(int id, CompanyBrandingVm vm)
+        public async Task<IActionResult> Branding(int id, CompanyBrandingVm vm, IFormFile? logoFile)
         {
             if (id != vm.Id)
                 return BadRequest();
@@ -216,7 +218,57 @@ namespace Dashboard.Web.Controllers
             try
             {
                 var httpClient = _httpClientFactory.CreateClient("CompanyApi");
-                var response = await httpClient.PutAsJsonAsync($"/api/companies/{id}/branding", vm);
+
+                // Logo dosyası yüklenmişse işle
+                if (logoFile != null && logoFile.Length > 0)
+                {
+                    try
+                    {
+                        // Dosya yükleme endpoint'ine gönder
+                        using (var content = new MultipartFormDataContent())
+                        {
+                            var fileContent = new StreamContent(logoFile.OpenReadStream());
+                            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(logoFile.ContentType);
+                            content.Add(fileContent, "file", logoFile.FileName);
+
+                            var uploadResponse = await httpClient.PostAsync($"/api/companies/{id}/upload-logo", content);
+
+                            if (uploadResponse.IsSuccessStatusCode)
+                            {
+                                var jsonContent = await uploadResponse.Content.ReadAsStringAsync();
+                                using (var doc = JsonDocument.Parse(jsonContent))
+                                {
+                                    var root = doc.RootElement;
+                                    if (root.TryGetProperty("logoUrl", out var logoUrlElement))
+                                    {
+                                        vm.LogoUrl = logoUrlElement.GetString();
+                                        _logger.LogInformation("[CompanyController.Branding] Logo uploaded successfully: {LogoUrl}", vm.LogoUrl);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                _logger.LogWarning("[CompanyController.Branding] Logo upload failed with status: {StatusCode}", uploadResponse.StatusCode);
+                            }
+                        }
+                    }
+                    catch (Exception logoEx)
+                    {
+                        _logger.LogError(logoEx, "[CompanyController.Branding] Logo upload error");
+                        TempData["Warning"] = "Logo yüklenirken hata oluştu, diğer ayarlar kaydedilecektir.";
+                    }
+                }
+
+                // Branding bilgileri güncelle
+                var brandingDto = new BrandingUpdateDto
+                {
+                    Domain = vm.Domain,
+                    LogoUrl = vm.LogoUrl,
+                    PrimaryColor = vm.PrimaryColor,
+                    SecondaryColor = vm.SecondaryColor
+                };
+
+                var response = await httpClient.PutAsJsonAsync($"/api/companies/{id}/branding", brandingDto);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -225,6 +277,7 @@ namespace Dashboard.Web.Controllers
                 }
 
                 var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError("[CompanyController.Branding] API Error: {Error}", errorContent);
                 ModelState.AddModelError("", $"Güncelleme başarısız: {errorContent}");
                 return View(vm);
             }

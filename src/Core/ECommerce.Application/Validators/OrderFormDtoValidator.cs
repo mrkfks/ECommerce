@@ -24,7 +24,7 @@ public class OrderFormDtoValidator : AbstractValidator<OrderFormDto>
             .SetValidator(new OrderItemFormDtoValidator());
 
         RuleFor(x => x.ShippingAddress)
-            .SetValidator(new ShippingAddressDtoValidator())
+            .SetValidator(new ShippingAddressDtoValidator()!)
             .When(x => x.ShippingAddress != null);
     }
 }

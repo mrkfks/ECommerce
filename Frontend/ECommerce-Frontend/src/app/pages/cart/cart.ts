@@ -19,16 +19,23 @@ export class Cart {
   totalPrice = this.cartService.totalPrice;
 
   updateQuantity(productId: number, quantity: number): void {
-    this.cartService.updateQuantity(productId, quantity);
+    if (quantity < 1) return;
+    this.cartService.updateQuantity(productId, quantity).subscribe({
+      error: (err) => console.error('Failed to update quantity', err)
+    });
   }
 
   removeItem(productId: number): void {
-    this.cartService.removeFromCart(productId);
+    this.cartService.removeFromCart(productId).subscribe({
+      error: (err) => console.error('Failed to remove item', err)
+    });
   }
 
   clearCart(): void {
     if (confirm('Sepeti temizlemek istediğinize emin misiniz?')) {
-      this.cartService.clearCart();
+      this.cartService.clearCart().subscribe({
+        error: (err) => console.error('Failed to clear cart', err)
+      });
     }
   }
 
@@ -38,5 +45,9 @@ export class Cart {
 
   get grandTotal(): number {
     return this.totalPrice() + this.shippingCost;
+  }
+
+  onImageError(event: Event): void {
+    (event.target as HTMLImageElement).src = 'assets/images/no-image.svg';
   }
 }

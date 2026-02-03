@@ -1,3 +1,4 @@
+using System;
 using ECommerce.Application.DTOs;
 using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Entities;
@@ -26,8 +27,8 @@ namespace ECommerce.RestApi.Controllers
             try
             {
                 var result = await _companyService.RegisterCompanyAsync(dto);
-                return Ok(new 
-                { 
+                return Ok(new
+                {
                     message = result.Message,
                     companyId = result.CompanyId,
                     companyName = result.CompanyName,
@@ -46,7 +47,7 @@ namespace ECommerce.RestApi.Controllers
         public async Task<IActionResult> Create([FromBody] CompanyFormDto dto)
         {
             _logger.LogInformation("[CompanyController.Create] Request received - Name: {Name}, Email: {Email}", dto?.Name, dto?.Email);
-            
+
             try
             {
                 if (dto == null)
@@ -54,12 +55,12 @@ namespace ECommerce.RestApi.Controllers
                     _logger.LogWarning("[CompanyController.Create] DTO is null");
                     return BadRequest(new { success = false, message = "Geçersiz veri" });
                 }
-                
+
                 var company = await _companyService.CreateAsync(dto);
                 _logger.LogInformation("[CompanyController.Create] Company created successfully - ID: {Id}", company.Id);
-                
-                return Ok(new 
-                { 
+
+                return Ok(new
+                {
                     success = true,
                     message = "Şirket başarıyla kaydedildi.",
                     companyId = company.Id
@@ -77,20 +78,20 @@ namespace ECommerce.RestApi.Controllers
         public async Task<IActionResult> GetAll()
         {
             _logger.LogInformation("[CompanyController.GetAll] START - User: {User}, Roles: {Roles}", User.Identity?.Name, string.Join(",", User.Claims.Where(c => c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value)));
-            
+
             var companies = await _companyService.GetAllAsync();
-            
+
             _logger.LogInformation("[CompanyController.GetAll] Service returned {Count} companies", companies?.Count() ?? 0);
-            
+
             if (companies != null)
             {
                 foreach (var c in companies)
                 {
-                    _logger.LogInformation("[CompanyController.GetAll] Company: Id={Id}, Name={Name}, Email={Email}, IsActive={IsActive}, IsApproved={IsApproved}", 
+                    _logger.LogInformation("[CompanyController.GetAll] Company: Id={Id}, Name={Name}, Email={Email}, IsActive={IsActive}, IsApproved={IsApproved}",
                         c.Id, c.Name, c.Email, c.IsActive, c.IsApproved);
                 }
             }
-            
+
             return Ok(companies);
         }
 
@@ -99,10 +100,10 @@ namespace ECommerce.RestApi.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var company = await _companyService.GetByIdAsync(id);
-            
+
             if (company == null)
                 return NotFound(new { message = "Şirket bulunamadı" });
-            
+
             return Ok(company);
         }
 
@@ -112,7 +113,7 @@ namespace ECommerce.RestApi.Controllers
         {
             if (id != dto.Id)
                 return BadRequest(new { message = "ID uyuşmazlığı" });
-            
+
             try
             {
                 await _companyService.UpdateAsync(id, dto);
@@ -143,7 +144,7 @@ namespace ECommerce.RestApi.Controllers
         [Authorize(Policy = "SuperAdminOnly")]
         public async Task<IActionResult> Reject(int id)
         {
-             try
+            try
             {
                 await _companyService.RejectAsync(id);
                 return Ok(new { message = "Şirket onayı reddedildi" });
@@ -158,7 +159,7 @@ namespace ECommerce.RestApi.Controllers
         [Authorize(Policy = "SuperAdminOnly")]
         public async Task<IActionResult> Deactivate(int id)
         {
-             try
+            try
             {
                 await _companyService.DeactivateAsync(id);
                 return Ok(new { message = "Şirket pasifleştirildi" });
@@ -173,7 +174,7 @@ namespace ECommerce.RestApi.Controllers
         [Authorize(Policy = "SuperAdminOnly")]
         public async Task<IActionResult> Activate(int id)
         {
-             try
+            try
             {
                 await _companyService.ActivateAsync(id);
                 return Ok(new { message = "Şirket aktif hale getirildi" });
@@ -197,8 +198,8 @@ namespace ECommerce.RestApi.Controllers
                 if (company == null)
                     return NotFound(new { message = "Bu domain için şirket bulunamadı" });
 
-                return Ok(new 
-                { 
+                return Ok(new
+                {
                     id = company.Id,
                     companyName = company.Name,
                     logoUrl = company.LogoUrl,
@@ -218,8 +219,60 @@ namespace ECommerce.RestApi.Controllers
         }
 
 
+        [HttpPost("{id:int}/upload-logo")]
+        [Authorize(Policy = "SuperAdminOnly")]
+        public async Task<IActionResult> UploadLogo(int id, IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                    return BadRequest(new { message = "Dosya boş" });
+
+                // Dosya validasyonu
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".svg" };
+                var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(fileExtension))
+                    return BadRequest(new { message = "Desteklenmeyen dosya formatı. Lütfen JPG, PNG, GIF veya SVG dosyası yükleyin." });
+
+                // Dosya boyutu validasyonu (2MB)
+                const long maxFileSize = 2 * 1024 * 1024;
+                if (file.Length > maxFileSize)
+                    return BadRequest(new { message = "Dosya 2MB'dan büyük olamaz." });
+
+                // Dosya yükleme
+                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "logos");
+                Directory.CreateDirectory(uploadsPath);
+
+                var fileName = $"{id}_{Guid.NewGuid()}{fileExtension}";
+                var filePath = Path.Combine(uploadsPath, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                var logoUrl = $"/uploads/logos/{fileName}";
+
+                // Veritabanında güncelle
+                await _companyService.UpdateLogoAsync(id, logoUrl);
+
+                _logger.LogInformation("[CompanyController.UploadLogo] Logo uploaded successfully for company {Id}: {LogoUrl}", id, logoUrl);
+
+                return Ok(new { message = "Logo başarıyla yüklendi", logoUrl });
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { message = "Şirket bulunamadı" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[CompanyController.UploadLogo] Error uploading logo for company {Id}", id);
+                return BadRequest(new { message = $"Logo yükleme hatası: {ex.Message}" });
+            }
+        }
+
         [HttpPut("{id:int}/branding")]
-        [Authorize(Policy = "SuperAdminOnly")] 
+        [Authorize(Policy = "SuperAdminOnly")]
         public async Task<IActionResult> UpdateBranding(int id, [FromBody] BrandingUpdateDto dto)
         {
             try

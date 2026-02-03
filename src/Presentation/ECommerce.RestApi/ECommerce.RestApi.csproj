@@ -5,6 +5,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RollForward>LatestMajor</RollForward>
+    <!-- Dosya kilidi hatalarını önlemek için kopyalama yeniden deneme ayarları -->
+    <CopyRetryCount>3</CopyRetryCount>
+    <CopyRetryDelayMilliseconds>500</CopyRetryDelayMilliseconds>
   </PropertyGroup>
 
   <ItemGroup>
