@@ -8,6 +8,7 @@ export interface User {
   role: string;
   companyId?: number;
   createdAt: Date;
+  phone?: string; // Added phone property to User interface
 }
 
 export interface LoginRequest {

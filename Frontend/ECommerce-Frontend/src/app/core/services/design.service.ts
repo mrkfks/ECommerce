@@ -38,6 +38,15 @@ export class DesignService {
     @Inject(PLATFORM_ID) private platformId: Object
   ) { }
 
+  checkApiConnection(): Promise<boolean> {
+    return new Promise((resolve) => {
+      this.http.get('/health').subscribe({
+        next: () => resolve(true),
+        error: () => resolve(false)
+      });
+    });
+  }
+
   loadSettings() {
     if (!isPlatformBrowser(this.platformId)) return;
 
@@ -61,13 +70,13 @@ export class DesignService {
           // Check if company is active and approved
           if (settings.isActive === false) {
             this.loadError.set('Bu mağaza şu anda aktif değil.');
-            this.applyDefaultTheme();
+            // Hata durumunda dummy theme gösterme
             return;
           }
 
           if (settings.isApproved === false) {
             this.loadError.set('Bu mağaza henüz onaylanmamış.');
-            this.applyDefaultTheme();
+            // Hata durumunda dummy theme gösterme
             return;
           }
 
@@ -77,13 +86,9 @@ export class DesignService {
         error: (err) => {
           console.error('Failed to load company settings', err);
           this.isLoading.set(false);
-          if (err.status === 404) {
-            this.loadError.set('Mağaza bulunamadı.');
-          } else {
-            this.loadError.set('Mağaza ayarları yüklenirken hata oluştu.');
-          }
-          // Hata durumunda varsayılanları kullan
-          this.applyDefaultTheme();
+          // Set error message - API bağlantısı başarısız
+          this.loadError.set('Mağaza ayarları yüklenemedi. Lütfen daha sonra tekrar deneyin.');
+          // Hata durumunda dummy theme gösterme
         }
       });
   }

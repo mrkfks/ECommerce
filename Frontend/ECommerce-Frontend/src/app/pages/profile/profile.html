@@ -1,101 +1,240 @@
-<div class="profile-page py-4">
-  <div class="container">
-    <h2 class="fw-bold mb-4"><i class="bi bi-person-circle me-2"></i>Hesabım</h2>
+<div class="profile-page bg-light min-vh-100 py-5">
+  <div class="container-lg">
+    <!-- Header -->
+    <div class="row mb-5">
+      <div class="col-12">
+        <h1 class="fw-bold mb-2"><i class="bi bi-person-circle me-3 text-primary"></i>Profil Bilgilerim</h1>
+        <p class="text-muted">Hesap bilgilerinizi yönetin ve güvenlik ayarlarınızı düzenleyin</p>
+        <hr class="mt-3">
+      </div>
+    </div>
 
-    <div class="row">
+    <div class="row g-4">
       <!-- Sol Menü -->
-      <div class="col-md-3 mb-4">
-        <div class="card shadow-sm">
-          <div class="card-body text-center py-4">
-            <div class="avatar-circle bg-primary text-white mx-auto mb-3">
-              <i class="bi bi-person fs-1"></i>
+      <div class="col-lg-3">
+        <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+          <div class="card-body text-center py-5">
+            <div class="avatar-circle bg-gradient-primary text-white mx-auto mb-4" style="width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">
+              <i class="bi bi-person"></i>
             </div>
-            <h5 class="mb-1">{{ user?.firstName }} {{ user?.lastName }}</h5>
-            <p class="text-muted small mb-0">{{ user?.email }}</p>
+            <h5 class="fw-bold mb-2">{{ user?.firstName }} {{ user?.lastName }}</h5>
+            <p class="text-muted small mb-3">{{ user?.email }}</p>
+            <div class="badge bg-success mb-3">Aktif Hesap</div>
           </div>
           <div class="list-group list-group-flush">
-            <button class="list-group-item list-group-item-action" 
+            <button class="list-group-item list-group-item-action border-0 py-3" 
                     [class.active]="activeTab === 'profile'" 
                     (click)="activeTab = 'profile'">
-              <i class="bi bi-person me-2"></i>Profil Bilgileri
+              <i class="bi bi-person-fill me-2 text-primary"></i>
+              <span class="fw-medium">Profil Bilgileri</span>
             </button>
-            <button class="list-group-item list-group-item-action" 
+            <button class="list-group-item list-group-item-action border-0 py-3" 
+                    [class.active]="activeTab === 'address'" 
+                    (click)="activeTab = 'address'">
+              <i class="bi bi-geo-alt-fill me-2 text-primary"></i>
+              <span class="fw-medium">Adres Bilgileri</span>
+            </button>
+            <button class="list-group-item list-group-item-action border-0 py-3" 
                     [class.active]="activeTab === 'security'" 
                     (click)="activeTab = 'security'">
-              <i class="bi bi-shield-lock me-2"></i>Güvenlik
+              <i class="bi bi-shield-lock me-2 text-primary"></i>
+              <span class="fw-medium">Güvenlik</span>
             </button>
-            <a routerLink="/orders" class="list-group-item list-group-item-action">
-              <i class="bi bi-box me-2"></i>Siparişlerim
+            <a routerLink="/orders" class="list-group-item list-group-item-action border-0 py-3">
+              <i class="bi bi-box-seam me-2 text-primary"></i>
+              <span class="fw-medium">Siparişlerim</span>
             </a>
-            <button class="list-group-item list-group-item-action text-danger" (click)="logout()">
-              <i class="bi bi-box-arrow-right me-2"></i>Çıkış Yap
+            <button class="list-group-item list-group-item-action border-0 py-3 text-danger" (click)="logout()">
+              <i class="bi bi-box-arrow-right me-2"></i>
+              <span class="fw-medium">Çıkış Yap</span>
             </button>
           </div>
         </div>
       </div>
 
       <!-- İçerik -->
-      <div class="col-md-9">
+      <div class="col-lg-9">
         <!-- Profil Tabı -->
         @if (activeTab === 'profile') {
-          <div class="card shadow-sm">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-              <h5 class="mb-0">Profil Bilgileri</h5>
+          <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-4">
+              <div>
+                <h5 class="mb-1"><i class="bi bi-person-fill text-primary me-2"></i>Kişisel Bilgiler</h5>
+                <small class="text-muted">Temel hesap bilgileriniz</small>
+              </div>
               <button class="btn btn-sm" [ngClass]="isEditing ? 'btn-outline-secondary' : 'btn-outline-primary'" 
                       (click)="toggleEdit()">
                 <i class="bi" [ngClass]="isEditing ? 'bi-x' : 'bi-pencil'"></i>
                 {{ isEditing ? 'İptal' : 'Düzenle' }}
               </button>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
               @if (isEditing) {
                 <form (ngSubmit)="saveProfile()">
                   <div class="row g-3">
                     <div class="col-md-6">
-                      <label class="form-label">Ad</label>
-                      <input type="text" class="form-control" id="firstName" name="firstName" [(ngModel)]="editForm.firstName">
+                      <label class="form-label fw-medium">Ad <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control" id="firstName" name="firstName" [(ngModel)]="editForm.firstName" required>
+                      <small class="text-muted">Adınızı giriniz</small>
                     </div>
                     <div class="col-md-6">
-                      <label class="form-label">Soyad</label>
-                      <input type="text" class="form-control" id="lastName" name="lastName" [(ngModel)]="editForm.lastName">
+                      <label class="form-label fw-medium">Soyad <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control" id="lastName" name="lastName" [(ngModel)]="editForm.lastName" required>
+                      <small class="text-muted">Soyadınızı giriniz</small>
                     </div>
                     <div class="col-md-6">
-                      <label class="form-label">E-posta</label>
-                      <input type="email" class="form-control" id="email" name="email" [(ngModel)]="editForm.email">
+                      <label class="form-label fw-medium">E-posta <span class="text-danger">*</span></label>
+                      <input type="email" class="form-control" id="email" name="email" [(ngModel)]="editForm.email" required>
+                      <small class="text-muted">E-posta adresiniz</small>
                     </div>
                     <div class="col-md-6">
-                      <label class="form-label">Telefon</label>
+                      <label class="form-label fw-medium">Telefon</label>
                       <input type="tel" class="form-control" id="phone" name="phone" [(ngModel)]="editForm.phone" 
-                             placeholder="0555 555 55 55">
+                             placeholder="0555 555 5555">
+                      <small class="text-muted">İletişim numaranız</small>
                     </div>
                     <div class="col-12">
+                      <hr class="my-3">
                       <button type="submit" class="btn btn-primary" [disabled]="isSaving">
                         @if (isSaving) {
                           <span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor...
                         } @else {
-                          <i class="bi bi-check me-2"></i>Kaydet
+                          <i class="bi bi-check-circle me-2"></i>Değişiklikleri Kaydet
                         }
+                      </button>
+                      <button type="button" class="btn btn-light ms-2" (click)="toggleEdit()">
+                        <i class="bi bi-x me-2"></i>İptal
                       </button>
                     </div>
                   </div>
                 </form>
               } @else {
                 <div class="row">
-                  <div class="col-md-6 mb-3">
-                    <label class="form-label text-muted small mb-1">Ad</label>
-                    <p class="mb-0 fw-medium">{{ user?.firstName }}</p>
+                  <div class="col-md-6 mb-4">
+                    <div class="bg-light p-3 rounded">
+                      <label class="form-label fw-medium text-muted small mb-2">
+                        <i class="bi bi-type text-primary me-2"></i>Ad
+                      </label>
+                      <p class="mb-0 fw-medium fs-5">{{ user?.firstName }}</p>
+                    </div>
                   </div>
-                  <div class="col-md-6 mb-3">
-                    <label class="form-label text-muted small mb-1">Soyad</label>
-                    <p class="mb-0 fw-medium">{{ user?.lastName }}</p>
+                  <div class="col-md-6 mb-4">
+                    <div class="bg-light p-3 rounded">
+                      <label class="form-label fw-medium text-muted small mb-2">
+                        <i class="bi bi-type text-primary me-2"></i>Soyad
+                      </label>
+                      <p class="mb-0 fw-medium fs-5">{{ user?.lastName }}</p>
+                    </div>
                   </div>
-                  <div class="col-md-6 mb-3">
-                    <label class="form-label text-muted small mb-1">E-posta</label>
-                    <p class="mb-0 fw-medium">{{ user?.email }}</p>
+                  <div class="col-md-6 mb-4">
+                    <div class="bg-light p-3 rounded">
+                      <label class="form-label fw-medium text-muted small mb-2">
+                        <i class="bi bi-envelope text-primary me-2"></i>E-posta
+                      </label>
+                      <p class="mb-0 fw-medium fs-5">{{ user?.email }}</p>
+                    </div>
                   </div>
-                  <div class="col-md-6 mb-3">
-                    <label class="form-label text-muted small mb-1">Telefon</label>
-                    <p class="mb-0 fw-medium text-muted">Belirtilmemiş</p>
+                  <div class="col-md-6 mb-4">
+                    <div class="bg-light p-3 rounded">
+                      <label class="form-label fw-medium text-muted small mb-2">
+                        <i class="bi bi-telephone text-primary me-2"></i>Telefon
+                      </label>
+                      <p class="mb-0 fw-medium fs-5">{{ user?.phone || '—' }}</p>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Adres Tabı -->
+        @if (activeTab === 'address') {
+          <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-4">
+              <div>
+                <h5 class="mb-1"><i class="bi bi-geo-alt-fill text-primary me-2"></i>Adres Bilgileri</h5>
+                <small class="text-muted">Teslimat ve iletişim adresiniz</small>
+              </div>
+              <button class="btn btn-sm" [ngClass]="isEditing ? 'btn-outline-secondary' : 'btn-outline-primary'" 
+                      (click)="toggleEdit()">
+                <i class="bi" [ngClass]="isEditing ? 'bi-x' : 'bi-pencil'"></i>
+                {{ isEditing ? 'İptal' : 'Düzenle' }}
+              </button>
+            </div>
+            <div class="card-body p-4">
+              @if (isEditing) {
+                <form (ngSubmit)="saveProfile()">
+                  <div class="row g-3">
+                    <div class="col-12">
+                      <label class="form-label fw-medium">Adres <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control" id="address" name="address" [(ngModel)]="editForm.address" 
+                             placeholder="Sokak, bina numarası vb." required>
+                      <small class="text-muted">Tam adresinizi giriniz</small>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label fw-medium">Şehir <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control" id="city" name="city" [(ngModel)]="editForm.city" required>
+                      <small class="text-muted">İkamet ettiğiniz şehir</small>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label fw-medium">Posta Kodu <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control" id="postalCode" name="postalCode" [(ngModel)]="editForm.postalCode" required>
+                      <small class="text-muted">Posta kodu</small>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label fw-medium">Ülke <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control" id="country" name="country" [(ngModel)]="editForm.country" required>
+                      <small class="text-muted">Ülke adı</small>
+                    </div>
+                    <div class="col-12">
+                      <hr class="my-3">
+                      <button type="submit" class="btn btn-primary" [disabled]="isSaving">
+                        @if (isSaving) {
+                          <span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor...
+                        } @else {
+                          <i class="bi bi-check-circle me-2"></i>Adres Bilgisini Kaydet
+                        }
+                      </button>
+                      <button type="button" class="btn btn-light ms-2" (click)="toggleEdit()">
+                        <i class="bi bi-x me-2"></i>İptal
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              } @else {
+                <div class="row">
+                  <div class="col-12 mb-4">
+                    <div class="bg-light p-3 rounded">
+                      <label class="form-label fw-medium text-muted small mb-2">
+                        <i class="bi bi-signpost text-primary me-2"></i>Adres
+                      </label>
+                      <p class="mb-0 fw-medium fs-5">{{ (user | async)?.address || '—' }}</p>
+                    </div>
+                  </div>
+                  <div class="col-md-4 mb-4">
+                    <div class="bg-light p-3 rounded">
+                      <label class="form-label fw-medium text-muted small mb-2">
+                        <i class="bi bi-building text-primary me-2"></i>Şehir
+                      </label>
+                      <p class="mb-0 fw-medium fs-5">{{ (user | async)?.city || '—' }}</p>
+                    </div>
+                  </div>
+                  <div class="col-md-4 mb-4">
+                    <div class="bg-light p-3 rounded">
+                      <label class="form-label fw-medium text-muted small mb-2">
+                        <i class="bi bi-mailbox text-primary me-2"></i>Posta Kodu
+                      </label>
+                      <p class="mb-0 fw-medium fs-5">{{ (user | async)?.postalCode || '—' }}</p>
+                    </div>
+                  </div>
+                  <div class="col-md-4 mb-4">
+                    <div class="bg-light p-3 rounded">
+                      <label class="form-label fw-medium text-muted small mb-2">
+                        <i class="bi bi-globe text-primary me-2"></i>Ülke
+                      </label>
+                      <p class="mb-0 fw-medium fs-5">{{ (user | async)?.country || '—' }}</p>
+                    </div>
                   </div>
                 </div>
               }
@@ -105,28 +244,44 @@
 
         <!-- Güvenlik Tabı -->
         @if (activeTab === 'security') {
-          <div class="card shadow-sm">
-            <div class="card-header bg-white">
-              <h5 class="mb-0">Şifre Değiştir</h5>
+          <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-bottom py-4">
+              <div>
+                <h5 class="mb-1"><i class="bi bi-shield-lock text-primary me-2"></i>Güvenlik Ayarları</h5>
+                <small class="text-muted">Hesap güvenliğinizi arttırın</small>
+              </div>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
               <form (ngSubmit)="changePassword()">
                 <div class="row g-3">
                   <div class="col-12">
-                    <label class="form-label">Mevcut Şifre</label>
-                    <input type="password" class="form-control" id="currentPassword" name="currentPassword" [(ngModel)]="passwordForm.currentPassword" required>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label">Yeni Şifre</label>
-                    <input type="password" class="form-control" id="newPassword" name="newPassword" [(ngModel)]="passwordForm.newPassword" required>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label">Yeni Şifre (Tekrar)</label>
-                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" [(ngModel)]="passwordForm.confirmPassword" required>
+                    <div class="alert alert-info border-0 bg-light" role="alert">
+                      <i class="bi bi-info-circle me-2 text-primary"></i>
+                      <strong>Not:</strong> Şifrenizi düzenli olarak değiştirerek hesabınızı daha güvenli tutun.
+                    </div>
                   </div>
                   <div class="col-12">
-                    <button type="submit" class="btn btn-primary">
+                    <label class="form-label fw-medium">Mevcut Şifre <span class="text-danger">*</span></label>
+                    <input type="password" class="form-control form-control-lg" id="currentPassword" name="currentPassword" [(ngModel)]="passwordForm.currentPassword" required>
+                    <small class="text-muted">Hesabınızın güvenliğini doğrulamak için mevcut şifrenizi giriniz</small>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-medium">Yeni Şifre <span class="text-danger">*</span></label>
+                    <input type="password" class="form-control form-control-lg" id="newPassword" name="newPassword" [(ngModel)]="passwordForm.newPassword" required>
+                    <small class="text-muted">Güçlü bir şifre oluşturunuz</small>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-medium">Yeni Şifre (Tekrar) <span class="text-danger">*</span></label>
+                    <input type="password" class="form-control form-control-lg" id="confirmPassword" name="confirmPassword" [(ngModel)]="passwordForm.confirmPassword" required>
+                    <small class="text-muted">Şifrenizi tekrar giriniz</small>
+                  </div>
+                  <div class="col-12">
+                    <hr class="my-3">
+                    <button type="submit" class="btn btn-primary btn-lg">
                       <i class="bi bi-shield-check me-2"></i>Şifreyi Değiştir
+                    </button>
+                    <button type="reset" class="btn btn-light btn-lg ms-2">
+                      <i class="bi bi-arrow-counterclockwise me-2"></i>Sıfırla
                     </button>
                   </div>
                 </div>

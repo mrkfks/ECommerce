@@ -25,7 +25,7 @@ export interface Wishlist {
   providedIn: 'root'
 })
 export class WishlistService {
-  private readonly basePath = '/api/wishlist';
+  private readonly basePath = '/wishlist';
   private readonly platformId = inject(PLATFORM_ID);
   private companyContext = inject(CompanyContextService);
 
@@ -53,12 +53,31 @@ export class WishlistService {
       return 'server-session';
     }
 
-    let sessionId = localStorage.getItem('wishlist_session_id');
-    if (!sessionId) {
-      sessionId = crypto.randomUUID();
-      localStorage.setItem('wishlist_session_id', sessionId);
+    try {
+      let sessionId = localStorage.getItem('wishlist_session_id');
+      if (!sessionId) {
+        // Use crypto.randomUUID() if available, otherwise generate a simpler UUID
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+          sessionId = crypto.randomUUID();
+        } else {
+          // Fallback UUID generation
+          sessionId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+          });
+        }
+        localStorage.setItem('wishlist_session_id', sessionId);
+        console.log('New wishlist session ID created:', sessionId);
+      } else {
+        console.log('Existing wishlist session ID:', sessionId);
+      }
+      return sessionId;
+    } catch (error) {
+      console.warn('localStorage not available, using temporary session ID', error);
+      // Fallback for localStorage being unavailable
+      return 'session-' + Math.random().toString(36).substr(2, 9);
     }
-    return sessionId;
   }
 
   private getCompanyIdHeader(): { [key: string]: string } {

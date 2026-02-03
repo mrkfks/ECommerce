@@ -26,7 +26,11 @@ export class Profile implements OnInit, OnDestroy {
     firstName: '',
     lastName: '',
     email: '',
-    phone: '' // Backend doesn't support phone update yet in profile endpoint
+    phone: '',
+    address: '',
+    city: '',
+    postalCode: '',
+    country: ''
   };
 
   passwordForm = {
@@ -61,7 +65,11 @@ export class Profile implements OnInit, OnDestroy {
         firstName: this.user.firstName,
         lastName: this.user.lastName,
         email: this.user.email,
-        phone: ''
+        phone: this.user.phone || '',
+        address: (this.user as any).address || '',
+        city: (this.user as any).city || '',
+        postalCode: (this.user as any).postalCode || '',
+        country: (this.user as any).country || ''
       };
     }
   }

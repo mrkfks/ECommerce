@@ -4,13 +4,21 @@ import { Footer } from './components/footer/footer';
 import { Navbar } from './components/navbar/navbar';
 import { DesignService } from './core/services';
 import { LoadingSpinnerComponent } from './shared/components/loading-spinner/loading-spinner.component';
+import { CommonModule } from '@angular/common';
+import { ErrorPage } from './pages/error/error';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, Navbar, Footer, LoadingSpinnerComponent],
+  imports: [RouterOutlet, Navbar, Footer, LoadingSpinnerComponent, CommonModule, ErrorPage],
   template: `
-    <div class="d-flex flex-column min-vh-100">
+    <div *ngIf="errorMessage" class="d-flex flex-column min-vh-100">
+      <app-error 
+        [title]="'Sayfa Bulunamadı'" 
+        [message]="errorMessage">
+      </app-error>
+    </div>
+    <div *ngIf="!errorMessage" class="d-flex flex-column min-vh-100">
       <app-navbar></app-navbar>
       <main class="flex-grow-1">
         <router-outlet></router-outlet>
@@ -22,9 +30,14 @@ import { LoadingSpinnerComponent } from './shared/components/loading-spinner/loa
 })
 export class App implements OnInit {
   private designService = inject(DesignService);
+  loadError = this.designService.loadError;
 
   ngOnInit() {
     this.designService.loadSettings();
+  }
+
+  get errorMessage() {
+    return this.loadError();
   }
 }
 
