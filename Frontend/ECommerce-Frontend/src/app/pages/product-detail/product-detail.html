@@ -160,7 +160,7 @@
               <button class="btn btn-primary btn-lg flex-grow-1" (click)="addToCart()">
                 <i class="bi bi-cart-plus me-2"></i>Sepete Ekle
               </button>
-              <button class="btn btn-outline-danger btn-lg">
+              <button class="btn btn-outline-danger btn-lg" (click)="addToWishlist()">
                 <i class="bi bi-heart"></i>
               </button>
             </div>
@@ -212,6 +212,119 @@
           </div>
         </section>
       }
+
+      <!-- Müşteri Yorumları -->
+      <section class="mt-5">
+        <h3 class="fw-bold mb-4">
+          <i class="bi bi-chat-left-text me-2"></i>Müşteri Yorumları
+          @if (reviews.length > 0) {
+            <span class="badge bg-primary ms-2">{{ reviews.length }}</span>
+          }
+        </h3>
+
+        <!-- Yorum Formu -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-body">
+            @if (isLoggedIn) {
+              <h5 class="card-title mb-3">Yorum Yaz</h5>
+              
+              <!-- Puan Seçimi -->
+              <div class="mb-3">
+                <label class="form-label">Puanınız:</label>
+                <div class="star-rating">
+                  @for (star of [1,2,3,4,5]; track star) {
+                    <i 
+                      class="bi fs-4 cursor-pointer" 
+                      [class.bi-star-fill]="star <= reviewForm.rating"
+                      [class.bi-star]="star > reviewForm.rating"
+                      [class.text-warning]="star <= reviewForm.rating"
+                      [class.text-muted]="star > reviewForm.rating"
+                      (click)="setRating(star)"
+                      style="cursor: pointer;">
+                    </i>
+                  }
+                  <span class="ms-2 text-muted">({{ reviewForm.rating }}/5)</span>
+                </div>
+              </div>
+
+              <!-- Yorum Metni -->
+              <div class="mb-3">
+                <label class="form-label">Yorumunuz:</label>
+                <textarea 
+                  class="form-control" 
+                  rows="4" 
+                  [(ngModel)]="reviewForm.comment"
+                  placeholder="Bu ürün hakkındaki düşüncelerinizi paylaşın..."
+                  [disabled]="isSubmittingReview">
+                </textarea>
+              </div>
+
+              <button 
+                class="btn btn-primary"
+                (click)="submitReview()"
+                [disabled]="isSubmittingReview || !reviewForm.comment.trim()">
+                @if (isSubmittingReview) {
+                  <span class="spinner-border spinner-border-sm me-2"></span>Gönderiliyor...
+                } @else {
+                  <i class="bi bi-send me-2"></i>Yorum Gönder
+                }
+              </button>
+            } @else {
+              <div class="text-center py-3">
+                <i class="bi bi-person-lock text-muted fs-1 mb-3 d-block"></i>
+                <p class="text-muted mb-3">Yorum yapabilmek için giriş yapmalısınız.</p>
+                <a routerLink="/login" class="btn btn-outline-primary">
+                  <i class="bi bi-box-arrow-in-right me-2"></i>Giriş Yap
+                </a>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Yorum Listesi -->
+        @if (isLoadingReviews) {
+          <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Yorumlar yükleniyor...</span>
+            </div>
+          </div>
+        } @else if (reviews.length > 0) {
+          <div class="reviews-list">
+            @for (review of reviews; track review.id) {
+              <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                      <h6 class="mb-1 fw-bold">
+                        <i class="bi bi-person-circle text-muted me-2"></i>
+                        {{ review.customerName || 'Anonim Kullanıcı' }}
+                      </h6>
+                      <div class="text-warning">
+                        @for (star of [1,2,3,4,5]; track star) {
+                          <i class="bi" [class.bi-star-fill]="star <= review.rating" [class.bi-star]="star > review.rating"></i>
+                        }
+                        <span class="text-muted ms-2 small">({{ review.rating }}/5)</span>
+                      </div>
+                    </div>
+                    <small class="text-muted">
+                      <i class="bi bi-calendar3 me-1"></i>{{ formatDate(review.createdAt) }}
+                    </small>
+                  </div>
+                  <p class="mb-0 text-muted">{{ review.comment }}</p>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+              <i class="bi bi-chat-square-text text-muted" style="font-size: 3rem;"></i>
+              <p class="text-muted mt-3 mb-0">Bu ürün için henüz yorum yapılmamış. İlk yorumu siz yapın!</p>
+            </div>
+          </div>
+        }
+      </section>
+
     } @else {
       <div class="text-center py-5">
         <i class="bi bi-exclamation-triangle text-warning" style="font-size: 4rem;"></i>

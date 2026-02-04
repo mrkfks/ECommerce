@@ -21,10 +21,10 @@ namespace ECommerce.Domain.Entities
         {
             if (string.IsNullOrWhiteSpace(username))
                 throw new ArgumentException("Kullanıcı adı boş olamaz.", nameof(username));
-            
+
             if (string.IsNullOrWhiteSpace(email) || !email.Contains("@"))
                 throw new ArgumentException("Geçerli bir e-posta adresi girin.", nameof(email));
-            
+
             if (string.IsNullOrWhiteSpace(passwordHash))
                 throw new ArgumentException("Şifre boş olamaz.", nameof(passwordHash));
 
@@ -66,6 +66,12 @@ namespace ECommerce.Domain.Entities
                 throw new ArgumentException("Geçerli bir şirket ID'si girin.", nameof(companyId));
 
             CompanyId = companyId;
+            MarkAsModified();
+        }
+
+        public void UpdatePhone(string? phoneNumber)
+        {
+            PhoneNumber = phoneNumber;
             MarkAsModified();
         }
 

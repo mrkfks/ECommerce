@@ -31,3 +31,24 @@ public record ReviewFormDto
     public string Comment { get; init; } = string.Empty;
     public string? ReviewerName { get; init; }
 }
+
+/// <summary>
+/// Ürün değerlendirme özeti DTO
+/// </summary>
+public record ReviewSummaryDto
+{
+    public int ProductId { get; init; }
+    public double AverageRating { get; init; }
+    public int TotalReviews { get; init; }
+    public Dictionary<int, int> RatingDistribution { get; init; } = new();
+}
+
+/// <summary>
+/// Kullanıcının yorum yapabilirlik durumu DTO
+/// </summary>
+public record CanReviewDto
+{
+    public bool CanReview { get; init; }
+    public bool HasPurchased { get; init; }
+    public bool HasReviewed { get; init; }
+}

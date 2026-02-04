@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 export interface Review {
   id: number;
@@ -8,10 +8,11 @@ export interface Review {
   productName?: string;
   customerId: number;
   customerName?: string;
+  reviewerName?: string;
   rating: number;
   title?: string;
   comment: string;
-  isApproved: boolean;
+  isApproved?: boolean;
   createdAt: Date;
 }
 
@@ -29,6 +30,12 @@ export interface ProductReviewSummary {
   ratingDistribution: { [key: number]: number };
 }
 
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -40,28 +47,34 @@ export class ReviewService {
    * Get all reviews for a product
    */
   getByProduct(productId: number): Observable<Review[]> {
-    return this.http.get<Review[]>(`${this.apiUrl}/product/${productId}`);
+    return this.http.get<ApiResponse<Review[]>>(`${this.apiUrl}/product/${productId}`).pipe(
+      map(response => response.data || [])
+    );
   }
 
   /**
    * Get review summary for a product (average rating, distribution)
    */
   getProductSummary(productId: number): Observable<ProductReviewSummary> {
-    return this.http.get<ProductReviewSummary>(`${this.apiUrl}/product/${productId}/summary`);
+    return this.http.get<ApiResponse<ProductReviewSummary>>(`${this.apiUrl}/product/${productId}/summary`).pipe(
+      map(response => response.data)
+    );
   }
 
   /**
    * Get reviews by current customer
    */
   getMyReviews(): Observable<Review[]> {
-    return this.http.get<Review[]>(`${this.apiUrl}/my`);
+    return this.http.get<ApiResponse<Review[]>>(`${this.apiUrl}/my`).pipe(
+      map(response => response.data || [])
+    );
   }
 
   /**
    * Create a new review
    */
-  create(review: ReviewCreate): Observable<Review> {
-    return this.http.post<Review>(this.apiUrl, review);
+  create(review: ReviewCreate): Observable<any> {
+    return this.http.post<any>(this.apiUrl, review);
   }
 
   /**
@@ -82,8 +95,10 @@ export class ReviewService {
    * Check if current customer can review a product (has purchased it)
    */
   canReview(productId: number): Observable<{ canReview: boolean; hasPurchased: boolean; hasReviewed: boolean }> {
-    return this.http.get<{ canReview: boolean; hasPurchased: boolean; hasReviewed: boolean }>(
+    return this.http.get<ApiResponse<{ canReview: boolean; hasPurchased: boolean; hasReviewed: boolean }>>(
       `${this.apiUrl}/can-review/${productId}`
+    ).pipe(
+      map(response => response.data)
     );
   }
 }

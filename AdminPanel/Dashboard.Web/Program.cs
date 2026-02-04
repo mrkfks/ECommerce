@@ -1,13 +1,13 @@
-using Serilog;
-using Serilog.Events;
-using ECommerce.Application.DTOs;
+using System.Text;
+using Dashboard.Web.Infrastructure;
+using Dashboard.Web.Middleware;
 using Dashboard.Web.Models;
 using Dashboard.Web.Services;
-using Dashboard.Web.Infrastructure;
-using Microsoft.IdentityModel.Tokens;
+using ECommerce.Application.DTOs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using System.Text;
-using Dashboard.Web.Middleware;
+using Microsoft.IdentityModel.Tokens;
+using Serilog;
+using Serilog.Events;
 
 
 
@@ -24,7 +24,7 @@ builder.Services.AddHttpClient<ApiService<GlobalAttributeFormDto>>(client =>
     client.BaseAddress = new Uri(apiBaseUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
 }).AddHttpMessageHandler<AuthTokenHandler>();
-builder.Services.AddTransient<IApiService<GlobalAttributeFormDto>>(sp => 
+builder.Services.AddTransient<IApiService<GlobalAttributeFormDto>>(sp =>
     sp.GetRequiredService<ApiService<GlobalAttributeFormDto>>());
 builder.Services.AddTransient<IApiService<CategoryFormDto>>(sp =>
 {
@@ -168,6 +168,14 @@ builder.Services.AddHttpClient<IApiService<RequestDto>, ApiService<RequestDto>>(
     client.Timeout = TimeSpan.FromSeconds(30);
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
+// OrderApiService - özel UpdateStatusAsync metodu için (OrderController)
+builder.Services.AddHttpClient<OrderApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
+// IApiService<OrderDto> - HomeController ve diğer controller'lar için
 builder.Services.AddHttpClient<IApiService<OrderDto>, ApiService<OrderDto>>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);

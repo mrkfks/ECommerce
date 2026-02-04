@@ -40,6 +40,7 @@ export class Wishlist implements OnInit, OnDestroy {
     // Then subscribe to changes
     this.wishlistService.wishlist$.pipe(takeUntil(this.destroy$)).subscribe({
       next: (wishlist) => {
+        console.log('Wishlist page received wishlist:', wishlist);
         if (wishlist && wishlist.items) {
           this.wishlistItems = wishlist.items;
           this.isEmpty = this.wishlistItems.length === 0;
@@ -51,7 +52,8 @@ export class Wishlist implements OnInit, OnDestroy {
         }
         this.isLoading = false;
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error in wishlist subscription:', err);
         this.isEmpty = true;
         this.isLoading = false;
         this.totalValue = 0;

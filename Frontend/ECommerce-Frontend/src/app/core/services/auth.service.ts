@@ -93,6 +93,13 @@ export class AuthService {
       map(() => void 0)
     );
   }
+
+  getAddresses(): Observable<any[]> {
+    return this.http.get<any>('/auth/addresses').pipe(
+      map(response => Array.isArray(response) ? response : response.data || [])
+    );
+  }
+
   logout(): void {
     if (this.isBrowser) {
       localStorage.removeItem(this.TOKEN_KEY);
@@ -117,7 +124,17 @@ export class AuthService {
   }
 
   getCurrentUser(): Observable<User> {
-    return this.http.get<User>('/auth/me');
+    return this.http.get<ApiResponse<User>>('/auth/me').pipe(
+      tap(response => console.log('getCurrentUser raw response:', response)),
+      map(response => response.data),
+      tap(user => {
+        console.log('getCurrentUser mapped user:', user);
+        this.currentUserSubject.next(user);
+        if (this.isBrowser) {
+          localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+        }
+      })
+    );
   }
 
   getToken(): string | null {

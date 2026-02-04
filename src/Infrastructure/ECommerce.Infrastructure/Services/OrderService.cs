@@ -43,12 +43,59 @@ namespace ECommerce.Infrastructure.Services
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                // 0. CustomerId'nin Customer olup olmadığını kontrol et, değilse User ID olarak kullan
+                int customerId = dto.CustomerId;
+                var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Id == customerId);
+
+                if (customer == null)
+                {
+                    // CustomerId aslında UserId olabilir, User'dan Customer bul veya oluştur
+                    var user = await _context.Users.FindAsync(dto.CustomerId);
+                    if (user == null)
+                        throw new Exception("Kullanıcı veya Müşteri bulunamadı");
+
+                    // Bu UserId'ye ait Customer var mı?
+                    customer = await _context.Customers.FirstOrDefaultAsync(c => c.UserId == dto.CustomerId);
+
+                    if (customer == null)
+                    {
+                        // Customer yoksa oluştur - form bilgilerini kullan
+                        var firstName = !string.IsNullOrEmpty(dto.FirstName) ? dto.FirstName : (user.FirstName ?? "Müşteri");
+                        var lastName = !string.IsNullOrEmpty(dto.LastName) ? dto.LastName : (user.LastName ?? "");
+                        var phone = !string.IsNullOrEmpty(dto.Phone) ? dto.Phone : (user.PhoneNumber ?? "");
+                        var email = !string.IsNullOrEmpty(dto.Email) ? dto.Email : user.Email;
+
+                        customer = Customer.Create(
+                            dto.CompanyId ?? 1,
+                            firstName,
+                            lastName,
+                            email,
+                            phone,
+                            DateTime.UtcNow,
+                            dto.CustomerId  // UserId olarak link et
+                        );
+                        _context.Customers.Add(customer);
+                        await _context.SaveChangesAsync();
+                    }
+                    else if (!string.IsNullOrEmpty(dto.FirstName) || !string.IsNullOrEmpty(dto.LastName))
+                    {
+                        // Customer var ama form'dan yeni bilgi geldiyse güncelle
+                        var firstName = !string.IsNullOrEmpty(dto.FirstName) ? dto.FirstName : customer.FirstName;
+                        var lastName = !string.IsNullOrEmpty(dto.LastName) ? dto.LastName : customer.LastName;
+                        var phone = !string.IsNullOrEmpty(dto.Phone) ? dto.Phone : customer.PhoneNumber;
+                        customer.Update(firstName, lastName, customer.Email, phone);
+                        await _context.SaveChangesAsync();
+                    }
+
+                    customerId = customer.Id;
+                }
+
                 // 1. Adres İşlemleri
                 int addressId = dto.AddressId;
                 if (addressId <= 0 && dto.ShippingAddress != null)
                 {
                     var newAddress = Address.Create(
-                        dto.CustomerId,
+                        customerId,  // Artık doğru Customer ID'yi kullanıyoruz
                         dto.ShippingAddress.Street,
                         dto.ShippingAddress.City,
                         dto.ShippingAddress.State,
@@ -84,7 +131,7 @@ namespace ECommerce.Infrastructure.Services
                 if (!dto.CompanyId.HasValue)
                     throw new Exception("Şirket bilgisi gereklidir.");
 
-                var order = Order.Create(dto.CustomerId, addressId, dto.CompanyId.Value);
+                var order = Order.Create(customerId, addressId, dto.CompanyId.Value);
 
                 _context.Orders.Add(order);
                 await _context.SaveChangesAsync();
@@ -115,13 +162,13 @@ namespace ECommerce.Infrastructure.Services
 
                 // 4. Sepeti Temizle (Varsa)
                 // Müşterinin bu şirketteki aktif sepetini bul ve temizle
-                if (dto.CustomerId > 0)
+                if (customerId > 0)
                 {
-                    // Sepet kalemlerini sil (CartItem -> Cart -> CustomerId == dto.CustomerId && CompanyId == dto.CompanyId)
+                    // Sepet kalemlerini sil (CartItem -> Cart -> CustomerId == customerId && CompanyId == dto.CompanyId)
                     // Not: CartItem üzerinde doğrudan CustomerId yok, Cart üzerinden gidiyoruz.
                     // Performans için ExecuteDeleteAsync kullanıyoruz.
                     await _context.CartItems
-                        .Where(ci => ci.Cart != null && ci.Cart.CustomerId == dto.CustomerId && ci.Cart.CompanyId == dto.CompanyId)
+                        .Where(ci => ci.Cart != null && ci.Cart.CustomerId == customerId && ci.Cart.CompanyId == dto.CompanyId)
                         .ExecuteDeleteAsync();
 
                     // Opsiyonel: Sepeti de pasife çekebiliriz veya boş bırakabiliriz.
@@ -255,21 +302,9 @@ namespace ECommerce.Infrastructure.Services
             if (order == null)
                 throw new Exception("Sipariş Bulunamadı");
 
-            switch (status)
-            {
-                case OrderStatus.Processing:
-                    order.Confirm();
-                    break;
-                case OrderStatus.Shipped:
-                    order.Ship();
-                    break;
-                case OrderStatus.Delivered:
-                    order.Deliver();
-                    break;
-                case OrderStatus.Cancelled:
-                    order.Cancel();
-                    break;
-            }
+            // Admin panelinden durum güncellemesi - doğrudan set et
+            // İş akışı kuralları (Processing -> Shipped -> Delivered) Admin için atlanır
+            order.SetStatus(status);
 
             await _context.SaveChangesAsync();
         }
@@ -284,6 +319,38 @@ namespace ECommerce.Infrastructure.Services
         {
             // Placeholder implementation
             await Task.CompletedTask;
+        }
+
+        public async Task CancelOrderAsync(int orderId)
+        {
+            var order = await _context.Orders
+                .Include(o => o.Items)
+                .FirstOrDefaultAsync(o => o.Id == orderId);
+
+            if (order == null)
+                throw new Exception("Sipariş Bulunamadı");
+
+            // Sadece belirli durumlardaki siparişler iptal edilebilir
+            if (order.Status == OrderStatus.Shipped || order.Status == OrderStatus.Delivered)
+                throw new Exception("Kargoya verilmiş veya teslim edilmiş siparişler iptal edilemez");
+
+            if (order.Status == OrderStatus.Cancelled)
+                throw new Exception("Sipariş zaten iptal edilmiş");
+
+            // Stokları geri ekle
+            foreach (var item in order.Items)
+            {
+                var product = await _context.Products.FindAsync(item.ProductId);
+                if (product != null)
+                {
+                    product.UpdateStock(product.StockQuantity + item.Quantity);
+                }
+            }
+
+            order.Cancel();
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Order {OrderId} cancelled successfully", orderId);
         }
 
         private async Task InvalidateDashboardStatsAsync(int companyId)

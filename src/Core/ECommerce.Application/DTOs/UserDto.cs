@@ -17,6 +17,12 @@ public record UserDto
     public List<string>? Roles { get; init; }
     public bool IsActive { get; init; } = true;
     public DateTime? CreatedAt { get; init; }
+    public string? Phone { get; init; }
+    public string? Address { get; init; }
+    public string? City { get; init; }
+    public string? State { get; init; }  // İlçe
+    public string? PostalCode { get; init; }
+    public string? Country { get; init; }
 }
 
 /// <summary>
@@ -44,6 +50,12 @@ public record UserProfileUpdateDto
     public string? Email { get; init; }
     public string FirstName { get; init; } = string.Empty;
     public string LastName { get; init; } = string.Empty;
+    public string? Phone { get; init; }
+    public string? Address { get; init; }
+    public string? City { get; init; }
+    public string? State { get; init; }
+    public string? PostalCode { get; init; }
+    public string? Country { get; init; }
 }
 
 /// <summary>

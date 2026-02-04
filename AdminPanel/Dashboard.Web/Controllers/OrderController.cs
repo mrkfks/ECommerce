@@ -1,16 +1,17 @@
+using Dashboard.Web.Services;
+using ECommerce.Application.DTOs;
+using ECommerce.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ECommerce.Application.DTOs;
-using Dashboard.Web.Services;
 
 namespace Dashboard.Web.Controllers
 {
     [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
     public class OrderController : Controller
     {
-        private readonly IApiService<OrderDto> _orderService;
+        private readonly OrderApiService _orderService;
 
-        public OrderController(IApiService<OrderDto> orderService)
+        public OrderController(OrderApiService orderService)
         {
             _orderService = orderService;
         }
@@ -42,22 +43,43 @@ namespace Dashboard.Web.Controllers
             var response = await _orderService.GetByIdAsync(id);
             if (response == null || response.Data == null)
                 return NotFound();
+
+            // Dropdown için status listesi
+            ViewBag.StatusList = Enum.GetValues<OrderStatus>()
+                .Select(s => new { Value = (int)s, Text = GetStatusText(s) })
+                .ToList();
+
             return View(response.Data);
         }
 
         [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
         [HttpPost]
-        public async Task<IActionResult> Edit(OrderDto order)
+        public async Task<IActionResult> Edit(int id, OrderStatus status)
         {
-            if (!ModelState.IsValid)
-                return View(order);
-
-            var response = await _orderService.UpdateAsync(order.Id, order);
-            if (response != null && response.Success)
+            var success = await _orderService.UpdateStatusAsync(id, status);
+            if (success)
+            {
+                TempData["Success"] = "Sipariş durumu başarıyla güncellendi.";
                 return RedirectToAction(nameof(Index));
+            }
 
-            ModelState.AddModelError("", "Sipariş güncellenirken hata oluştu.");
-            return View(order);
+            TempData["Error"] = "Sipariş güncellenirken hata oluştu.";
+            return RedirectToAction(nameof(Edit), new { id });
+        }
+
+        private string GetStatusText(OrderStatus status)
+        {
+            return status switch
+            {
+                OrderStatus.Pending => "Beklemede",
+                OrderStatus.Processing => "İşleniyor",
+                OrderStatus.Shipped => "Kargoda",
+                OrderStatus.Delivered => "Teslim Edildi",
+                OrderStatus.Cancelled => "İptal Edildi",
+                OrderStatus.Received => "Teslim Alındı",
+                OrderStatus.Completed => "Tamamlandı",
+                _ => status.ToString()
+            };
         }
     }
 

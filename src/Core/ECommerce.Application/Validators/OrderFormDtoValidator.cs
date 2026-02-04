@@ -15,7 +15,8 @@ public class OrderFormDtoValidator : AbstractValidator<OrderFormDto>
             .WithMessage("Teslimat adresi seçilmelidir veya yeni adres bilgileri girilmelidir");
 
         RuleFor(x => x.CompanyId)
-            .GreaterThan(0).When(x => x.CompanyId.HasValue).WithMessage("Şirket seçilmelidir");
+            .NotEmpty().WithMessage("Şirket seçilmelidir")
+            .GreaterThan(0).When(x => x.CompanyId.HasValue).WithMessage("Şirket ID geçerli olmalıdır");
 
         RuleFor(x => x.Items)
             .NotEmpty().When(x => !x.Id.HasValue).WithMessage("Yeni sipariş en az bir ürün içermelidir");

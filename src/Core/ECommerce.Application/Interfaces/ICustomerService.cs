@@ -5,6 +5,7 @@ namespace ECommerce.Application.Interfaces
     public interface ICustomerService
     {
         Task<CustomerDto?> GetByIdAsync(int id);
+        Task<CustomerDto?> GetByUserIdAsync(int userId);
 
         Task<IReadOnlyList<CustomerDto>> GetAllAsync();
         Task<ECommerce.Application.Responses.PagedResult<CustomerDto>> GetPagedAsync(int pageNumber, int pageSize);

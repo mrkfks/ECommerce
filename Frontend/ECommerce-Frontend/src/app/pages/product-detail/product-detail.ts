@@ -2,8 +2,9 @@ import { Component, OnInit, inject, OnDestroy, PLATFORM_ID } from '@angular/core
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { ProductService, CartService, ImageUrlService } from '../../core/services';
+import { ProductService, CartService, ImageUrlService, WishlistService, ReviewService, Review, ReviewCreate } from '../../core/services';
 import { CompanyContextService } from '../../core/services/company-context.service';
+import { AuthService } from '../../core/services/auth.service';
 import { Product } from '../../core/models';
 import { Subject, takeUntil } from 'rxjs';
 
@@ -27,20 +28,36 @@ export class ProductDetail implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private productService = inject(ProductService);
   private cartService = inject(CartService);
+  private wishlistService = inject(WishlistService);
+  private reviewService = inject(ReviewService);
+  private authService = inject(AuthService);
   private companyContext = inject(CompanyContextService);
   private imageUrlService = inject(ImageUrlService);
   private platformId = inject(PLATFORM_ID);
 
   product: Product | null = null;
   relatedProducts: Product[] = [];
+  reviews: Review[] = [];
   isLoading = true;
+  isLoadingReviews = false;
+  isSubmittingReview = false;
   error: string | null = null;
   quantity = 1;
   selectedImageIndex = 0;
+  
+  // Yorum formu
+  reviewForm = {
+    rating: 5,
+    comment: ''
+  };
+  isLoggedIn = false;
 
   private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
+    // Kullanıcı giriş durumunu kontrol et
+    this.isLoggedIn = this.authService.isAuthenticated();
+    
     // SSR sırasında API istekleri yapma
     if (isPlatformBrowser(this.platformId)) {
       this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
@@ -67,6 +84,7 @@ export class ProductDetail implements OnInit, OnDestroy {
         this.selectedImageIndex = 0;
         this.isLoading = false;
         this.loadRelatedProducts();
+        this.loadReviews(id);
       },
       error: (err) => {
         console.error('Ürün yüklenemedi:', err);
@@ -178,6 +196,22 @@ export class ProductDetail implements OnInit, OnDestroy {
     }
   }
 
+  addToWishlist(): void {
+    if (!this.product) return;
+
+    console.log('Adding product to wishlist:', this.product.id);
+    this.wishlistService.addToWishlist(this.product.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        console.log('Ürün favorilere eklendi');
+        alert(`${this.product!.name} favorilere eklendi!`);
+      },
+      error: (err) => {
+        console.error('Favorilere ekleme hatası:', err);
+        alert('Favorilere eklenirken bir hata oluştu.');
+      }
+    });
+  }
+
   incrementQuantity(): void {
     if (this.product && this.quantity < this.product.stockQuantity) {
       this.quantity++;
@@ -213,5 +247,67 @@ export class ProductDetail implements OnInit, OnDestroy {
       return Math.round((1 - this.product.price / this.product.originalPrice) * 100);
     }
     return 0;
+  }
+
+  // ========== YORUM FONKSİYONLARI ==========
+
+  loadReviews(productId: number): void {
+    this.isLoadingReviews = true;
+    this.reviewService.getByProduct(productId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (reviews) => {
+        this.reviews = reviews;
+        this.isLoadingReviews = false;
+      },
+      error: (err) => {
+        console.error('Yorumlar yüklenemedi:', err);
+        this.reviews = [];
+        this.isLoadingReviews = false;
+      }
+    });
+  }
+
+  setRating(rating: number): void {
+    this.reviewForm.rating = rating;
+  }
+
+  submitReview(): void {
+    if (!this.product || !this.isLoggedIn) return;
+    if (!this.reviewForm.comment.trim()) {
+      alert('Lütfen bir yorum yazın.');
+      return;
+    }
+
+    this.isSubmittingReview = true;
+    const reviewData: ReviewCreate = {
+      productId: this.product.id,
+      rating: this.reviewForm.rating,
+      comment: this.reviewForm.comment
+    };
+
+    this.reviewService.create(reviewData).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        alert('Yorumunuz başarıyla gönderildi!');
+        this.reviewForm = { rating: 5, comment: '' };
+        this.isSubmittingReview = false;
+        this.loadReviews(this.product!.id);
+      },
+      error: (err) => {
+        console.error('Yorum gönderilemedi:', err);
+        alert('Yorum gönderilirken bir hata oluştu. Lütfen tekrar deneyin.');
+        this.isSubmittingReview = false;
+      }
+    });
+  }
+
+  getStarArray(rating: number): number[] {
+    return [1, 2, 3, 4, 5].map(star => star <= rating ? 1 : 0);
+  }
+
+  formatDate(date: Date): string {
+    return new Date(date).toLocaleDateString('tr-TR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   }
 }

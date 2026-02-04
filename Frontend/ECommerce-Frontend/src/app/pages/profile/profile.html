@@ -172,17 +172,22 @@
                              placeholder="Sokak, bina numarası vb." required>
                       <small class="text-muted">Tam adresinizi giriniz</small>
                     </div>
-                    <div class="col-md-4">
-                      <label class="form-label fw-medium">Şehir <span class="text-danger">*</span></label>
-                      <input type="text" class="form-control" id="city" name="city" [(ngModel)]="editForm.city" required>
-                      <small class="text-muted">İkamet ettiğiniz şehir</small>
+                    <div class="col-md-6">
+                      <label class="form-label fw-medium">İl <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control" id="city" name="city" [(ngModel)]="editForm.city" required placeholder="Ankara">
+                      <small class="text-muted">İkamet ettiğiniz il</small>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
+                      <label class="form-label fw-medium">İlçe <span class="text-danger">*</span></label>
+                      <input type="text" class="form-control" id="district" name="district" [(ngModel)]="editForm.district" required placeholder="Mamak">
+                      <small class="text-muted">İlçe adı</small>
+                    </div>
+                    <div class="col-md-6">
                       <label class="form-label fw-medium">Posta Kodu <span class="text-danger">*</span></label>
                       <input type="text" class="form-control" id="postalCode" name="postalCode" [(ngModel)]="editForm.postalCode" required>
                       <small class="text-muted">Posta kodu</small>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                       <label class="form-label fw-medium">Ülke <span class="text-danger">*</span></label>
                       <input type="text" class="form-control" id="country" name="country" [(ngModel)]="editForm.country" required>
                       <small class="text-muted">Ülke adı</small>
@@ -209,31 +214,39 @@
                       <label class="form-label fw-medium text-muted small mb-2">
                         <i class="bi bi-signpost text-primary me-2"></i>Adres
                       </label>
-                      <p class="mb-0 fw-medium fs-5">{{ (user | async)?.address || '—' }}</p>
+                      <p class="mb-0 fw-medium fs-5">{{ user?.address || '—' }}</p>
                     </div>
                   </div>
-                  <div class="col-md-4 mb-4">
+                  <div class="col-md-6 mb-4">
                     <div class="bg-light p-3 rounded">
                       <label class="form-label fw-medium text-muted small mb-2">
-                        <i class="bi bi-building text-primary me-2"></i>Şehir
+                        <i class="bi bi-building text-primary me-2"></i>İl
                       </label>
-                      <p class="mb-0 fw-medium fs-5">{{ (user | async)?.city || '—' }}</p>
+                      <p class="mb-0 fw-medium fs-5">{{ user?.city || '—' }}</p>
                     </div>
                   </div>
-                  <div class="col-md-4 mb-4">
+                  <div class="col-md-6 mb-4">
+                    <div class="bg-light p-3 rounded">
+                      <label class="form-label fw-medium text-muted small mb-2">
+                        <i class="bi bi-geo-alt text-primary me-2"></i>İlçe
+                      </label>
+                      <p class="mb-0 fw-medium fs-5">{{ user?.state || '—' }}</p>
+                    </div>
+                  </div>
+                  <div class="col-md-6 mb-4">
                     <div class="bg-light p-3 rounded">
                       <label class="form-label fw-medium text-muted small mb-2">
                         <i class="bi bi-mailbox text-primary me-2"></i>Posta Kodu
                       </label>
-                      <p class="mb-0 fw-medium fs-5">{{ (user | async)?.postalCode || '—' }}</p>
+                      <p class="mb-0 fw-medium fs-5">{{ user?.postalCode || '—' }}</p>
                     </div>
                   </div>
-                  <div class="col-md-4 mb-4">
+                  <div class="col-md-6 mb-4">
                     <div class="bg-light p-3 rounded">
                       <label class="form-label fw-medium text-muted small mb-2">
                         <i class="bi bi-globe text-primary me-2"></i>Ülke
                       </label>
-                      <p class="mb-0 fw-medium fs-5">{{ (user | async)?.country || '—' }}</p>
+                      <p class="mb-0 fw-medium fs-5">{{ user?.country || '—' }}</p>
                     </div>
                   </div>
                 </div>

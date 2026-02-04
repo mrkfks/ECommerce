@@ -55,13 +55,38 @@ export class Checkout implements OnInit, OnDestroy {
       // if (cart && cart.items.length === 0) { ... }
     });
 
-    // Giriş yapmış kullanıcı bilgilerini al
-    const user = this.authService.currentUserValue;
-    if (user) {
-      this.shippingInfo.firstName = user.firstName;
-      this.shippingInfo.lastName = user.lastName;
-      this.shippingInfo.email = user.email;
-    }
+    // Giriş yapmış kullanıcı bilgilerini API'den güncel olarak al
+    this.authService.getCurrentUser().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (user) => {
+        console.log('Checkout - User data received:', user);
+        if (user) {
+          this.shippingInfo.firstName = user.firstName || '';
+          this.shippingInfo.lastName = user.lastName || '';
+          this.shippingInfo.email = user.email || '';
+          this.shippingInfo.phone = user.phone || '';
+          
+          // Kullanıcının profil adres bilgilerini kullan
+          if (user.address) {
+            this.shippingInfo.address = user.address;
+            this.shippingInfo.city = user.city || '';
+            this.shippingInfo.district = user.state || '';  // İlçe
+            this.shippingInfo.postalCode = user.postalCode || '';
+          }
+          
+          console.log('Checkout - ShippingInfo after update:', this.shippingInfo);
+        }
+      },
+      error: (err) => {
+        console.log('Kullanıcı bilgileri alınamadı:', err);
+        // Fallback to cached user
+        const cachedUser = this.authService.currentUserValue;
+        if (cachedUser) {
+          this.shippingInfo.firstName = cachedUser.firstName;
+          this.shippingInfo.lastName = cachedUser.lastName;
+          this.shippingInfo.email = cachedUser.email;
+        }
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -134,13 +159,18 @@ export class Checkout implements OnInit, OnDestroy {
 
     // Şirket ID'sini ilk üründen al (Varsayım: Tek satıcı veya marketplace yapısında sipariş bazında ayrıştırma)
     // Eğer cartItems boşsa 1 varsayıyoruz ama sepette ürün yoksa zaten buraya gelinmemeli.
-    const companyId = this.cartItems.length > 0 ? this.cartItems[0].companyId : 1;
+    const companyId = this.cartItems.length > 0 && this.cartItems[0].companyId ? this.cartItems[0].companyId : 1;
 
     // Order Request Hazırla
     const orderRequest = {
       customerId: user.id,
       addressId: 0, // Yeni adres
-      companyId: companyId,
+      companyId: Number(companyId) || 1,
+      // Müşteri bilgileri
+      firstName: this.shippingInfo.firstName,
+      lastName: this.shippingInfo.lastName,
+      phone: this.shippingInfo.phone,
+      email: this.shippingInfo.email,
       items: this.cartItems.map(item => ({
         productId: item.productId,
         quantity: item.quantity
@@ -161,14 +191,19 @@ export class Checkout implements OnInit, OnDestroy {
     this.orderService.create(orderRequest).pipe(takeUntil(this.destroy$)).subscribe({
       next: (order) => {
         this.isLoading = false;
-        this.cartService.clearCart();
 
         // API Response yapısına göre ID alımı
         // @ts-ignore
         const orderId = order.id || (order as any).data?.id;
 
         alert('Siparişiniz başarıyla alındı!');
-        this.router.navigate(['/order-history']);
+        
+        // Sepeti temizle
+        this.cartService.clearCart().pipe(takeUntil(this.destroy$)).subscribe({
+          complete: () => {
+            this.router.navigate(['/']);
+          }
+        });
       },
       error: (err) => {
         this.isLoading = false;

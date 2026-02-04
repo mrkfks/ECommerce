@@ -33,6 +33,12 @@ public record OrderFormDto
     public OrderStatus Status { get; init; }
     public List<OrderItemFormDto>? Items { get; init; }
 
+    // Müşteri bilgileri (sipariş sırasında güncelleme için)
+    public string? FirstName { get; init; }
+    public string? LastName { get; init; }
+    public string? Phone { get; init; }
+    public string? Email { get; init; }
+
     // Kargo adresi (opsiyonel - Address kullanılabilir)
     public ShippingAddressDto? ShippingAddress { get; init; }
 

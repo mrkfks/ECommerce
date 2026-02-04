@@ -24,7 +24,7 @@ export interface CustomerMessageCreate {
 })
 export class CustomerMessageService {
   private http = inject(HttpClient);
-  private apiUrl = '/api/customermessage';
+  private apiUrl = '/api/customer-messages';
 
   /**
    * Get all messages for current customer

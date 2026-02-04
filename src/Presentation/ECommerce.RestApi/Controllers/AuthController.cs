@@ -27,7 +27,7 @@ public class AuthController : ControllerBase
         var result = await _authService.RegisterAsync(dto);
         return Ok(ECommerce.Application.Responses.ApiResponse<AuthResponseDto>.Ok(result, "Kayıt başarılı"));
     }
- 
+
     /// <summary>
     /// Login user
     /// </summary>
@@ -47,20 +47,38 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> GetCurrentUser()
     {
         var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
-        
+
         if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
         {
             return Unauthorized();
         }
 
         var user = await _authService.GetUserByIdAsync(userId);
-        
+
         if (user == null)
         {
             return NotFound();
         }
 
         return Ok(user);
+    }
+
+    /// <summary>
+    /// Get current user's addresses
+    /// </summary>
+    [HttpGet("addresses")]
+    [Authorize]
+    public async Task<IActionResult> GetCurrentUserAddresses()
+    {
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+        {
+            return Unauthorized();
+        }
+
+        var addresses = await _authService.GetUserAddressesAsync(userId);
+        return Ok(addresses);
     }
 
     /// <summary>
@@ -178,7 +196,7 @@ public class AuthController : ControllerBase
     {
         var hash = BCrypt.Net.BCrypt.HashPassword("Admin123!");
         var user = await context.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Email == "admin@ecommerce.com" || u.Username == "superadmin");
-        
+
         if (user == null)
         {
             // Create default company if not exists
@@ -190,7 +208,7 @@ public class AuthController : ControllerBase
                 await context.SaveChangesAsync();
             }
             company.Approve();
-            
+
             user = ECommerce.Domain.Entities.User.Create(company.Id, "superadmin", "admin@ecommerce.com", hash, "Super", "Admin", "555");
             context.Users.Add(user);
             await context.SaveChangesAsync();

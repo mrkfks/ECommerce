@@ -12,7 +12,7 @@ namespace ECommerce.Domain.Entities
         public DateTime OrderDate { get; private set; }
         public decimal TotalAmount { get; private set; }
         public OrderStatus Status { get; private set; } = OrderStatus.Pending;
-        
+
         public virtual Customer? Customer { get; private set; }
         public virtual Address? Address { get; private set; }
         public virtual Company? Company { get; private set; }
@@ -22,10 +22,10 @@ namespace ECommerce.Domain.Entities
         {
             if (customerId <= 0)
                 throw new ArgumentException("Müşteri ID geçersizdir.", nameof(customerId));
-            
+
             if (addressId <= 0)
                 throw new ArgumentException("Adres ID geçersizdir.", nameof(addressId));
-            
+
             if (companyId <= 0)
                 throw new ArgumentException("Şirket ID geçersizdir.", nameof(companyId));
 
@@ -44,10 +44,10 @@ namespace ECommerce.Domain.Entities
         {
             if (item == null)
                 throw new ArgumentNullException(nameof(item));
-            
+
             if (Status != OrderStatus.Pending)
                 throw new InvalidOperationException("Yalnızca Bekleme durumundaki siparişlere ürün eklenebilir.");
-            
+
             Items.Add(item);
             RecalculateTotal();
         }
@@ -56,7 +56,7 @@ namespace ECommerce.Domain.Entities
         {
             if (Status != OrderStatus.Pending)
                 throw new InvalidOperationException("Yalnızca Bekleme durumundaki siparişlerden ürün kaldırılabilir.");
-            
+
             var item = Items.FirstOrDefault(x => x.Id == orderItemId);
             if (item != null)
             {
@@ -69,7 +69,7 @@ namespace ECommerce.Domain.Entities
         {
             if (Items.Count == 0)
                 throw new InvalidOperationException("En az bir ürün içermesi gereken sipariş onaylanamaz.");
-            
+
             Status = OrderStatus.Processing;
             MarkAsModified();
         }
@@ -78,7 +78,7 @@ namespace ECommerce.Domain.Entities
         {
             if (Status != OrderStatus.Processing)
                 throw new InvalidOperationException("Yalnızca İşlemde olan siparişler gönderilebilir.");
-            
+
             Status = OrderStatus.Shipped;
             MarkAsModified();
         }
@@ -87,7 +87,7 @@ namespace ECommerce.Domain.Entities
         {
             if (Status != OrderStatus.Shipped)
                 throw new InvalidOperationException("Yalnızca Gönderilen siparişler teslim edilebilir.");
-            
+
             Status = OrderStatus.Delivered;
             MarkAsModified();
         }
@@ -96,7 +96,7 @@ namespace ECommerce.Domain.Entities
         {
             if (Status == OrderStatus.Delivered || Status == OrderStatus.Cancelled)
                 throw new InvalidOperationException("Teslim edilen veya iptal edilmiş siparişler iptal edilemez.");
-            
+
             Status = OrderStatus.Cancelled;
             MarkAsModified();
         }
@@ -104,6 +104,15 @@ namespace ECommerce.Domain.Entities
         public void MarkAsPaid()
         {
             Status = OrderStatus.Completed;
+            MarkAsModified();
+        }
+
+        /// <summary>
+        /// Admin panelinden durum değişikliği için - iş akışı kurallarını atlar
+        /// </summary>
+        public void SetStatus(OrderStatus newStatus)
+        {
+            Status = newStatus;
             MarkAsModified();
         }
 

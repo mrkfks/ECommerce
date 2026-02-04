@@ -1,4 +1,5 @@
 @model ECommerce.Application.DTOs.OrderDto
+@using ECommerce.Domain.Enums
 
 @{
     ViewData["Title"] = "Sipariş Durum Güncelle";
@@ -9,22 +10,48 @@
         <h5>Sipariş Durum Güncelle</h5>
     </div>
     <div class="card-body">
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+        
+        <div class="mb-4">
+            <h6 class="text-muted">Sipariş Bilgileri</h6>
+            <p><strong>Sipariş No:</strong> #@Model.Id</p>
+            <p><strong>Müşteri:</strong> @Model.CustomerName</p>
+            <p><strong>Sipariş Tarihi:</strong> @Model.OrderDate.ToString("dd.MM.yyyy HH:mm")</p>
+            <p><strong>Toplam Tutar:</strong> @Model.TotalAmount.ToString("C", new System.Globalization.CultureInfo("tr-TR"))</p>
+            <p><strong>Mevcut Durum:</strong> <span class="badge bg-info">@Model.StatusText</span></p>
+        </div>
+        
+        <hr />
+        
         <form asp-action="Edit" method="post">
-            <input type="hidden" asp-for="Id" />
+            <input type="hidden" name="id" value="@Model.Id" />
 
             <div class="mb-3">
-                <label asp-for="Status" class="form-label"></label>
-                <select asp-for="Status" class="form-select">
-                    <option>Beklemede</option>
-                    <option>İşleniyor</option>
-                    <option>Kargoda</option>
-                    <option>Teslim</option>
+                <label class="form-label fw-bold">Yeni Durum</label>
+                <select name="status" class="form-select">
+                    @foreach (var item in ViewBag.StatusList)
+                    {
+                        <option value="@item.Value" selected="@(item.Value == (int)Model.Status)">
+                            @item.Text
+                        </option>
+                    }
                 </select>
-                <span asp-validation-for="Status" class="text-danger"></span>
             </div>
 
-            <button type="submit" class="btn btn-primary">Kaydet</button>
-            <a asp-action="Index" class="btn btn-secondary">İptal</a>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle me-1"></i>Kaydet
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-x-circle me-1"></i>İptal
+                </a>
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info">
+                    <i class="bi bi-eye me-1"></i>Detaylar
+                </a>
+            </div>
         </form>
     </div>
 </div>

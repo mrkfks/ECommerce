@@ -72,9 +72,16 @@ export class CartService {
     return sessionId;
   }
 
+  private getCompanyIdHeader(): { [key: string]: string } {
+    const companyId = this.companyContext.companyId() || 1; // Fallback to company 1
+    return { 'X-Company-Id': companyId.toString() };
+  }
+
   loadCart(): void {
     const sessionId = this.getSessionId();
-    this.http.get<ApiResponse<Cart>>(`${this.basePath}?sessionId=${sessionId}`).pipe(
+    this.http.get<ApiResponse<Cart>>(`${this.basePath}?sessionId=${sessionId}`, {
+      headers: this.getCompanyIdHeader()
+    }).pipe(
       map(response => response.data)
     ).subscribe({
       next: (cart) => {
@@ -89,36 +96,47 @@ export class CartService {
   addToCart(productId: number, quantity: number = 1): Observable<any> {
     const sessionId = this.getSessionId();
     const request: AddToCartRequest = { productId, quantity };
-    return this.http.post(`${this.basePath}/items?sessionId=${sessionId}`, request).pipe(
+    return this.http.post(`${this.basePath}/items?sessionId=${sessionId}`, request, {
+      headers: this.getCompanyIdHeader()
+    }).pipe(
       tap(() => this.loadCart())
     );
   }
 
   removeFromCart(itemId: number): Observable<any> {
-    return this.http.delete(`${this.basePath}/items/${itemId}`).pipe(
+    return this.http.delete(`${this.basePath}/items/${itemId}`, {
+      headers: this.getCompanyIdHeader()
+    }).pipe(
       tap(() => this.loadCart())
     );
   }
 
   updateQuantity(itemId: number, quantity: number): Observable<any> {
-    return this.http.put(`${this.basePath}/items/${itemId}`, { quantity }).pipe(
+    return this.http.put(`${this.basePath}/items/${itemId}`, { quantity }, {
+      headers: this.getCompanyIdHeader()
+    }).pipe(
       tap(() => this.loadCart())
     );
   }
 
   clearCart(): Observable<any> {
-    return this.http.delete(`${this.basePath}`).pipe(
+    const sessionId = this.getSessionId();
+    return this.http.delete(`${this.basePath}?sessionId=${sessionId}`, {
+      headers: this.getCompanyIdHeader()
+    }).pipe(
       tap(() => this.loadCart())
     );
   }
 
   mergeCart(): Observable<any> {
     const sessionId = this.getSessionId();
-    return this.http.post(`${this.basePath}/merge`, { sessionId }).pipe(
+    return this.http.post(`${this.basePath}/merge`, { sessionId }, {
+      headers: this.getCompanyIdHeader()
+    }).pipe(
       tap(() => {
-        // After merge, maybe clear session ID or just reload cart (which will now be user cart)
         this.loadCart();
       })
     );
   }
 }
+

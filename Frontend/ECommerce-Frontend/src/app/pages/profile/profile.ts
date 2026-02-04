@@ -28,7 +28,8 @@ export class Profile implements OnInit, OnDestroy {
     email: '',
     phone: '',
     address: '',
-    city: '',
+    city: '',       // İl
+    district: '',   // İlçe
     postalCode: '',
     country: ''
   };
@@ -66,10 +67,11 @@ export class Profile implements OnInit, OnDestroy {
         lastName: this.user.lastName,
         email: this.user.email,
         phone: this.user.phone || '',
-        address: (this.user as any).address || '',
-        city: (this.user as any).city || '',
-        postalCode: (this.user as any).postalCode || '',
-        country: (this.user as any).country || ''
+        address: this.user.address || '',
+        city: this.user.city || '',
+        district: this.user.state || '',  // İlçe
+        postalCode: this.user.postalCode || '',
+        country: this.user.country || ''
       };
     }
   }
@@ -89,7 +91,13 @@ export class Profile implements OnInit, OnDestroy {
       firstName: this.editForm.firstName,
       lastName: this.editForm.lastName,
       email: this.editForm.email,
-      username: this.user.username
+      username: this.user.username,
+      phone: this.editForm.phone,
+      address: this.editForm.address,
+      city: this.editForm.city,          // İl
+      state: this.editForm.district,      // İlçe
+      postalCode: this.editForm.postalCode,
+      country: this.editForm.country || 'Türkiye'
     };
 
     this.authService.updateProfile(request).pipe(takeUntil(this.destroy$)).subscribe({

@@ -49,5 +49,5 @@ public record WishlistItemDto
     public string? ProductImage { get; init; }
     public decimal Price { get; init; }
     public int CompanyId { get; init; }
-    public DateTime CreatedAt { get; init; }
+    public DateTime AddedAt { get; init; }
 }

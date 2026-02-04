@@ -124,6 +124,12 @@ namespace ECommerce.Infrastructure.Services
             return customer == null ? null : MapToDto(customer);
         }
 
+        public async Task<CustomerDto?> GetByUserIdAsync(int userId)
+        {
+            var customer = await _context.Customers.AsNoTracking().FirstOrDefaultAsync(c => c.UserId == userId);
+            return customer == null ? null : MapToDto(customer);
+        }
+
         public async Task<IReadOnlyList<OrderDto>> GetOrdersAsync(int customerId)
         {
             // Simple mapping for now, ideally delegate to OrderService or Repository

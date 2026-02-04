@@ -8,7 +8,12 @@ export interface User {
   role: string;
   companyId?: number;
   createdAt: Date;
-  phone?: string; // Added phone property to User interface
+  phone?: string;
+  country?: string;
+  address?: string;
+  city?: string;
+  state?: string;  // İlçe
+  postalCode?: string;
 }
 
 export interface LoginRequest {
@@ -44,6 +49,12 @@ export interface UserProfileUpdateRequest {
   email: string;
   firstName: string;
   lastName: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
 }
 
 export interface ChangePasswordRequest {

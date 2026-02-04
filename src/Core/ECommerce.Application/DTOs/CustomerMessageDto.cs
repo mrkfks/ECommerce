@@ -42,3 +42,15 @@ public record CustomerMessageSummaryDto(
     int RepliedMessages,
     List<CustomerMessageDto> RecentMessages
 );
+
+/// <summary>
+/// Frontend'den gelen mesaj oluşturma DTO'su
+/// </summary>
+public record CustomerMessageFormDto
+{
+    public string Subject { get; init; } = string.Empty;
+    public string Message { get; init; } = string.Empty;
+    public int? OrderId { get; init; }
+    public MessageCategory Category { get; init; } = MessageCategory.General;
+}
+

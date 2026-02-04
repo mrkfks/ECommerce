@@ -16,6 +16,8 @@ namespace ECommerce.Application.Interfaces
 
         Task<UserDto?> GetUserByIdAsync(int userId);
 
+        Task<List<AddressDto>> GetUserAddressesAsync(int userId);
+
         Task<bool> IsEmailAvailableAsync(string email);
 
         Task<bool> IsUsernameAvailableAsync(string username);

@@ -367,6 +367,8 @@ namespace ECommerce.Infrastructure.Services
 
         public async Task<UserDto?> GetUserByIdAsync(int userId)
         {
+            _logger.LogInformation("GetUserByIdAsync called for userId: {UserId}", userId);
+
             var user = await _context.Users
                 .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
@@ -374,19 +376,83 @@ namespace ECommerce.Infrastructure.Services
                 .FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
+            {
+                _logger.LogWarning("User not found for userId: {UserId}", userId);
                 return null;
+            }
+
+            _logger.LogInformation("User found: {Username}, FirstName={FirstName}, LastName={LastName}, Phone={Phone}",
+                user.Username, user.FirstName, user.LastName, user.PhoneNumber);
+
+            // Kullanıcının Customer profilini ve adresini bul
+            var customer = await _context.Customers
+                .Where(c => c.UserId == userId)
+                .Include(c => c.Addresses)
+                .FirstOrDefaultAsync();
+
+            _logger.LogInformation("Customer found: {CustomerFound}, FirstName={FirstName}, LastName={LastName}, Phone={Phone}",
+                customer != null, customer?.FirstName, customer?.LastName, customer?.PhoneNumber);
+
+            var primaryAddress = customer?.Addresses?.FirstOrDefault();
+
+            _logger.LogInformation("Address found: {AddressFound}, Street={Street}, City={City}, State={State}, ZipCode={ZipCode}",
+                primaryAddress != null, primaryAddress?.Street, primaryAddress?.City, primaryAddress?.State, primaryAddress?.ZipCode);
+
+            // Ad/Soyad önce User'dan, yoksa Customer'dan al
+            var firstName = !string.IsNullOrEmpty(user.FirstName) ? user.FirstName : customer?.FirstName ?? string.Empty;
+            var lastName = !string.IsNullOrEmpty(user.LastName) ? user.LastName : customer?.LastName ?? string.Empty;
+            var phone = !string.IsNullOrEmpty(user.PhoneNumber) ? user.PhoneNumber : customer?.PhoneNumber;
+
+            _logger.LogInformation("Final values: FirstName={FirstName}, LastName={LastName}, Phone={Phone}",
+                firstName, lastName, phone);
 
             return new UserDto
             {
                 Id = user.Id,
                 Username = user.Username,
                 Email = user.Email,
+                FirstName = firstName,
+                LastName = lastName,
                 CompanyId = user.CompanyId,
                 CompanyName = user.Company?.Name,
                 Roles = user.UserRoles.Select(ur => ur.Role?.Name ?? "").ToList(),
                 IsActive = user.IsActive,
-                CreatedAt = user.CreatedAt
+                CreatedAt = user.CreatedAt,
+                Phone = phone,
+                Address = primaryAddress?.Street,
+                City = primaryAddress?.City,
+                State = primaryAddress?.State,  // İlçe
+                PostalCode = primaryAddress?.ZipCode,
+                Country = primaryAddress?.Country ?? "Türkiye"
             };
+        }
+
+        public async Task<List<AddressDto>> GetUserAddressesAsync(int userId)
+        {
+            // User'a ait Customer bul
+            var customer = await _context.Customers
+                .Where(c => c.UserId == userId)
+                .Include(c => c.Addresses)
+                .FirstOrDefaultAsync();
+
+            if (customer == null)
+            {
+                return new List<AddressDto>();
+            }
+
+            // Customer'ın adreslerini DTO'ya dönüştür
+            return customer.Addresses?
+                .Select(a => new AddressDto
+                {
+                    Id = a.Id,
+                    Street = a.Street,
+                    City = a.City,
+                    State = a.State,
+                    PostalCode = a.ZipCode,
+                    Country = a.Country,
+                    CustomerId = a.CustomerId
+                })
+                .ToList() ?? new List<AddressDto>();
         }
 
         public async Task<bool> IsEmailAvailableAsync(string email)
@@ -426,6 +492,62 @@ namespace ECommerce.Infrastructure.Services
             }
 
             user.UpdateProfile(dto.FirstName, dto.LastName, dto.Email ?? string.Empty, dto.Username);
+
+            // Telefon numarasını güncelle
+            if (!string.IsNullOrEmpty(dto.Phone))
+            {
+                user.UpdatePhone(dto.Phone);
+            }
+
+            // Adres bilgilerini güncelle/oluştur
+            if (!string.IsNullOrEmpty(dto.Address))
+            {
+                // Kullanıcının Customer profilini bul veya oluştur
+                var customer = await _context.Customers
+                    .Include(c => c.Addresses)
+                    .FirstOrDefaultAsync(c => c.UserId == userId);
+
+                if (customer == null)
+                {
+                    // Customer yoksa oluştur
+                    customer = Customer.Create(
+                        user.CompanyId,
+                        user.FirstName ?? dto.FirstName,
+                        user.LastName ?? dto.LastName,
+                        user.Email,
+                        dto.Phone ?? "",
+                        DateTime.UtcNow.AddYears(-25), // Varsayılan doğum tarihi
+                        userId
+                    );
+                    _context.Customers.Add(customer);
+                    await _context.SaveChangesAsync();
+                }
+
+                // Mevcut adresi bul veya yeni oluştur
+                var existingAddress = customer.Addresses?.FirstOrDefault();
+                if (existingAddress != null)
+                {
+                    existingAddress.Update(
+                        dto.Address,
+                        dto.City ?? existingAddress.City,
+                        dto.State ?? existingAddress.State,
+                        dto.PostalCode ?? existingAddress.ZipCode,
+                        dto.Country ?? existingAddress.Country
+                    );
+                }
+                else
+                {
+                    var newAddress = Address.Create(
+                        customer.Id,
+                        dto.Address,
+                        dto.City ?? "",
+                        dto.State ?? "",
+                        dto.PostalCode ?? "",
+                        dto.Country ?? "Türkiye"
+                    );
+                    _context.Addresses.Add(newAddress);
+                }
+            }
 
             await _context.SaveChangesAsync();
 

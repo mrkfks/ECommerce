@@ -15,6 +15,9 @@ namespace ECommerce.Application.Interfaces
         Task UpdateStatusAsync(int orderId, OrderStatus status);
         Task AddItemAsync(int orderId, OrderItemFormDto itemDto);
         Task RemoveItemAsync(int orderId, int productId);
+        
+        // Sipariş iptali
+        Task CancelOrderAsync(int orderId);
     }
 }
 

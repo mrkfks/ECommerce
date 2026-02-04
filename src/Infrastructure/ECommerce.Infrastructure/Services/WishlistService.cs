@@ -140,10 +140,11 @@ public class WishlistService : IWishlistService
                 ProductId = productId
             };
 
+            wishlist.Items.Add(item);  // Koleksiyona da ekle
             _context.WishlistItems.Add(item);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Product {ProductId} added to wishlist for session {SessionId}", productId, sessionId);
+            _logger.LogInformation("Product {ProductId} added to wishlist {WishlistId} for session {SessionId}. Total items: {ItemCount}", productId, wishlist.Id, sessionId, wishlist.Items.Count);
         }
         catch (Exception ex)
         {
@@ -229,7 +230,7 @@ public class WishlistService : IWishlistService
                     ProductImage = product?.ImageUrl,
                     Price = product?.Price ?? 0,
                     CompanyId = product?.CompanyId ?? 0,
-                    CreatedAt = i.CreatedAt
+                    AddedAt = i.CreatedAt
                 };
             }).ToList(),
             TotalItems = wishlist.Items.Count

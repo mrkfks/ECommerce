@@ -143,4 +143,102 @@ public class ReviewService : IReviewService
             CustomerName = r.Customer != null ? r.Customer.FirstName + " " + r.Customer.LastName : ""
         };
     }
+
+    public async Task<ReviewSummaryDto> GetProductSummaryAsync(int productId)
+    {
+        var reviews = await _context.Reviews
+            .Where(r => r.ProductId == productId)
+            .AsNoTracking()
+            .ToListAsync();
+
+        if (!reviews.Any())
+        {
+            return new ReviewSummaryDto
+            {
+                ProductId = productId,
+                AverageRating = 0,
+                TotalReviews = 0,
+                RatingDistribution = new Dictionary<int, int>
+                {
+                    { 1, 0 }, { 2, 0 }, { 3, 0 }, { 4, 0 }, { 5, 0 }
+                }
+            };
+        }
+
+        var averageRating = reviews.Average(r => r.Rating);
+        var ratingDistribution = reviews
+            .GroupBy(r => r.Rating)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        // Ensure all ratings 1-5 are present
+        for (int i = 1; i <= 5; i++)
+        {
+            if (!ratingDistribution.ContainsKey(i))
+                ratingDistribution[i] = 0;
+        }
+
+        return new ReviewSummaryDto
+        {
+            ProductId = productId,
+            AverageRating = Math.Round(averageRating, 1),
+            TotalReviews = reviews.Count,
+            RatingDistribution = ratingDistribution
+        };
+    }
+
+    public async Task<IReadOnlyList<ReviewDto>> GetMyReviewsAsync(int userId)
+    {
+        // Kullanıcının CustomerId'sini bul
+        var customer = await _context.Customers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.UserId == userId);
+
+        if (customer == null)
+            return new List<ReviewDto>();
+
+        var reviews = await _context.Reviews
+            .Include(r => r.Product)
+            .Include(r => r.Customer)
+            .Where(r => r.CustomerId == customer.Id)
+            .AsNoTracking()
+            .OrderByDescending(r => r.CreatedAt)
+            .ToListAsync();
+
+        return reviews.Select(MapToDto).ToList();
+    }
+
+    public async Task<CanReviewDto> CanReviewAsync(int productId, int userId)
+    {
+        // Kullanıcının CustomerId'sini bul
+        var customer = await _context.Customers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.UserId == userId);
+
+        if (customer == null)
+        {
+            return new CanReviewDto
+            {
+                CanReview = false,
+                HasPurchased = false,
+                HasReviewed = false
+            };
+        }
+
+        // Bu ürünü satın almış mı?
+        var hasPurchased = await _context.OrderItems
+            .AnyAsync(oi => oi.ProductId == productId && 
+                           oi.Order != null && 
+                           oi.Order.CustomerId == customer.Id);
+
+        // Bu ürüne daha önce yorum yapmış mı?
+        var hasReviewed = await _context.Reviews
+            .AnyAsync(r => r.ProductId == productId && r.CustomerId == customer.Id);
+
+        return new CanReviewDto
+        {
+            CanReview = hasPurchased && !hasReviewed,
+            HasPurchased = hasPurchased,
+            HasReviewed = hasReviewed
+        };
+    }
 }

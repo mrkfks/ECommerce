@@ -118,6 +118,63 @@ public class ProductController : ControllerBase
         var result = await _productService.SearchAsync(searchTerm);
         return Ok(new { Data = result, Success = true });
     }
+
+    /// <summary>
+    /// Öne çıkan ürünleri getirir
+    /// </summary>
+    [HttpGet("featured")]
+    [AllowAnonymous]
+    [ResponseCache(Duration = 60)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetFeatured([FromQuery] int count = 8)
+    {
+        _logger.LogInformation("Fetching featured products, count: {Count}", count);
+        var result = await _productService.GetFeaturedAsync(count);
+        return Ok(new ECommerce.Application.Responses.ApiResponse<IEnumerable<ProductDto>> 
+        { 
+            Success = true, 
+            Data = result, 
+            Message = "" 
+        });
+    }
+
+    /// <summary>
+    /// Yeni ürünleri getirir
+    /// </summary>
+    [HttpGet("new")]
+    [AllowAnonymous]
+    [ResponseCache(Duration = 60)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetNewArrivals([FromQuery] int count = 8)
+    {
+        _logger.LogInformation("Fetching new arrivals, count: {Count}", count);
+        var result = await _productService.GetNewArrivalsAsync(count);
+        return Ok(new ECommerce.Application.Responses.ApiResponse<IEnumerable<ProductDto>> 
+        { 
+            Success = true, 
+            Data = result, 
+            Message = "" 
+        });
+    }
+
+    /// <summary>
+    /// Çok satanları getirir
+    /// </summary>
+    [HttpGet("bestsellers")]
+    [AllowAnonymous]
+    [ResponseCache(Duration = 60)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetBestSellers([FromQuery] int count = 8)
+    {
+        _logger.LogInformation("Fetching bestsellers, count: {Count}", count);
+        var result = await _productService.GetBestSellersAsync(count);
+        return Ok(new ECommerce.Application.Responses.ApiResponse<IEnumerable<ProductDto>> 
+        { 
+            Success = true, 
+            Data = result, 
+            Message = "" 
+        });
+    }
     
     /// <summary>
     /// Ürün günceller

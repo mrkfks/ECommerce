@@ -50,7 +50,8 @@ export class WishlistService {
 
   private getSessionId(): string {
     if (!isPlatformBrowser(this.platformId)) {
-      return 'server-session';
+      // Generate a unique session ID for server-side rendering
+      return 'server-' + Math.random().toString(36).substr(2, 9);
     }
 
     try {
@@ -87,27 +88,36 @@ export class WishlistService {
 
   loadWishlist(): void {
     const sessionId = this.getSessionId();
-    this.http.get<ApiResponse<Wishlist>>(
+    console.log('Loading wishlist with sessionId:', sessionId);
+    this.http.get<any>(
       `${this.basePath}?sessionId=${sessionId}`,
       { headers: this.getCompanyIdHeader() }
     ).subscribe({
       next: (response) => {
+        console.log('Wishlist response received:', response);
         const wishlist = response.data;
         this.wishlistSubject.next(wishlist);
         this.wishlist.set(wishlist);
       },
-      error: (err) => console.error('Failed to load wishlist', err)
+      error: (err) => {
+        console.error('Failed to load wishlist', err);
+        console.error('Error details:', err.error);
+      }
     });
   }
 
   addToWishlist(productId: number): Observable<any> {
     const sessionId = this.getSessionId();
+    console.log('Adding product to wishlist:', { productId, sessionId });
     return this.http.post(
       `${this.basePath}/items?sessionId=${sessionId}`,
       { productId },
       { headers: this.getCompanyIdHeader() }
     ).pipe(
-      tap(() => this.loadWishlist())
+      tap(() => {
+        console.log('Product added to wishlist, reloading...');
+        this.loadWishlist();
+      })
     );
   }
 

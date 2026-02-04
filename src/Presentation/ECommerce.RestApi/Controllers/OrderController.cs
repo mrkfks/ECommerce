@@ -91,6 +91,40 @@ public class OrderController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Sipariş durumunu günceller (PATCH)
+    /// </summary>
+    [HttpPatch("{id}/status")]
+    public async Task<IActionResult> PatchStatus(int id, [FromBody] UpdateOrderStatusDto dto)
+    {
+        try
+        {
+            await _orderService.UpdateStatusAsync(id, dto.Status);
+            return Ok(new { message = "Sipariş Durumu Güncellendi" });
+        }
+        catch (Exception ex)
+        {
+             return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Siparişi iptal eder
+    /// </summary>
+    [HttpPost("{id}/cancel")]
+    public async Task<IActionResult> Cancel(int id)
+    {
+        try
+        {
+            await _orderService.CancelOrderAsync(id);
+            return Ok(new { message = "Sipariş İptal Edildi" });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {

@@ -48,6 +48,15 @@ namespace ECommerce.Application.Interfaces
 
         // Toplu Fiyat Güncelleme
         Task BulkUpdatePriceAsync(List<int> productIds, decimal percentage);
+
+        // Öne çıkan ürünler
+        Task<IReadOnlyList<ProductDto>> GetFeaturedAsync(int count = 8);
+
+        // Yeni ürünler
+        Task<IReadOnlyList<ProductDto>> GetNewArrivalsAsync(int count = 8);
+
+        // Çok satanlar
+        Task<IReadOnlyList<ProductDto>> GetBestSellersAsync(int count = 8);
     }
 }
 

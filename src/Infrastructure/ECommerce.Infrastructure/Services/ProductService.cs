@@ -376,6 +376,100 @@ namespace ECommerce.Infrastructure.Services
             await query.ExecuteUpdateAsync(s => s.SetProperty(p => p.Price, p => p.Price * multiplier));
         }
 
+        public async Task<IReadOnlyList<ProductDto>> GetFeaturedAsync(int count = 8)
+        {
+            var companyId = _tenantService.GetCompanyId();
+            var query = _context.Products.AsNoTracking().Where(p => p.IsActive);
+
+            if (companyId.HasValue)
+                query = query.Where(p => p.CompanyId == companyId.Value);
+
+            // Öne çıkan ürünler: İndirimli veya yüksek puanlı ürünler
+            var products = await query
+                .Include(p => p.Category)
+                .Include(p => p.Brand)
+                .Include(p => p.Model)
+                .Include(p => p.Images)
+                .OrderByDescending(p => p.StockQuantity > 0) // Stokta olanlar önce
+                .ThenByDescending(p => p.UpdatedAt)
+                .Take(count)
+                .ToListAsync();
+
+            return products.Select(MapToDto).ToList();
+        }
+
+        public async Task<IReadOnlyList<ProductDto>> GetNewArrivalsAsync(int count = 8)
+        {
+            var companyId = _tenantService.GetCompanyId();
+            var query = _context.Products.AsNoTracking().Where(p => p.IsActive);
+
+            if (companyId.HasValue)
+                query = query.Where(p => p.CompanyId == companyId.Value);
+
+            // Yeni ürünler: Son eklenenler
+            var products = await query
+                .Include(p => p.Category)
+                .Include(p => p.Brand)
+                .Include(p => p.Model)
+                .Include(p => p.Images)
+                .OrderByDescending(p => p.CreatedAt)
+                .Take(count)
+                .ToListAsync();
+
+            return products.Select(MapToDto).ToList();
+        }
+
+        public async Task<IReadOnlyList<ProductDto>> GetBestSellersAsync(int count = 8)
+        {
+            var companyId = _tenantService.GetCompanyId();
+            var query = _context.Products.AsNoTracking().Where(p => p.IsActive);
+
+            if (companyId.HasValue)
+                query = query.Where(p => p.CompanyId == companyId.Value);
+
+            // Çok satanlar: En çok sipariş edilen ürünler (sipariş sayısına göre)
+            // OrderItems tablosundan groupby ile bulalım
+            var bestSellerIds = await _context.OrderItems
+                .GroupBy(oi => oi.ProductId)
+                .Select(g => new { ProductId = g.Key, TotalQuantity = g.Sum(x => x.Quantity) })
+                .OrderByDescending(x => x.TotalQuantity)
+                .Take(count)
+                .Select(x => x.ProductId)
+                .ToListAsync();
+
+            if (bestSellerIds.Any())
+            {
+                var products = await _context.Products.AsNoTracking()
+                    .Where(p => bestSellerIds.Contains(p.Id) && p.IsActive)
+                    .Include(p => p.Category)
+                    .Include(p => p.Brand)
+                    .Include(p => p.Model)
+                    .Include(p => p.Images)
+                    .ToListAsync();
+
+                // Sıralamayı koruyalım
+                var orderedProducts = bestSellerIds
+                    .Select(id => products.FirstOrDefault(p => p.Id == id))
+                    .Where(p => p != null)
+                    .Select(p => MapToDto(p!))
+                    .ToList();
+
+                return orderedProducts;
+            }
+
+            // Sipariş yoksa, stok miktarına göre sırala
+            var fallbackProducts = await query
+                .Include(p => p.Category)
+                .Include(p => p.Brand)
+                .Include(p => p.Model)
+                .Include(p => p.Images)
+                .OrderByDescending(p => p.StockQuantity)
+                .Take(count)
+                .ToListAsync();
+
+            return fallbackProducts.Select(MapToDto).ToList();
+        }
+
         private static ProductDto MapToDto(Product p)
         {
             var imageUrl = p.Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl ?? p.Images.FirstOrDefault()?.ImageUrl ?? string.Empty;

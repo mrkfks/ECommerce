@@ -26,12 +26,12 @@ public class WishlistController : ControllerBase
         {
             _logger.LogInformation("GetWishlist called with sessionId: {SessionId}", sessionId);
             var wishlist = await _wishlistService.GetWishlistAsync(sessionId);
-            return Ok(new { success = true, data = wishlist });
+            return Ok(wishlist);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting wishlist: {Message}", ex.Message);
-            return BadRequest(new { success = false, message = ex.Message });
+            return BadRequest(ex.Message);
         }
     }
 
@@ -42,12 +42,12 @@ public class WishlistController : ControllerBase
         try
         {
             await _wishlistService.AddToWishlistAsync(dto.ProductId, sessionId);
-            return Ok(new { success = true, message = "Item added to wishlist" });
+            return Ok("Item added to wishlist");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error adding to wishlist");
-            return BadRequest(new { success = false, message = ex.Message });
+            return BadRequest(ex.Message);
         }
     }
 
@@ -58,12 +58,12 @@ public class WishlistController : ControllerBase
         try
         {
             await _wishlistService.RemoveFromWishlistAsync(itemId);
-            return Ok(new { success = true, message = "Item removed from wishlist" });
+            return Ok("Item removed from wishlist");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error removing from wishlist");
-            return BadRequest(new { success = false, message = ex.Message });
+            return BadRequest(ex.Message);
         }
     }
 
@@ -74,12 +74,12 @@ public class WishlistController : ControllerBase
         try
         {
             await _wishlistService.ClearWishlistAsync(sessionId);
-            return Ok(new { success = true, message = "Wishlist cleared" });
+            return Ok("Wishlist cleared");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error clearing wishlist");
-            return BadRequest(new { success = false, message = ex.Message });
+            return BadRequest(ex.Message);
         }
     }
 }

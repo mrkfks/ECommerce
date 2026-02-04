@@ -28,10 +28,10 @@ namespace Dashboard.Web.Controllers
         {
             var review = await _reviewService.GetByIdAsync(id);
 
-            if (review == null)
+            if (review?.Data == null)
                 return NotFound();
 
-            return View(review);
+            return View(review.Data);
         }
 
         // Silme
@@ -41,10 +41,10 @@ namespace Dashboard.Web.Controllers
         {
             var review = await _reviewService.GetByIdAsync(id);
 
-            if (review == null)
+            if (review?.Data == null)
                 return NotFound();
 
-            return View(review);
+            return View(review.Data);
         }
 
         [Authorize(Roles = "CompanyAdmin,SuperAdmin,User")]
