@@ -18,6 +18,7 @@ namespace ECommerce.Infrastructure.Services
         private readonly Microsoft.AspNetCore.SignalR.IHubContext<ECommerce.Infrastructure.Hubs.NotificationHub> _hubContext;
         private readonly ICacheService _cacheService;
         private readonly ECommerce.Domain.Interfaces.IPaymentService _paymentService;
+        private readonly INotificationService _notificationService;
 
 
         public OrderService(
@@ -27,7 +28,8 @@ namespace ECommerce.Infrastructure.Services
             ILogger<OrderService> logger,
             Microsoft.AspNetCore.SignalR.IHubContext<ECommerce.Infrastructure.Hubs.NotificationHub> hubContext,
             ICacheService cacheService,
-            ECommerce.Domain.Interfaces.IPaymentService paymentService)
+            ECommerce.Domain.Interfaces.IPaymentService paymentService,
+            INotificationService notificationService)
         {
             _context = context;
             _tenantService = tenantService;
@@ -36,6 +38,7 @@ namespace ECommerce.Infrastructure.Services
             _hubContext = hubContext;
             _cacheService = cacheService;
             _paymentService = paymentService;
+            _notificationService = notificationService;
         }
 
         public async Task<OrderDto> CreateAsync(OrderFormDto dto)
@@ -157,8 +160,8 @@ namespace ECommerce.Infrastructure.Services
                     }
                 }
 
-                // Tüm kalemler eklendi ve stok düştü, şimdi siparişi tamamlandı olarak işaretle
-                order.MarkAsPaid();
+                // Sipariş Pending (Beklemede) durumunda kalır - Admin onaylayana kadar
+                // Ödeme başarılı olduğu için stok düşürüldü, ancak sipariş onay bekliyor
 
                 // 4. Sepeti Temizle (Varsa)
                 // Müşterinin bu şirketteki aktif sepetini bul ve temizle
@@ -188,6 +191,19 @@ namespace ECommerce.Infrastructure.Services
                 {
                     _logger.LogWarning(ex, "Failed to send real-time notification for Order {OrderId}", order.Id);
                     _logger.LogWarning(ex, "Failed to send real-time notification for Order {OrderId}", order.Id);
+                    // Do not throw, order is already committed
+                }
+
+                // 5.1 Create Dashboard Notification
+                try
+                {
+                    var customerName = customer != null ? $"{customer.FirstName} {customer.LastName}".Trim() : "Müşteri";
+                    await _notificationService.CreateNewOrderNotificationAsync(order.Id, customerName, order.TotalAmount, order.CompanyId);
+                    _logger.LogInformation("Dashboard notification created for Order {OrderId}", order.Id);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to create dashboard notification for Order {OrderId}", order.Id);
                     // Do not throw, order is already committed
                 }
 

@@ -40,15 +40,16 @@ public class UserManagementController : ControllerBase
 
         var users = await userQuery.ToListAsync();
 
-        var todayLogins = await _context.LoginHistories
-            .Where(lh => lh.LoginTime.Date == today && lh.IsSuccessful)
-            .Select(lh => lh.UserId)
-            .Distinct()
-            .CountAsync();
+        // Login History feature removed
+        // var todayLogins = await _context.LoginHistories
+        //     .Where(lh => lh.LoginTime.Date == today && lh.IsSuccessful)
+        //     .Select(lh => lh.UserId)
+        //     .Distinct()
+        //     .CountAsync();
 
-        var suspiciousLogins = await _context.LoginHistories
-            .Where(lh => lh.IsSuspicious && lh.LoginTime.Date == today)
-            .CountAsync();
+        // var suspiciousLogins = await _context.LoginHistories
+        //     .Where(lh => lh.IsSuspicious && lh.LoginTime.Date == today)
+        //     .CountAsync();
 
         var summary = new UserManagementSummaryDto
         {
@@ -58,8 +59,8 @@ public class UserManagementController : ControllerBase
             SuperAdminCount = users.Count(u => u.UserRoles.Any(ur => ur.RoleName == "SuperAdmin")),
             CompanyAdminCount = users.Count(u => u.UserRoles.Any(ur => ur.RoleName == "CompanyAdmin")),
             CustomerCount = users.Count(u => u.UserRoles.Any(ur => ur.RoleName == "Customer")),
-            TodayLogins = todayLogins,
-            SuspiciousLogins = suspiciousLogins,
+            TodayLogins = 0,
+            SuspiciousLogins = 0,
             RecentUsers = users
                 .OrderByDescending(u => u.CreatedAt)
                 .Take(5)
@@ -135,13 +136,13 @@ public class UserManagementController : ControllerBase
             .Take(filter.PageSize)
             .ToListAsync();
 
-        // Son giriş bilgilerini al
-        var userIds = users.Select(u => u.Id).ToList();
-        var lastLogins = await _context.LoginHistories
-            .Where(lh => userIds.Contains(lh.UserId) && lh.IsSuccessful)
-            .GroupBy(lh => lh.UserId)
-            .Select(g => new { UserId = g.Key, LastLogin = g.Max(lh => lh.LoginTime), LastIp = g.OrderByDescending(lh => lh.LoginTime).First().IpAddress })
-            .ToListAsync();
+        // Son giriş bilgilerini al (Login History feature removed)
+        // var userIds = users.Select(u => u.Id).ToList();
+        // var lastLogins = await _context.LoginHistories
+        //     .Where(lh => userIds.Contains(lh.UserId) && lh.IsSuccessful)
+        //     .GroupBy(lh => lh.UserId)
+        //     .Select(g => new { UserId = g.Key, LastLogin = g.Max(lh => lh.LoginTime), LastIp = g.OrderByDescending(lh => lh.LoginTime).First().IpAddress })
+        //     .ToListAsync();
 
         var result = new PagedUserListDto
         {
@@ -150,7 +151,7 @@ public class UserManagementController : ControllerBase
             PageSize = filter.PageSize,
             Users = users.Select(u =>
             {
-                var lastLogin = lastLogins.FirstOrDefault(ll => ll.UserId == u.Id);
+                // var lastLogin = lastLogins.FirstOrDefault(ll => ll.UserId == u.Id);
                 return new UserWithRoleDto
                 {
                     Id = u.Id,
@@ -162,8 +163,8 @@ public class UserManagementController : ControllerBase
                     CompanyId = u.CompanyId,
                     CompanyName = u.Company?.Name,
                     Roles = u.UserRoles.Select(ur => ur.RoleName).ToList(),
-                    LastLoginTime = lastLogin?.LastLogin,
-                    LastLoginIp = lastLogin?.LastIp,
+                    LastLoginTime = null,
+                    LastLoginIp = null,
                     CreatedAt = u.CreatedAt
                 };
             }).ToList()

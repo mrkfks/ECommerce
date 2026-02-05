@@ -101,8 +101,26 @@ namespace ECommerce.Domain.Entities
             MarkAsModified();
         }
 
+        /// <summary>
+        /// Ödeme başarılı - sipariş Pending durumunda kalır, admin onayı beklenir
+        /// Bu metod artık kullanılmıyor, sipariş zaten Pending olarak oluşturuluyor
+        /// </summary>
+        [Obsolete("Sipariş zaten Pending olarak oluşturuluyor. Bu metod gereksiz.")]
         public void MarkAsPaid()
         {
+            // Ödeme yapıldığında sipariş Pending kalır, admin onaylamalı
+            // Status değişmiyor
+            MarkAsModified();
+        }
+
+        /// <summary>
+        /// Siparişi tamamlandı olarak işaretle (tüm süreç bitti)
+        /// </summary>
+        public void Complete()
+        {
+            if (Status != OrderStatus.Delivered && Status != OrderStatus.Received)
+                throw new InvalidOperationException("Yalnızca teslim edilmiş siparişler tamamlanabilir.");
+
             Status = OrderStatus.Completed;
             MarkAsModified();
         }

@@ -529,93 +529,6 @@
 <!-- ==================== SON GİRİŞLER WİDGET ==================== -->
 @if (User.IsInRole("CompanyAdmin") || User.IsInRole("SuperAdmin"))
 {
-<div class="row g-3 mt-3">
-    <div class="col-xl-8">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0 fw-semibold">
-                    <i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>
-                    Son Giriş Yapan Kullanıcılar
-                </h6>
-                <div>
-                    <span class="badge bg-light text-dark me-2" id="loginSummaryBadge">Yükleniyor...</span>
-                    <a href="/User/LoginHistory" class="btn btn-sm btn-outline-primary">
-                        <i class="fa-solid fa-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="border-0">Kullanıcı</th>
-                                <th class="border-0">Rol</th>
-                                <th class="border-0">IP Adresi</th>
-                                <th class="border-0">Giriş Zamanı</th>
-                                <th class="border-0 text-center">Durum</th>
-                            </tr>
-                        </thead>
-                        <tbody id="recentLoginsTable">
-                            <tr>
-                                <td colspan="5" class="text-center py-4">
-                                    <i class="fa-solid fa-spinner fa-spin fa-2x text-muted mb-2"></i>
-                                    <p class="text-muted mb-0">Yükleniyor...</p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-4">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-transparent border-0">
-                <h6 class="mb-0 fw-semibold">
-                    <i class="fa-solid fa-shield-halved text-warning me-2"></i>
-                    Güvenlik Özeti
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-6">
-                        <div class="p-3 bg-primary bg-opacity-10 rounded-3 text-center">
-                            <div class="h3 fw-bold text-primary mb-1" id="todayLoginsCount">-</div>
-                            <div class="text-muted small">Bugünkü Giriş</div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="p-3 bg-success bg-opacity-10 rounded-3 text-center">
-                            <div class="h3 fw-bold text-success mb-1" id="uniqueUsersCount">-</div>
-                            <div class="text-muted small">Benzersiz Kullanıcı</div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="p-3 bg-warning bg-opacity-10 rounded-3 text-center">
-                            <div class="h3 fw-bold text-warning mb-1" id="failedLoginsCount">-</div>
-                            <div class="text-muted small">Başarısız Giriş</div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="p-3 bg-danger bg-opacity-10 rounded-3 text-center" id="suspiciousCard">
-                            <div class="h3 fw-bold text-danger mb-1" id="suspiciousLoginsCount">-</div>
-                            <div class="text-muted small">Şüpheli Giriş</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="mt-3 text-center">
-                    <a href="/User/SuspiciousLogins" class="btn btn-outline-danger btn-sm">
-                        <i class="fa-solid fa-triangle-exclamation me-1"></i> Şüpheli Girişleri Gör
-                    </a>
-                    <a href="/User/Management" class="btn btn-outline-primary btn-sm">
-                        <i class="fa-solid fa-users-gear me-1"></i> Kullanıcı Yönetimi
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 }
 
 @section Styles {
@@ -701,17 +614,21 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
     // Revenue Trend Data
-    const revenueTrendData = @Html.Raw(Model.RevenueTrendJson);
+    const revenueTrendData = @Html.Raw(Model.RevenueTrendJson ?? "[]");
     
     // Order Status Data
-    const orderStatusData = @Html.Raw(Model.OrderStatusJson);
+    const orderStatusData = @Html.Raw(Model.OrderStatusJson ?? "{\"labels\":[],\"data\":[]}");
     
     // Customer Segment Data
-    const customerSegmentData = @Html.Raw(Model.CustomerSegmentJson);
+    const customerSegmentData = @Html.Raw(Model.CustomerSegmentJson ?? "{\"labels\":[],\"data\":[],\"revenue\":[]}");
+
+    console.log('Revenue Trend Data:', revenueTrendData);
+    console.log('Order Status Data:', orderStatusData);
+    console.log('Customer Segment Data:', customerSegmentData);
 
     // Revenue Trend Chart
     const revenueTrendCtx = document.getElementById('revenueTrendChart');
-    if (revenueTrendCtx) {
+    if (revenueTrendCtx && revenueTrendData && revenueTrendData.length > 0) {
         new Chart(revenueTrendCtx, {
             type: 'line',
             data: {
@@ -756,7 +673,7 @@
 
     // Order Status Chart
     const orderStatusCtx = document.getElementById('orderStatusChart');
-    if (orderStatusCtx) {
+    if (orderStatusCtx && orderStatusData && orderStatusData.data && orderStatusData.data.length > 0) {
         new Chart(orderStatusCtx, {
             type: 'doughnut',
             data: {
@@ -783,7 +700,7 @@
 
     // Customer Segment Chart
     const customerSegmentCtx = document.getElementById('customerSegmentChart');
-    if (customerSegmentCtx) {
+    if (customerSegmentCtx && customerSegmentData && customerSegmentData.data && customerSegmentData.data.length > 0) {
         new Chart(customerSegmentCtx, {
             type: 'bar',
             data: {
@@ -868,13 +785,16 @@
         fetch('/Home/GetActiveCampaigns')
             .then(r => r.json())
             .then(campaigns => {
+                console.log('Active campaigns:', campaigns);
                 if (campaigns && campaigns.length > 0) {
                     document.getElementById('activeCampaignsCard').style.display = 'block';
                     const list = campaigns.map(c => `${c.name} (%${c.discountPercent})`).slice(0, 3).join(' • ');
                     document.getElementById('activeCampaignsList').textContent = list;
+                } else {
+                    console.log('No active campaigns found');
                 }
             })
-            .catch(err => console.log('Kampanya yüklenemedi'));
+            .catch(err => console.error('Kampanya yüklenemedi:', err));
 
         // Load message summary
         fetch('/Home/GetMessageSummary')
@@ -1451,110 +1371,3 @@
         </div>
     </div>
 </div>
-
-<script>
-// ==================== SON GİRİŞLER WİDGET SCRIPT ====================
-document.addEventListener('DOMContentLoaded', function() {
-    // Sadece admin rolleri için çalıştır
-    const recentLoginsTable = document.getElementById('recentLoginsTable');
-    if (recentLoginsTable) {
-        loadRecentLogins();
-        loadLoginSummary();
-    }
-});
-
-async function loadRecentLogins() {
-    try {
-        const response = await fetch('/Home/GetRecentLogins?take=10');
-        const logins = await response.json();
-        
-        const tbody = document.getElementById('recentLoginsTable');
-        if (!tbody) return;
-        
-        if (!logins || logins.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="5" class="text-center py-4">
-                        <i class="fa-solid fa-clock-rotate-left fa-2x text-muted mb-2 d-block opacity-50"></i>
-                        <span class="text-muted">Giriş kaydı bulunamadı</span>
-                    </td>
-                </tr>`;
-            return;
-        }
-        
-        let html = '';
-        logins.forEach(function(login) {
-            var initials = login.userFullName 
-                ? login.userFullName.split(' ').filter(function(s) { return s; }).map(function(s) { return s[0]; }).join('').toUpperCase()
-                : login.username[0].toUpperCase();
-            
-            var avatarColors = {
-                'SuperAdmin': 'bg-danger text-white',
-                'CompanyAdmin': 'bg-primary text-white',
-                'Customer': 'bg-success text-white'
-            };
-            var avatarColor = avatarColors[login.roleName] || 'bg-secondary text-white';
-            
-            var roleBadges = {
-                'SuperAdmin': 'role-badge-superadmin',
-                'CompanyAdmin': 'role-badge-companyadmin',
-                'Customer': 'role-badge-customer'
-            };
-            var roleBadge = roleBadges[login.roleName] || 'bg-secondary';
-            
-            var rowClass = login.isSuspicious ? 'login-row suspicious' : 'login-row';
-            var statusBadge = login.isSuspicious 
-                ? '<span class="badge bg-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i>Şüpheli</span>' 
-                : '<span class="badge bg-success"><i class="fa-solid fa-check me-1"></i>Normal</span>';
-            
-            html += '<tr class="' + rowClass + '">' +
-                '<td>' +
-                    '<div class="d-flex align-items-center">' +
-                        '<div class="rounded-circle ' + avatarColor + ' d-flex align-items-center justify-content-center me-2" style="width:32px;height:32px;font-size:12px;font-weight:600;">' + initials + '</div>' +
-                        '<div>' +
-                            '<div class="fw-medium">' + (login.userFullName || login.username) + '</div>' +
-                            '<small class="text-muted">@@' + login.username + '</small>' +
-                        '</div>' +
-                    '</div>' +
-                '</td>' +
-                '<td><span class="badge ' + roleBadge + '">' + (login.roleName || '-') + '</span></td>' +
-                '<td><code class="ip-code">' + login.ipAddress + '</code></td>' +
-                '<td><small>' + login.timeAgo + '</small></td>' +
-                '<td class="text-center">' + statusBadge + '</td>' +
-            '</tr>';
-        });
-        
-        tbody.innerHTML = html;
-        
-    } catch (error) {
-        console.error('Son girişler yüklenirken hata:', error);
-        document.getElementById('recentLoginsTable').innerHTML = `
-            <tr>
-                <td colspan="5" class="text-center py-4 text-danger">
-                    <i class="fa-solid fa-exclamation-circle me-2"></i>Yüklenirken hata oluştu
-                </td>
-            </tr>`;
-    }
-}
-
-async function loadLoginSummary() {
-    try {
-        const response = await fetch('/Home/GetLoginHistorySummary');
-        const summary = await response.json();
-        
-        document.getElementById('todayLoginsCount').textContent = summary.totalLogins || 0;
-        document.getElementById('uniqueUsersCount').textContent = summary.uniqueUsers || 0;
-        document.getElementById('failedLoginsCount').textContent = summary.failedLogins || 0;
-        document.getElementById('suspiciousLoginsCount').textContent = summary.suspiciousLogins || 0;
-        document.getElementById('loginSummaryBadge').textContent = `Bugün: ${summary.totalLogins || 0} giriş`;
-        
-        // Şüpheli giriş varsa kart animasyonu
-        if (summary.suspiciousLogins > 0) {
-            document.getElementById('suspiciousCard')?.classList.add('has-suspicious');
-        }
-        
-    } catch (error) {
-        console.error('Giriş özeti yüklenirken hata:', error);
-    }
-}
-</script>

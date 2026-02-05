@@ -76,10 +76,11 @@ public class NotificationService : INotificationService
         {
             TotalCount = allNotifications.Count,
             UnreadCount = allNotifications.Count(n => !n.IsRead),
-            LowStockCount = allNotifications.Count(n => n.Type == NotificationType.LowStock && !n.IsRead),
-            NewOrderCount = allNotifications.Count(n => n.Type == NotificationType.NewOrder && !n.IsRead),
-            ReturnRequestCount = allNotifications.Count(n => n.Type == NotificationType.ReturnRequest && !n.IsRead),
-            PaymentFailedCount = allNotifications.Count(n => n.Type == NotificationType.PaymentFailed && !n.IsRead),
+            // Bildirim dağılımı: Tüm bildirimleri türe göre say (okunmuş/okunmamış dahil)
+            LowStockCount = allNotifications.Count(n => n.Type == NotificationType.LowStock),
+            NewOrderCount = allNotifications.Count(n => n.Type == NotificationType.NewOrder),
+            ReturnRequestCount = allNotifications.Count(n => n.Type == NotificationType.ReturnRequest),
+            PaymentFailedCount = allNotifications.Count(n => n.Type == NotificationType.PaymentFailed),
             RecentNotifications = recentUnread.Select(MapToDto).ToList()
         };
     }
@@ -169,10 +170,8 @@ public class NotificationService : INotificationService
         await _context.SaveChangesAsync();
     }
 
-    public async Task CreateNewOrderNotificationAsync(int orderId, string customerName, decimal totalAmount)
+    public async Task CreateNewOrderNotificationAsync(int orderId, string customerName, decimal totalAmount, int companyId)
     {
-        var companyId = _tenantService.GetCompanyId() ?? 1;
-
         var notification = Notification.CreateNewOrderNotification(companyId, orderId, customerName, totalAmount);
         _context.Notifications.Add(notification);
         await _context.SaveChangesAsync();

@@ -1,7 +1,7 @@
-using Dashboard.Web.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Dashboard.Web.Models;
 using Dashboard.Web.Services;
 using ECommerce.Application.DTOs;
 using Microsoft.AspNetCore.Authorization;
@@ -23,7 +23,6 @@ public class HomeController : Controller
     private readonly Dashboard.Web.Services.IApiService<ECommerce.Application.DTOs.BrandDto> _brandService;
     private readonly Dashboard.Web.Services.NotificationApiService _notificationService;
     private readonly Dashboard.Web.Services.IApiService<ECommerce.Application.DTOs.CampaignDto> _campaignService;
-    private readonly Dashboard.Web.Services.LoginHistoryApiService _loginHistoryService;
     private readonly Dashboard.Web.Services.UserManagementApiService _userManagementService;
     private readonly Dashboard.Web.Services.CustomerMessageApiService _messageService;
 
@@ -38,7 +37,6 @@ public class HomeController : Controller
         Dashboard.Web.Services.IApiService<ECommerce.Application.DTOs.BrandDto> brandService,
         Dashboard.Web.Services.NotificationApiService notificationService,
         Dashboard.Web.Services.IApiService<ECommerce.Application.DTOs.CampaignDto> campaignService,
-        Dashboard.Web.Services.LoginHistoryApiService loginHistoryService,
         Dashboard.Web.Services.UserManagementApiService userManagementService,
         Dashboard.Web.Services.CustomerMessageApiService messageService)
     {
@@ -52,7 +50,6 @@ public class HomeController : Controller
         _brandService = brandService;
         _notificationService = notificationService;
         _campaignService = campaignService;
-        _loginHistoryService = loginHistoryService;
         _userManagementService = userManagementService;
         _messageService = messageService;
     }
@@ -103,7 +100,7 @@ public class HomeController : Controller
             TotalProducts = 0, // Not directly available in KPI model
             TotalOrders = kpiData.Orders.TotalOrders,
             TotalCustomers = kpiData.Customers.TotalCustomers,
-            TotalSales = kpiData.Sales.MonthlySales, // Assuming MonthlySales is the correct property for TotalSales
+            TotalSales = (decimal)kpiData.Sales.MonthlySales,
             TopProducts = kpiData.TopProducts,
             LowStockProducts = kpiData.LowStockProducts,
             Sales = kpiData.Sales,
@@ -118,44 +115,7 @@ public class HomeController : Controller
         return View(statsVm);
     }
 
-    #region AJAX Endpoints for Charts
-
-    [HttpGet]
-    public async Task<IActionResult> Charts(DateTime? startDate, DateTime? endDate, int? companyId)
-    {
-        var isSuperAdmin = User.IsInRole("SuperAdmin");
-        var model = new ChartsViewModel();
-        if (isSuperAdmin)
-        {
-            try
-            {
-                var companies = await _companyService.GetAllAsync();
-                model.Companies = companies?.Data?.Select(c => new CompanySelectVm
-                {
-                    Id = c.Id,
-                    Name = c.Name
-                }).ToList() ?? new List<CompanySelectVm>();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning("Şirket listesi alınamadı: {Message}", ex.Message);
-            }
-        }
-        else
-        {
-            var companyIdClaim = User.FindFirst("CompanyId")?.Value;
-            if (!string.IsNullOrEmpty(companyIdClaim) && int.TryParse(companyIdClaim, out var parsedCompanyId))
-            {
-                companyId = parsedCompanyId;
-            }
-        }
-
-        model.KpiData = await _dashboardApiService.GetKpiAsync(companyId: companyId, startDate: startDate, endDate: endDate);
-        model.StartDate = startDate;
-        model.EndDate = endDate;
-        model.SelectedCompanyId = companyId;
-        return View(model);
-    }
+    #region AJAX Endpoints for Charts (Removed - Not Used)
 
     /// <summary>
     /// Satış trendi verilerini getirir (Line Chart)
@@ -473,7 +433,8 @@ public class HomeController : Controller
                 ImageUrl = model.ImageUrl
             };
 
-            var productDto = new ECommerce.Application.DTOs.ProductDto {
+            var productDto = new ECommerce.Application.DTOs.ProductDto
+            {
                 Name = dto.Name,
                 Description = dto.Description,
                 Price = dto.Price,
@@ -502,8 +463,22 @@ public class HomeController : Controller
     [HttpGet]
     public async Task<IActionResult> GetActiveCampaigns()
     {
-        var campaigns = await _campaignService.GetAllAsync();
-        return Json(campaigns?.Data != null ? campaigns.Data.Where(c => c.IsActive) : new List<ECommerce.Application.DTOs.CampaignDto>());
+        try
+        {
+            var response = await _campaignService.GetAllAsync();
+            if (response?.Data != null)
+            {
+                var activeCampaigns = response.Data.Where(c => c.IsActive && c.IsCurrentlyActive).ToList();
+                _logger.LogInformation("Active campaigns count: {Count}", activeCampaigns.Count);
+                return Json(activeCampaigns);
+            }
+            return Json(new List<ECommerce.Application.DTOs.CampaignDto>());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching active campaigns");
+            return Json(new List<ECommerce.Application.DTOs.CampaignDto>());
+        }
     }
 
     /// <summary>
@@ -530,7 +505,8 @@ public class HomeController : Controller
         try
         {
             model.CompanyId = GetCurrentCompanyId();
-            var campaignDto = new ECommerce.Application.DTOs.CampaignDto {
+            var campaignDto = new ECommerce.Application.DTOs.CampaignDto
+            {
                 Name = model.Name,
                 Description = model.Description,
                 DiscountPercent = model.DiscountPercent,
@@ -681,39 +657,6 @@ public class HomeController : Controller
     /// </summary>
     [HttpGet]
     [Authorize(Policy = "CanManageUsers")]
-    public async Task<IActionResult> GetRecentLogins(int take = 10)
-    {
-        try
-        {
-            var logins = await _loginHistoryService.GetRecentAsync(take);
-            return Json(logins);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Son girişler getirme hatası");
-            return Json(new List<LoginHistoryVm>());
-        }
-    }
-
-    /// <summary>
-    /// Giriş geçmişi özeti (Dashboard widget)
-    /// </summary>
-    [HttpGet]
-    [Authorize(Policy = "CanManageUsers")]
-    public async Task<IActionResult> GetLoginHistorySummary()
-    {
-        try
-        {
-            var summary = await _loginHistoryService.GetSummaryAsync();
-            return Json(summary);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Giriş özeti getirme hatası");
-            return Json(new LoginHistorySummaryVm());
-        }
-    }
-
     /// <summary>
     /// Kullanıcı yönetimi özeti (Dashboard widget)
     /// </summary>
