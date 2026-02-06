@@ -8,5 +8,6 @@ namespace Dashboard.Web.Models
         public DateTime StartDate { get; set; } = DateTime.Now;
         public DateTime EndDate { get; set; } = DateTime.Now.AddDays(7);
         public int CompanyId { get; set; }
+        public string? BannerImageUrl { get; set; }
     }
 }

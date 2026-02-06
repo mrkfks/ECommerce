@@ -1,0 +1,164 @@
+@model Dashboard.Web.Models.FeatureUpdateViewModel
+
+@{
+    ViewData["Title"] = "Özellik Düzenle";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fa-solid fa-edit me-2"></i>@ViewData["Title"]</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left me-2"></i>Geri Dön
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post" action="@Url.Action("Edit", new { id = Model.Id })" id="featureForm">
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger">
+                        <ul>
+                            @foreach (var entry in ViewData.ModelState.Values)
+                            {
+                                @foreach (var error in entry.Errors)
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            }
+                        </ul>
+                    </div>
+                }
+
+                <input type="hidden" asp-for="Id" />
+
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label">Adı *</label>
+                    <input asp-for="Name" class="form-control" placeholder="Örn: RAM, Renk, Ekran Boyutu vb." required />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label">Açıklama</label>
+                    <textarea asp-for="Description" class="form-control" rows="2" placeholder="Özelliğin açıklaması"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="DisplayOrder" class="form-label">Görüntüme Sırası</label>
+                    <input asp-for="DisplayOrder" type="number" class="form-control" />
+                    <span asp-validation-for="DisplayOrder" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input asp-for="IsActive" type="checkbox" class="form-check-input" />
+                    <label asp-for="IsActive" class="form-check-label">Aktif</label>
+                    <span asp-validation-for="IsActive" class="text-danger"></span>
+                </div>
+
+                <!-- Mevcut Özellik Değerleri -->
+                @if (Model.Values != null && Model.Values.Any())
+                {
+                    <div class="card bg-light mb-3">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="fa-solid fa-list me-2"></i>Mevcut Değerler</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Değer</th>
+                                            <th>Sıra</th>
+                                            <th>İşlem</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var value in Model.Values.OrderBy(v => v.DisplayOrder))
+                                        {
+                                            <tr>
+                                                <td>@value.Value</td>
+                                                <td>@value.DisplayOrder</td>
+                                                <td>
+                                                    <button type="submit" class="btn btn-sm btn-danger" name="deleteValueId" value="@value.Id" onclick="return confirm('Silmek istediğinize emin misiniz?')">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Yeni Özellik Değerleri -->
+                <div class="card bg-light mb-3">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fa-solid fa-plus me-2"></i>Yeni Değerler Ekle</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="newValuesContainer">
+                            <div class="input-group mb-2 new-value-item">
+                                <input type="text" class="form-control" name="NewValues" placeholder="Örn: 8GB, 16GB, 32GB" value="" />
+                                <button class="btn btn-outline-danger" type="button" onclick="removeNewValue(this)">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addNewValue()">
+                            <i class="fa-solid fa-plus me-1"></i>Değer Ekle
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fa-solid fa-save me-2"></i>Güncelle
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="@Url.Action("Index")" class="btn btn-secondary w-100">
+                            <i class="fa-solid fa-times me-2"></i>İptal
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function addNewValue() {
+            const container = document.getElementById('newValuesContainer');
+            const newItem = document.createElement('div');
+            newItem.className = 'input-group mb-2 new-value-item';
+            newItem.innerHTML = `
+                <input type="text" class="form-control" name="NewValues" placeholder="Örn: 8GB, 16GB, 32GB" value="" />
+                <button class="btn btn-outline-danger" type="button" onclick="removeNewValue(this)">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            `;
+            container.appendChild(newItem);
+        }
+
+        function removeNewValue(button) {
+            const container = document.getElementById('newValuesContainer');
+            if (container.children.length > 1) {
+                button.parentElement.remove();
+            } else {
+                alert('En az bir değer gereklidir.');
+            }
+        }
+    </script>
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

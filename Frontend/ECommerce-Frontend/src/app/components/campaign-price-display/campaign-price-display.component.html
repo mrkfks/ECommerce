@@ -1,0 +1,47 @@
+<div class="price-display-container" [ngClass]="getPriceDisplayClass()">
+  <!-- Product Info (Optional) -->
+  <div *ngIf="productName" class="product-header">
+    <h4 class="product-name">{{ productName }}</h4>
+    <span class="campaign-tag" *ngIf="campaignName">{{ campaignName }}</span>
+  </div>
+
+  <!-- Price Comparison -->
+  <div class="price-comparison">
+    <!-- Original Price (Crossed Out) -->
+    <div class="original-price-wrapper">
+      <span class="label">Normal Fiyat</span>
+      <span class="original-price">₺{{ formatPrice(priceData.originalPrice) }}</span>
+    </div>
+
+    <!-- Arrow or Discount Badge -->
+    <div class="price-arrow">
+      <i class="fa-solid fa-arrow-right"></i>
+    </div>
+
+    <!-- Discounted Price (Prominent) -->
+    <div class="discounted-price-wrapper">
+      <span class="label">Kampanya Fiyatı</span>
+      <span class="discounted-price">₺{{ formatPrice(priceData.discountedPrice) }}</span>
+    </div>
+  </div>
+
+  <!-- Savings Info -->
+  <div class="savings-info">
+    <!-- Discount Badge -->
+    <div class="discount-badge">
+      <span class="discount-percent">-%{{ priceData.discountPercentage }}</span>
+    </div>
+
+    <!-- Saving Amount -->
+    <div class="saving-amount">
+      <span class="label">Tasarruf Et</span>
+      <span class="amount">₺{{ formatPrice(priceData.savingAmount) }}</span>
+    </div>
+  </div>
+
+  <!-- Add to Cart Button (Optional) -->
+  <button class="add-to-cart-btn" *ngIf="productName">
+    <i class="fa-solid fa-shopping-cart"></i>
+    Sepete Ekle
+  </button>
+</div>

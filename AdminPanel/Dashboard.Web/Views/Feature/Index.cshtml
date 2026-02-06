@@ -1,0 +1,120 @@
+@model List<Dashboard.Web.Models.FeatureViewModel>
+
+@{
+    ViewData["Title"] = "Özellik Yönetimi";
+}
+
+@* Namespace artık tam olarak model tanımında kullanılıyor *@
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fa-solid fa-sliders me-2"></i>Özellik Yönetimi</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="@Url.Action("Create")" class="btn btn-primary">
+                <i class="fa-solid fa-plus me-2"></i>Yeni Özellik
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fa-solid fa-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-body">
+            @if (Model != null && Model.Any())
+            {
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Adı</th>
+                            <th>Açıklama</th>
+                            <th>Değerler</th>
+                            <th>Durum</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var feature in Model.OrderBy(x => x.DisplayOrder))
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@feature.Name</strong>
+                                </td>
+                                <td>
+                                    @(string.IsNullOrWhiteSpace(feature.Description) ? "-" : feature.Description)
+                                </td>
+                                <td>
+                                    @if (feature.Values != null && feature.Values.Any())
+                                    {
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @foreach (var value in feature.Values.OrderBy(v => v.DisplayOrder))
+                                            {
+                                                <span class="badge bg-info">@value.Value</span>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (feature.IsActive)
+                                    {
+                                        <span class="badge bg-success">Aktif</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Pasif</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("Edit", new { id = feature.Id })" class="btn btn-sm btn-warning">
+                                        <i class="fa-solid fa-edit"></i>Düzenle
+                                    </a>
+                                    <form action="@Url.Action("Delete", new { id = feature.Id })" method="post" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Silmek istediğinize emin misiniz?')">
+                                            <i class="fa-solid fa-trash"></i>Sil
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="alert alert-info text-center">
+                    <i class="fa-solid fa-info-circle me-2"></i>Henüz özellik tanımlı değil.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-hover tbody tr:hover {
+        background-color: #f5f5f5;
+    }
+    
+    .btn-sm {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+    }
+</style>

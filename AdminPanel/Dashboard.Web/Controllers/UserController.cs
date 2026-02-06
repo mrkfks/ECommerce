@@ -10,13 +10,16 @@ namespace Dashboard.Web.Controllers
     {
         private readonly UserApiService _userService;
         private readonly CompanyApiService _companyService;
+        private readonly ILogger<UserController> _logger;
 
         public UserController(
             UserApiService userService,
-            CompanyApiService companyService)
+            CompanyApiService companyService,
+            ILogger<UserController> logger)
         {
             _userService = userService;
             _companyService = companyService;
+            _logger = logger;
         }
 
         // =====================================================
@@ -26,9 +29,22 @@ namespace Dashboard.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Profile()
         {
+            _logger.LogInformation("[UserController.Profile] Request by {User}. Roles: {Roles}", User?.Identity?.Name, string.Join(',', User?.Claims.Where(c => c.Type == "role").Select(c => c.Value) ?? Enumerable.Empty<string>()));
+
+            var tokenExists = HttpContext.Request.Cookies.ContainsKey("AuthToken");
+            _logger.LogInformation("[UserController.Profile] AuthToken cookie present: {Present}", tokenExists);
+
             var user = await _userService.GetProfileAsync();
             if (user == null)
-                return NotFound();
+            {
+                _logger.LogWarning("[UserController.Profile] UserApiService returned null for profile.");
+                // Redirect to login if user is unauthenticated, otherwise show friendly message
+                if (!User?.Identity?.IsAuthenticated ?? true)
+                    return RedirectToAction("Login", "Auth");
+
+                TempData["Error"] = "Profil bilgileri yüklenemedi. Lütfen tekrar giriş yapın.";
+                return RedirectToAction("Index", "Home");
+            }
 
             return View(user);
         }

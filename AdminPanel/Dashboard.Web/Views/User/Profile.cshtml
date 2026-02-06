@@ -72,20 +72,29 @@
                 <h5 class="card-title mb-3">Hesap Bilgileri</h5>
                 <div class="mb-3">
                     <small class="text-muted d-block">Şirket</small>
-                    <strong>@Model.CompanyName</strong>
+                    @{ var companyName = Model.CompanyName ?? User?.Claims?.FirstOrDefault(c => c.Type == "CompanyName")?.Value ?? "-"; }
+                    <strong>@companyName</strong>
                 </div>
                 <div class="mb-3">
                     <small class="text-muted d-block">Roller</small>
-                    @if (Model.Roles != null && Model.Roles.Any())
-                    {
-                        foreach (var role in Model.Roles)
+                    @{
+                        var roles = Model.Roles ?? new List<string>();
+                        if (!roles.Any())
                         {
-                            <span class="badge bg-info me-1">@role</span>
+                            roles = User?.Claims?.Where(c => c.Type == "role" || c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value).ToList() ?? new List<string>();
                         }
-                    }
-                    else
-                    {
-                        <span class="badge bg-secondary">Rol Atanmamış</span>
+
+                        if (roles.Any())
+                        {
+                            foreach (var role in roles)
+                            {
+                                <span class="badge bg-info me-1">@role</span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Rol Atanmamış</span>
+                        }
                     }
                 </div>
                 <div class="mb-3">

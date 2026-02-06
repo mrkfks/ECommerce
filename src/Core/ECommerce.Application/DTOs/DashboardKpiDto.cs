@@ -17,6 +17,7 @@ public record DashboardKpiDto
     public SalesKpiDto Sales { get; init; } = new();
     public OrderKpiDto Orders { get; init; } = new();
     public CustomerKpiDto Customers { get; init; } = new();
+    public ProductKpiDto Products { get; init; } = new();
     public List<TopProductDto> TopProducts { get; init; } = new();
     public List<LowStockProductDto> LowStockProducts { get; init; } = new();
     public List<RevenueTrendDto> RevenueTrend { get; init; } = new();
@@ -26,6 +27,9 @@ public record DashboardKpiDto
     public List<GeographicDistributionDto> GeographicDistribution { get; init; } = new();
     public List<AverageCartTrendDto> AverageCartTrend { get; init; } = new();
     public List<OrderStatusDistributionDto> OrderStatusDistribution { get; init; } = new();
+    public string RevenueTrendJson { get; init; } = "[]";
+    public string OrderStatusJson { get; init; } = "[]";
+    public string CustomerSegmentJson { get; init; } = "[]";
 }
 
 /// <summary>
@@ -74,6 +78,18 @@ public record CustomerKpiDto
     public int DailyNewCustomers { get; init; }
     public int MonthlyNewCustomers { get; init; }
     public decimal CustomerGrowthRate { get; init; }
+}
+
+/// <summary>
+/// Ürün KPI'ları
+/// </summary>
+public record ProductKpiDto
+{
+    public int TotalProducts { get; init; }
+    public int ActiveProducts { get; init; }
+    public int InactiveProducts { get; init; }
+    public int LowStockCount { get; init; }
+    public int OutOfStockCount { get; init; }
 }
 
 /// <summary>

@@ -1,0 +1,130 @@
+<div class="campaign-carousel-wrapper">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading">
+    <div class="spinner"></div>
+    <p>Kampanyalar yükleniyor...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && campaigns.length === 0" class="empty-state">
+    <p>Şu anda aktif kampanya bulunmamaktadır.</p>
+  </div>
+
+  <!-- Carousel Container -->
+  <div *ngIf="!isLoading && campaigns.length > 0" class="carousel-container">
+    <!-- Main Carousel -->
+    <div class="carousel-main">
+      <div class="carousel-slide" [style.opacity]="1">
+        <div class="campaign-card" *ngLet="getCurrentCampaign() as campaign">
+          <!-- Banner Image -->
+          <div class="campaign-banner">
+            <img 
+              *ngIf="campaign.bannerImageUrl" 
+              [src]="campaign.bannerImageUrl" 
+              [alt]="campaign.name"
+              class="banner-image"
+            />
+            <div *ngIf="!campaign.bannerImageUrl" class="banner-placeholder">
+              {{ campaign.name }}
+            </div>
+
+            <!-- Discount Badge -->
+            <div class="discount-badge" [style.backgroundColor]="getDiscountBadgeColor(campaign.discountPercent)">
+              <span class="discount-percent">-%{{ campaign.discountPercent }}</span>
+              <span class="discount-text">İndirim</span>
+            </div>
+
+            <!-- Days Remaining Badge -->
+            <div class="days-badge" *ngIf="campaign.remainingDays > 0">
+              <span>{{ campaign.remainingDays }} gün kaldı</span>
+            </div>
+          </div>
+
+          <!-- Campaign Info -->
+          <div class="campaign-info">
+            <h3 class="campaign-name">{{ campaign.name }}</h3>
+            <p class="campaign-description" *ngIf="campaign.description">
+              {{ campaign.description }}
+            </p>
+
+            <!-- Campaign Details -->
+            <div class="campaign-details">
+              <div class="detail-item">
+                <span class="label">Başlangıç:</span>
+                <span class="value">{{ formatDate(campaign.startDate) }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Bitiş:</span>
+                <span class="value">{{ formatDate(campaign.endDate) }}</span>
+              </div>
+              <div class="detail-item" *ngIf="campaign.companyName">
+                <span class="label">Şirket:</span>
+                <span class="value">{{ campaign.companyName }}</span>
+              </div>
+            </div>
+
+            <!-- Action Button -->
+            <button class="cta-button">
+              Kampanya Ürünlerini Gör
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Arrows -->
+    <button 
+      class="carousel-nav prev-btn" 
+      (click)="prevSlide()"
+      *ngIf="campaigns.length > 1"
+      title="Önceki kampanya"
+    >
+      <i class="fa-solid fa-chevron-left"></i>
+    </button>
+    <button 
+      class="carousel-nav next-btn" 
+      (click)="nextSlide()"
+      *ngIf="campaigns.length > 1"
+      title="Sonraki kampanya"
+    >
+      <i class="fa-solid fa-chevron-right"></i>
+    </button>
+
+    <!-- Carousel Indicators -->
+    <div class="carousel-indicators" *ngIf="campaigns.length > 1">
+      <button
+        *ngFor="let campaign of campaigns; let i = index"
+        [class.active]="i === currentIndex"
+        (click)="goToSlide(i)"
+        [title]="campaign.name"
+        class="indicator"
+      >
+        <span class="indicator-dot"></span>
+        <span class="indicator-label">{{ i + 1 }}</span>
+      </button>
+    </div>
+
+    <!-- Thumbnails Row (Optional) -->
+    <div class="carousel-thumbnails" *ngIf="campaigns.length > 1">
+      <div 
+        *ngFor="let campaign of campaigns; let i = index"
+        class="thumbnail"
+        [class.active]="i === currentIndex"
+        (click)="goToSlide(i)"
+        [title]="campaign.name"
+      >
+        <img 
+          *ngIf="campaign.bannerImageUrl"
+          [src]="campaign.bannerImageUrl"
+          [alt]="campaign.name"
+          class="thumbnail-image"
+        />
+        <div *ngIf="!campaign.bannerImageUrl" class="thumbnail-placeholder">
+          {{ campaign.name | slice:0:10 }}...
+        </div>
+        <div class="thumbnail-overlay">{{ campaign.discountPercent }}%</div>
+      </div>
+    </div>
+  </div>
+</div>

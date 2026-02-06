@@ -64,25 +64,37 @@ public class DashboardService : IDashboardService
             _logger.LogError(ex, "Dashboard cache read error");
         }
 
+        var customerSegmentation = await GetCustomerSegmentsAsync(startDate, endDate, companyId);
+        var customerSegmentJson = new
+        {
+            labels = new[] { "Yeni Müşteri", "Tekrar Müşteri" },
+            data = new[] { customerSegmentation.NewCustomers, customerSegmentation.ReturningCustomers },
+            revenue = new[] { (double)customerSegmentation.NewCustomersRevenue, (double)customerSegmentation.ReturningCustomersRevenue }
+        };
+
         var stats = new DashboardKpiDto
         {
             Sales = await GetSalesKpiAsync(startDate, endDate, companyId),
             Orders = await GetOrdersKpiAsync(startDate, endDate, companyId),
-            Customers = new CustomerKpiDto(), // Placeholder
+            Customers = await GetCustomerKpiAsync(startDate, endDate, companyId),
+            Products = await GetProductKpiAsync(companyId),
             TopProducts = await GetTopProductsAsync(startDate, endDate, companyId),
             LowStockProducts = await GetLowStockProductsAsync(companyId),
             RevenueTrend = await GetRevenueTrendAsync(startDate, endDate, companyId),
-            CustomerSegmentation = await GetCustomerSegmentsAsync(startDate, endDate, companyId),
+            CustomerSegmentation = customerSegmentation,
             CategorySales = await GetCategorySalesAsync(startDate, endDate, companyId),
             CategoryStock = await GetCategoryStockDistributionAsync(companyId),
             GeographicDistribution = await GetGeographicDistributionAsync(startDate, endDate, companyId),
             AverageCartTrend = await GetAverageCartTrendAsync(startDate, endDate, companyId),
-            OrderStatusDistribution = await GetOrderStatusDistributionAsync(startDate, endDate, companyId)
+            OrderStatusDistribution = await GetOrderStatusDistributionAsync(startDate, endDate, companyId),
+            RevenueTrendJson = System.Text.Json.JsonSerializer.Serialize(await GetRevenueTrendAsync(startDate, endDate, companyId)),
+            OrderStatusJson = System.Text.Json.JsonSerializer.Serialize(await GetOrderStatusDistributionAsync(startDate, endDate, companyId)),
+            CustomerSegmentJson = System.Text.Json.JsonSerializer.Serialize(customerSegmentJson)
         };
 
         try
         {
-            await _cacheService.SetAsync(cacheKey, stats, TimeSpan.FromMinutes(15));
+            await _cacheService.SetAsync(cacheKey, stats, TimeSpan.FromMinutes(5));
         }
         catch (Exception ex)
         {
@@ -157,6 +169,66 @@ public class DashboardService : IDashboardService
         }, companyId);
     }
 
+    public async Task<CustomerKpiDto> GetCustomerKpiAsync(DateTime? startDate, DateTime? endDate, int? companyId)
+    {
+        return await GetCachedDataAsync($"CustomersKpi_{companyId ?? 0}_{startDate}_{endDate}", async () =>
+        {
+            IQueryable<Customer> query = _context.Customers.AsNoTracking();
+
+            if (companyId.HasValue)
+            {
+                query = query.Where(c => c.CompanyId == companyId.Value);
+            }
+
+            var totalCustomers = await query.CountAsync();
+
+            var newCustomers = 0;
+            var returningCustomers = totalCustomers - newCustomers;
+
+            if (startDate.HasValue && endDate.HasValue)
+            {
+                newCustomers = await query.Where(c => c.CreatedAt >= startDate && c.CreatedAt <= endDate).CountAsync();
+                returningCustomers = totalCustomers - newCustomers;
+            }
+
+            return new CustomerKpiDto
+            {
+                TotalCustomers = totalCustomers,
+                DailyNewCustomers = 0,
+                MonthlyNewCustomers = newCustomers,
+                CustomerGrowthRate = 0
+            };
+        }, companyId);
+    }
+
+    public async Task<ProductKpiDto> GetProductKpiAsync(int? companyId)
+    {
+        return await GetCachedDataAsync($"ProductsKpi_{companyId ?? 0}", async () =>
+        {
+            IQueryable<Product> query = _context.Products.AsNoTracking();
+
+            if (companyId.HasValue)
+            {
+                query = query.Where(p => p.CompanyId == companyId.Value);
+            }
+
+            var totalProducts = await query.CountAsync();
+            var activeProducts = await query.Where(p => p.IsActive).CountAsync();
+            var inactiveProducts = totalProducts - activeProducts;
+            var lowStockCount = await query.Where(p => p.StockQuantity > 0 && p.StockQuantity <= 10).CountAsync();
+            var outOfStockCount = await query.Where(p => p.StockQuantity == 0).CountAsync();
+
+            return new ProductKpiDto
+            {
+                TotalProducts = totalProducts,
+                ActiveProducts = activeProducts,
+                InactiveProducts = inactiveProducts,
+                LowStockCount = lowStockCount,
+                OutOfStockCount = outOfStockCount
+            };
+        }, companyId);
+    }
+
     public async Task<List<TopProductDto>> GetTopProductsAsync(DateTime? startDate, DateTime? endDate, int? companyId)
     {
         return await GetCachedDataAsync($"TopProducts_{companyId ?? 0}_{startDate}_{endDate}", async () =>
@@ -202,7 +274,7 @@ public class DashboardService : IDashboardService
             query = FilterProducts(query, companyId);
 
             return await query
-                .Where(p => p.StockQuantity < 5) // Threshold 5 as requested
+                .Where(p => p.StockQuantity < 10)
                 .Select(p => new LowStockProductDto
                 {
                     ProductId = p.Id,
@@ -210,8 +282,9 @@ public class DashboardService : IDashboardService
                     CurrentStock = p.StockQuantity,
                     CategoryName = p.Category!.Name,
                     ImageUrl = p.Images.Where(i => i.IsPrimary).Select(i => i.ImageUrl).FirstOrDefault(),
-                    DaysUntilOutOfStock = 0 // Complex calc omitted for brevity
+                    DaysUntilOutOfStock = 0
                 })
+                .OrderBy(p => p.CurrentStock)
                 .ToListAsync();
         }, companyId);
     }
@@ -254,8 +327,53 @@ public class DashboardService : IDashboardService
 
     public async Task<CustomerSegmentationDto> GetCustomerSegmentsAsync(DateTime? startDate, DateTime? endDate, int? companyId)
     {
-        // Placeholder
-        return await Task.FromResult(new CustomerSegmentationDto());
+        return await GetCachedDataAsync($"CustomerSegmentation_{companyId ?? 0}_{startDate}_{endDate}", async () =>
+        {
+            var endDateValue = endDate ?? DateTime.UtcNow.Date;
+            var startDateValue = startDate ?? endDateValue.AddMonths(-1);
+
+            IQueryable<Customer> customerQuery = _context.Customers.AsNoTracking();
+            if (companyId.HasValue)
+                customerQuery = customerQuery.Where(c => c.CompanyId == companyId.Value);
+
+            // Count customers who made orders in the period (returning customers)
+            IQueryable<Order> orderQuery = _context.Orders.AsNoTracking();
+            if (companyId.HasValue)
+                orderQuery = orderQuery.Where(o => o.CompanyId == companyId.Value);
+
+            var returningCustomerIds = await orderQuery
+                .Where(o => o.OrderDate >= startDateValue && o.OrderDate <= endDateValue)
+                .Select(o => o.CustomerId)
+                .Distinct()
+                .ToListAsync();
+
+            var newCustomers = await customerQuery
+                .Where(c => c.CreatedAt >= startDateValue && c.CreatedAt <= endDateValue)
+                .CountAsync();
+
+            var returningCustomers = returningCustomerIds.Count;
+            var totalCustomers = newCustomers + returningCustomers;
+
+            // Calculate revenue
+            var newCustomerRevenue = await orderQuery
+                .Where(o => o.OrderDate >= startDateValue && o.OrderDate <= endDateValue &&
+                       customerQuery.Where(c => c.CreatedAt >= startDateValue && c.CreatedAt <= endDateValue).Select(c => c.Id).Contains(o.CustomerId))
+                .SumAsync(o => o.TotalAmount);
+
+            var returningCustomerRevenue = await orderQuery
+                .Where(o => o.OrderDate >= startDateValue && o.OrderDate <= endDateValue && returningCustomerIds.Contains(o.CustomerId))
+                .SumAsync(o => o.TotalAmount);
+
+            var result = new CustomerSegmentationDto
+            {
+                NewCustomers = newCustomers,
+                ReturningCustomers = returningCustomers,
+                NewCustomersRevenue = (decimal)newCustomerRevenue,
+                ReturningCustomersRevenue = (decimal)returningCustomerRevenue
+            };
+
+            return result;
+        }, companyId);
     }
 
     public async Task<List<CategorySalesDto>> GetCategorySalesAsync(DateTime? startDate, DateTime? endDate, int? companyId)
@@ -381,7 +499,7 @@ public class DashboardService : IDashboardService
 
         try
         {
-            await _cacheService.SetAsync(cacheKey, data, TimeSpan.FromMinutes(15));
+            await _cacheService.SetAsync(cacheKey, data, TimeSpan.FromMinutes(3));
         }
         catch (Exception ex)
         {

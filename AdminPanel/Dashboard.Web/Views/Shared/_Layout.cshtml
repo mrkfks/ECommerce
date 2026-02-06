@@ -12,15 +12,26 @@
     <!-- Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
     <style>
-        body { background-color: #f5f6fa; }
+        body { 
+            background-color: #f5f6fa; 
+            overflow-x: hidden;
+        }
         .sidebar {
             width: 260px; background: #0d1b2a; color: #fff; position: fixed; top: 0; bottom: 0; left: 0;
         }
         .sidebar .brand { padding: 1rem 1.25rem; font-weight: 700; letter-spacing: .5px; border-bottom: 1px solid rgba(255,255,255,.1); }
         .sidebar a { color: #e0e1dd; text-decoration: none; display: block; padding: .75rem 1.25rem; }
         .sidebar a.active, .sidebar a:hover { background: #1b263b; color: #fff; }
-        .content { margin-left: 260px; }
-        .navbar { background: #ffffff; border-bottom: 1px solid #e5e7eb; }
+        .content { 
+            margin-left: 260px; 
+            overflow-x: hidden;
+            max-width: calc(100% - 260px);
+        }
+        .navbar { 
+            background: #ffffff; 
+            border-bottom: 1px solid #e5e7eb;
+            overflow-x: hidden;
+        }
         .card-metric .icon { font-size: 24px; opacity: .8; }
         
         /* Notification Center Styles */
@@ -35,6 +46,14 @@
         .notification-dropdown { 
             width: 360px; max-height: 450px; overflow-y: auto; 
             padding: 0; border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        /* Ensure dropdowns (user menu, notifications) appear above page content */
+        .navbar { overflow: visible !important; position: relative; z-index: 3050; }
+        .content { position: relative; z-index: 1; }
+        .navbar .dropdown-menu,
+        .dropdown-menu,
+        .notification-dropdown {
+            z-index: 9999 !important;
         }
         .notification-header { 
             padding: 12px 16px; background: #f8f9fa; 
@@ -77,18 +96,12 @@
                     <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Home" && ViewContext.RouteData.Values["action"]?.ToString()=="Notifications" ? "active" : "")" asp-controller="Home" asp-action="Notifications">
                         <i class="fa-solid fa-bell me-2"></i> Bildirimler
                     </a>
-                    @if (User.IsInRole("SuperAdmin"))
-                    {
-                        <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Product" ? "active" : "")" asp-controller="Product" asp-action="Index">
-                            <i class="fa-solid fa-warehouse me-2"></i> Envanter Yönetimi
-                        </a>
-                    }
-                    else
-                    {
-                        <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Product" ? "active" : "")" asp-controller="Product" asp-action="List">
-                            <i class="fa-solid fa-boxes-stacked me-2"></i> Ürün Yönetimi
-                        </a>
-                    }
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Product" ? "active" : "")" asp-controller="Product" asp-action="@(User.IsInRole("SuperAdmin") ? "Index" : "List")">
+                        <i class="fa-solid fa-boxes-stacked me-2"></i> Ürün Yönetimi
+                    </a>
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Campaign" ? "active" : "")" asp-controller="Campaign" asp-action="Index">
+                        <i class="fa-solid fa-percent me-2"></i> Kampanya Yönetimi
+                    </a>
                     <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Order" ? "active" : "")" asp-controller="Order" asp-action="Index">
                         <i class="fa-solid fa-cart-shopping me-2"></i> Siparişler
                     </a>
@@ -135,6 +148,15 @@
                     </a>
                     <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Request" && ViewContext.RouteData.Values["action"]?.ToString()=="Index" ? "active" : "")" asp-controller="Request" asp-action="Index">
                         <i class="fa-solid fa-envelope-open-text me-2"></i> Talepler
+                    </a>
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Category" ? "active" : "")" asp-controller="Category" asp-action="Index">
+                        <i class="fa-solid fa-layer-group me-2"></i> Kategori Yönetimi
+                    </a>
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Brand" ? "active" : "")" asp-controller="Brand" asp-action="Index">
+                        <i class="fa-solid fa-tags me-2"></i> Marka Yönetimi
+                    </a>
+                    <a class="@(ViewContext.RouteData.Values["controller"]?.ToString()=="Feature" ? "active" : "")" asp-controller="Feature" asp-action="Index">
+                        <i class="fa-solid fa-sliders me-2"></i> Özellik Yönetimi
                     </a>
                 }
             }
@@ -215,7 +237,7 @@
         </nav>
 
         <!-- Content area -->
-        <main class="container-fluid py-4">
+        <main class="container-fluid py-4" style="overflow-x: hidden; max-width: calc(100% - 260px); padding-left: 0; padding-right: 0;">
             @RenderBody()
         </main>
     </div>

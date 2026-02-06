@@ -97,7 +97,7 @@ public class HomeController : Controller
         // DashboardStatsVm'ye eşle (View bu modeli bekliyor)
         var statsVm = new Dashboard.Web.Models.DashboardStatsVm
         {
-            TotalProducts = 0, // Not directly available in KPI model
+            TotalProducts = kpiData.Products.TotalProducts,
             TotalOrders = kpiData.Orders.TotalOrders,
             TotalCustomers = kpiData.Customers.TotalCustomers,
             TotalSales = (decimal)kpiData.Sales.MonthlySales,

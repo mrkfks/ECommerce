@@ -6,6 +6,7 @@ namespace ECommerce.Domain.Entities
 
         public string Name { get; private set; } = string.Empty;
         public string? Description { get; private set; }
+        public string? BannerImageUrl { get; private set; }
         public decimal DiscountPercent { get; private set; }
         public DateTime StartDate { get; private set; }
         public DateTime EndDate { get; private set; }
@@ -14,12 +15,13 @@ namespace ECommerce.Domain.Entities
 
         // İlişkiler
         public virtual Company? Company { get; private set; }
+        public virtual ICollection<ProductCampaign> Products { get; private set; } = new List<ProductCampaign>();
 
         // Hesaplama özellikleri
         public bool IsCurrentlyActive => IsActive && DateTime.UtcNow >= StartDate && DateTime.UtcNow <= EndDate;
         public int RemainingDays => IsCurrentlyActive ? (int)(EndDate - DateTime.UtcNow).TotalDays : 0;
 
-        public static Campaign Create(string name, decimal discountPercent, DateTime startDate, DateTime endDate, int companyId, string? description = null)
+        public static Campaign Create(string name, decimal discountPercent, DateTime startDate, DateTime endDate, int companyId, string? description = null, string? bannerImageUrl = null)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Kampanya adı boş olamaz.", nameof(name));
@@ -34,6 +36,7 @@ namespace ECommerce.Domain.Entities
             {
                 Name = name,
                 Description = description,
+                BannerImageUrl = bannerImageUrl,
                 DiscountPercent = discountPercent,
                 StartDate = startDate,
                 EndDate = endDate,
@@ -42,7 +45,7 @@ namespace ECommerce.Domain.Entities
             };
         }
 
-        public void Update(string name, decimal discountPercent, DateTime startDate, DateTime endDate, string? description = null)
+        public void Update(string name, decimal discountPercent, DateTime startDate, DateTime endDate, string? description = null, string? bannerImageUrl = null)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Kampanya adı boş olamaz.", nameof(name));
@@ -55,9 +58,16 @@ namespace ECommerce.Domain.Entities
 
             Name = name;
             Description = description;
+            BannerImageUrl = bannerImageUrl;
             DiscountPercent = discountPercent;
             StartDate = startDate;
             EndDate = endDate;
+            MarkAsModified();
+        }
+
+        public void UpdateBannerImage(string? bannerImageUrl)
+        {
+            BannerImageUrl = bannerImageUrl;
             MarkAsModified();
         }
 

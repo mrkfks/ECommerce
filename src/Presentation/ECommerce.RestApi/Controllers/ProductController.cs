@@ -14,14 +14,20 @@ public class ProductController : ControllerBase
     private readonly IProductService _productService;
     private readonly ILogger<ProductController> _logger;
     private readonly ITenantService _tenantService;
+    private readonly IProductCampaignService _productCampaignService;
 
-    public ProductController(IProductService productService, ILogger<ProductController> logger, ITenantService tenantService)
+    public ProductController(
+        IProductService productService,
+        ILogger<ProductController> logger,
+        ITenantService tenantService,
+        IProductCampaignService productCampaignService)
     {
         _productService = productService;
         _logger = logger;
         _tenantService = tenantService;
+        _productCampaignService = productCampaignService;
     }
-    
+
     /// <summary>
     /// Yeni ürün oluşturur
     /// </summary>
@@ -39,10 +45,10 @@ public class ProductController : ControllerBase
         }
         catch (Exception ex)
         {
-             return BadRequest(new { message = ex.Message });
+            return BadRequest(new { message = ex.Message });
         }
     }
-    
+
     /// <summary>
     /// ID'ye göre ürün getirir
     /// </summary>
@@ -55,21 +61,55 @@ public class ProductController : ControllerBase
     {
         _logger.LogInformation("Fetching product with ID: {ProductId}", id);
         var result = await _productService.GetByIdAsync(id);
-        if (result == null) 
-            return NotFound(new ECommerce.Application.Responses.ApiResponse<ProductDto> 
-            { 
-                Success = false, 
-                Message = "Ürün bulunamadı" 
+        if (result == null)
+            return NotFound(new ECommerce.Application.Responses.ApiResponse<ProductDto>
+            {
+                Success = false,
+                Message = "Ürün bulunamadı"
             });
-        
-        return Ok(new ECommerce.Application.Responses.ApiResponse<ProductDto> 
-        { 
-            Success = true, 
-            Data = result, 
-            Message = "" 
+
+        return Ok(new ECommerce.Application.Responses.ApiResponse<ProductDto>
+        {
+            Success = true,
+            Data = result,
+            Message = ""
         });
     }
-    
+
+    /// <summary>
+    /// Ürün için aktif kampanyayı getirir (fiyat bilgileriyle)
+    /// </summary>
+    [HttpGet("{id}/active-campaign")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetActiveCampaign(int id)
+    {
+        try
+        {
+            _logger.LogInformation("Fetching active campaign for product: {ProductId}", id);
+
+            // Get active campaigns for this product
+            var activeCampaigns = await _productCampaignService.GetActiveByProductIdAsync(id);
+            var productCampaign = activeCampaigns.FirstOrDefault();
+
+            if (productCampaign == null)
+                return NotFound(new { Success = false, Message = "Bu ürün için aktif kampanya bulunamadı" });
+
+            return Ok(new
+            {
+                Success = true,
+                Data = productCampaign,
+                Message = ""
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching active campaign for product {ProductId}", id);
+            return BadRequest(new { Success = false, Message = ex.Message });
+        }
+    }
+
     /// <summary>
     /// Tüm ürünleri getirir
     /// </summary>
@@ -80,9 +120,9 @@ public class ProductController : ControllerBase
     public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
         _logger.LogInformation("Fetching products (Page {Page}, Size {Size})", pageNumber, pageSize);
-        
+
         var result = await _productService.GetPagedAsync(pageNumber, pageSize);
-        
+
         return Ok(result);
     }
 
@@ -97,11 +137,11 @@ public class ProductController : ControllerBase
     {
         _logger.LogInformation("Fetching products for category: {CategoryId}", categoryId);
         var result = await _productService.GetByCategoryIdAsync(categoryId);
-        return Ok(new ECommerce.Application.Responses.ApiResponse<IEnumerable<ProductDto>> 
-        { 
-            Success = true, 
-            Data = result, 
-            Message = "" 
+        return Ok(new ECommerce.Application.Responses.ApiResponse<IEnumerable<ProductDto>>
+        {
+            Success = true,
+            Data = result,
+            Message = ""
         });
     }
 
@@ -130,11 +170,11 @@ public class ProductController : ControllerBase
     {
         _logger.LogInformation("Fetching featured products, count: {Count}", count);
         var result = await _productService.GetFeaturedAsync(count);
-        return Ok(new ECommerce.Application.Responses.ApiResponse<IEnumerable<ProductDto>> 
-        { 
-            Success = true, 
-            Data = result, 
-            Message = "" 
+        return Ok(new ECommerce.Application.Responses.ApiResponse<IEnumerable<ProductDto>>
+        {
+            Success = true,
+            Data = result,
+            Message = ""
         });
     }
 
@@ -149,11 +189,11 @@ public class ProductController : ControllerBase
     {
         _logger.LogInformation("Fetching new arrivals, count: {Count}", count);
         var result = await _productService.GetNewArrivalsAsync(count);
-        return Ok(new ECommerce.Application.Responses.ApiResponse<IEnumerable<ProductDto>> 
-        { 
-            Success = true, 
-            Data = result, 
-            Message = "" 
+        return Ok(new ECommerce.Application.Responses.ApiResponse<IEnumerable<ProductDto>>
+        {
+            Success = true,
+            Data = result,
+            Message = ""
         });
     }
 
@@ -168,14 +208,14 @@ public class ProductController : ControllerBase
     {
         _logger.LogInformation("Fetching bestsellers, count: {Count}", count);
         var result = await _productService.GetBestSellersAsync(count);
-        return Ok(new ECommerce.Application.Responses.ApiResponse<IEnumerable<ProductDto>> 
-        { 
-            Success = true, 
-            Data = result, 
-            Message = "" 
+        return Ok(new ECommerce.Application.Responses.ApiResponse<IEnumerable<ProductDto>>
+        {
+            Success = true,
+            Data = result,
+            Message = ""
         });
     }
-    
+
     /// <summary>
     /// Ürün günceller
     /// </summary>
@@ -186,9 +226,9 @@ public class ProductController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(int id, ProductFormDto dto)
     {
-        if (id != dto.Id) 
+        if (id != dto.Id)
             return BadRequest(new { message = "Id mismatch" });
-        
+
         try
         {
             _logger.LogInformation("Updating product: {ProductId}", id);
@@ -197,7 +237,7 @@ public class ProductController : ControllerBase
         }
         catch (Exception ex)
         {
-             return NotFound(new { message = ex.Message });
+            return NotFound(new { message = ex.Message });
         }
     }
 
@@ -212,13 +252,13 @@ public class ProductController : ControllerBase
     {
         try
         {
-             _logger.LogInformation("Updating stock for product {ProductId} to {StockQuantity}", id, dto.StockQuantity);
-             await _productService.UpdateStockAsync(id, dto.StockQuantity);
-             return Ok(new { message = "Stok güncellendi", Success = true });
+            _logger.LogInformation("Updating stock for product {ProductId} to {StockQuantity}", id, dto.StockQuantity);
+            await _productService.UpdateStockAsync(id, dto.StockQuantity);
+            return Ok(new { message = "Stok güncellendi", Success = true });
         }
         catch (Exception ex)
         {
-             return NotFound(new { message = ex.Message });
+            return NotFound(new { message = ex.Message });
         }
     }
 
@@ -241,7 +281,7 @@ public class ProductController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
-    
+
     /// <summary>
     /// Ürün siler
     /// </summary>
@@ -255,11 +295,11 @@ public class ProductController : ControllerBase
         {
             _logger.LogInformation("Deleting product: {ProductId}", id);
             await _productService.DeleteAsync(id);
-             return Ok(new { message = "Ürün silindi", Success = true });
+            return Ok(new { message = "Ürün silindi", Success = true });
         }
         catch (Exception ex)
         {
-             return NotFound(new { message = ex.Message });
+            return NotFound(new { message = ex.Message });
         }
     }
 }

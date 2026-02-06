@@ -1,90 +1,18 @@
 @model List<ECommerce.Application.DTOs.ProductDto>
 
 @{
-    var isSuperAdmin = User.IsInRole("SuperAdmin");
-    ViewData["Title"] = isSuperAdmin ? "Envanter Yönetimi" : "Ürün Yönetimi";
+    ViewData["Title"] = "Ürün Yönetimi";
 }
 
 <div class="row mb-4">
     <div class="col-12">
-        @if (isSuperAdmin)
-        {
-            <h2 class="mb-3"><i class="fa-solid fa-warehouse me-2"></i> Envanter Yönetimi</h2>
-            <p class="text-muted">Kategori, marka, özellik ve ürün yönetimini buradan yapabilirsiniz.</p>
-        }
-        else
-        {
-            <h2 class="mb-3"><i class="fa-solid fa-boxes-stacked me-2"></i> Ürün Yönetimi</h2>
-            <p class="text-muted">Ürünlerinizi buradan yönetebilirsiniz.</p>
-        }
+        <h2 class="mb-3"><i class="fa-solid fa-boxes-stacked me-2"></i> Ürün Yönetimi</h2>
+        <p class="text-muted">Ürünlerinizi buradan yönetebilirsiniz.</p>
     </div>
 </div>
 
 <div class="row g-4">
-    <!-- 1. Kategori Yönetimi -->
-    <div class="col-md-6 col-lg-3">
-        <div class="card h-100 shadow-sm border-0 hover-card">
-            <div class="card-body text-center p-4">
-                <div class="mb-3">
-                    <i class="fa-solid fa-folder-tree fa-3x text-primary"></i>
-                </div>
-                <h5 class="card-title fw-bold">Kategori Yönetimi</h5>
-                <p class="card-text text-muted small">Ürün kategorilerini düzenleyin ve hiyerarşik yapılandırın.</p>
-                <a asp-controller="Category" asp-action="Index" class="btn btn-primary btn-sm mt-2 w-100">
-                    <i class="fa-solid fa-arrow-right me-1"></i> Kategorilere Git
-                </a>
-            </div>
-            <div class="card-footer bg-light border-0 text-center">
-                <small class="text-muted">
-                    <i class="fa-solid fa-layer-group me-1"></i> Hiyerarşik Yapı
-                </small>
-            </div>
-        </div>
-    </div>
-
-    <!-- 2. Marka Yönetimi -->
-    <div class="col-md-6 col-lg-3">
-        <div class="card h-100 shadow-sm border-0 hover-card">
-            <div class="card-body text-center p-4">
-                <div class="mb-3">
-                    <i class="fa-solid fa-tag fa-3x text-success"></i>
-                </div>
-                <h5 class="card-title fw-bold">Marka Yönetimi</h5>
-                <p class="card-text text-muted small">Markaları yönetin ve kategorilerle ilişkilendirin.</p>
-                <a asp-controller="Category" asp-action="Brands" class="btn btn-success btn-sm mt-2 w-100">
-                    <i class="fa-solid fa-arrow-right me-1"></i> Markalara Git
-                </a>
-            </div>
-            <div class="card-footer bg-light border-0 text-center">
-                <small class="text-muted">
-                    <i class="fa-solid fa-link me-1"></i> Kategori Bağlantısı
-                </small>
-            </div>
-        </div>
-    </div>
-
-    <!-- 3. Özellik Yönetimi -->
-    <div class="col-md-6 col-lg-3">
-        <div class="card h-100 shadow-sm border-0 hover-card">
-            <div class="card-body text-center p-4">
-                <div class="mb-3">
-                    <i class="fa-solid fa-sliders fa-3x text-warning"></i>
-                </div>
-                <h5 class="card-title fw-bold">Özellik Yönetimi</h5>
-                <p class="card-text text-muted small">Global özellikler oluşturun ve kategorilere atayın.</p>
-                <a asp-controller="Category" asp-action="Attributes" class="btn btn-warning btn-sm mt-2 w-100">
-                    <i class="fa-solid fa-arrow-right me-1"></i> Özelliklere Git
-                </a>
-            </div>
-            <div class="card-footer bg-light border-0 text-center">
-                <small class="text-muted">
-                    <i class="fa-solid fa-globe me-1"></i> Global & Dinamik
-                </small>
-            </div>
-        </div>
-    </div>
-
-    <!-- 4. Ürün Yönetimi -->
+    <!-- Ürün Yönetimi -->
     <div class="col-md-6 col-lg-3">
         <div class="card h-100 shadow-sm border-0 hover-card">
             <div class="card-body text-center p-4">

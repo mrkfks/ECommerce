@@ -30,14 +30,145 @@ public class DashboardApiService
             if (companyId.HasValue) query.Add($"companyId={companyId}");
 
             var queryString = query.Count > 0 ? "?" + string.Join("&", query) : "";
-            var response = await _httpClient.GetFromJsonAsync<ApiResponse<DashboardKpiViewModel>>($"api/dashboard/kpi{queryString}");
-            return response?.Data;
+
+            // API'den yanıt al
+            var jsonResponse = await _httpClient.GetStringAsync($"api/dashboard/kpi{queryString}");
+
+            // JSON yanıtı parse et
+            using (var jsonDoc = System.Text.Json.JsonDocument.Parse(jsonResponse))
+            {
+                var data = jsonDoc.RootElement.GetProperty("data");
+
+                // DashboardKpiViewModel'e dönüştür
+                var viewModel = new DashboardKpiViewModel
+                {
+                    Sales = MapSalesKpi(data),
+                    Orders = MapOrdersKpi(data),
+                    Customers = MapCustomersKpi(data),
+                    Products = MapProductsKpi(data),
+                    TopProducts = MapTopProducts(data),
+                    LowStockProducts = MapLowStockProducts(data),
+                    RevenueTrend = MapRevenueTrend(data),
+                    CustomerSegmentation = MapCustomerSegmentation(data),
+                    CategorySales = MapCategorySales(data),
+                    CategoryStock = MapCategoryStock(data),
+                    GeographicDistribution = MapGeographicDistribution(data),
+                    AverageCartTrend = MapAverageCartTrend(data),
+                    OrderStatusDistribution = MapOrderStatusDistribution(data)
+                };
+
+                return viewModel;
+            }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"[DashboardApiService] Error fetching KPI: {ex.Message}");
             return null;
         }
+    }
+
+    private SalesKpiVm MapSalesKpi(System.Text.Json.JsonElement data)
+    {
+        if (data.TryGetProperty("sales", out var sales))
+        {
+            var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            return System.Text.Json.JsonSerializer.Deserialize<SalesKpiVm>(sales.GetRawText(), options) ?? new();
+        }
+        return new();
+    }
+
+    private OrderKpiVm MapOrdersKpi(System.Text.Json.JsonElement data)
+    {
+        if (data.TryGetProperty("orders", out var orders))
+        {
+            var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            return System.Text.Json.JsonSerializer.Deserialize<OrderKpiVm>(orders.GetRawText(), options) ?? new();
+        }
+        return new();
+    }
+
+    private CustomerKpiVm MapCustomersKpi(System.Text.Json.JsonElement data)
+    {
+        if (data.TryGetProperty("customers", out var customers))
+        {
+            var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            return System.Text.Json.JsonSerializer.Deserialize<CustomerKpiVm>(customers.GetRawText(), options) ?? new();
+        }
+        return new();
+    }
+
+    private ProductKpiVm MapProductsKpi(System.Text.Json.JsonElement data)
+    {
+        if (data.TryGetProperty("products", out var products))
+        {
+            var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            return System.Text.Json.JsonSerializer.Deserialize<ProductKpiVm>(products.GetRawText(), options) ?? new();
+        }
+        return new();
+    }
+
+    private List<Dashboard.Web.Models.TopProductDto> MapTopProducts(System.Text.Json.JsonElement data)
+    {
+        if (!data.TryGetProperty("topProducts", out var topProducts)) return new();
+        var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        return System.Text.Json.JsonSerializer.Deserialize<List<Dashboard.Web.Models.TopProductDto>>(topProducts.GetRawText(), options) ?? new();
+    }
+
+    private List<LowStockProductVm> MapLowStockProducts(System.Text.Json.JsonElement data)
+    {
+        if (!data.TryGetProperty("lowStockProducts", out var lowStock)) return new();
+        var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        return System.Text.Json.JsonSerializer.Deserialize<List<LowStockProductVm>>(lowStock.GetRawText(), options) ?? new();
+    }
+
+    private List<Dashboard.Web.Models.RevenueTrendDto> MapRevenueTrend(System.Text.Json.JsonElement data)
+    {
+        if (!data.TryGetProperty("revenueTrend", out var trend)) return new();
+        var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        return System.Text.Json.JsonSerializer.Deserialize<List<Dashboard.Web.Models.RevenueTrendDto>>(trend.GetRawText(), options) ?? new();
+    }
+
+    private CustomerSegmentationVm MapCustomerSegmentation(System.Text.Json.JsonElement data)
+    {
+        if (!data.TryGetProperty("customerSegmentation", out var seg))
+            return new CustomerSegmentationVm { NewCustomers = 0, ReturningCustomers = 0 };
+        var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        return System.Text.Json.JsonSerializer.Deserialize<CustomerSegmentationVm>(seg.GetRawText(), options) ?? new();
+    }
+
+    private List<CategorySalesVm> MapCategorySales(System.Text.Json.JsonElement data)
+    {
+        if (!data.TryGetProperty("categorySales", out var cat)) return new();
+        var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        return System.Text.Json.JsonSerializer.Deserialize<List<CategorySalesVm>>(cat.GetRawText(), options) ?? new();
+    }
+
+    private List<Dashboard.Web.Models.CategoryStockDto> MapCategoryStock(System.Text.Json.JsonElement data)
+    {
+        if (!data.TryGetProperty("categoryStock", out var cat)) return new();
+        var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        return System.Text.Json.JsonSerializer.Deserialize<List<Dashboard.Web.Models.CategoryStockDto>>(cat.GetRawText(), options) ?? new();
+    }
+
+    private List<Dashboard.Web.Models.GeographicDistributionDto> MapGeographicDistribution(System.Text.Json.JsonElement data)
+    {
+        if (!data.TryGetProperty("geographicDistribution", out var geo)) return new();
+        var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        return System.Text.Json.JsonSerializer.Deserialize<List<Dashboard.Web.Models.GeographicDistributionDto>>(geo.GetRawText(), options) ?? new();
+    }
+
+    private List<Dashboard.Web.Models.AverageCartTrendDto> MapAverageCartTrend(System.Text.Json.JsonElement data)
+    {
+        if (!data.TryGetProperty("averageCartTrend", out var cart)) return new();
+        var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        return System.Text.Json.JsonSerializer.Deserialize<List<Dashboard.Web.Models.AverageCartTrendDto>>(cart.GetRawText(), options) ?? new();
+    }
+
+    private List<Dashboard.Web.Models.OrderStatusDistributionDto> MapOrderStatusDistribution(System.Text.Json.JsonElement data)
+    {
+        if (!data.TryGetProperty("orderStatusDistribution", out var status)) return new();
+        var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        return System.Text.Json.JsonSerializer.Deserialize<List<Dashboard.Web.Models.OrderStatusDistributionDto>>(status.GetRawText(), options) ?? new();
     }
 
     /// <summary>

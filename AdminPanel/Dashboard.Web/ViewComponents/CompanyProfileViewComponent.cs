@@ -29,6 +29,23 @@ namespace Dashboard.Web.ViewComponents
                 var response = await _companyService.GetByIdAsync(companyId);
                 company = response?.Data;
             }
+            else
+            {
+                // Eğer claim yoksa API'den profil çekip companyId'yi oradan deneyelim
+                try
+                {
+                    var user = await _userService.GetProfileAsync();
+                    if (user != null && user.CompanyId.HasValue)
+                    {
+                        var response = await _companyService.GetByIdAsync(user.CompanyId.Value);
+                        company = response?.Data;
+                    }
+                }
+                catch
+                {
+                    // Sessizce devam et; component boş şirket dönebilir
+                }
+            }
 
             // Eğer company null ise varsayılan dönebilir veya boş
             return View(company);

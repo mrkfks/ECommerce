@@ -8,6 +8,7 @@ public record CampaignDto
     public int Id { get; init; }
     public string Name { get; init; } = string.Empty;
     public string? Description { get; init; }
+    public string? BannerImageUrl { get; init; }
     public decimal DiscountPercent { get; init; }
     public DateTime StartDate { get; init; }
     public DateTime EndDate { get; init; }
@@ -27,6 +28,7 @@ public record CampaignFormDto
     public int? Id { get; init; }
     public string Name { get; init; } = string.Empty;
     public string? Description { get; init; }
+    public string? BannerImageUrl { get; init; }
     public decimal DiscountPercent { get; init; }
     public DateTime StartDate { get; init; }
     public DateTime EndDate { get; init; }

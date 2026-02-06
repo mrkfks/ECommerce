@@ -22,18 +22,18 @@ public class CampaignService : ICampaignService
 
     private async Task<Campaign?> GetCampaignEntityAsync(int id)
     {
-         var campaign = await _context.Campaigns.FindAsync(id);
-         if (campaign == null) return null;
-         
-         // Tenant check if needed
-         var companyId = _tenantService.GetCompanyId();
-         if (companyId.HasValue && campaign.CompanyId != companyId.Value)
-         {
-             // return null or throw? usually null or unauthorized.
-             // For now return null acts as not found/accessible.
-             return null;
-         }
-         return campaign;
+        var campaign = await _context.Campaigns.FindAsync(id);
+        if (campaign == null) return null;
+
+        // Tenant check if needed
+        var companyId = _tenantService.GetCompanyId();
+        if (companyId.HasValue && campaign.CompanyId != companyId.Value)
+        {
+            // return null or throw? usually null or unauthorized.
+            // For now return null acts as not found/accessible.
+            return null;
+        }
+        return campaign;
     }
 
     public async Task<IReadOnlyList<CampaignDto>> GetAllAsync()
@@ -49,10 +49,10 @@ public class CampaignService : ICampaignService
             .OrderByDescending(c => c.IsActive) // Logic from controller was diff?
             .ThenByDescending(c => c.CreatedAt)
             .ToListAsync();
-            
+
         // Controller sort: OrderByDescending(c => c.IsCurrentlyActive).ThenByDescending(c => c.CreatedAt)
         // I'll map first then sort. Or sort in memory.
-        
+
         return campaigns.Select(MapToDto).OrderByDescending(c => c.IsCurrentlyActive).ThenByDescending(c => c.CreatedAt).ToList();
     }
 
@@ -78,7 +78,7 @@ public class CampaignService : ICampaignService
     {
         var now = DateTime.UtcNow;
         var query = _context.Campaigns.Include(c => c.Company).AsNoTracking();
-        
+
         var companyId = _tenantService.GetCompanyId();
         if (companyId.HasValue) query = query.Where(c => c.CompanyId == companyId.Value);
 
@@ -104,7 +104,7 @@ public class CampaignService : ICampaignService
         var query = _context.Campaigns.Include(c => c.Company).AsNoTracking();
         var companyId = _tenantService.GetCompanyId();
         if (companyId.HasValue) query = query.Where(c => c.CompanyId == companyId.Value);
-        
+
         var campaign = await query.FirstOrDefaultAsync(c => c.Id == id);
         return campaign == null ? null : MapToDto(campaign);
     }
@@ -113,7 +113,7 @@ public class CampaignService : ICampaignService
     {
         // Enforce tenant?
         var companyId = _tenantService.GetCompanyId() ?? dto.CompanyId ?? 1;
-        
+
         var campaign = Campaign.Create(
             dto.Name,
             dto.DiscountPercent,
@@ -124,7 +124,7 @@ public class CampaignService : ICampaignService
 
         _context.Campaigns.Add(campaign);
         await _context.SaveChangesAsync();
-        
+
         return MapToDto(campaign);
     }
 
@@ -132,7 +132,7 @@ public class CampaignService : ICampaignService
     {
         var campaign = await GetCampaignEntityAsync(id);
         if (campaign == null) throw new KeyNotFoundException("Campaign not found");
-        
+
         campaign.Update(dto.Name, dto.DiscountPercent, dto.StartDate, dto.EndDate, dto.Description);
         await _context.SaveChangesAsync();
     }
@@ -141,7 +141,7 @@ public class CampaignService : ICampaignService
     {
         var campaign = await GetCampaignEntityAsync(id);
         if (campaign == null) throw new KeyNotFoundException("Campaign not found");
-        
+
         campaign.Activate();
         await _context.SaveChangesAsync();
     }
@@ -150,7 +150,7 @@ public class CampaignService : ICampaignService
     {
         var campaign = await GetCampaignEntityAsync(id);
         if (campaign == null) throw new KeyNotFoundException("Campaign not found");
-        
+
         campaign.Deactivate();
         await _context.SaveChangesAsync();
     }
@@ -159,11 +159,11 @@ public class CampaignService : ICampaignService
     {
         var campaign = await GetCampaignEntityAsync(id);
         if (campaign == null) throw new KeyNotFoundException("Campaign not found");
-        
+
         _context.Campaigns.Remove(campaign);
         await _context.SaveChangesAsync();
     }
-    
+
     private static CampaignDto MapToDto(Campaign c)
     {
         var now = DateTime.UtcNow;
@@ -172,6 +172,7 @@ public class CampaignService : ICampaignService
             Id = c.Id,
             Name = c.Name,
             Description = c.Description,
+            BannerImageUrl = c.BannerImageUrl,
             DiscountPercent = c.DiscountPercent,
             StartDate = c.StartDate,
             EndDate = c.EndDate,

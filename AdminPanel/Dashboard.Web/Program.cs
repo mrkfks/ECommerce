@@ -219,6 +219,12 @@ builder.Services.AddHttpClient<IApiService<CampaignDto>, ApiService<CampaignDto>
     client.Timeout = TimeSpan.FromSeconds(30);
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
+// Campaign API typed client for dashboard operations
+builder.Services.AddHttpClient<CampaignApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
 builder.Services.AddHttpClient<IApiService<BannerViewModel>, ApiService<BannerViewModel>>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
@@ -262,6 +268,15 @@ builder.Services.AddHttpClient<DashboardApiService>(client =>
     client.Timeout = TimeSpan.FromSeconds(30);
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
+builder.Services.AddTransient<BrandApiService>();
+
+builder.Services.AddTransient<GlobalAttributeApiService>();
+
+builder.Services.AddTransient<ModelApiService>();
+
+builder.Services.AddTransient<RoleApiService>();
+
+builder.Services.AddTransient<FeatureApiService>();
 
 builder.Services.AddHttpClient<UserApiService>(client =>
 {

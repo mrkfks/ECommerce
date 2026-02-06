@@ -240,6 +240,9 @@ namespace ECommerce.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("BannerImageUrl")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("CompanyId")
                         .HasColumnType("INTEGER");
 
@@ -1220,6 +1223,42 @@ namespace ECommerce.Infrastructure.Migrations
                     b.ToTable("Attributes", (string)null);
                 });
 
+            modelBuilder.Entity("ECommerce.Domain.Entities.ProductCampaign", b =>
+                {
+                    b.Property<int>("ProductId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CampaignId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("DiscountedPrice")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("OriginalPrice")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ProductId", "CampaignId");
+
+                    b.HasIndex("CampaignId");
+
+                    b.ToTable("ProductCampaigns");
+                });
+
             modelBuilder.Entity("ECommerce.Domain.Entities.ProductImage", b =>
                 {
                     b.Property<int>("Id")
@@ -1965,6 +2004,25 @@ namespace ECommerce.Infrastructure.Migrations
                     b.Navigation("Model");
                 });
 
+            modelBuilder.Entity("ECommerce.Domain.Entities.ProductCampaign", b =>
+                {
+                    b.HasOne("ECommerce.Domain.Entities.Campaign", "Campaign")
+                        .WithMany("Products")
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ECommerce.Domain.Entities.Product", "Product")
+                        .WithMany("Campaigns")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Campaign");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("ECommerce.Domain.Entities.ProductImage", b =>
                 {
                     b.HasOne("ECommerce.Domain.Entities.Product", "Product")
@@ -2138,6 +2196,11 @@ namespace ECommerce.Infrastructure.Migrations
                     b.Navigation("Products");
                 });
 
+            modelBuilder.Entity("ECommerce.Domain.Entities.Campaign", b =>
+                {
+                    b.Navigation("Products");
+                });
+
             modelBuilder.Entity("ECommerce.Domain.Entities.Cart", b =>
                 {
                     b.Navigation("Items");
@@ -2204,6 +2267,8 @@ namespace ECommerce.Infrastructure.Migrations
 
             modelBuilder.Entity("ECommerce.Domain.Entities.Product", b =>
                 {
+                    b.Navigation("Campaigns");
+
                     b.Navigation("Images");
 
                     b.Navigation("OrderItems");

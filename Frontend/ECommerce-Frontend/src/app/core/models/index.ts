@@ -262,3 +262,24 @@ export interface PaginatedResponse<T> {
   hasPreviousPage: boolean;
   hasNextPage: boolean;
 }
+
+// Campaign Models
+export interface Campaign {
+  id: number;
+  name: string;
+  description?: string;
+  startDate: Date;
+  endDate: Date;
+  discountPercent: number;
+  bannerImageUrl?: string;
+  isActive: boolean;
+}
+
+export interface ProductCampaign {
+  productId: number;
+  campaignId: number;
+  originalPrice: number;
+  discountedPrice: number;
+  discountPercent?: number;
+  campaign?: Campaign;
+}

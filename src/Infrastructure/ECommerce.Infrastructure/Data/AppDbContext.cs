@@ -44,6 +44,7 @@ namespace ECommerce.Infrastructure.Data
         public DbSet<BrandCategory> BrandCategories { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Campaign> Campaigns { get; set; }
+        public DbSet<ProductCampaign> ProductCampaigns { get; set; }
         public DbSet<CustomerMessage> CustomerMessages { get; set; }
         public DbSet<LoginHistory> LoginHistories { get; set; }
         public DbSet<Cart> Carts { get; set; }
@@ -69,6 +70,10 @@ namespace ECommerce.Infrastructure.Data
             // UserRole composite key
             modelBuilder.Entity<UserRole>()
                 .HasKey(ur => new { ur.UserId, ur.RoleId });
+
+            // ProductCampaign composite key
+            modelBuilder.Entity<ProductCampaign>()
+                .HasKey(pc => new { pc.ProductId, pc.CampaignId });
 
             // Seed data - Not: Seed data manuel olarak veya ayrı bir DbInitializer ile eklenecek
             // Seed.DataSeeder.SeedData(modelBuilder);

@@ -56,10 +56,21 @@
       </div>
 
       <!-- Fiyat -->
-      <div class="d-flex align-items-center gap-2">
-        <span class="fw-bold text-primary fs-5">{{ product.price | currency:'TRY':'symbol-narrow':'1.2-2' }}</span>
-        @if (product.originalPrice && product.originalPrice > product.price) {
-          <small class="text-muted text-decoration-line-through">{{ product.originalPrice | currency:'TRY':'symbol-narrow':'1.2-2' }}</small>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <!-- Aktif Kampanya Fiyatı -->
+        @if (activeCampaign && !loading) {
+          <div class="d-flex align-items-center gap-2">
+            <span class="fw-bold text-danger fs-5">{{ activeCampaign.discountedPrice | currency:'TRY':'symbol-narrow':'1.2-2' }}</span>
+            <small class="text-muted text-decoration-line-through">{{ activeCampaign.originalPrice | currency:'TRY':'symbol-narrow':'1.2-2' }}</small>
+            <span class="badge bg-danger">Kampanya</span>
+          </div>
+        }
+        <!-- Normal Fiyat -->
+        @if (!activeCampaign || loading) {
+          <span class="fw-bold text-primary fs-5">{{ product.price | currency:'TRY':'symbol-narrow':'1.2-2' }}</span>
+          @if (product.originalPrice && product.originalPrice > product.price) {
+            <small class="text-muted text-decoration-line-through">{{ product.originalPrice | currency:'TRY':'symbol-narrow':'1.2-2' }}</small>
+          }
         }
       </div>
     </div>

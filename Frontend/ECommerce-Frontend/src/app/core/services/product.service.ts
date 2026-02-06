@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
-import { Product, ProductCreateRequest, ProductUpdateRequest, PaginatedResponse, ApiResponse } from '../models';
+import { Product, ProductCreateRequest, ProductUpdateRequest, PaginatedResponse, ApiResponse, ProductCampaign } from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -71,6 +71,12 @@ export class ProductService {
   getBestSellers(): Observable<Product[]> {
     return this.http.get<Product[] | ApiResponse<Product[]>>(`${this.basePath}/bestsellers`).pipe(
       map((response: any) => (Array.isArray(response) ? response : (response?.data || [])))
+    );
+  }
+
+  getActiveCampaign(productId: number): Observable<ProductCampaign> {
+    return this.http.get<ApiResponse<ProductCampaign>>(`${this.basePath}/${productId}/active-campaign`).pipe(
+      map((response: any) => ('data' in response ? response.data : response))
     );
   }
 }

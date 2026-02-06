@@ -1,0 +1,131 @@
+@model List<CampaignVm>
+
+@{
+    ViewData["Title"] = "Kampanyalar";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>Kampanya Yönetimi</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="@Url.Action("Create")" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Yeni Kampanya
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row">
+        @foreach (var campaign in Model)
+        {
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    @if (!string.IsNullOrEmpty(campaign.BannerImageUrl))
+                    {
+                        <img src="@campaign.BannerImageUrl" class="card-img-top" alt="@campaign.Name" style="height: 200px; object-fit: cover;">
+                    }
+                    else
+                    {
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <i class="fas fa-image fa-3x text-muted"></i>
+                        </div>
+                    }
+
+                    <div class="card-body">
+                        <h5 class="card-title">@campaign.Name</h5>
+                        <p class="card-text text-muted">@campaign.Description</p>
+
+                        <div class="mb-3">
+                            <span class="badge @campaign.StatusBadgeClass">@campaign.StatusText</span>
+                            <span class="badge bg-warning text-dark">@campaign.DiscountText</span>
+                        </div>
+
+                        <div class="small text-muted mb-2">
+                            <i class="fas fa-calendar"></i> @campaign.DateRangeText
+                        </div>
+
+                        <div class="small mb-3">
+                            @if (campaign.IsCurrentlyActive)
+                            {
+                                <div class="text-success">
+                                    <i class="fas fa-check-circle"></i> @campaign.RemainingDaysText
+                                </div>
+                            }
+                            else if (campaign.StartDate > DateTime.Now)
+                            {
+                                <div class="text-info">
+                                    <i class="fas fa-clock"></i> @campaign.RemainingDaysText
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="card-footer border-0 bg-transparent">
+                        <a href="@Url.Action("Edit", new { id = campaign.Id })" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i> Düzelt
+                        </a>
+                        <a href="@Url.Action("Products", new { id = campaign.Id })" class="btn btn-sm btn-info">
+                            <i class="fas fa-tag"></i> Ürünler
+                        </a>
+                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" onclick="setDeleteId(@campaign.Id)">
+                            <i class="fas fa-trash"></i> Sil
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Henüz kampanya oluşturulmamış.
+            <a href="@Url.Action("Create")" class="alert-link">İlk kampanyayı oluşturun</a>
+        </div>
+    }
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Kampanyayı Sil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Bu kampanyayı silmek istediğinizden emin misiniz?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <form id="deleteForm" action="@Url.Action("Delete")" method="post" style="display: inline;">
+                    <input type="hidden" name="id" id="deleteId" value="0">
+                    <button type="submit" class="btn btn-danger">Sil</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function setDeleteId(id) {
+        document.getElementById('deleteId').value = id;
+    }
+</script>

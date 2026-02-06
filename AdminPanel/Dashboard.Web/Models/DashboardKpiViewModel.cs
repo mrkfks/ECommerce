@@ -10,6 +10,7 @@ public class DashboardKpiViewModel
     public SalesKpiVm Sales { get; set; } = new();
     public OrderKpiVm Orders { get; set; } = new();
     public CustomerKpiVm Customers { get; set; } = new();
+    public ProductKpiVm Products { get; set; } = new();
     public List<TopProductDto> TopProducts { get; set; } = new();
     public List<LowStockProductVm> LowStockProducts { get; set; } = new();
     public List<RevenueTrendDto> RevenueTrend { get; set; } = new();

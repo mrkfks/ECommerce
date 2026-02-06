@@ -1,7 +1,8 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { Product } from '../../core/models';
+import { Product, ProductCampaign } from '../../core/models';
+import { ProductService } from '../../core/services/product.service';
 
 @Component({
   selector: 'app-product-card',
@@ -10,13 +11,39 @@ import { Product } from '../../core/models';
   templateUrl: './product-card.html',
   styleUrl: './product-card.css',
 })
-export class ProductCard {
-    onImgError(event: Event) {
-      (event.target as HTMLImageElement).src = 'assets/images/no-image.svg';
-    }
+export class ProductCard implements OnInit {
   @Input() product!: Product;
   @Output() addToCart = new EventEmitter<Product>();
   @Output() addToWishlist = new EventEmitter<Product>();
+
+  activeCampaign: ProductCampaign | null = null;
+  loading = false;
+
+  constructor(private productService: ProductService) {}
+
+  ngOnInit(): void {
+    this.loadActiveCampaign();
+  }
+
+  loadActiveCampaign(): void {
+    if (!this.product?.id) return;
+    
+    this.loading = true;
+    this.productService.getActiveCampaign(this.product.id).subscribe({
+      next: (campaign) => {
+        this.activeCampaign = campaign;
+        this.loading = false;
+      },
+      error: () => {
+        this.activeCampaign = null;
+        this.loading = false;
+      }
+    });
+  }
+
+  onImgError(event: Event) {
+    (event.target as HTMLImageElement).src = 'assets/images/no-image.svg';
+  }
 
   onAddToCart(event: Event): void {
     event.preventDefault();
@@ -29,4 +56,13 @@ export class ProductCard {
     event.stopPropagation();
     this.addToWishlist.emit(this.product);
   }
+
+  getDisplayPrice(): number {
+    return this.activeCampaign?.discountedPrice ?? this.product?.price ?? 0;
+  }
+
+  getOriginalPrice(): number | null {
+    return this.activeCampaign?.originalPrice ?? null;
+  }
 }
+

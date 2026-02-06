@@ -1,0 +1,219 @@
+@model List<ProductCampaignVm>
+
+@{
+    ViewData["Title"] = "Kampanya Ürünleri";
+}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>@ViewBag.CampaignName - Ürünler</h2>
+            <p class="text-muted">Bu kampanyaya eklenen ürünleri yönetin</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Geri Dön
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Ürün Ekle</h5>
+                </div>
+                <div class="card-body">
+                    <form id="addProductForm" method="post" action="javascript:void(0);">
+                        <div class="row align-items-end">
+                            <div class="col-md-4">
+                                <label class="form-label">Ürün Seç *</label>
+                                <select id="productSelect" class="form-control" required>
+                                    <option value="">-- Ürün Seçin --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Orijinal Fiyat (₺) *</label>
+                                <input type="number" id="originalPrice" class="form-control" step="0.01" min="0" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">İndirimli Fiyat (₺) *</label>
+                                <input type="number" id="discountedPrice" class="form-control" step="0.01" min="0" required>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn btn-success w-100" onclick="addProductToCampaign()">
+                                    <i class="fas fa-plus"></i> Ekle
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            @if (Model.Count > 0)
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ürün Adı</th>
+                                <th>Orijinal Fiyat</th>
+                                <th>İndirimli Fiyat</th>
+                                <th>İndirim %</th>
+                                <th>Tasarruf</th>
+                                <th>Durumu</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var product in Model)
+                            {
+                                <tr>
+                                    <td><strong>@product.ProductName</strong></td>
+                                    <td>
+                                        <span class="text-decoration-line-through text-muted">
+                                            ₺@product.OriginalPrice.ToString("F2")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-success">
+                                            ₺@product.DiscountedPrice.ToString("F2")
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger">
+                                            -%@product.DiscountPercentage.ToString("F1")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            @product.SavedText
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (product.IsCampaignActive)
+                                        {
+                                            <span class="badge bg-success">Aktif</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Pasif</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-warning" onclick="editProductPrice(@product.ProductId)">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger" onclick="removeProductFromCampaign(@product.ProductId)">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Bu kampanyaya henüz ürün eklenmemiştir.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    const campaignId = @ViewBag.CampaignId;
+
+    async function addProductToCampaign() {
+        const productId = document.getElementById('productSelect').value;
+        const originalPrice = document.getElementById('originalPrice').value;
+        const discountedPrice = document.getElementById('discountedPrice').value;
+
+        if (!productId || !originalPrice || !discountedPrice) {
+            alert('Lütfen tüm alanları doldurun');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/campaigns/${campaignId}/products`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    productId: parseInt(productId),
+                    campaignId: campaignId,
+                    originalPrice: parseFloat(originalPrice),
+                    discountedPrice: parseFloat(discountedPrice)
+                })
+            });
+
+            if (response.ok) {
+                alert('Ürün başarıyla eklendi');
+                location.reload();
+            } else {
+                alert('Hata: ' + (await response.text()));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Ürün eklenirken hata oluştu');
+        }
+    }
+
+    async function removeProductFromCampaign(productId) {
+        if (!confirm('Bu ürünü kampanyadan çıkarmak istediğinizden emin misiniz?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/campaigns/${campaignId}/products/${productId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                alert('Ürün başarıyla kaldırıldı');
+                location.reload();
+            } else {
+                alert('Hata: ' + (await response.text()));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Ürün kaldırılırken hata oluştu');
+        }
+    }
+
+    // Load products on page load
+    async function loadProducts() {
+        try {
+            const response = await fetch('/api/products');
+            const products = await response.json();
+            
+            const select = document.getElementById('productSelect');
+            products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = product.name + ` (₺${product.price.toFixed(2)})`;
+                select.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error loading products:', error);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadProducts);
+</script>

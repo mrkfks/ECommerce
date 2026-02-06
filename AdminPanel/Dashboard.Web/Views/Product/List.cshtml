@@ -4,15 +4,6 @@
     ViewData["Title"] = "Ürün Listesi";
 }
 
-<div class="mb-3">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index">@(User.IsInRole("SuperAdmin") ? "Envanter Yönetimi" : "Ürün Yönetimi")</a></li>
-            <li class="breadcrumb-item active">Ürün Listesi</li>
-        </ol>
-    </nav>
-</div>
-
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0"><i class="fa-solid fa-box-open me-2"></i> Ürün Listesi</h5>

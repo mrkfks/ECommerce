@@ -1,6 +1,6 @@
+using System.Net.Http.Json;
+using System.Text.Json;
 using Dashboard.Web.Models;
-using System.Net.Http.Json;
-using System.Net.Http.Json;
 using ECommerce.Application.DTOs;
 
 namespace Dashboard.Web.Services;
@@ -62,16 +62,28 @@ public class CampaignApiService
         }
     }
 
-    public async Task<bool> CreateAsync(CampaignCreateVm campaign)
+    public async Task<(bool Success, int? Id)> CreateAsync(CampaignCreateVm campaign)
     {
         try
         {
             var response = await _httpClient.PostAsJsonAsync("api/Campaign", campaign);
-            return response.IsSuccessStatusCode;
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonStr = await response.Content.ReadAsStringAsync();
+                using (JsonDocument doc = JsonDocument.Parse(jsonStr))
+                {
+                    if (doc.RootElement.TryGetProperty("id", out var idElement) && int.TryParse(idElement.GetString(), out int id))
+                    {
+                        return (true, id);
+                    }
+                }
+                return (true, null);
+            }
+            return (false, null);
         }
         catch
         {
-            return false;
+            return (false, null);
         }
     }
 
@@ -118,7 +130,7 @@ public class CampaignApiService
     {
         try
         {
-            var response = await _httpClient.DeleteAsync($"api/Campaign/{id}");
+            var response = await _httpClient.DeleteAsync($"api/campaigns/{id}");
             return response.IsSuccessStatusCode;
         }
         catch
@@ -126,38 +138,93 @@ public class CampaignApiService
             return false;
         }
     }
-}
 
-// ViewModels
-public class CampaignVm
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public decimal DiscountPercent { get; set; }
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
-    public bool IsActive { get; set; }
-    public bool IsCurrentlyActive { get; set; }
-    public int RemainingDays { get; set; }
-    public int CompanyId { get; set; }
-    public string CompanyName { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
+    // ProductCampaign Methods
 
-    // UI Helpers
-    public string DiscountText => $"%{DiscountPercent:N0}";
-    public string DateRangeText => $"{StartDate:dd MMM} - {EndDate:dd MMM yyyy}";
-    public string StatusBadgeClass => IsCurrentlyActive ? "bg-success" : (StartDate > DateTime.Now ? "bg-info" : "bg-secondary");
-    public string StatusText => IsCurrentlyActive ? "Aktif" : (StartDate > DateTime.Now ? "Yaklaşan" : "Sona Erdi");
-    public string RemainingDaysText => RemainingDays > 0 ? $"{RemainingDays} gün kaldı" : "Sona erdi";
-}
+    public async Task<List<ProductCampaignVm>> GetCampaignProductsAsync(int campaignId)
+    {
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<List<ProductCampaignVm>>($"api/campaigns/{campaignId}/products") ?? new();
+        }
+        catch
+        {
+            return new List<ProductCampaignVm>();
+        }
+    }
 
+    public async Task<bool> AddProductToCampaignAsync(int campaignId, ProductCampaignCreateVm product)
+    {
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync($"api/campaigns/{campaignId}/products", product);
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 
-public class CampaignSummaryVm
-{
-    public int TotalCampaigns { get; set; }
-    public int ActiveCampaigns { get; set; }
-    public int UpcomingCampaigns { get; set; }
-    public int ExpiredCampaigns { get; set; }
-    public List<CampaignVm> CurrentCampaigns { get; set; } = new();
+    public async Task<bool> RemoveProductFromCampaignAsync(int campaignId, int productId)
+    {
+        try
+        {
+            var response = await _httpClient.DeleteAsync($"api/campaigns/{campaignId}/products/{productId}");
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> UpdateProductCampaignPricesAsync(int campaignId, int productId, ProductCampaignCreateVm prices)
+    {
+        try
+        {
+            var response = await _httpClient.PutAsJsonAsync($"api/campaigns/{campaignId}/products/{productId}", prices);
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<(bool Success, string? ImageUrl)> UploadBannerAsync(int campaignId, IFormFile file)
+    {
+        try
+        {
+            using (var content = new MultipartFormDataContent())
+            {
+                using (var fileStream = file.OpenReadStream())
+                {
+                    var streamContent = new StreamContent(fileStream);
+                    streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType ?? "application/octet-stream");
+                    content.Add(streamContent, "file", file.FileName);
+
+                    var response = await _httpClient.PutAsync($"api/campaigns/{campaignId}/upload-banner", content);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var jsonStr = await response.Content.ReadAsStringAsync();
+                        using (JsonDocument doc = JsonDocument.Parse(jsonStr))
+                        {
+                            if (doc.RootElement.TryGetProperty("url", out var urlElement))
+                            {
+                                return (true, urlElement.GetString());
+                            }
+                        }
+                        return (true, null);
+                    }
+                    return (false, null);
+                }
+            }
+        }
+        catch
+        {
+            return (false, null);
+        }
+    }
 }
