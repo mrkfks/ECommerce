@@ -26,11 +26,12 @@ builder.Services.AddHttpClient<ApiService<GlobalAttributeFormDto>>(client =>
 }).AddHttpMessageHandler<AuthTokenHandler>();
 builder.Services.AddTransient<IApiService<GlobalAttributeFormDto>>(sp =>
     sp.GetRequiredService<ApiService<GlobalAttributeFormDto>>());
-builder.Services.AddTransient<IApiService<CategoryFormDto>>(sp =>
+
+builder.Services.AddHttpClient<IApiService<CategoryFormDto>, ApiService<CategoryFormDto>>(client =>
 {
-    var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient("CategoryApi");
-    return new ApiService<CategoryFormDto>(httpClient);
-});
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
 
 
 // Serilog Configuration (read from configuration) and programmatic file sink to shared backend folder
@@ -182,6 +183,12 @@ builder.Services.AddHttpClient<IApiService<OrderDto>, ApiService<OrderDto>>(clie
     client.Timeout = TimeSpan.FromSeconds(30);
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
+builder.Services.AddHttpClient<IApiService<ReturnRequestDto>, ApiService<ReturnRequestDto>>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
+
 builder.Services.AddHttpClient<IApiService<CustomerDto>, ApiService<CustomerDto>>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
@@ -268,7 +275,11 @@ builder.Services.AddHttpClient<DashboardApiService>(client =>
     client.Timeout = TimeSpan.FromSeconds(30);
 }).AddHttpMessageHandler<AuthTokenHandler>();
 
-builder.Services.AddTransient<BrandApiService>();
+builder.Services.AddHttpClient<BrandApiService>(client =>
+{
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(30);
+}).AddHttpMessageHandler<AuthTokenHandler>();
 
 builder.Services.AddTransient<GlobalAttributeApiService>();
 

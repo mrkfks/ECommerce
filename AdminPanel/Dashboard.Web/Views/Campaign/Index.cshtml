@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Kampanyalar";
+    var apiBaseUrl = ViewBag.ApiBaseUrl as string ?? "http://localhost:5010";
 }
 
 <div class="container-fluid">
@@ -39,7 +40,7 @@
                 <div class="card h-100 shadow-sm">
                     @if (!string.IsNullOrEmpty(campaign.BannerImageUrl))
                     {
-                        <img src="@campaign.BannerImageUrl" class="card-img-top" alt="@campaign.Name" style="height: 200px; object-fit: cover;">
+                        <img src="@(campaign.BannerImageUrl.StartsWith("http") ? campaign.BannerImageUrl : $"{apiBaseUrl}{campaign.BannerImageUrl}")" class="card-img-top" alt="@campaign.Name" style="height: 200px; object-fit: cover;">
                     }
                     else
                     {
@@ -103,21 +104,22 @@
 </div>
 
 <!-- Delete Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Kampanyayı Sil</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title" id="deleteModalLabel">Kampanyayı Sil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
             </div>
             <div class="modal-body">
                 Bu kampanyayı silmek istediğinizden emin misiniz?
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                <form id="deleteForm" action="@Url.Action("Delete")" method="post" style="display: inline;">
+                <form id="deleteForm" action="@Url.Action("Delete", "Campaign")" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" name="id" id="deleteId" value="0">
-                    <button type="submit" class="btn btn-danger">Sil</button>
+                    <button type="submit" class="btn btn-danger" id="confirmDeleteBtn">Sil</button>
                 </form>
             </div>
         </div>
@@ -125,7 +127,41 @@
 </div>
 
 <script>
+    // Sayfa yüklendiğinde modal kalıntılarını temizle
+    document.addEventListener('DOMContentLoaded', function() {
+        // Artık backdrop varsa kaldır
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+    });
+
     function setDeleteId(id) {
         document.getElementById('deleteId').value = id;
     }
+
+    // Modal kapandığında backdrop'ı temizle
+    document.getElementById('deleteModal').addEventListener('hidden.bs.modal', function () {
+        // Backdrop'ı manuel temizle
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+    });
+
+    // Form submit öncesi modal'ı kapat
+    document.getElementById('deleteForm').addEventListener('submit', function(e) {
+        // Modal'ı kapat
+        var deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+        if (deleteModal) {
+            deleteModal.hide();
+        }
+        // Backdrop'ı hemen temizle
+        setTimeout(function() {
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+        }, 100);
+    });
 </script>
+

@@ -150,11 +150,10 @@
         }
 
         try {
-            const response = await fetch(`/api/campaigns/${campaignId}/products`, {
+            const apiBaseUrl = '@ViewBag.ApiBaseUrl' || 'http://localhost:5010';
+            const response = await fetch(`${apiBaseUrl}/api/campaigns/${campaignId}/products`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: createAuthHeaders(),
                 body: JSON.stringify({
                     productId: parseInt(productId),
                     campaignId: campaignId,
@@ -181,8 +180,10 @@
         }
 
         try {
-            const response = await fetch(`/api/campaigns/${campaignId}/products/${productId}`, {
-                method: 'DELETE'
+            const apiBaseUrl = '@ViewBag.ApiBaseUrl' || 'http://localhost:5010';
+            const response = await fetch(`${apiBaseUrl}/api/campaigns/${campaignId}/products/${productId}`, {
+                method: 'DELETE',
+                headers: createAuthHeaders()
             });
 
             if (response.ok) {
@@ -197,22 +198,99 @@
         }
     }
 
+    // Get auth token from cookie
+    function getAuthToken() {
+        const name = "AuthToken=";
+        const decodedCookie = decodeURIComponent(document.cookie);
+        const ca = decodedCookie.split(';');
+        for(let i = 0; i <ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) === ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) === 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+    }
+
+    // Create fetch headers with auth
+    function createAuthHeaders() {
+        const token = getAuthToken();
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        return headers;
+    }
+
     // Load products on page load
     async function loadProducts() {
+        console.log('=== Starting loadProducts function ===');
         try {
-            const response = await fetch('/api/products');
-            const products = await response.json();
+            const apiBaseUrl = '@ViewBag.ApiBaseUrl' || 'http://localhost:5010';
+            const token = getAuthToken();
+            
+            console.log('API Base URL:', apiBaseUrl);
+            console.log('Auth token exists:', !!token);
+            console.log('Token length:', token ? token.length : 0);
+            console.log('Token preview:', token ? token.substring(0, 20) + '...' : 'No token');
+            
+            const url = `${apiBaseUrl}/api/products`;
+            const headers = createAuthHeaders();
+            
+            console.log('Request URL:', url);
+            console.log('Request headers:', headers);
+            
+            const response = await fetch(url, { 
+                headers: headers,
+                credentials: 'include'  // Cookie'leri dahil et
+            });
+            
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+            console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Error response text:', errorText);
+                throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
+            }
+            
+            const result = await response.json();
+            console.log('Raw API response:', result);
+            
+            const products = result.data?.items || result.data || result;
+            console.log('Extracted products:', products);
+            console.log('Products type:', typeof products);
+            console.log('Is products array?', Array.isArray(products));
             
             const select = document.getElementById('productSelect');
-            products.forEach(product => {
-                const option = document.createElement('option');
-                option.value = product.id;
-                option.textContent = product.name + ` (₺${product.price.toFixed(2)})`;
-                select.appendChild(option);
-            });
+            console.log('Select element found:', !!select);
+            
+            if (Array.isArray(products) && products.length > 0) {
+                console.log(`Processing ${products.length} products...`);
+                products.forEach((product, index) => {
+                    console.log(`Product ${index + 1}:`, product);
+                    const option = document.createElement('option');
+                    option.value = product.id;
+                    option.textContent = product.name + ` (₺${product.price.toFixed(2)})`;
+                    select.appendChild(option);
+                });
+                console.log(`✅ Successfully loaded ${products.length} products`);
+            } else {
+                console.warn('❌ No products found or products is not an array');
+                console.log('Products value:', products);
+            }
         } catch (error) {
-            console.error('Error loading products:', error);
+            console.error('❌ Product loading error:', error);
+            console.error('Error stack:', error.stack);
+            alert(`HATA: Ürünler yüklenirken hata oluştu: ${error.message}`);
         }
+        console.log('=== loadProducts function completed ===');
     }
 
     document.addEventListener('DOMContentLoaded', loadProducts);

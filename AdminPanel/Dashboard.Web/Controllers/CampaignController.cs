@@ -9,15 +9,18 @@ namespace Dashboard.Web.Controllers;
 public class CampaignController : Controller
 {
     private readonly CampaignApiService _campaignApiService;
+    private readonly string _apiBaseUrl;
 
-    public CampaignController(CampaignApiService campaignApiService)
+    public CampaignController(CampaignApiService campaignApiService, IConfiguration configuration)
     {
         _campaignApiService = campaignApiService;
+        _apiBaseUrl = configuration.GetSection("ApiSettings")["BaseUrl"] ?? "http://localhost:5010";
     }
 
     // GET: Campaign
     public async Task<IActionResult> Index()
     {
+        ViewBag.ApiBaseUrl = _apiBaseUrl;
         var campaigns = await _campaignApiService.GetAllAsync();
         return View(campaigns);
     }
@@ -70,6 +73,7 @@ public class CampaignController : Controller
     // GET: Campaign/Edit/5
     public async Task<IActionResult> Edit(int id)
     {
+        ViewBag.ApiBaseUrl = _apiBaseUrl;
         var campaign = await _campaignApiService.GetByIdAsync(id);
         if (campaign == null)
             return NotFound();
@@ -148,10 +152,29 @@ public class CampaignController : Controller
         if (campaign == null)
             return NotFound();
 
+        // Get campaign products
         var products = await _campaignApiService.GetCampaignProductsAsync(id);
+        
+        // Get all categories
+        var categoriesResponse = await _campaignApiService.GetAllCategoriesAsync();
+        
+        // Get selected categories for this campaign
+        var selectedCategoryIds = await _campaignApiService.GetCampaignCategoriesAsync(id);
+
+        var model = new CampaignProductsVm
+        {
+            CampaignId = id,
+            CampaignName = campaign.Name,
+            DiscountPercent = campaign.DiscountPercent,
+            AllCategories = categoriesResponse,
+            SelectedCategoryIds = selectedCategoryIds,
+            SelectedProducts = products
+        };
+        
         ViewBag.CampaignId = id;
         ViewBag.CampaignName = campaign.Name;
+        ViewBag.ApiBaseUrl = _apiBaseUrl;
 
-        return View(products);
+        return View(model);
     }
 }

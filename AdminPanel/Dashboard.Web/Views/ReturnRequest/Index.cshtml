@@ -1,0 +1,321 @@
+@model List<ECommerce.Application.DTOs.ReturnRequestDto>
+
+@{
+    ViewData["Title"] = "İade Talepleri Yönetimi";
+}
+
+<div class="mb-3">
+    <h2><i class="fa-solid fa-arrow-left me-2"></i> İade Talepleri Yönetimi</h2>
+    <p class="text-muted">Müşterilerin iade taleplerini inceleme ve yönetim</p>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="all-tab" data-bs-toggle="tab" href="#all" role="tab">
+                    <i class="fa-solid fa-list me-2"></i> Tüm Talepler
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="pending-tab" data-bs-toggle="tab" href="#pending" role="tab">
+                    <i class="fa-solid fa-clock me-2"></i> Beklemede <span class="badge bg-warning text-dark ms-2">
+                        @Model.Count(r => r.Status == ECommerce.Domain.Enums.ReturnRequestStatus.Pending)
+                    </span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="approved-tab" data-bs-toggle="tab" href="#approved" role="tab">
+                    <i class="fa-solid fa-check me-2"></i> Onaylı
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="tab-content">
+    <!-- Tüm Talepler -->
+    <div class="tab-pane fade show active" id="all" role="tabpanel">
+        @if (Model == null || Model.Count == 0)
+        {
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fa-solid fa-inbox text-muted" style="font-size: 4rem;"></i>
+                    <h4 class="mt-3">İade Talebi Bulunamadı</h4>
+                    <p class="text-muted">Henüz hiçbir iade talebi almamışsınız</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Talep ID</th>
+                            <th>Müşteri</th>
+                            <th>Sipariş ID</th>
+                            <th>Ürün</th>
+                            <th>Miktar</th>
+                            <th>Sebep</th>
+                            <th>Durum</th>
+                            <th>Tarih</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var request in Model.OrderByDescending(r => r.RequestDate))
+                        {
+                            <tr>
+                                <td><strong>#@request.Id</strong></td>
+                                <td>@request.CustomerName</td>
+                                <td>#@request.OrderId</td>
+                                <td>@request.ProductName</td>
+                                <td>
+                                    <span class="badge bg-light text-dark">
+                                        @request.Quantity
+                                    </span>
+                                </td>
+                                <td>
+                                    <small>@request.Reason</small>
+                                </td>
+                                <td>
+                                    @switch (request.Status)
+                                    {
+                                        case ECommerce.Domain.Enums.ReturnRequestStatus.Pending:
+                                            <span class="badge bg-warning text-dark">Beklemede</span>
+                                            break;
+                                        case ECommerce.Domain.Enums.ReturnRequestStatus.Approved:
+                                            <span class="badge bg-success">Onaylı</span>
+                                            break;
+                                        case ECommerce.Domain.Enums.ReturnRequestStatus.Rejected:
+                                            <span class="badge bg-danger">Reddedildi</span>
+                                            break;
+                                        case ECommerce.Domain.Enums.ReturnRequestStatus.Processing:
+                                            <span class="badge bg-info">İşlemde</span>
+                                            break;
+                                        case ECommerce.Domain.Enums.ReturnRequestStatus.Completed:
+                                            <span class="badge bg-secondary">Tamamlandı</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>
+                                    <small>
+                                        @request.RequestDate.ToString("dd.MM.yyyy HH:mm")
+                                    </small>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="openReturnRequestModal(@request.Id)">
+                                        <i class="fa-solid fa-eye"></i> Detay
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <!-- Beklemede Talepler -->
+    <div class="tab-pane fade" id="pending" role="tabpanel">
+        @{
+            var pendingRequests = Model?.Where(r => r.Status == ECommerce.Domain.Enums.ReturnRequestStatus.Pending).ToList() ?? new List<ReturnRequestDto>();
+        }
+        @if (pendingRequests.Count == 0)
+        {
+            <div class="card">
+                <div class="card-body text-center">
+                    <p class="text-muted">Beklemede olan iade talebi yok</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            @foreach (var request in pendingRequests.OrderByDescending(r => r.RequestDate))
+            {
+                <div class="card mb-3 border-warning">
+                    <div class="card-header bg-light">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h6 class="mb-0">
+                                    <strong>@request.CustomerName</strong> - 
+                                    Sipariş #@request.OrderId - 
+                                    @request.ProductName
+                                </h6>
+                                <small class="text-muted">
+                                    @request.RequestDate.ToString("dd.MM.yyyy HH:mm")
+                                </small>
+                            </div>
+                            <div class="col-md-4 text-end mt-2 mt-md-0">
+                                <span class="badge bg-warning text-dark me-2">Beklemede</span>
+                                <button class="btn btn-sm btn-outline-primary" onclick="openReturnRequestModal(@request.Id)">
+                                    Detay
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold">İade Sebebi</h6>
+                                <p class="mb-0">@request.Reason</p>
+                            </div>
+                            <div class="col-md-6">
+                                @if (!string.IsNullOrEmpty(request.Comments))
+                                {
+                                    <h6 class="fw-bold">Müşteri Notu</h6>
+                                    <p class="mb-0">@request.Comments</p>
+                                }
+                            </div>
+                        </div>
+                        <hr />
+                        <div class="row">
+                            <div class="col-md-6">
+                                <select class="form-select form-select-sm mb-2" id="status_@request.Id">
+                                    <option value="">Durum Seçiniz...</option>
+                                    <option value="@((int)ECommerce.Domain.Enums.ReturnRequestStatus.Approved)">Onayla</option>
+                                    <option value="@((int)ECommerce.Domain.Enums.ReturnRequestStatus.Rejected)">Reddet</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" class="form-control form-control-sm" id="response_@request.Id" placeholder="Admin yanıtı (opsiyonel)" />
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-success" onclick="updateReturnRequestStatus(@request.Id)">
+                            <i class="fa-solid fa-save me-2"></i> Kaydet
+                        </button>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Onaylı Talepler -->
+    <div class="tab-pane fade" id="approved" role="tabpanel">
+        @{
+            var approvedRequests = Model?.Where(r => r.Status == ECommerce.Domain.Enums.ReturnRequestStatus.Approved).ToList() ?? new List<ReturnRequestDto>();
+        }
+        @if (approvedRequests.Count == 0)
+        {
+            <div class="card">
+                <div class="card-body text-center">
+                    <p class="text-muted">Onaylı iade talebi yok</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Müşteri</th>
+                            <th>Ürün</th>
+                            <th>Miktar</th>
+                            <th>Durum</th>
+                            <th>Onay Tarihi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var request in approvedRequests.OrderByDescending(r => r.ResolutionDate))
+                        {
+                            <tr>
+                                <td>@request.CustomerName</td>
+                                <td>@request.ProductName</td>
+                                <td>@request.Quantity</td>
+                                <td><span class="badge bg-success">Onaylı</span></td>
+                                <td>@request.ResolutionDate?.ToString("dd.MM.yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal for Return Request Details -->
+<div class="modal fade" id="returnRequestModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">İade Talebi Detayları</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalContent">
+                <!-- Content loaded via JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openReturnRequestModal(id) {
+            // Simple modal - in production you'd fetch details via API
+            const modal = new bootstrap.Modal(document.getElementById('returnRequestModal'));
+            modal.show();
+        }
+
+        function updateReturnRequestStatus(id) {
+            const statusSelect = document.getElementById(`status_${id}`);
+            const responseInput = document.getElementById(`response_${id}`);
+            const statusValue = statusSelect.value;
+
+            if (!statusValue) {
+                alert('Lütfen bir durum seçiniz');
+                return;
+            }
+
+            fetch(`/ReturnRequest/${id}/update-status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    status: parseInt(statusValue),
+                    adminResponse: responseInput.value || null
+                })
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+                
+                // Response'u text olarak oku
+                return response.text().then(text => {
+                    console.log('Response text:', text);
+                    
+                    // Text boşsa, başarılı kabul et
+                    if (!text) {
+                        return { success: response.ok, message: 'İşlem tamamlandı' };
+                    }
+                    
+                    // Text varsa JSON'a çevir
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        console.error('JSON parse hatası:', e);
+                        return { 
+                            success: false, 
+                            message: 'Sunucu yanıtı hatalı: ' + text 
+                        };
+                    }
+                });
+            })
+            .then(data => {
+                console.log('Parsed data:', data);
+                if (data.success) {
+                    alert('İade talebi başarıyla güncellendi');
+                    location.reload();
+                } else {
+                    alert('Hata: ' + (data.message || 'Güncelleme sırasında hata oluştu'));
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                alert('Bir hata oluştu: ' + error.message);
+            });
+        }
+    </script>
+}

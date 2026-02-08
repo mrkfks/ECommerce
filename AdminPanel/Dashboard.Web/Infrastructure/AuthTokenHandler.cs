@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dashboard.Web.Services;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace Dashboard.Web.Infrastructure
 {
@@ -13,18 +14,24 @@ namespace Dashboard.Web.Infrastructure
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IServiceProvider _serviceProvider;
+        private readonly ILogger<AuthTokenHandler> _logger;
         private const string RefreshAttemptedHeader = "X-Token-Refresh-Attempted";
 
-        public AuthTokenHandler(IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider)
+        public AuthTokenHandler(IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider, ILogger<AuthTokenHandler> logger)
         {
             _httpContextAccessor = httpContextAccessor;
             _serviceProvider = serviceProvider;
+            _logger = logger;
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var context = _httpContextAccessor.HttpContext;
             var token = context?.Request.Cookies["AuthToken"];
+
+            _logger.LogWarning("[AuthTokenHandler] Request: {Method} {Url}", request.Method, request.RequestUri);
+            _logger.LogWarning("[AuthTokenHandler] HttpContext null: {IsNull}, Token present: {HasToken}", 
+                context == null, !string.IsNullOrWhiteSpace(token));
 
             if (!string.IsNullOrWhiteSpace(token))
             {

@@ -383,7 +383,7 @@ using (var scope = app.Services.CreateScope())
 
         // Test müşteriler ve adresler
         logger.LogInformation("🔍 Checking for test customers...");
-        var customersCount = await context.Users.Where(u => u.UserRoles.Any(ur => ur.Role.Name == "Customer")).CountAsync();
+        var customersCount = await context.Users.Where(u => u.UserRoles.Any(ur => ur.Role != null && ur.Role.Name == "Customer")).CountAsync();
         logger.LogInformation("🔍 Customers count: {Count}", customersCount);
         if (customersCount == 0)
         {
@@ -453,7 +453,7 @@ using (var scope = app.Services.CreateScope())
 
             foreach (var customer in customers)
             {
-                if (products.Count > 0 && customer.Addresses.Count > 0)
+                if (products.Count > 0 && customer.Addresses != null && customer.Addresses.Count > 0)
                 {
                     var address = customer.Addresses.First();
                     var order = ECommerce.Domain.Entities.Order.Create(

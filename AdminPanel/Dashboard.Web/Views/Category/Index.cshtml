@@ -8,7 +8,6 @@
 <div class="mb-3">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index">Envanter Yönetimi</a></li>
             <li class="breadcrumb-item active">Kategori Yönetimi</li>
         </ol>
     </nav>
@@ -39,10 +38,10 @@
             <div class="col-md-6 col-lg-4 mb-4">
                 <div class="card h-100 shadow-sm border-0 category-card">
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
+                        <h4 class="mb-0">
                             <i class="fa-solid fa-folder me-2"></i>
                             @category.Name
-                        </h5>
+                        </h4>
                         <div class="btn-group">
                             <button class="btn btn-sm btn-light" onclick="editCategory(@category.Id)" title="Düzenle">
                                 <i class="fa-solid fa-edit"></i>
@@ -53,7 +52,6 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <img ecommerce-src="@category.ImageUrl" alt="@category.Name" class="img-fluid rounded mb-3" style="max-height: 150px; width: 100%; object-fit: cover;" />
                         <p class="text-muted small mb-3">@category.Description</p>
                         
                         <div class="mb-3">
@@ -131,7 +129,7 @@
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-                <form method="post" asp-action="CreateCategory" enctype="multipart/form-data">
+                <form method="post" asp-action="CreateCategory">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label fw-bold" for="modalCategoryName">Kategori Adı <span class="text-danger">*</span></label>
@@ -141,11 +139,6 @@
                         <label class="form-label fw-bold" for="modalCategoryDescription">Açıklama <span class="text-danger">*</span></label>
                         <textarea class="form-control" name="Description" id="modalCategoryDescription" rows="3" required autocomplete="off"></textarea>
                     </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold" for="modalCategoryImage">Kategori Resimi</label>
-                            <input type="file" class="form-control" name="ImageFile" id="modalCategoryImage" accept="image/*" autocomplete="off" />
-                            <small class="text-muted d-block mt-1">JPG, PNG, GIF formatında resim seçin</small>
-                        </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="IsActive" checked id="modalIsActive" value="true" autocomplete="on" />
                         <label class="form-check-label" for="modalIsActive">
@@ -175,7 +168,7 @@
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-                <form method="post" asp-action="CreateSubCategory" enctype="multipart/form-data">
+                <form method="post" asp-action="CreateSubCategory">
                 <div class="modal-body">
                     <div class="alert alert-info">
                         <strong>Üst Kategori:</strong> <span id="parentCategoryName"></span>
@@ -190,11 +183,6 @@
                         <label class="form-label fw-bold">Açıklama <span class="text-danger">*</span></label>
                         <textarea class="form-control" name="Description" rows="3" required></textarea>
                     </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Alt Kategori Resimi</label>
-                            <input type="file" class="form-control" name="ImageFile" accept="image/*" />
-                            <small class="text-muted d-block mt-1">JPG, PNG, GIF formatında resim seçin</small>
-                        </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="IsActive" checked id="isActiveSub" value="true" />
                         <label class="form-check-label" for="isActiveSub">
@@ -242,5 +230,23 @@
             window.location.href = '@Url.Action("Delete")/' + id;
         }
     }
+
+    // Ana kategori modal açıldığında formu temizle
+    const createCategoryModal = document.getElementById('createCategoryModal');
+    createCategoryModal.addEventListener('hidden.bs.modal', function() {
+        document.getElementById('modalCategoryName').value = '';
+        document.getElementById('modalCategoryDescription').value = '';
+        document.getElementById('modalIsActive').checked = true;
+    });
+
+    // Alt kategori modal açıldığında formu temizle
+    const createSubCategoryModal = document.getElementById('createSubCategoryModal');
+    createSubCategoryModal.addEventListener('hidden.bs.modal', function() {
+        const subNameInputs = createSubCategoryModal.querySelectorAll('input[name="Name"]');
+        const subDescInputs = createSubCategoryModal.querySelectorAll('textarea[name="Description"]');
+        subNameInputs.forEach(input => input.value = '');
+        subDescInputs.forEach(input => input.value = '');
+        document.getElementById('isActiveSub').checked = true;
+    });
 </script>
 }

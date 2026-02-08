@@ -290,5 +290,46 @@ public class CompanyService : ICompanyService
         company.UpdateBranding(company.Domain, logoUrl, company.PrimaryColor, company.SecondaryColor);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<object> GetBrandingByDomainAsync(string domain)
+    {
+        if (string.IsNullOrWhiteSpace(domain))
+            throw new ArgumentException("Domain boş olamaz", nameof(domain));
+
+        var company = await _context.Companies
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Domain != null && c.Domain.ToLower() == domain.ToLower());
+
+        if (company == null)
+        {
+            // Fallback: localhost ya da default domain durumunda ilk aktif şirketi döndür
+            if (domain == "localhost" || domain.StartsWith("localhost:"))
+            {
+                company = await _context.Companies
+                    .AsNoTracking()
+                    .Where(c => c.IsActive && c.IsApproved)
+                    .FirstOrDefaultAsync();
+                
+                if (company == null)
+                {
+                    throw new KeyNotFoundException($"Domain '{domain}' için şirket bulunamadı ve fallback şirketi de yok");
+                }
+            }
+            else
+            {
+                throw new KeyNotFoundException($"Domain '{domain}' için şirket bulunamadı");
+            }
+        }
+
+        return new
+        {
+            companyId = company.Id,
+            companyName = company.Name,
+            logoUrl = company.LogoUrl,
+            primaryColor = company.PrimaryColor,
+            secondaryColor = company.SecondaryColor,
+            domain = company.Domain
+        };
+    }
 }
 

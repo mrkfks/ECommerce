@@ -16,6 +16,7 @@ namespace ECommerce.Domain.Entities
         // İlişkiler
         public virtual Company? Company { get; private set; }
         public virtual ICollection<ProductCampaign> Products { get; private set; } = new List<ProductCampaign>();
+        public virtual ICollection<CategoryCampaign> Categories { get; private set; } = new List<CategoryCampaign>();
 
         // Hesaplama özellikleri
         public bool IsCurrentlyActive => IsActive && DateTime.UtcNow >= StartDate && DateTime.UtcNow <= EndDate;

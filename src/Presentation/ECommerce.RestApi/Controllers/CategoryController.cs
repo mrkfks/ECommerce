@@ -49,7 +49,7 @@ public class CategoryController : ControllerBase
     public async Task<IActionResult> Create([FromBody] CategoryFormDto dto)
     {
         var category = await _categoryService.CreateAsync(dto);
-        return CreatedAtAction(nameof(GetById), new { id = category.Id }, category);
+        return Ok(category);
     }
 
     /// <summary>

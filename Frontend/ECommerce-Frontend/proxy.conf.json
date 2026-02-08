@@ -5,6 +5,12 @@
     "changeOrigin": true,
     "logLevel": "debug"
   },
+  "/auth": {
+    "target": "http://localhost:5010",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
   "/uploads": {
     "target": "http://localhost:5010",
     "secure": false,

@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface Campaign {
   id: number;
@@ -32,7 +33,7 @@ export interface CampaignValidation {
 })
 export class CampaignService {
   private http = inject(HttpClient);
-  private apiUrl = '/campaigns';
+  private apiUrl = `${environment.apiUrl}/campaigns`;
 
   /**
    * Get all active campaigns for display

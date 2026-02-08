@@ -2,7 +2,6 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { LetDirective } from '../../shared/directives/let.directive';
 
 export interface CampaignDto {
   id: number;
@@ -23,7 +22,7 @@ export interface CampaignDto {
 @Component({
   selector: 'app-campaign-carousel',
   standalone: true,
-  imports: [CommonModule, LetDirective],
+  imports: [CommonModule],
   templateUrl: './campaign-carousel.component.html',
   styleUrls: ['./campaign-carousel.component.css']
 })
@@ -33,17 +32,20 @@ export class CampaignCarouselComponent implements OnInit {
   campaigns: CampaignDto[] = [];
   isLoading = true;
   currentIndex = 0;
-  private apiBaseUrl = '/api';
 
   ngOnInit(): void {
     this.loadActiveCampaigns();
   }
 
   loadActiveCampaigns(): void {
-    this.http.get<CampaignDto[]>(`${this.apiBaseUrl}/campaigns/active`)
+    // apiInterceptor adds environment.apiUrl (http://localhost:5010/api) prefix automatically
+    // So we only need /campaigns/active, not /api/campaigns/active
+    this.http.get<{success: boolean, data: CampaignDto[], message: string}>('/campaigns/active')
       .subscribe({
-        next: (data) => {
-          this.campaigns = data;
+        next: (response) => {
+          // Backend returns ApiResponse<CampaignDto[]> with {success, data, message}
+          // Extract campaigns from data property
+          this.campaigns = response.data || [];
           this.isLoading = false;
         },
         error: (err) => {

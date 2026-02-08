@@ -48,26 +48,6 @@
                                 <label class="form-label">Açıklama</label>
                                 <textarea asp-for="Description" class="form-control" rows="3"></textarea>
                             </div>
-
-                            <!-- Logo URL -->
-                            <div class="col-12">
-                                <label class="form-label">Logo URL</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-image"></i></span>
-                                    <input asp-for="LogoUrl" class="form-control" />
-                                </div>
-                            </div>
-
-                            <!-- Logo Preview -->
-                            @if (!string.IsNullOrEmpty(Model.LogoUrl))
-                            {
-                                <div class="col-12">
-                                    <label class="form-label">Mevcut Logo</label>
-                                    <div>
-                                        <img src="@Model.LogoUrl" alt="@Model.Name" class="rounded border" style="max-height: 100px;">
-                                    </div>
-                                </div>
-                            }
                         </div>
 
                         <hr class="my-4">

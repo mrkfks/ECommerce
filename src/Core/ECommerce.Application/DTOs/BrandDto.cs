@@ -11,7 +11,6 @@ public record BrandDto
     public int CompanyId { get; init; }
     public string? ImageUrl { get; init; }
     public int? CategoryId { get; init; }
-    public string? CategoryName { get; init; }
     public bool IsActive { get; init; } = true;
     public int ProductCount { get; init; }
     public DateTime? CreatedAt { get; init; }
@@ -28,5 +27,6 @@ public record BrandFormDto
     public string Description { get; init; } = string.Empty;
     public string? ImageUrl { get; init; }
     public int? CompanyId { get; init; }
+    public int? CategoryId { get; init; }
     public bool IsActive { get; init; } = true;
 }

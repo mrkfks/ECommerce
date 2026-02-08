@@ -39,16 +39,7 @@ public class RequestService : IRequestService
 
     public async Task<RequestDto> CreateRequestAsync(RequestFormDto dto)
     {
-        var request = Request.Create(
-            dto.CompanyId ?? 0,
-            dto.Title,
-            dto.Description
-        );
-
-        _context.Requests.Add(request);
-        await _context.SaveChangesAsync();
-        
-        return MapToDto(request);
+        throw new NotImplementedException("Use ReturnRequestService.CreateAsync instead");
     }
 
     public async Task<RequestDto> ApproveRequestAsync(int id, RequestFeedbackDto? dto)

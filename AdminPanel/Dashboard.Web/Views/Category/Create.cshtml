@@ -7,7 +7,6 @@
 <div class="mb-3">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index">Envanter Yönetimi</a></li>
             <li class="breadcrumb-item"><a asp-controller="Category" asp-action="Index">Kategori Yönetimi</a></li>
             <li class="breadcrumb-item active">Yeni Kategori Ekle</li>
         </ol>
@@ -33,7 +32,7 @@
                 <h5 class="mb-0"><i class="fa-solid fa-folder me-2"></i> Kategori Bilgileri</h5>
             </div>
             <div class="card-body">
-                <form method="post" asp-action="CreateCategory" enctype="multipart/form-data">
+                <form method="post" asp-action="CreateCategory">
                     <div class="mb-3">
                         <label class="form-label fw-bold" for="categoryName">Kategori Adı <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" name="Name" id="categoryName" required placeholder="Örn: Elektronik" autocomplete="name" />
@@ -42,12 +41,6 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold" for="categoryDescription">Açıklama <span class="text-danger">*</span></label>
                         <textarea class="form-control" name="Description" id="categoryDescription" rows="4" required placeholder="Kategori açıklaması..." autocomplete="off"></textarea>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label fw-bold" for="categoryImage">Kategori Resimi</label>
-                        <input type="file" class="form-control" name="ImageFile" id="categoryImage" accept="image/*" autocomplete="off" />
-                        <small class="text-muted">JPG, PNG, GIF formatında resim seçin (Max 5MB)</small>
                     </div>
                     
                     <div class="mb-3">
@@ -99,4 +92,19 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+<script>
+    // Form submit validasyon
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const nameInput = document.querySelector('input[name="Name"]');
+        const descInput = document.querySelector('textarea[name="Description"]');
+        
+        if (!nameInput.value.trim() || !descInput.value.trim()) {
+            e.preventDefault();
+            return false;
+        }
+    });
+</script>
+}
 

@@ -32,6 +32,7 @@ public class CampaignController : ControllerBase
     }
 
     [HttpGet("active")]
+    [AllowAnonymous]  // Müşterilerin aktif kampanyaları görmesi için public
     public async Task<IActionResult> GetActive()
     {
         var campaigns = await _campaignService.GetActiveAsync();
@@ -121,11 +122,19 @@ public class CampaignController : ControllerBase
         try
         {
             await _campaignService.DeleteAsync(id);
-            return Ok(new { message = "Kampanya silindi." });
+            return Ok(new { success = true, message = "Kampanya başarıyla silindi." });
         }
-        catch (KeyNotFoundException)
+        catch (KeyNotFoundException ex)
         {
-            return NotFound(new { message = "Kampanya bulunamadı." });
+            return NotFound(new { success = false, message = ex.Message ?? "Kampanya bulunamadı." });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { success = false, message = ex.Message ?? "Kampanya silinemedi." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { success = false, message = "Kampanya silinirken bir hata oluştu: " + ex.Message });
         }
     }
 
@@ -153,8 +162,15 @@ public class CampaignController : ControllerBase
             if (campaign == null)
                 return NotFound(new { message = "Kampanya bulunamadı." });
 
-            // Create campaigns uploads directory if it doesn't exist
-            var uploadsDir = Path.Combine(_env.WebRootPath, "uploads", "campaigns");
+            // Create campaigns uploads directory - handle missing WebRootPath
+            var webRootPath = _env.WebRootPath;
+            if (string.IsNullOrEmpty(webRootPath))
+            {
+                webRootPath = Path.Combine(_env.ContentRootPath, "wwwroot");
+                Directory.CreateDirectory(webRootPath);
+            }
+            
+            var uploadsDir = Path.Combine(webRootPath, "uploads", "campaigns");
             Directory.CreateDirectory(uploadsDir);
 
             // Generate unique filename
@@ -167,12 +183,13 @@ public class CampaignController : ControllerBase
                 await file.CopyToAsync(stream);
             }
 
-            // Update campaign with relative URL
+            // Update campaign with relative URL - PRESERVE ALL EXISTING VALUES including DiscountPercent
             var relativePath = $"/uploads/campaigns/{fileName}";
             var updateDto = new CampaignFormDto
             {
                 Name = campaign.Name,
                 Description = campaign.Description,
+                DiscountPercent = campaign.DiscountPercent,  // FIX: Include DiscountPercent
                 StartDate = campaign.StartDate,
                 EndDate = campaign.EndDate,
                 BannerImageUrl = relativePath
@@ -265,4 +282,59 @@ public class CampaignController : ControllerBase
             return NotFound(new { message = ex.Message });
         }
     }
+
+    // Category-based Campaign Endpoints
+
+    /// <summary>
+    /// Get all category IDs associated with a campaign
+    /// </summary>
+    [HttpGet("{campaignId}/categories")]
+    public async Task<IActionResult> GetCampaignCategories(int campaignId)
+    {
+        var categoryIds = await _campaignService.GetCampaignCategoryIdsAsync(campaignId);
+        return Ok(categoryIds);
+    }
+
+    /// <summary>
+    /// Add multiple categories to a campaign
+    /// </summary>
+    [HttpPost("{campaignId}/categories")]
+    public async Task<IActionResult> AddCategoriesToCampaign(int campaignId, [FromBody] CategoryIdsRequest request)
+    {
+        try
+        {
+            await _campaignService.AddCategoriesToCampaignAsync(campaignId, request.CategoryIds);
+            return Ok(new { message = $"{request.CategoryIds.Count} kategori kampanyaya eklendi." });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Remove a category from a campaign
+    /// </summary>
+    [HttpDelete("{campaignId}/categories/{categoryId}")]
+    public async Task<IActionResult> RemoveCategoryFromCampaign(int campaignId, int categoryId)
+    {
+        try
+        {
+            await _campaignService.RemoveCategoryFromCampaignAsync(campaignId, categoryId);
+            return Ok(new { message = "Kategori kampanyadan kaldırıldı." });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
 }
+
+/// <summary>
+/// Request model for adding categories to campaign
+/// </summary>
+public record CategoryIdsRequest(List<int> CategoryIds);

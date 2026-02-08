@@ -90,10 +90,33 @@
                     
                     <hr class="my-4" />
                     
-                    <div class="alert alert-info">
-                        <i class="fa-solid fa-info-circle me-2"></i>
-                        <strong>Not:</strong> Logo yükleme özelliği yakında eklenecektir.
+                    <h6 class="text-primary fw-bold mb-3"><i class="fa-solid fa-image me-2"></i>Logo Yükle</h6>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group mb-3">
+                                <label for="logoFile" class="form-label fw-bold">Logo Dosyası</label>
+                                <input type="file" id="logoFile" name="logoFile" class="form-control" accept=".jpg,.jpeg,.png,.gif,.svg" />
+                                <small class="text-muted d-block mt-2">
+                                    <i class="fa-solid fa-info-circle me-1"></i>
+                                    Desteklenen formatlar: JPG, PNG, GIF, SVG (Max 2 MB)
+                                </small>
+                            </div>
+                            <button type="button" id="uploadLogoBtn" class="btn btn-sm btn-success">
+                                <i class="fa-solid fa-upload me-2"></i> Logo Yükle
+                            </button>
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.LogoUrl))
+                        {
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Logo Önizleme</label>
+                                <div class="border rounded p-3 text-center" style="background-color: #f8f9fa;">
+                                    <img src="@Model.LogoUrl" alt="Logo" style="max-width: 100%; max-height: 150px;" />
+                                </div>
+                            </div>
+                        }
                     </div>
+                    
+                    <hr class="my-4" />
                     
                     <div class="d-flex justify-content-between mt-4">
                         <a asp-action="Index" class="btn btn-outline-secondary">
@@ -111,4 +134,61 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('uploadLogoBtn').addEventListener('click', async function() {
+            const fileInput = document.getElementById('logoFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Lütfen bir dosya seçiniz');
+                return;
+            }
+            
+            // Dosya boyutu kontrolü (2 MB)
+            if (file.size > 2 * 1024 * 1024) {
+                alert('Dosya boyutu 2 MB\'den küçük olmalıdır');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                this.disabled = true;
+                this.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Yükleniyor...';
+                
+                const response = await fetch('/api/company/upload-my-logo', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include',
+                    headers: {
+                        'X-Admin-Bypass': 'true'
+                    }
+                });
+                
+                const responseText = await response.text();
+                let data = {};
+                try {
+                    data = JSON.parse(responseText);
+                } catch (e) {
+                    console.error('Response text:', responseText);
+                }
+                
+                if (response.ok) {
+                    alert('Logo başarıyla yüklendi!');
+                    fileInput.value = '';
+                    setTimeout(() => location.reload(), 500);
+                } else {
+                    alert('Hata: ' + (data.message || data.error || 'Logo yüklenemedi'));
+                    console.error('Upload error:', response.status, data);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Logo yükleme sırasında bir hata oluştu: ' + error.message);
+            } finally {
+                this.disabled = false;
+                this.innerHTML = '<i class="fa-solid fa-upload me-2"></i> Logo Yükle';
+            }
+        });
+    </script>
 }

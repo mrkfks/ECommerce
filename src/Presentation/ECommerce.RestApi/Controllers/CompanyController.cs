@@ -12,11 +12,13 @@ namespace ECommerce.RestApi.Controllers
     public class CompanyController : ControllerBase
     {
         private readonly ICompanyService _companyService;
+        private readonly ITenantService _tenantService;
         private readonly ILogger<CompanyController> _logger;
 
-        public CompanyController(ICompanyService companyService, ILogger<CompanyController> logger)
+        public CompanyController(ICompanyService companyService, ITenantService tenantService, ILogger<CompanyController> logger)
         {
             _companyService = companyService;
+            _tenantService = tenantService;
             _logger = logger;
         }
 
@@ -39,6 +41,42 @@ namespace ECommerce.RestApi.Controllers
             {
                 // In production, don't expose internal exception details unless safe
                 return BadRequest(new { message = "Kayıt sırasında hata oluştu: " + ex.Message });
+            }
+        }
+
+        [HttpGet("branding/{domain}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetBrandingByDomain(string domain)
+        {
+            try
+            {
+                var branding = await _companyService.GetBrandingByDomainAsync(domain);
+                return Ok(new ApiResponseDto<object>
+                {
+                    Success = true,
+                    Data = branding,
+                    Message = "Şirket branding bilgileri başarıyla getirildi"
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning("[CompanyController.GetBrandingByDomain] Domain bulunamadı: {Domain}", domain);
+                return NotFound(new ApiResponseDto<object>
+                {
+                    Success = false,
+                    Data = null,
+                    Message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[CompanyController.GetBrandingByDomain] Error for domain: {Domain}", domain);
+                return BadRequest(new ApiResponseDto<object>
+                {
+                    Success = false,
+                    Data = null,
+                    Message = "Branding bilgileri alınırken hata oluştu: " + ex.Message
+                });
             }
         }
 
@@ -218,6 +256,106 @@ namespace ECommerce.RestApi.Controllers
             }
         }
 
+
+        [HttpPost("upload-my-logo")]
+        [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
+        public async Task<IActionResult> UploadMyLogo(IFormFile file)
+        {
+            var adminBypass = Request.Headers["X-Admin-Bypass"].ToString() == "true";
+            _logger.LogInformation("[CompanyController.UploadMyLogo] START - User: {User}, AdminBypass: {Bypass}, File: {FileName}, Size: {Size}",
+                User.Identity?.Name, adminBypass, file?.FileName, file?.Length);
+
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    _logger.LogWarning("[CompanyController.UploadMyLogo] File is null or empty");
+                    return BadRequest(new { message = "Dosya boş" });
+                }
+
+                _logger.LogInformation("[CompanyController.UploadMyLogo] File validation - Filename: {FileName}, Length: {Length}", file.FileName, file.Length);
+
+                // Tenant company'sini al
+                var companyId = _tenantService.GetCurrentCompanyId();
+                _logger.LogInformation("[CompanyController.UploadMyLogo] Current company ID: {CompanyId}", companyId);
+
+                if (companyId <= 0)
+                {
+                    _logger.LogWarning("[CompanyController.UploadMyLogo] Company ID is invalid: {CompanyId}", companyId);
+                    return Unauthorized(new { message = "Şirket bilgisi belirlenemiyor. Lütfen yeniden giriş yapın." });
+                }
+
+                // Dosya validasyonu
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".svg" };
+                var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                
+                _logger.LogInformation("[CompanyController.UploadMyLogo] File extension: {Extension}", fileExtension);
+
+                if (!allowedExtensions.Contains(fileExtension))
+                {
+                    _logger.LogWarning("[CompanyController.UploadMyLogo] Invalid file extension: {Extension}", fileExtension);
+                    return BadRequest(new { message = "Desteklenmeyen dosya formatı. Lütfen JPG, PNG, GIF veya SVG dosyası yükleyin." });
+                }
+
+                // Dosya boyutu validasyonu (2MB)
+                const long maxFileSize = 2 * 1024 * 1024;
+                if (file.Length > maxFileSize)
+                {
+                    _logger.LogWarning("[CompanyController.UploadMyLogo] File too large: {Size} bytes", file.Length);
+                    return BadRequest(new { message = "Dosya 2MB'dan büyük olamaz." });
+                }
+
+                // Dosya yükleme
+                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "logos");
+                _logger.LogInformation("[CompanyController.UploadMyLogo] Upload path: {Path}", uploadsPath);
+                
+                Directory.CreateDirectory(uploadsPath);
+
+                var fileName = $"{companyId}_{Guid.NewGuid()}{fileExtension}";
+                var filePath = Path.Combine(uploadsPath, fileName);
+
+                _logger.LogInformation("[CompanyController.UploadMyLogo] Saving file to: {FilePath}", filePath);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                _logger.LogInformation("[CompanyController.UploadMyLogo] File saved successfully");
+
+                var logoUrl = $"/uploads/logos/{fileName}";
+
+                // Veritabanında güncelle
+                _logger.LogInformation("[CompanyController.UploadMyLogo] Updating company {CompanyId} with logo URL: {LogoUrl}", companyId, logoUrl);
+
+                await _companyService.UpdateLogoAsync(companyId, logoUrl);
+
+                _logger.LogInformation("[CompanyController.UploadMyLogo] COMPLETED - Logo uploaded successfully for company {CompanyId}: {LogoUrl}", companyId, logoUrl);
+
+                return Ok(new { message = "Logo başarıyla yüklendi", logoUrl = logoUrl });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "[CompanyController.UploadMyLogo] Access denied");
+                return Unauthorized(new { message = "İzin yok: " + ex.Message });
+            }
+            catch (DirectoryNotFoundException ex)
+            {
+                _logger.LogError(ex, "[CompanyController.UploadMyLogo] Directory not found");
+                return BadRequest(new { message = "Dizin bulunamadı: " + ex.Message });
+            }
+            catch (IOException ex)
+            {
+                _logger.LogError(ex, "[CompanyController.UploadMyLogo] IO error");
+                return BadRequest(new { message = "Dosya operasyonu hatası: " + ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[CompanyController.UploadMyLogo] Unexpected error - Type: {ExceptionType}, Message: {Message}, StackTrace: {StackTrace}",
+                    ex.GetType().Name, ex.Message, ex.StackTrace);
+                return BadRequest(new { message = $"Logo yükleme hatası: {ex.Message}" });
+            }
+        }
 
         [HttpPost("{id:int}/upload-logo")]
         [Authorize(Policy = "SuperAdminOnly")]

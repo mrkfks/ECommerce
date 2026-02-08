@@ -16,4 +16,5 @@ public interface ICompanyService
     Task<CompanyDto?> GetByDomainAsync(string domain);
     Task UpdateBrandingAsync(int id, BrandingUpdateDto dto);
     Task UpdateLogoAsync(int id, string logoUrl);
+    Task<object> GetBrandingByDomainAsync(string domain);
 }

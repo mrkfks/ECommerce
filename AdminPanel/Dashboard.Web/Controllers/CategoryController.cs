@@ -64,27 +64,14 @@ namespace Dashboard.Web.Controllers
 
         // Ana kategori ekleme - POST (Basit)
         [HttpPost]
-        public async Task<IActionResult> CreateCategory(CategoryFormDto categoryFormDto, IFormFile? ImageFile)
+        public async Task<IActionResult> CreateCategory(CategoryFormDto categoryFormDto)
         {
             try
             {
-                // Dosya yükleme işlemi
-                if (ImageFile != null && ImageFile.Length > 0)
-                {
-                    var fileName = $"{Guid.NewGuid()}_{ImageFile.FileName}";
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "categories");
-                    if (!Directory.Exists(uploadsFolder))
-                        Directory.CreateDirectory(uploadsFolder);
-                    var filePath = Path.Combine(uploadsFolder, fileName);
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await ImageFile.CopyToAsync(stream);
-                    }
-                    categoryFormDto = categoryFormDto with { ImageUrl = $"/uploads/categories/{fileName}" };
-                }
-
-                categoryFormDto = categoryFormDto with { ParentCategoryId = null }; // Ana kategori
+                categoryFormDto = categoryFormDto with { ParentCategoryId = null, ImageUrl = null }; // Ana kategori
+                
                 var response = await _categoryFormService.CreateAsync(categoryFormDto);
+                
                 TempData[response.Success ? "Success" : "Error"] = response.Success
                     ? "Ana kategori başarıyla eklendi."
                     : $"Kategori eklenirken hata oluştu: {response.Message}";
@@ -92,45 +79,23 @@ namespace Dashboard.Web.Controllers
             catch (Exception ex)
             {
                 TempData["Error"] = $"Hata: {ex.Message}";
-                System.IO.File.AppendAllText(
-                    Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "logs", "category-error-log.txt"),
-                    $"[{DateTime.Now}] CreateCategory Exception: {ex.Message}\n{ex.StackTrace}\n");
             }
             return RedirectToAction(nameof(Index));
         }
 
         // Alt kategori ekleme - POST
         [HttpPost]
-            public async Task<IActionResult> CreateSubCategory(CategoryDto categoryDto, IFormFile? ImageFile)
+            public async Task<IActionResult> CreateSubCategory(CategoryDto categoryDto)
         {
             try
             {
-                    // Dosya yükleme işlemi
-                    if (ImageFile != null && ImageFile.Length > 0)
-                    {
-                        var fileName = $"{Guid.NewGuid()}_{ImageFile.FileName}";
-                        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "categories");
-                    
-                        // Klasör yoksa oluştur
-                        if (!Directory.Exists(uploadsFolder))
-                            Directory.CreateDirectory(uploadsFolder);
-                    
-                        var filePath = Path.Combine(uploadsFolder, fileName);
-                    
-                        using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                            await ImageFile.CopyToAsync(stream);
-                    }
-                    
-                        categoryDto = categoryDto with { ImageUrl = $"/uploads/categories/{fileName}" };
-                    }
-                
                 if (!categoryDto.ParentCategoryId.HasValue)
                 {
                         TempData["Error"] = "Üst kategori seçilmelidir.";
                     return RedirectToAction(nameof(Index));
                 }
 
+                categoryDto = categoryDto with { ImageUrl = null }; // Fotoğraf yok
                 var response = await _categoryService.CreateAsync(categoryDto);
                 TempData[response.Success ? "Success" : "Error"] = response.Success ? "Alt kategori başarıyla eklendi." : $"Alt kategori eklenirken hata oluştu: {response.Message}";
             }
@@ -281,37 +246,15 @@ namespace Dashboard.Web.Controllers
 
         // Marka düzenleme - POST
         [HttpPost]
-        public async Task<IActionResult> EditBrand(int id, AppBrandDto brandDto, IFormFile? ImageFile)
+        public async Task<IActionResult> EditBrand(int id, BrandUpdateViewModel model)
         {
             try
             {
-                string? newImageUrl = null;
-                if (ImageFile != null && ImageFile.Length > 0)
-                {
-                    var fileName = $"{Guid.NewGuid()}_{ImageFile.FileName}";
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "brands");
-
-                    if (!Directory.Exists(uploadsFolder))
-                        Directory.CreateDirectory(uploadsFolder);
-
-                    var filePath = Path.Combine(uploadsFolder, fileName);
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await ImageFile.CopyToAsync(stream);
-                    }
-                    newImageUrl = $"/uploads/brands/{fileName}";
-                }
-
-                var updatedBrandDto = brandDto with {
-                    Description = brandDto.Description ?? string.Empty,
-                    CategoryId = null,
-                    ImageUrl = newImageUrl ?? brandDto.ImageUrl
-                };
-                var result = await _brandService.UpdateAsync(id, updatedBrandDto);
-                TempData["InventoryAlert"] = result.Success
+                var success = await _brandService.UpdateAsync(id, model);
+                TempData["InventoryAlert"] = success
                     ? "Marka başarıyla güncellendi."
                     : "Marka güncellenirken hata oluştu.";
-                TempData["InventoryAlertType"] = result.Success ? "success" : "error";
+                TempData["InventoryAlertType"] = success ? "success" : "error";
             }
             catch (Exception ex)
             {

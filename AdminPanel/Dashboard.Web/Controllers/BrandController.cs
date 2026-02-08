@@ -72,36 +72,36 @@ public class BrandController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(BrandCreateViewModel model)
     {
+        _logger.LogInformation($"[BrandController.Create] Received: Name={model.Name}, Description={model.Description}, CompanyId={model.CompanyId}, IsActive={model.IsActive}");
+
         if (!ModelState.IsValid)
         {
+            var errors = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors));
+            _logger.LogWarning($"[BrandController.Create] ModelState invalid: {errors}");
+            TempData["Error"] = "Form hatası: " + errors;
             await LoadCompaniesAsync();
             return View(model);
         }
 
         try
         {
-            var brand = new BrandViewModel
-            {
-                Name = model.Name,
-                Description = model.Description,
-                LogoUrl = model.LogoUrl,
-                IsActive = model.IsActive,
-                CompanyId = model.CompanyId
-            };
-
-            var success = await _brandService.CreateAsync(brand);
+            _logger.LogInformation($"[BrandController.Create] Calling BrandApiService.CreateAsync");
+            var success = await _brandService.CreateAsync(model);
+            
             if (success)
             {
+                _logger.LogInformation($"[BrandController.Create] Success - Marka oluşturuldu");
                 TempData["Success"] = "Marka başarıyla oluşturuldu.";
                 return RedirectToAction(nameof(Index));
             }
 
-            TempData["Error"] = "Marka oluşturulurken hata oluştu.";
+            _logger.LogError($"[BrandController.Create] API returned false - Marka oluşturulamadı");
+            TempData["Error"] = "Marka oluşturulurken hata oluştu. Lütfen tekrar deneyiniz.";
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Marka oluşturulurken hata");
-            TempData["Error"] = ex.Message;
+            _logger.LogError(ex, "Marka oluşturulurken exception");
+            TempData["Error"] = $"Hata: {ex.GetBaseException().Message}";
         }
 
         await LoadCompaniesAsync();
@@ -127,7 +127,6 @@ public class BrandController : Controller
             Id = brand.Id,
             Name = brand.Name,
             Description = brand.Description,
-            LogoUrl = brand.LogoUrl,
             IsActive = brand.IsActive
         };
         
@@ -155,16 +154,7 @@ public class BrandController : Controller
 
         try
         {
-            var brand = new BrandViewModel
-            {
-                Id = model.Id,
-                Name = model.Name,
-                Description = model.Description,
-                LogoUrl = model.LogoUrl,
-                IsActive = model.IsActive
-            };
-
-            var success = await _brandService.UpdateAsync(id, brand);
+            var success = await _brandService.UpdateAsync(model);
             if (success)
             {
                 TempData["Success"] = "Marka başarıyla güncellendi.";

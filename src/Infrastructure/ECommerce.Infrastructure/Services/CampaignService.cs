@@ -133,7 +133,7 @@ public class CampaignService : ICampaignService
         var campaign = await GetCampaignEntityAsync(id);
         if (campaign == null) throw new KeyNotFoundException("Campaign not found");
 
-        campaign.Update(dto.Name, dto.DiscountPercent, dto.StartDate, dto.EndDate, dto.Description);
+        campaign.Update(dto.Name, dto.DiscountPercent, dto.StartDate, dto.EndDate, dto.Description, dto.BannerImageUrl);
         await _context.SaveChangesAsync();
     }
 
@@ -158,10 +158,38 @@ public class CampaignService : ICampaignService
     public async Task DeleteAsync(int id)
     {
         var campaign = await GetCampaignEntityAsync(id);
-        if (campaign == null) throw new KeyNotFoundException("Campaign not found");
+        if (campaign == null) 
+            throw new KeyNotFoundException("Kampanya bulunamadı veya bu kampayaya erişim yetkiniz yok.");
 
-        _context.Campaigns.Remove(campaign);
-        await _context.SaveChangesAsync();
+        try
+        {
+            // Önce ilişkili ProductCampaign kayıtlarını sil
+            var productCampaigns = await _context.ProductCampaigns
+                .Where(pc => pc.CampaignId == id)
+                .ToListAsync();
+            
+            if (productCampaigns.Any())
+            {
+                _context.ProductCampaigns.RemoveRange(productCampaigns);
+                _logger.LogInformation("Removed {Count} ProductCampaign records for Campaign ID: {CampaignId}", 
+                    productCampaigns.Count, id);
+            }
+
+            _context.Campaigns.Remove(campaign);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Campaign ID: {CampaignId} deleted successfully", id);
+        }
+        catch (DbUpdateException ex)
+        {
+            // Foreign key constraint veya başka veritabanı hatası
+            _logger.LogError(ex, "Failed to delete campaign ID: {CampaignId}", id);
+            throw new InvalidOperationException("Kampanya silinemedi. Lütfen ilgili ürünleri veya diğer bağlantıları kontrol edin: " + ex.InnerException?.Message, ex);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error deleting campaign ID: {CampaignId}", id);
+            throw new InvalidOperationException("Kampanya silinirken beklenmeyen bir hata oluştu: " + ex.Message, ex);
+        }
     }
 
     private static CampaignDto MapToDto(Campaign c)
@@ -185,5 +213,71 @@ public class CampaignService : ICampaignService
             CompanyName = c.Company?.Name ?? "",
             CreatedAt = c.CreatedAt
         };
+    }
+
+    // Category-based Campaign Methods
+
+    public async Task<List<int>> GetCampaignCategoryIdsAsync(int campaignId)
+    {
+        var campaign = await GetCampaignEntityAsync(campaignId);
+        if (campaign == null)
+            throw new KeyNotFoundException($"Kampanya bulunamadı: {campaignId}");
+
+        return await _context.CategoryCampaigns
+            .Where(cc => cc.CampaignId == campaignId)
+            .Select(cc => cc.CategoryId)
+            .ToListAsync();
+    }
+
+    public async Task AddCategoriesToCampaignAsync(int campaignId, List<int> categoryIds)
+    {
+        if (categoryIds == null || !categoryIds.Any())
+            throw new ArgumentException("En az bir kategori seçilmelidir.");
+
+        var campaign = await GetCampaignEntityAsync(campaignId);
+        if (campaign == null)
+            throw new KeyNotFoundException($"Kampanya bulunamadı: {campaignId}");
+
+        // Verify categories exist
+        var existingCategories = await _context.Categories
+            .Where(c => categoryIds.Contains(c.Id))
+            .Select(c => c.Id)
+            .ToListAsync();
+
+        var invalidIds = categoryIds.Except(existingCategories).ToList();
+        if (invalidIds.Any())
+            throw new ArgumentException($"Geçersiz kategori ID'leri: {string.Join(", ", invalidIds)}");
+
+        // Get already added categories
+        var existingCategoryCampaigns = await _context.CategoryCampaigns
+            .Where(cc => cc.CampaignId == campaignId && categoryIds.Contains(cc.CategoryId))
+            .Select(cc => cc.CategoryId)
+            .ToListAsync();
+
+        // Add only new categories
+        var newCategoryIds = categoryIds.Except(existingCategoryCampaigns).ToList();
+        
+        foreach (var categoryId in newCategoryIds)
+        {
+            var categoryCampaign = CategoryCampaign.Create(categoryId, campaignId);
+            await _context.CategoryCampaigns.AddAsync(categoryCampaign);
+        }
+
+        await _context.SaveChangesAsync();
+        _logger.LogInformation("Added {Count} categories to campaign {CampaignId}", newCategoryIds.Count, campaignId);
+    }
+
+    public async Task RemoveCategoryFromCampaignAsync(int campaignId, int categoryId)
+    {
+        var categoryCampaign = await _context.CategoryCampaigns
+            .FirstOrDefaultAsync(cc => cc.CampaignId == campaignId && cc.CategoryId == categoryId);
+
+        if (categoryCampaign == null)
+            throw new KeyNotFoundException($"Kategori {categoryId} kampanya {campaignId}'de bulunamadı.");
+
+        _context.CategoryCampaigns.Remove(categoryCampaign);
+        await _context.SaveChangesAsync();
+        
+        _logger.LogInformation("Removed category {CategoryId} from campaign {CampaignId}", categoryId, campaignId);
     }
 }

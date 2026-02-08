@@ -36,12 +36,6 @@
                 </div>
 
                 <div class="col-md-6">
-                    <label asp-for="ImageUrl" class="form-label fw-bold">Resim URL</label>
-                    <input asp-for="ImageUrl" class="form-control" />
-                    <span asp-validation-for="ImageUrl" class="text-danger"></span>
-                </div>
-
-                <div class="col-md-6">
                     <label class="form-label fw-bold">Sıra</label>
                     <input type="number" name="DisplayOrder" class="form-control" value="@Model.DisplayOrder" min="0" />
                 </div>
@@ -164,10 +158,6 @@
                                 <textarea class="form-control subcat-description" rows="2"></textarea>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">Resim URL</label>
-                                <input type="text" class="form-control subcat-image" />
-                            </div>
-                            <div class="col-md-6">
                                 <div class="form-check form-switch mt-4">
                                     <input class="form-check-input subcat-active" type="checkbox" checked />
                                     <label class="form-check-label fw-bold">Aktif</label>
@@ -206,7 +196,6 @@
                     newSubCategoriesData.push({
                         Name: nameInput.value.trim(),
                         Description: subCatEl.querySelector('.subcat-description').value.trim(),
-                        ImageUrl: subCatEl.querySelector('.subcat-image').value.trim() || null,
                         DisplayOrder: parseInt(subCatEl.querySelector('.subcat-order').value) || 0,
                         IsActive: subCatEl.querySelector('.subcat-active').checked
                     });

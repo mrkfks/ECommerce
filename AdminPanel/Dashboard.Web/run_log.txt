@@ -1,0 +1,46 @@
+D:\├ûmer Kafkas\Projects\ECommerce\AdminPanel\Dashboard.Web\Properties\launchSettings.json i├ğindeki ba┼şlatma ayarlar─▒ kullan─▒l─▒yor...
+Derleniyor...
+­şöù API Base URL: http://localhost:5010
+­şöÉ JWT configured - Issuer: ECommerce, Audience: ECommerce.Client
+[ApiService.GetAllAsync] Calling: api/companies
+[ApiService.GetAllAsync] Status: OK
+[ApiService.GetAllAsync] Response length: 1736
+[ApiService.GetAllAsync] Deserialized - Success: True, Count: 3
+[ApiService.GetAllAsync] Calling: api/campaigns
+[ApiService.GetAllAsync] Status: OK
+[ApiService.GetAllAsync] Response length: 406
+[ApiService.GetAllAsync] Deserialized - Success: True, Count: 1
+[NotificationApiService] GetSummaryAsync Error: Hedef makine etkin olarak reddetti─şinden ba─şlant─▒ kurulamad─▒. (localhost:5010)
+[ApiService.GetAllAsync] Calling: api/companies
+[ApiService.GetAllAsync] Status: OK
+[ApiService.GetAllAsync] Response length: 1736
+[ApiService.GetAllAsync] Deserialized - Success: True, Count: 3
+[ApiService.GetAllAsync] Calling: api/campaigns
+[ApiService.GetAllAsync] Status: OK
+[ApiService.GetAllAsync] Response length: 406
+[ApiService.GetAllAsync] Deserialized - Success: True, Count: 1
+[ProductController.List] Starting...
+[ApiService.GetPagedListAsync] Calling: api/products?pageNumber=1&pageSize=100
+[ApiService.GetPagedListAsync] Status: OK
+[ApiService.GetPagedListAsync] Response: {"success":true,"data":{"items":[{"id":2,"name":"Evcil Hayvanlar","description":"tgyhuj─▒kol ergakmv","price":10.0,"stockQuantity":50,"categoryId":4,"categoryName":"Evcil Hayvan","brandId":1,"brandName":"Kaos","companyId":1,"companyName":"","modelId":null,"modelName":null,"imageUrl":"/uploads/products/6829d854-afaa-41ea-b0ee-4c8bfa25f751_media_131179edca5f92db203e2b78cb8a308605afbc958.png","isActive":true,"createdAt":"2026-02-01T14:29:31.497594","updatedAt":"2026-02-05T14:42:59.4316725","reviewCo
+[ApiService.GetPagedListAsync] Trying wrapped ApiResponseDto<PagedResult<T>>...
+[ApiService.GetPagedListAsync] Wrapped result - Success: True, Data is null: False, Items count: 3
+[ApiService.GetPagedListAsync] Returning wrapped.Data with 3 items
+[ProductController.List] Response: Items count=3
+[ProductController.List] Sending 3 items to view
+[ApiService.GetAllAsync] Calling: api/companies
+[ApiService.GetAllAsync] Status: OK
+[ApiService.GetAllAsync] Response length: 1736
+[ApiService.GetAllAsync] Deserialized - Success: True, Count: 3
+[ApiService.GetAllAsync] Calling: api/campaigns
+[ApiService.GetAllAsync] Status: OK
+[ApiService.GetAllAsync] Response length: 748
+[ApiService.GetAllAsync] Deserialized - Success: True, Count: 2
+[ApiService.GetAllAsync] Calling: api/companies
+[ApiService.GetAllAsync] Status: OK
+[ApiService.GetAllAsync] Response length: 1736
+[ApiService.GetAllAsync] Deserialized - Success: True, Count: 3
+[ApiService.GetAllAsync] Calling: api/campaigns
+[ApiService.GetAllAsync] Status: OK
+[ApiService.GetAllAsync] Response length: 1087
+[ApiService.GetAllAsync] Deserialized - Success: True, Count: 3

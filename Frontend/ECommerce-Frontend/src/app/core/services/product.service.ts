@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { Product, ProductCreateRequest, ProductUpdateRequest, PaginatedResponse, ApiResponse, ProductCampaign } from '../models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductService {
-  private readonly basePath = '/products';
+  private readonly basePath = `${environment.apiUrl}/products`;
 
   constructor(private http: HttpClient) { }
 

@@ -13,4 +13,9 @@ public interface ICampaignService
     Task ActivateAsync(int id);
     Task DeactivateAsync(int id);
     Task DeleteAsync(int id);
+    
+    // Category-based campaign methods
+    Task<List<int>> GetCampaignCategoryIdsAsync(int campaignId);
+    Task AddCategoriesToCampaignAsync(int campaignId, List<int> categoryIds);
+    Task RemoveCategoryFromCampaignAsync(int campaignId, int categoryId);
 }

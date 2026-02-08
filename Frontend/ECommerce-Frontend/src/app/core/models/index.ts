@@ -185,7 +185,9 @@ export enum OrderStatus {
   Processing = 1,
   Shipped = 2,
   Delivered = 3,
-  Cancelled = 4
+  Cancelled = 4,
+  Received = 5,
+  Completed = 6
 }
 
 // Cart Models

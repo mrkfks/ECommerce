@@ -76,9 +76,7 @@ public class MappingProfile : Profile
             .ForMember(d => d.Reviews, opt => opt.Ignore());
 
         // Brand mappings
-        CreateMap<Brand, BrandDto>()
-            .ForMember(d => d.CategoryId, opt => opt.Ignore())
-            .ForMember(d => d.CategoryName, opt => opt.Ignore());
+        CreateMap<Brand, BrandDto>();
         CreateMap<BrandFormDto, Brand>();
 
         // Model mappings

@@ -2,6 +2,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ProductCard } from '../../components/product-card/product-card';
+import { CampaignCarouselComponent } from '../../components/campaign-carousel/campaign-carousel.component';
 import { Category, Product } from '../../core/models';
 import { BannerService, CartService, CategoryService, ProductService, ImageUrlService, WishlistService } from '../../core/services';
 import { Subject, takeUntil } from 'rxjs';
@@ -20,7 +21,7 @@ interface Banner {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink, ProductCard],
+  imports: [CommonModule, RouterLink, ProductCard, CampaignCarouselComponent],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })

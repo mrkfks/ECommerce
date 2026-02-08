@@ -61,6 +61,7 @@ public static class DependencyInjection
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IReviewService, ReviewService>();
         services.AddScoped<IRequestService, RequestService>();
+        services.AddScoped<IReturnRequestService, ReturnRequestService>();
         services.AddScoped<ICampaignService, CampaignService>();
         services.AddScoped<IProductCampaignService, ProductCampaignService>();
         services.AddScoped<IRoleService, RoleService>();
