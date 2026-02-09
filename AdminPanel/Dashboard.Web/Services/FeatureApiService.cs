@@ -1,5 +1,7 @@
 using System.Net.Http.Json;
 using Dashboard.Web.Models;
+using ECommerce.Application.DTOs;
+using Microsoft.Extensions.Logging;
 
 namespace Dashboard.Web.Services;
 
@@ -9,22 +11,25 @@ namespace Dashboard.Web.Services;
 public class FeatureApiService
 {
     private readonly HttpClient _httpClient;
-    private readonly string _endpoint = "features";
+    private readonly ILogger<FeatureApiService> _logger;
+    private readonly string _endpoint = "global-attributes";
 
-    public FeatureApiService(IHttpClientFactory httpClientFactory)
+    public FeatureApiService(IHttpClientFactory httpClientFactory, ILogger<FeatureApiService> logger)
     {
         _httpClient = httpClientFactory.CreateClient("ECommerceApi");
+        _logger = logger;
     }
 
     public async Task<List<FeatureViewModel>?> GetAllAsync()
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<List<FeatureViewModel>>($"api/{_endpoint}");
+            var response = await _httpClient.GetFromJsonAsync<ApiResponseDto<List<FeatureViewModel>>>($"api/{_endpoint}");
+            return response?.Data;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[FeatureApiService] Error: {ex.Message}");
+            _logger.LogError(ex, "[FeatureApiService] GetAll Error");
             return null;
         }
     }
@@ -33,10 +38,12 @@ public class FeatureApiService
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<FeatureViewModel>($"api/{_endpoint}/{id}");
+            var response = await _httpClient.GetFromJsonAsync<ApiResponseDto<FeatureViewModel>>($"api/{_endpoint}/{id}");
+            return response?.Data;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "[FeatureApiService] GetById Error for id={Id}", id);
             return null;
         }
     }
@@ -45,12 +52,38 @@ public class FeatureApiService
     {
         try
         {
-            var response = await _httpClient.PostAsJsonAsync($"api/{_endpoint}", feature);
+            // API GlobalAttributeFormDto formatında gönder
+            var formDto = new
+            {
+                Name = feature.Name,
+                DisplayName = feature.Name,
+                Description = feature.Description ?? "",
+                AttributeType = "Text",
+                DisplayOrder = feature.DisplayOrder,
+                IsActive = feature.IsActive,
+                Values = feature.Values?.Select(v => new
+                {
+                    Value = v.Value,
+                    DisplayValue = v.Value,
+                    DisplayOrder = v.DisplayOrder,
+                    IsActive = v.IsActive
+                }).ToList()
+            };
+
+            _logger.LogInformation("[FeatureApiService] Creating feature: {Name}", feature.Name);
+            var response = await _httpClient.PostAsJsonAsync($"api/{_endpoint}", formDto);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogError("[FeatureApiService] Create Error {Status}: {Error}", response.StatusCode, error);
+            }
+
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[FeatureApiService] Create Error: {ex.Message}");
+            _logger.LogError(ex, "[FeatureApiService] Create Exception");
             return false;
         }
     }
@@ -59,12 +92,31 @@ public class FeatureApiService
     {
         try
         {
-            var response = await _httpClient.PutAsJsonAsync($"api/{_endpoint}/{id}", feature);
+            var formDto = new
+            {
+                Id = id,
+                Name = feature.Name,
+                DisplayName = feature.Name,
+                Description = feature.Description ?? "",
+                AttributeType = "Text",
+                DisplayOrder = feature.DisplayOrder,
+                IsActive = feature.IsActive,
+                Values = feature.Values?.Select(v => new
+                {
+                    Id = v.Id > 0 ? (int?)v.Id : null,
+                    Value = v.Value,
+                    DisplayValue = v.Value,
+                    DisplayOrder = v.DisplayOrder,
+                    IsActive = v.IsActive
+                }).ToList()
+            };
+
+            var response = await _httpClient.PutAsJsonAsync($"api/{_endpoint}/{id}", formDto);
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[FeatureApiService] Update Error: {ex.Message}");
+            _logger.LogError(ex, "[FeatureApiService] Update Error");
             return false;
         }
     }
@@ -78,7 +130,7 @@ public class FeatureApiService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[FeatureApiService] Delete Error: {ex.Message}");
+            _logger.LogError(ex, "[FeatureApiService] Delete Error");
             return false;
         }
     }

@@ -1,6 +1,6 @@
+using Dashboard.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Dashboard.Web.Services;
 
 namespace Dashboard.Web.Controllers;
 
@@ -78,7 +78,7 @@ public class BrandController : Controller
         {
             var errors = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors));
             _logger.LogWarning($"[BrandController.Create] ModelState invalid: {errors}");
-            TempData["Error"] = "Form hatası: " + errors;
+            TempData["CreateError"] = "Form hatası: " + errors;
             await LoadCompaniesAsync();
             return View(model);
         }
@@ -87,7 +87,7 @@ public class BrandController : Controller
         {
             _logger.LogInformation($"[BrandController.Create] Calling BrandApiService.CreateAsync");
             var success = await _brandService.CreateAsync(model);
-            
+
             if (success)
             {
                 _logger.LogInformation($"[BrandController.Create] Success - Marka oluşturuldu");
@@ -96,12 +96,12 @@ public class BrandController : Controller
             }
 
             _logger.LogError($"[BrandController.Create] API returned false - Marka oluşturulamadı");
-            TempData["Error"] = "Marka oluşturulurken hata oluştu. Lütfen tekrar deneyiniz.";
+            TempData["CreateError"] = "Marka oluşturulurken hata oluştu. Lütfen tekrar deneyiniz.";
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Marka oluşturulurken exception");
-            TempData["Error"] = $"Hata: {ex.GetBaseException().Message}";
+            TempData["CreateError"] = $"Hata: {ex.GetBaseException().Message}";
         }
 
         await LoadCompaniesAsync();
@@ -121,7 +121,7 @@ public class BrandController : Controller
         }
 
         await LoadCompaniesAsync();
-        
+
         var model = new BrandUpdateViewModel
         {
             Id = brand.Id,
@@ -129,7 +129,7 @@ public class BrandController : Controller
             Description = brand.Description,
             IsActive = brand.IsActive
         };
-        
+
         return View(model);
     }
 

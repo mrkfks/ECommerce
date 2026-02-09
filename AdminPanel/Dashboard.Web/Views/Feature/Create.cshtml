@@ -19,6 +19,14 @@
     <div class="card">
         <div class="card-body">
             <form method="post" action="@Url.Action("Create")" id="featureForm">
+                @Html.AntiForgeryToken()
+                @if (TempData["CreateError"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fa-solid fa-exclamation-circle me-2"></i>@TempData["CreateError"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
                 @if (!ViewData.ModelState.IsValid)
                 {
                     <div class="alert alert-danger">

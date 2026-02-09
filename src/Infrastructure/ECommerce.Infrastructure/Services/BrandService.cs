@@ -53,12 +53,7 @@ public class BrandService : IBrandService
 
         var companyId = currentCompanyId ?? (isSuperAdmin ? 1 : throw new BusinessException("Company context is required"));
 
-        var brand = Brand.Create(dto.Name, dto.Description ?? string.Empty, companyId, dto.ImageUrl);
-
-        if (!dto.IsActive)
-        {
-            brand.Deactivate();
-        }
+        var brand = Brand.Create(dto.Name, dto.Description ?? string.Empty, companyId, dto.ImageUrl, dto.IsActive);
 
         _context.Brands.Add(brand);
         await _context.SaveChangesAsync();
@@ -89,12 +84,12 @@ public class BrandService : IBrandService
 
         await _context.SaveChangesAsync();
     }
-    
+
     public async Task UpdateImageAsync(int id, string imageUrl)
     {
         var brand = await _context.Brands.FirstOrDefaultAsync(b => b.Id == id);
         if (brand == null) throw new KeyNotFoundException($"Brand with ID {id} not found");
-        
+
         brand.Update(brand.Name, brand.Description, imageUrl);
         await _context.SaveChangesAsync();
     }

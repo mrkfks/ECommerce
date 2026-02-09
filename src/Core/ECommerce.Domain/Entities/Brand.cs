@@ -9,18 +9,18 @@ namespace ECommerce.Domain.Entities
         public string? ImageUrl { get; private set; }
         public int CompanyId { get; private set; }
         public bool IsActive { get; private set; } = true;
-        
+
         // Navigation Properties
         // Marka birden fazla kategoride ürün üretebilir
         public virtual ICollection<BrandCategory> CategoryMappings { get; private set; } = new List<BrandCategory>();
         public virtual ICollection<Product> Products { get; private set; } = new List<Product>();
         public virtual ICollection<Model> Models { get; private set; } = new List<Model>();
 
-        public static Brand Create(string name, string description, int companyId, string? imageUrl = null)
+        public static Brand Create(string name, string description, int companyId, string? imageUrl = null, bool isActive = true)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Marka adı boş olamaz.", nameof(name));
-            
+
             if (string.IsNullOrWhiteSpace(description))
                 throw new ArgumentException("Marka açıklaması boş olamaz.", nameof(description));
 
@@ -30,7 +30,7 @@ namespace ECommerce.Domain.Entities
                 Description = description,
                 CompanyId = companyId,
                 ImageUrl = imageUrl,
-                IsActive = true
+                IsActive = isActive
             };
         }
 
@@ -38,7 +38,7 @@ namespace ECommerce.Domain.Entities
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Marka adı boş olamaz.", nameof(name));
-            
+
             if (string.IsNullOrWhiteSpace(description))
                 throw new ArgumentException("Marka açıklaması boş olamaz.", nameof(description));
 
