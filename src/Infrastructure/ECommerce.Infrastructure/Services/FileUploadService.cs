@@ -11,7 +11,7 @@ public class FileUploadService : IFileUploadService
     public FileUploadService(string uploadsFolder)
     {
         _uploadsFolder = uploadsFolder;
-        
+
         // Uploads klasörü yoksa oluştur
         if (!Directory.Exists(_uploadsFolder))
         {

@@ -22,13 +22,13 @@ namespace ECommerce.Domain.Entities
         {
             if (string.IsNullOrWhiteSpace(firstName))
                 throw new ArgumentException("Ad boş olamaz.", nameof(firstName));
-            
+
             if (string.IsNullOrWhiteSpace(lastName))
                 throw new ArgumentException("Soyadı boş olamaz.", nameof(lastName));
-            
+
             if (string.IsNullOrWhiteSpace(email) || !email.Contains("@"))
                 throw new ArgumentException("Geçerli bir e-posta adresi girin.", nameof(email));
-            
+
             if (string.IsNullOrWhiteSpace(phoneNumber))
                 throw new ArgumentException("Telefon numarası boş olamaz.", nameof(phoneNumber));
 
@@ -48,13 +48,13 @@ namespace ECommerce.Domain.Entities
         {
             if (string.IsNullOrWhiteSpace(firstName))
                 throw new ArgumentException("Ad boş olamaz.", nameof(firstName));
-            
+
             if (string.IsNullOrWhiteSpace(lastName))
                 throw new ArgumentException("Soyadı boş olamaz.", nameof(lastName));
-            
+
             if (string.IsNullOrWhiteSpace(email) || !email.Contains("@"))
                 throw new ArgumentException("Geçerli bir e-posta adresi girin.", nameof(email));
-            
+
             if (string.IsNullOrWhiteSpace(phoneNumber))
                 throw new ArgumentException("Telefon numarası boş olamaz.", nameof(phoneNumber));
 
@@ -69,7 +69,7 @@ namespace ECommerce.Domain.Entities
         {
             if (userId <= 0)
                 throw new ArgumentException("Kullanıcı ID geçersizdir.", nameof(userId));
-            
+
             UserId = userId;
             UpdatedAt = DateTime.UtcNow;
         }

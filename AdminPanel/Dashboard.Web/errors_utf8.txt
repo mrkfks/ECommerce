@@ -1,9 +1,0 @@
-﻿C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\Controllers\HomeController.cs(233,25): error CS1061: 'GeographicDistributionVm' bir 'Country' tan─▒m─▒ i├ğermiyor ve 'GeographicDistributionVm' t├╝r├╝nde bir ilk ba─ş─▒ms─▒z de─şi┼şken kabul eden hi├ğbir eri┼şilebilir 'Country' geni┼şletme y├Ântemi bulunamad─▒ (bir kullanma y├Ânergeniz veya derleme ba┼şvurunuz eksik olabilir mi?) [C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\Dashboard.Web.csproj]
-C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\Controllers\HomeController.cs(235,26): error CS1061: 'GeographicDistributionVm' bir 'Latitude' tan─▒m─▒ i├ğermiyor ve 'GeographicDistributionVm' t├╝r├╝nde bir ilk ba─ş─▒ms─▒z de─şi┼şken kabul eden hi├ğbir eri┼şilebilir 'Latitude' geni┼şletme y├Ântemi bulunamad─▒ (bir kullanma y├Ânergeniz veya derleme ba┼şvurunuz eksik olabilir mi?) [C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\Dashboard.Web.csproj]
-C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\Controllers\HomeController.cs(236,27): error CS1061: 'GeographicDistributionVm' bir 'Longitude' tan─▒m─▒ i├ğermiyor ve 'GeographicDistributionVm' t├╝r├╝nde bir ilk ba─ş─▒ms─▒z de─şi┼şken kabul eden hi├ğbir eri┼şilebilir 'Longitude' geni┼şletme y├Ântemi bulunamad─▒ (bir kullanma y├Ânergeniz veya derleme ba┼şvurunuz eksik olabilir mi?) [C:\Users\mrkfk\OneDrive\Desktop\Projelerim\ECommerce\AdminPanel\Dashboard.Web\Dashboard.Web.csproj]
-
-Olu┼şturma BA┼ŞARISIZ OLDU.
-    0 Uyar─▒
-    3 Hata
-
-Ge├ğen S├╝re 00:00:04.42

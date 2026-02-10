@@ -2,6 +2,7 @@ using System.Reflection;
 using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace ECommerce.Infrastructure.Data
 {
@@ -68,6 +69,17 @@ namespace ECommerce.Infrastructure.Data
 
             // Apply all configurations from assembly automatically
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+            // Ensure IsActive properties are treated as regular properties (saved on insert)
+            // Some migrations previously configured IsActive as store-generated; force save behavior here
+            foreach (var et in modelBuilder.Model.GetEntityTypes())
+            {
+                var isActiveProp = et.FindProperty("IsActive");
+                if (isActiveProp != null)
+                {
+                    isActiveProp.SetBeforeSaveBehavior(PropertySaveBehavior.Save);
+                }
+            }
 
             // UserRole composite key
             modelBuilder.Entity<UserRole>()

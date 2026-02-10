@@ -13,7 +13,7 @@ namespace ECommerce.RestApi.Controllers;
 public class OrderController : ControllerBase
 {
     private readonly IOrderService _orderService;
-    
+
     public OrderController(IOrderService orderService)
     {
         _orderService = orderService;
@@ -87,7 +87,7 @@ public class OrderController : ControllerBase
         }
         catch (Exception ex)
         {
-             return NotFound(new { message = ex.Message });
+            return NotFound(new { message = ex.Message });
         }
     }
 
@@ -104,7 +104,7 @@ public class OrderController : ControllerBase
         }
         catch (Exception ex)
         {
-             return NotFound(new { message = ex.Message });
+            return NotFound(new { message = ex.Message });
         }
     }
 
@@ -133,9 +133,9 @@ public class OrderController : ControllerBase
             await _orderService.DeleteAsync(id);
             return Ok(new { message = "Sipariş Silindi" });
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
-             return NotFound(new { message = ex.Message });
+            return NotFound(new { message = ex.Message });
         }
     }
 }

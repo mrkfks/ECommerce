@@ -1,13 +1,13 @@
+using Dashboard.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Dashboard.Web.Services;
 
 namespace Dashboard.Web.Controllers;
 
 /// <summary>
 /// Model yönetimi controller'ı (Ürün modelleri - marka altında)
 /// </summary>
-[Authorize(Policy = "AdminOnly")]
+[Authorize(Policy = "SuperAdminOnly")]
 public class ModelController : Controller
 {
     private readonly ModelApiService _modelService;
@@ -32,7 +32,7 @@ public class ModelController : Controller
         try
         {
             List<ModelViewModel>? models;
-            
+
             if (brandId.HasValue)
             {
                 models = await _modelService.GetByBrandIdAsync(brandId.Value);
@@ -75,10 +75,10 @@ public class ModelController : Controller
     public async Task<IActionResult> Create(int? brandId = null)
     {
         await LoadBrandsAsync();
-        
-        return View(new ModelCreateViewModel 
-        { 
-            BrandId = brandId ?? 0 
+
+        return View(new ModelCreateViewModel
+        {
+            BrandId = brandId ?? 0
         });
     }
 
@@ -137,7 +137,7 @@ public class ModelController : Controller
         }
 
         await LoadBrandsAsync();
-        
+
         var updateModel = new ModelUpdateViewModel
         {
             Id = model.Id,
@@ -146,7 +146,7 @@ public class ModelController : Controller
             BrandId = model.BrandId,
             IsActive = model.IsActive
         };
-        
+
         return View(updateModel);
     }
 

@@ -158,7 +158,7 @@ public class CampaignService : ICampaignService
     public async Task DeleteAsync(int id)
     {
         var campaign = await GetCampaignEntityAsync(id);
-        if (campaign == null) 
+        if (campaign == null)
             throw new KeyNotFoundException("Kampanya bulunamadı veya bu kampayaya erişim yetkiniz yok.");
 
         try
@@ -167,11 +167,11 @@ public class CampaignService : ICampaignService
             var productCampaigns = await _context.ProductCampaigns
                 .Where(pc => pc.CampaignId == id)
                 .ToListAsync();
-            
+
             if (productCampaigns.Any())
             {
                 _context.ProductCampaigns.RemoveRange(productCampaigns);
-                _logger.LogInformation("Removed {Count} ProductCampaign records for Campaign ID: {CampaignId}", 
+                _logger.LogInformation("Removed {Count} ProductCampaign records for Campaign ID: {CampaignId}",
                     productCampaigns.Count, id);
             }
 
@@ -256,7 +256,7 @@ public class CampaignService : ICampaignService
 
         // Add only new categories
         var newCategoryIds = categoryIds.Except(existingCategoryCampaigns).ToList();
-        
+
         foreach (var categoryId in newCategoryIds)
         {
             var categoryCampaign = CategoryCampaign.Create(categoryId, campaignId);
@@ -277,7 +277,7 @@ public class CampaignService : ICampaignService
 
         _context.CategoryCampaigns.Remove(categoryCampaign);
         await _context.SaveChangesAsync();
-        
+
         _logger.LogInformation("Removed category {CategoryId} from campaign {CampaignId}", categoryId, campaignId);
     }
 }

@@ -169,7 +169,7 @@ public class CampaignController : ControllerBase
                 webRootPath = Path.Combine(_env.ContentRootPath, "wwwroot");
                 Directory.CreateDirectory(webRootPath);
             }
-            
+
             var uploadsDir = Path.Combine(webRootPath, "uploads", "campaigns");
             Directory.CreateDirectory(uploadsDir);
 

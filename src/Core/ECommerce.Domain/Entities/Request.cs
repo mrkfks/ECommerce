@@ -20,7 +20,7 @@ public class Request : IAuditable, ITenantEntity
     {
         if (string.IsNullOrWhiteSpace(title))
             throw new ArgumentException("İstek başlığı boş olamaz.", nameof(title));
-        
+
         if (string.IsNullOrWhiteSpace(description))
             throw new ArgumentException("İstek açıklaması boş olamaz.", nameof(description));
 
@@ -39,7 +39,7 @@ public class Request : IAuditable, ITenantEntity
     {
         if (!string.IsNullOrWhiteSpace(feedback))
             Feedback = feedback;
-            
+
         Status = RequestStatus.Approved;
         UpdatedAt = DateTime.UtcNow;
     }

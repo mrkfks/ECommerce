@@ -7,11 +7,11 @@ public static class ApiRoutes
 {
     private const string ApiBase = "api";
     private const string ApiVersion = "v1";
-    
+
     public static class Auth
     {
         private const string Base = $"{ApiBase}/auth";
-        
+
         public const string Login = $"{Base}/login";
         public const string Register = $"{Base}/register";
         public const string Logout = $"{Base}/logout";
@@ -25,7 +25,7 @@ public static class ApiRoutes
     public static class Products
     {
         private const string Base = $"{ApiBase}/products";
-        
+
         public const string GetAll = Base;
         public const string GetById = $"{Base}/{{id}}";
         public const string Create = Base;
@@ -42,7 +42,7 @@ public static class ApiRoutes
     public static class Categories
     {
         private const string Base = $"{ApiBase}/categories";
-        
+
         public const string GetAll = Base;
         public const string GetById = $"{Base}/{{id}}";
         public const string Create = Base;
@@ -55,7 +55,7 @@ public static class ApiRoutes
     public static class Brands
     {
         private const string Base = $"{ApiBase}/brands";
-        
+
         public const string GetAll = Base;
         public const string GetById = $"{Base}/{{id}}";
         public const string Create = Base;
@@ -68,7 +68,7 @@ public static class ApiRoutes
     public static class Orders
     {
         private const string Base = $"{ApiBase}/orders";
-        
+
         public const string GetAll = Base;
         public const string GetById = $"{Base}/{{id}}";
         public const string Create = Base;
@@ -84,7 +84,7 @@ public static class ApiRoutes
     public static class Customers
     {
         private const string Base = $"{ApiBase}/customers";
-        
+
         public const string GetAll = Base;
         public const string GetById = $"{Base}/{{id}}";
         public const string Create = Base;
@@ -98,7 +98,7 @@ public static class ApiRoutes
     public static class Reviews
     {
         private const string Base = $"{ApiBase}/reviews";
-        
+
         public const string GetAll = Base;
         public const string GetById = $"{Base}/{{id}}";
         public const string Create = Base;
@@ -111,7 +111,7 @@ public static class ApiRoutes
     public static class Users
     {
         private const string Base = $"{ApiBase}/users";
-        
+
         public const string GetAll = Base;
         public const string GetById = $"{Base}/{{id}}";
         public const string Create = Base;
@@ -127,7 +127,7 @@ public static class ApiRoutes
     public static class Roles
     {
         private const string Base = $"{ApiBase}/roles";
-        
+
         public const string GetAll = Base;
         public const string GetById = $"{Base}/{{id}}";
         public const string Create = Base;
@@ -138,7 +138,7 @@ public static class ApiRoutes
     public static class Companies
     {
         private const string Base = $"{ApiBase}/companies";
-        
+
         public const string GetAll = Base;
         public const string GetById = $"{Base}/{{id}}";
         public const string Create = Base;
@@ -153,7 +153,7 @@ public static class ApiRoutes
     public static class Addresses
     {
         private const string Base = $"{ApiBase}/addresses";
-        
+
         public const string GetAll = Base;
         public const string GetById = $"{Base}/{{id}}";
         public const string Create = Base;
@@ -165,7 +165,7 @@ public static class ApiRoutes
     public static class Dashboard
     {
         private const string Base = $"{ApiBase}/dashboard";
-        
+
         public const string GetStats = $"{Base}/stats";
         public const string GetRecentOrders = $"{Base}/recent-orders";
         public const string GetTopProducts = $"{Base}/top-products";

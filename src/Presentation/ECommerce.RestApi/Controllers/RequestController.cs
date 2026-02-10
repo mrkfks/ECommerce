@@ -31,7 +31,7 @@ public class RequestController : ControllerBase
         var request = await _requestService.GetRequestByIdAsync(id);
         if (request == null)
             return NotFound();
-            
+
         // Company filtering logic could be in service or here.
         // For simplicity, assuming service handles basic retrieval, and controller or service enforces tenancy.
         // Current Service has GetCompanyRequestsAsync, but GetRequestById is generic.
@@ -45,7 +45,7 @@ public class RequestController : ControllerBase
         // I should probably ensure users can only see their company requests if they are not SuperAdmin.
         // But existing controller didn't seem to enforce strictly?
         // Let's stick to what's here for now.
-        
+
         return Ok(request);
     }
 
@@ -69,12 +69,12 @@ public class RequestController : ControllerBase
     [Authorize(Roles = "SuperAdmin")]
     public async Task<IActionResult> ApproveRequest(int id, [FromBody] RequestFeedbackDto? dto)
     {
-        try 
+        try
         {
             var request = await _requestService.ApproveRequestAsync(id, dto);
             return Ok(request);
         }
-        catch(KeyNotFoundException)
+        catch (KeyNotFoundException)
         {
             return NotFound();
         }
@@ -84,12 +84,12 @@ public class RequestController : ControllerBase
     [Authorize(Roles = "SuperAdmin")]
     public async Task<IActionResult> RejectRequest(int id, [FromBody] RequestFeedbackDto? dto)
     {
-        try 
+        try
         {
             var request = await _requestService.RejectRequestAsync(id, dto);
             return Ok(request);
         }
-         catch(KeyNotFoundException)
+        catch (KeyNotFoundException)
         {
             return NotFound();
         }

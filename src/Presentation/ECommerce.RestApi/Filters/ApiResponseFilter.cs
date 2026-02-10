@@ -76,6 +76,17 @@ namespace ECommerce.RestApi.Filters
                 case ProblemDetails pd:
                     return pd.Detail ?? pd.Title ?? "";
                 default:
+                    if (value == null) return string.Empty;
+
+                    // Try to read common "message" property (anonymous objects or custom wrappers)
+                    var type = value.GetType();
+                    var prop = type.GetProperty("message") ?? type.GetProperty("Message");
+                    if (prop != null)
+                    {
+                        var v = prop.GetValue(value);
+                        if (v != null) return v.ToString() ?? string.Empty;
+                    }
+
                     return string.Empty;
             }
         }

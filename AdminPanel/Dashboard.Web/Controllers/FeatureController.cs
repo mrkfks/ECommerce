@@ -8,7 +8,7 @@ namespace Dashboard.Web.Controllers;
 /// <summary>
 /// Özellik yönetimi controller'ı
 /// </summary>
-[Authorize(Policy = "AdminOnly")]
+[Authorize(Policy = "SuperAdminOnly")]
 public class FeatureController : Controller
 {
     private readonly FeatureApiService _featureService;

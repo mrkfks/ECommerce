@@ -42,7 +42,7 @@ namespace ECommerce.RestApi.Controllers
         public async Task<IActionResult> UploadProductImage(int productId, IFormFile file)
         {
             _logger.LogInformation("Upload request received for product {ProductId}", productId);
-            
+
             if (file == null || file.Length == 0)
             {
                 _logger.LogWarning("No file provided in upload request");
@@ -50,22 +50,22 @@ namespace ECommerce.RestApi.Controllers
             }
 
             _logger.LogInformation("File received: {FileName}, Size: {Size} bytes", file.FileName, file.Length);
-            
+
             try
             {
                 using (var memoryStream = new MemoryStream())
                 {
                     await file.CopyToAsync(memoryStream);
                     var fileBytes = memoryStream.ToArray();
-                    
+
                     _logger.LogInformation("Uploading image to storage...");
                     var imageUrl = await _fileUploadService.UploadImageAsync(fileBytes, file.FileName, "products");
                     _logger.LogInformation("Image uploaded successfully: {ImageUrl}", imageUrl);
-                    
+
                     // Add as not primary by default
                     await _productService.AddImageAsync(productId, imageUrl, 0, false);
                     _logger.LogInformation("Image added to product {ProductId}", productId);
-                    
+
                     return Ok(new { success = true, imageUrl = imageUrl, message = "Ürün resmi yüklendi" });
                 }
             }
@@ -88,15 +88,15 @@ namespace ECommerce.RestApi.Controllers
 
             try
             {
-                 using (var memoryStream = new MemoryStream())
+                using (var memoryStream = new MemoryStream())
                 {
                     await file.CopyToAsync(memoryStream);
                     var fileBytes = memoryStream.ToArray();
-                    
+
                     var imageUrl = await _fileUploadService.UploadImageAsync(fileBytes, file.FileName, "categories");
-                    
+
                     await _categoryService.UpdateImageAsync(categoryId, imageUrl);
-                    
+
                     return Ok(new ApiResponseDto<string> { Success = true, Data = imageUrl, Message = "Kategori resmi yüklendi" });
                 }
             }
@@ -123,11 +123,11 @@ namespace ECommerce.RestApi.Controllers
                 {
                     await file.CopyToAsync(memoryStream);
                     var fileBytes = memoryStream.ToArray();
-                    
+
                     var imageUrl = await _fileUploadService.UploadImageAsync(fileBytes, file.FileName, "brands");
-                    
+
                     await _brandService.UpdateImageAsync(brandId, imageUrl);
-                    
+
                     return Ok(new ApiResponseDto<string> { Success = true, Data = imageUrl, Message = "Marka resmi yüklendi" });
                 }
             }
@@ -154,15 +154,15 @@ namespace ECommerce.RestApi.Controllers
                 {
                     await file.CopyToAsync(memoryStream);
                     var fileBytes = memoryStream.ToArray();
-                    
+
                     var imageUrl = await _fileUploadService.UploadImageAsync(fileBytes, file.FileName, "banners");
-                    
+
                     var result = await _bannerService.UpdateImageAsync(bannerId, imageUrl);
-                    
+
                     if (result.Success)
-                         return Ok(new ApiResponseDto<string> { Success = true, Data = imageUrl, Message = "Banner resmi yüklendi" });
+                        return Ok(new ApiResponseDto<string> { Success = true, Data = imageUrl, Message = "Banner resmi yüklendi" });
                     else
-                         return BadRequest(new { message = result.Message });
+                        return BadRequest(new { message = result.Message });
                 }
             }
             catch (Exception ex)
@@ -188,11 +188,11 @@ namespace ECommerce.RestApi.Controllers
                 {
                     await file.CopyToAsync(memoryStream);
                     var fileBytes = memoryStream.ToArray();
-                    
+
                     var imageUrl = await _fileUploadService.UploadImageAsync(fileBytes, file.FileName, "companies");
-                    
+
                     await _companyService.UpdateLogoAsync(companyId, imageUrl);
-                    
+
                     return Ok(new ApiResponseDto<string> { Success = true, Data = imageUrl, Message = "Şirket logosu yüklendi" });
                 }
             }

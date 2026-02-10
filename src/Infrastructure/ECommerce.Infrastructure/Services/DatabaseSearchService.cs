@@ -28,7 +28,7 @@ namespace ECommerce.Infrastructure.Services
             {
                 var lowerQuery = query.ToLower();
                 // Simple SQL LIKE search
-                dbQuery = dbQuery.Where(p => p.Name.ToLower().Contains(lowerQuery) || 
+                dbQuery = dbQuery.Where(p => p.Name.ToLower().Contains(lowerQuery) ||
                                              p.Description.ToLower().Contains(lowerQuery));
             }
 

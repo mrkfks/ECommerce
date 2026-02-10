@@ -34,7 +34,7 @@ namespace ECommerce.Infrastructure.Services
                 }
 
                 var banners = await query.OrderBy(b => b.Order).ToListAsync();
-                
+
                 var bannerDtos = banners.Select(MapToDto).ToList();
 
                 return new ApiResponseDto<IEnumerable<BannerDto>>
@@ -100,7 +100,7 @@ namespace ECommerce.Infrastructure.Services
             try
             {
                 var companyId = _tenantService.GetCurrentCompanyId();
-                
+
                 var banner = Banner.Create(
                     dto.Title,
                     dto.ImageUrl,
@@ -156,7 +156,7 @@ namespace ECommerce.Infrastructure.Services
                 }
 
                 banner.Update(dto.Title, dto.ImageUrl, dto.Description, dto.Link, dto.Order);
-                
+
                 if (dto.IsActive)
                     banner.Activate();
                 else
@@ -181,24 +181,24 @@ namespace ECommerce.Infrastructure.Services
                 };
             }
         }
-        
+
         public async Task<ApiResponseDto<bool>> UpdateImageAsync(int id, string imageUrl)
         {
-             try
+            try
             {
                 var banner = await _context.Banners.FirstOrDefaultAsync(b => b.Id == id);
                 if (banner == null || banner.IsDeleted)
                 {
-                   return new ApiResponseDto<bool> { Success = false, Message = "Banner Not Found" };
+                    return new ApiResponseDto<bool> { Success = false, Message = "Banner Not Found" };
                 }
-                
+
                 var companyId = _tenantService.GetCompanyId();
                 if (companyId.HasValue && banner.CompanyId != companyId.Value)
-                     return new ApiResponseDto<bool> { Success = false, Message = "Unauthorized" };
-                
+                    return new ApiResponseDto<bool> { Success = false, Message = "Unauthorized" };
+
                 banner.Update(banner.Title, imageUrl, banner.Description, banner.Link, banner.Order);
                 await _context.SaveChangesAsync();
-                
+
                 return new ApiResponseDto<bool> { Success = true, Data = true };
             }
             catch (Exception ex)

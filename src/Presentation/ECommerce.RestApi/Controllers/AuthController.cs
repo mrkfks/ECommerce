@@ -187,6 +187,34 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+
+    /// <summary>
+    /// SuperAdmin resets a user's password (can target users across companies)
+    /// </summary>
+    [HttpPost("admin/reset-password")]
+    [Authorize(Roles = "SuperAdmin")]
+    public async Task<IActionResult> AdminResetPassword([FromBody] AdminResetPasswordDto dto)
+    {
+        if (dto == null || dto.TargetUserId <= 0 || string.IsNullOrEmpty(dto.NewPassword))
+        {
+            return BadRequest(new { message = "Hedef kullanıcı ve yeni şifre belirtilmelidir." });
+        }
+
+        if (!string.IsNullOrEmpty(dto.ConfirmPassword) && dto.NewPassword != dto.ConfirmPassword)
+        {
+            return BadRequest(new { message = "Yeni şifre ve onay eşleşmiyor." });
+        }
+
+        try
+        {
+            await _authService.ResetUserPasswordAsync(dto.TargetUserId, dto.NewPassword);
+            return Ok(new { message = "Kullanıcı şifresi başarıyla sıfırlandı." });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
     /// <summary>
     /// Force reset admin user (Maintenance)
     /// </summary>

@@ -154,10 +154,10 @@ public class CampaignController : Controller
 
         // Get campaign products
         var products = await _campaignApiService.GetCampaignProductsAsync(id);
-        
+
         // Get all categories
         var categoriesResponse = await _campaignApiService.GetAllCategoriesAsync();
-        
+
         // Get selected categories for this campaign
         var selectedCategoryIds = await _campaignApiService.GetCampaignCategoriesAsync(id);
 
@@ -170,7 +170,7 @@ public class CampaignController : Controller
             SelectedCategoryIds = selectedCategoryIds,
             SelectedProducts = products
         };
-        
+
         ViewBag.CampaignId = id;
         ViewBag.CampaignName = campaign.Name;
         ViewBag.ApiBaseUrl = _apiBaseUrl;

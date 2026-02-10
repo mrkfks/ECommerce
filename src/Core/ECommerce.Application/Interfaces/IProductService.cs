@@ -33,13 +33,13 @@ namespace ECommerce.Application.Interfaces
 
         // Stok güncelle
         Task UpdateStockAsync(int productId, int newQuantity);
-        
+
         // Güvenli stok düşümü (Atomik)
         Task DecreaseStockAsync(int productId, int quantity);
 
         // Ürün arama (isim veya açıklama üzerinden)
         Task<IReadOnlyList<ProductDto>> SearchAsync(string keyword);
-        
+
         // Resim işlemleri
         Task<ProductImageDto> AddImageAsync(int productId, string imageUrl, int order, bool isPrimary);
         Task UpdateImageAsync(int productId, int imageId, string imageUrl, int order, bool isPrimary);

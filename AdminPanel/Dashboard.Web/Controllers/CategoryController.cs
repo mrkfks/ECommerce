@@ -69,9 +69,9 @@ namespace Dashboard.Web.Controllers
             try
             {
                 categoryFormDto = categoryFormDto with { ParentCategoryId = null, ImageUrl = null }; // Ana kategori
-                
+
                 var response = await _categoryFormService.CreateAsync(categoryFormDto);
-                
+
                 TempData[response.Success ? "Success" : "Error"] = response.Success
                     ? "Ana kategori başarıyla eklendi."
                     : $"Kategori eklenirken hata oluştu: {response.Message}";
@@ -85,13 +85,13 @@ namespace Dashboard.Web.Controllers
 
         // Alt kategori ekleme - POST
         [HttpPost]
-            public async Task<IActionResult> CreateSubCategory(CategoryDto categoryDto)
+        public async Task<IActionResult> CreateSubCategory(CategoryDto categoryDto)
         {
             try
             {
                 if (!categoryDto.ParentCategoryId.HasValue)
                 {
-                        TempData["Error"] = "Üst kategori seçilmelidir.";
+                    TempData["Error"] = "Üst kategori seçilmelidir.";
                     return RedirectToAction(nameof(Index));
                 }
 
@@ -103,9 +103,9 @@ namespace Dashboard.Web.Controllers
             {
                 TempData["Error"] = $"Hata: {ex.Message}";
             }
-            
-                return RedirectToAction(nameof(Index));
-            }
+
+            return RedirectToAction(nameof(Index));
+        }
         // Recursive kategori oluşturma methodları kaldırıldı (Eski kodlar temizlendi)
 
         // Düzenleme - GET
@@ -195,7 +195,8 @@ namespace Dashboard.Web.Controllers
                 // Zorunlu alan koruması ve init-only property için yeni nesne oluştur
                 var companyId = brandDto.CompanyId != 0 ? brandDto.CompanyId : 1; // Gerekirse oturumdan veya default
                 var categoryId = brandDto.CategoryId ?? 1; // Gerekirse seçili kategori veya default
-                var newBrandDto = brandDto with {
+                var newBrandDto = brandDto with
+                {
                     Description = brandDto.Description ?? string.Empty,
                     CompanyId = companyId,
                     CategoryId = categoryId
@@ -239,7 +240,7 @@ namespace Dashboard.Web.Controllers
             var brand = await _brandService.GetByIdAsync(id);
             if (brand == null)
                 return NotFound();
-            
+
             var models = await _modelService.GetListAsync($"brand/{id}");
             return Json(new { brand, models });
         }
@@ -296,7 +297,7 @@ namespace Dashboard.Web.Controllers
                 {
                     return Json(new { success = false, message = "Model bilgileri boş" });
                 }
-                
+
                 var modelForm = new ModelFormDto
                 {
                     Id = modelDto.Id,
@@ -306,7 +307,7 @@ namespace Dashboard.Web.Controllers
                     ImageUrl = modelDto.ImageUrl,
                     IsActive = modelDto.IsActive
                 };
-                
+
                 // ModelCreateDto'dan ModelDto'ya dönüştür
                 var model = new ModelDto
                 {
@@ -320,14 +321,14 @@ namespace Dashboard.Web.Controllers
                 };
                 var response = await _modelService.CreateAsync(model);
                 var success = response != null && response.Success;
-                
+
                 // AJAX isteği ise sadece JSON döndür
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || 
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
                     Request.Headers["Accept"].ToString().Contains("application/json"))
                 {
                     return Json(new { success, message = success ? "Model başarıyla eklendi." : "Model eklenirken hata oluştu." });
                 }
-                
+
                 TempData["InventoryAlert"] = success
                     ? "Model başarıyla eklendi."
                     : "Model eklenirken hata oluştu.";
@@ -337,12 +338,12 @@ namespace Dashboard.Web.Controllers
             catch (Exception ex)
             {
                 // AJAX isteği ise sadece JSON döndür
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || 
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
                     Request.Headers["Accept"].ToString().Contains("application/json"))
                 {
                     return Json(new { success = false, message = $"Hata: {ex.Message}" });
                 }
-                
+
                 TempData["InventoryAlert"] = $"Hata: {ex.Message}";
                 TempData["InventoryAlertType"] = "error";
                 return RedirectToAction(nameof(Brands));
@@ -356,14 +357,14 @@ namespace Dashboard.Web.Controllers
             try
             {
                 await _modelService.DeleteAsync(id);
-                
+
                 // AJAX isteği ise sadece JSON döndür
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || 
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
                     Request.Headers["Accept"].ToString().Contains("application/json"))
                 {
                     return Json(new { success = true, message = "Model başarıyla silindi." });
                 }
-                
+
                 TempData["InventoryAlert"] = "Model başarıyla silindi.";
                 TempData["InventoryAlertType"] = "success";
                 return RedirectToAction(nameof(Brands));
@@ -371,12 +372,12 @@ namespace Dashboard.Web.Controllers
             catch (Exception ex)
             {
                 // AJAX isteği ise sadece JSON döndür
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || 
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
                     Request.Headers["Accept"].ToString().Contains("application/json"))
                 {
                     return Json(new { success = false, message = $"Hata: {ex.Message}" });
                 }
-                
+
                 TempData["InventoryAlert"] = $"Hata: {ex.Message}";
                 TempData["InventoryAlertType"] = "error";
                 return RedirectToAction(nameof(Brands));

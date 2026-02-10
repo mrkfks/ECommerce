@@ -317,7 +317,45 @@ using (var scope = app.Services.CreateScope())
         }
         else
         {
-            logger.LogInformation("ℹ️ SuperAdmin user already exists");
+            // Eğer mevcut kullanıcı kısmi bilgiyle kayıtlıysa eksik alanları güncelle
+            var updated = false;
+
+            if (string.IsNullOrWhiteSpace(existingSuperAdmin.Username) || existingSuperAdmin.Username != "superadmin"
+                || string.IsNullOrWhiteSpace(existingSuperAdmin.FirstName) || existingSuperAdmin.FirstName != "Super"
+                || string.IsNullOrWhiteSpace(existingSuperAdmin.LastName) || existingSuperAdmin.LastName != "Admin")
+            {
+                existingSuperAdmin.UpdateProfile("Super", "Admin", superAdminEmail, "superadmin", existingSuperAdmin.PhoneNumber);
+                updated = true;
+            }
+
+            if (!existingSuperAdmin.IsActive)
+            {
+                existingSuperAdmin.Activate();
+                updated = true;
+            }
+
+            // Kullanıcıya SuperAdmin rolü atanmış mı kontrol et, yoksa ata
+            var hasSuperRole = await context.UserRoles.AnyAsync(ur => ur.UserId == existingSuperAdmin.Id && ur.RoleId == superAdminRole.Id);
+            if (!hasSuperRole)
+            {
+                var superAdminUserRole = ECommerce.Domain.Entities.UserRole.Create(
+                    userId: existingSuperAdmin.Id,
+                    roleId: superAdminRole.Id,
+                    roleName: "SuperAdmin"
+                );
+                context.UserRoles.Add(superAdminUserRole);
+                updated = true;
+            }
+
+            if (updated)
+            {
+                await context.SaveChangesAsync();
+                logger.LogInformation("✅ SuperAdmin user updated - Email: {Email}", superAdminEmail);
+            }
+            else
+            {
+                logger.LogInformation("ℹ️ SuperAdmin user already exists");
+            }
         }
         // ========== SUPER ADMIN SEED END ==========
 
@@ -335,6 +373,7 @@ using (var scope = app.Services.CreateScope())
         );
         if (testCategoryExists == null)
         {
+            testCategory.Activate();
             context.Categories.Add(testCategory);
             await context.SaveChangesAsync();
             logger.LogInformation("✅ Category 'Electronics' created");
@@ -606,3 +645,6 @@ app.MapHealthChecks("/health");
 
 app.Logger.LogInformation("🚀 ECommerce API başlatıldı - http://localhost:5010");
 app.Run();
+
+// Expose Program class for integration tests
+public partial class Program { }

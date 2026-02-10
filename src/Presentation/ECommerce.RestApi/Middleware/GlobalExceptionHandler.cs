@@ -22,8 +22,8 @@ public class GlobalExceptionHandler
         var tenantId = tenantService.GetCompanyId();
         var userId = context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        using (_logger.BeginScope(new Dictionary<string, object> 
-        { 
+        using (_logger.BeginScope(new Dictionary<string, object>
+        {
             { "TenantId", tenantId ?? 0 },
             { "UserId", userId ?? "Anonymous" }
         }))
@@ -73,7 +73,7 @@ public class GlobalExceptionHandler
         var response = new
         {
             statusCode = (int)statusCode,
-            message = statusCode == HttpStatusCode.InternalServerError ? $"{message}: {exception.Message}" : message, 
+            message = statusCode == HttpStatusCode.InternalServerError ? $"{message}: {exception.Message}" : message,
             details = statusCode == HttpStatusCode.InternalServerError ? exception.ToString() : null,
             errors = errors.Count > 0 ? errors : null
         };

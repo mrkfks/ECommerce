@@ -21,7 +21,7 @@ namespace ECommerce.Infrastructure.Repositories
                 .Include(c => c.Company)
                 .FirstOrDefaultAsync(c => c.Email == email);
         }
-        
+
         public async Task<IReadOnlyList<Customer>> GetWithOrdersAsync()
         {
             return await _context.Customers

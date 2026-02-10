@@ -30,8 +30,8 @@ public class ValidationException : AppException
 {
     public IDictionary<string, string[]> Errors { get; set; }
 
-    public ValidationException(string message, IDictionary<string, string[]>? errors = null) 
-        : base(message, 400) 
+    public ValidationException(string message, IDictionary<string, string[]>? errors = null)
+        : base(message, 400)
     {
         Errors = errors ?? new Dictionary<string, string[]>();
     }
@@ -74,7 +74,7 @@ public class ConflictException : AppException
 /// </summary>
 public class BusinessException : AppException
 {
-    public BusinessException(string message, int statusCode = 400) 
+    public BusinessException(string message, int statusCode = 400)
         : base(message, statusCode) { }
 }
 
@@ -83,6 +83,6 @@ public class BusinessException : AppException
 /// </summary>
 public class ConcurrencyException : AppException
 {
-    public ConcurrencyException(string message) 
+    public ConcurrencyException(string message)
         : base(message, 409) { }
 }

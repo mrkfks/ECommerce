@@ -35,10 +35,10 @@ public class ReturnRequestController : ControllerBase
                 return Unauthorized(new { message = "Kullanıcı kimliği bulunamadı" });
 
             var result = await _returnRequestService.CreateAsync(dto, int.Parse(userId));
-            return Ok(new 
-            { 
-                id = result.Id, 
-                message = "İade talebi başarıyla oluşturuldu." 
+            return Ok(new
+            {
+                id = result.Id,
+                message = "İade talebi başarıyla oluşturuldu."
             });
         }
         catch (Exception ex)
@@ -46,7 +46,7 @@ public class ReturnRequestController : ControllerBase
             // Hata mesajını log'la
             Console.WriteLine($"[Create] Error: {ex.Message}");
             Console.WriteLine($"[Create] Stack: {ex.StackTrace}");
-            
+
             return BadRequest(new { message = ex.Message });
         }
     }
@@ -95,18 +95,18 @@ public class ReturnRequestController : ControllerBase
     {
         // Admin bypass header kontrolü (dashboard.web istekleri için)
         var adminBypass = Request.Headers.ContainsKey("X-Admin-Bypass");
-        
+
         // Bypass header varsa izin ver
         if (adminBypass)
         {
             var returnRequests = await _returnRequestService.GetAllAsync();
-            
+
             Console.WriteLine($"[API] GetAll() called. Returning {returnRequests.Count} requests");
             foreach (var req in returnRequests)
             {
                 Console.WriteLine($"[API]   - {req.Id}: {req.CustomerName} | Order {req.OrderId} | {req.ProductName}");
             }
-            
+
             return Ok(new ApiResponseDto<IReadOnlyList<ReturnRequestDto>>
             {
                 Success = true,
@@ -114,7 +114,7 @@ public class ReturnRequestController : ControllerBase
                 Message = "İade talepleri başarıyla getirildi"
             });
         }
-        
+
         return Unauthorized();
     }
 
@@ -172,7 +172,7 @@ public class ReturnRequestController : ControllerBase
                 Reason = "Test: Ürün hasarlı",
                 Comments = "Test veri"
             };
-            
+
             var result = await _returnRequestService.CreateAsync(testRequest, 1);
             return Ok(new ApiResponseDto<ReturnRequestDto>
             {

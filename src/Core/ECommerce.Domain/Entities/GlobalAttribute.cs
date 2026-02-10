@@ -14,10 +14,10 @@ namespace ECommerce.Domain.Entities
         public string DisplayName { get; private set; } = string.Empty; // Görüntüleme adı (örn: "Renk", "Boyut")
         public string Description { get; private set; } = string.Empty; // Açıklama
         public int CompanyId { get; private set; }
-        
+
         // Özellik tipi (Text, Color, Select, Range, Boolean)
         public AttributeType AttributeType { get; private set; } = AttributeType.Text;
-        
+
         public int DisplayOrder { get; private set; }
         public bool IsActive { get; private set; } = true;
         public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
@@ -28,8 +28,8 @@ namespace ECommerce.Domain.Entities
         public virtual ICollection<CategoryGlobalAttribute> CategoryMappings { get; private set; } = new List<CategoryGlobalAttribute>();
 
         public static GlobalAttribute Create(
-            string name, 
-            string displayName, 
+            string name,
+            string displayName,
             string description,
             int companyId,
             AttributeType attributeType = AttributeType.Text,

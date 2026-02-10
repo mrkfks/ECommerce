@@ -53,7 +53,7 @@ public class MappingProfile : Profile
             .ForMember(d => d.CompanyName, opt => opt.Ignore())
             .ForMember(d => d.PostalCode, opt => opt.MapFrom(s => s.ZipCode))
             .ForMember(d => d.CustomerName, opt => opt.MapFrom(s => s.Customer != null ? $"{s.Customer.FirstName} {s.Customer.LastName}" : null));
-        
+
         CreateMap<AddressFormDto, Address>();
 
         // Product mappings

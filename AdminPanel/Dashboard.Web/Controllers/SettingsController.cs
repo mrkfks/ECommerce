@@ -33,7 +33,7 @@ public class SettingsController : Controller
         try
         {
             var attributes = await _attributeService.GetAllAsync();
-            
+
             if (!string.IsNullOrEmpty(group) && attributes != null)
             {
                 attributes = attributes.Where(a => a.Group == group).ToList();
@@ -49,9 +49,9 @@ public class SettingsController : Controller
                     .OrderBy(g => g)
                     .ToList();
             }
-            
+
             ViewBag.SelectedGroup = group;
-            
+
             return View(attributes ?? new List<GlobalAttributeViewModel>());
         }
         catch (Exception ex)
@@ -153,7 +153,7 @@ public class SettingsController : Controller
         }
 
         await LoadCompaniesAsync();
-        
+
         var model = new GlobalAttributeUpdateViewModel
         {
             Id = attribute.Id,
@@ -162,7 +162,7 @@ public class SettingsController : Controller
             Description = attribute.Description,
             Group = attribute.Group
         };
-        
+
         return View(model);
     }
 
@@ -259,7 +259,7 @@ public class SettingsController : Controller
 
             attribute.Value = model.Value;
             var success = await _attributeService.UpdateAsync(model.Id, attribute);
-            
+
             return Json(new { success = success, message = success ? "Güncellendi" : "Hata oluştu" });
         }
         catch (Exception ex)
@@ -272,12 +272,12 @@ public class SettingsController : Controller
     private async Task LoadCompaniesAsync()
     {
         var response = await _companyService.GetAllAsync();
-        ViewBag.Companies = response?.Data?.Select(c => new CompanyViewModel 
-        { 
-            Id = c.Id, 
-            Name = c.Name, 
+        ViewBag.Companies = response?.Data?.Select(c => new CompanyViewModel
+        {
+            Id = c.Id,
+            Name = c.Name,
             LogoUrl = c.LogoUrl,
-            IsActive = c.IsActive 
+            IsActive = c.IsActive
         }).ToList() ?? new List<CompanyViewModel>();
     }
 

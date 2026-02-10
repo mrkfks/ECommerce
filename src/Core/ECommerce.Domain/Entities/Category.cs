@@ -14,7 +14,7 @@ namespace ECommerce.Domain.Entities
         public int? ParentCategoryId { get; private set; } // Hiyerarşik yapı için
         public int DisplayOrder { get; private set; }
         public bool IsActive { get; private set; } = true;
-        
+
         // Navigation Properties
         public virtual Category? ParentCategory { get; private set; }
         public virtual ICollection<Category> SubCategories { get; private set; } = new List<Category>();

@@ -10,7 +10,7 @@ public class GlobalExceptionHandlerMiddleware
     private readonly IWebHostEnvironment _env;
 
     public GlobalExceptionHandlerMiddleware(
-        RequestDelegate next, 
+        RequestDelegate next,
         ILogger<GlobalExceptionHandlerMiddleware> logger,
         IWebHostEnvironment env)
     {
@@ -47,7 +47,7 @@ public class GlobalExceptionHandlerMiddleware
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         context.Response.ContentType = "application/json";
-        
+
         var (statusCode, message) = exception switch
         {
             UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "Yetkisiz erişim"),

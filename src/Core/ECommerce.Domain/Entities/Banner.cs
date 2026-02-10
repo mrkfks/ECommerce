@@ -18,7 +18,7 @@ namespace ECommerce.Domain.Entities
         {
             if (string.IsNullOrWhiteSpace(title))
                 throw new ArgumentException("Banner başlığı boş olamaz.", nameof(title));
-            
+
             if (string.IsNullOrWhiteSpace(imageUrl))
                 throw new ArgumentException("Banner resim URL'si boş olamaz.", nameof(imageUrl));
 
@@ -38,7 +38,7 @@ namespace ECommerce.Domain.Entities
         {
             if (string.IsNullOrWhiteSpace(title))
                 throw new ArgumentException("Banner başlığı boş olamaz.", nameof(title));
-            
+
             if (string.IsNullOrWhiteSpace(imageUrl))
                 throw new ArgumentException("Banner resim URL'si boş olamaz.", nameof(imageUrl));
 

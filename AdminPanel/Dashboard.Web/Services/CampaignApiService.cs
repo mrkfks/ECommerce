@@ -43,7 +43,7 @@ public class CampaignApiService
         {
             var response = await _httpClient.GetAsync("api/campaigns");
             var responseBody = await response.Content.ReadAsStringAsync();
-            
+
             _logger.LogInformation("[CampaignApiService.GetAllAsync] Status: {Status}", response.StatusCode);
 
             if (!response.IsSuccessStatusCode)
@@ -195,16 +195,16 @@ public class CampaignApiService
             _logger.LogInformation("[CampaignApiService.DeleteAsync] Deleting campaign ID: {CampaignId}", id);
             var response = await _httpClient.DeleteAsync($"api/campaigns/{id}");
             var responseBody = await response.Content.ReadAsStringAsync();
-            
-            _logger.LogInformation("[CampaignApiService.DeleteAsync] Status: {Status}, Response: {Response}", 
+
+            _logger.LogInformation("[CampaignApiService.DeleteAsync] Status: {Status}, Response: {Response}",
                 response.StatusCode, responseBody);
-            
+
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("[CampaignApiService.DeleteAsync] Delete failed for ID: {CampaignId} - Status: {Status} - Body: {Body}", 
+                _logger.LogWarning("[CampaignApiService.DeleteAsync] Delete failed for ID: {CampaignId} - Status: {Status} - Body: {Body}",
                     id, response.StatusCode, responseBody);
             }
-            
+
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
@@ -222,7 +222,7 @@ public class CampaignApiService
         {
             var response = await _httpClient.GetAsync($"api/campaigns/{campaignId}/products");
             var responseBody = await response.Content.ReadAsStringAsync();
-            
+
             _logger.LogInformation("[CampaignApiService.GetCampaignProductsAsync] CampaignId: {CampaignId}, Status: {Status}", campaignId, response.StatusCode);
             _logger.LogInformation("[CampaignApiService.GetCampaignProductsAsync] Response: {Response}", responseBody);
 
@@ -325,10 +325,10 @@ public class CampaignApiService
         {
             var response = await _httpClient.GetAsync("api/categories");
             if (!response.IsSuccessStatusCode) return new();
-            
+
             var body = await response.Content.ReadAsStringAsync();
             var categories = ExtractData<List<CategoryDto>>(body) ?? new();
-            
+
             // Convert to CategorySelectionVm
             return categories.Select(c => new CategorySelectionVm
             {
@@ -350,7 +350,7 @@ public class CampaignApiService
         {
             var response = await _httpClient.GetAsync($"api/campaigns/{campaignId}/categories");
             if (!response.IsSuccessStatusCode) return new();
-            
+
             var body = await response.Content.ReadAsStringAsync();
             return ExtractData<List<int>>(body) ?? new();
         }

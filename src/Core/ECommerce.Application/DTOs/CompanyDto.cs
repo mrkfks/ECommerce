@@ -16,16 +16,16 @@ public record CompanyDto
     public bool IsApproved { get; init; } = false;
     public DateTime? CreatedAt { get; init; }
     public DateTime? UpdatedAt { get; init; }
-    
+
     // Sorumlu kişi bilgileri
     public string? ResponsiblePersonName { get; init; }
     public string? ResponsiblePersonPhone { get; init; }
     public string? ResponsiblePersonEmail { get; init; }
-    
+
     // İstatistikler
     public int UserCount { get; init; }
     public int CustomerCount { get; init; }
-    
+
     // Branding bilgileri
     public string? Domain { get; init; }
     public string? LogoUrl { get; init; }
@@ -46,7 +46,7 @@ public record CompanyFormDto
     public string Address { get; init; } = string.Empty;
     public string? Description { get; init; }
     public bool IsActive { get; init; } = true;
-    
+
     // Sorumlu kişi bilgileri
     public string? ResponsiblePersonName { get; init; }
     public string? ResponsiblePersonPhone { get; init; }

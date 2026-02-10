@@ -1,7 +1,7 @@
+using Dashboard.Web.Services;
+using ECommerce.Application.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ECommerce.Application.DTOs;
-using Dashboard.Web.Services;
 
 namespace Dashboard.Web.Controllers
 {
@@ -58,15 +58,15 @@ namespace Dashboard.Web.Controllers
             if (!ModelState.IsValid)
                 return View(registerDto);
 
-            var authResponse = await _authService.RegisterAsync(registerDto);
+            var (success, errorMessage) = await _authService.RegisterAsync(registerDto);
 
-            if (authResponse != null)
+            if (success)
             {
                 TempData["Success"] = "Kaydınız alınmıştır. Süper admin onayından sonra giriş yapabileceksiniz.";
                 return RedirectToAction("Login");
             }
 
-            ModelState.AddModelError("", "Kayıt işlemi başarısız. Bu email adresi zaten kullanılıyor olabilir.");
+            ModelState.AddModelError("", string.IsNullOrWhiteSpace(errorMessage) ? "Kayıt işlemi başarısız." : errorMessage);
             return View(registerDto);
         }
 

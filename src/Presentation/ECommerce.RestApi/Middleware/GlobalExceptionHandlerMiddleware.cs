@@ -33,10 +33,10 @@ public class GlobalExceptionHandlerMiddleware
             var user = context.User.Identity?.Name ?? "Anonymous";
             var userId = context.User.FindFirst("id")?.Value;
 
-            _logger.LogError(ex, 
-                "An unhandled exception occurred. Endpoint: {Endpoint}, User: {User} ({UserId}), Message: {Message}", 
+            _logger.LogError(ex,
+                "An unhandled exception occurred. Endpoint: {Endpoint}, User: {User} ({UserId}), Message: {Message}",
                 endpoint, user, userId, ex.Message);
-                
+
             await HandleExceptionAsync(context, ex);
         }
     }
@@ -44,7 +44,7 @@ public class GlobalExceptionHandlerMiddleware
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         context.Response.ContentType = "application/json";
-        
+
         var response = new ECommerce.Application.DTOs.ApiResponseDto<object>
         {
             Success = false
@@ -86,7 +86,7 @@ public class GlobalExceptionHandlerMiddleware
             default:
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                 response.Message = _env.IsDevelopment() ? exception.Message : "An error occurred while processing your request.";
-                
+
                 if (_env.IsDevelopment())
                 {
                     response.Data = new { StackTrace = exception.StackTrace };

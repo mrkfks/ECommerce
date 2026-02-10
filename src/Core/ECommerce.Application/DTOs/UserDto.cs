@@ -108,3 +108,13 @@ public record UserUpdateDto
     public List<string>? Roles { get; init; }
     public bool IsActive { get; init; } = true;
 }
+
+/// <summary>
+/// Süper admin tarafından başka bir kullanıcının şifresini sıfırlamak için DTO
+/// </summary>
+public record AdminResetPasswordDto
+{
+    public int TargetUserId { get; init; }
+    public string NewPassword { get; init; } = string.Empty;
+    public string? ConfirmPassword { get; init; }
+}

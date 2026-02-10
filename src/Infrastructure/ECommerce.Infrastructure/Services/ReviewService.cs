@@ -31,7 +31,7 @@ public class ReviewService : IReviewService
             .Include(r => r.Customer)
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.Id == id);
-            
+
         return review == null ? null : MapToDto(review);
     }
 
@@ -41,19 +41,19 @@ public class ReviewService : IReviewService
         // Logic in controller didn't filter by tenant but Review entity might.
         // Review entity in Step 409 shows companyId in Create but not much filtering logic.
         // Assuming global read for now or filter by tenant if ITenantEntity
-        
+
         // Review created with CompanyId in Create method in Controller.
         // Check Review entity to be sure. 
         // Assuming ITenantEntity or similar.
-        
+
         var query = _context.Reviews
             .Include(r => r.Product)
             .Include(r => r.Customer)
             .AsNoTracking();
-            
+
         var companyId = _tenantService.GetCompanyId();
         if (companyId.HasValue) query = query.Where(r => r.CompanyId == companyId.Value);
-        
+
         var reviews = await query.ToListAsync();
         return reviews.Select(MapToDto).ToList();
     }
@@ -92,7 +92,7 @@ public class ReviewService : IReviewService
     {
         var companyId = _tenantService.GetCompanyId() ?? dto.CompanyId;
         // If companyId is still 0/null? Controller DTO has CompanyId.
-        
+
         var review = Review.Create(
             dto.ProductId,
             dto.CustomerId,
@@ -101,10 +101,10 @@ public class ReviewService : IReviewService
             dto.Rating,
             dto.Comment
         );
-        
+
         _context.Reviews.Add(review);
         await _context.SaveChangesAsync();
-        
+
         return MapToDto(review);
     }
 
@@ -112,9 +112,9 @@ public class ReviewService : IReviewService
     {
         var review = await _context.Reviews.FindAsync(id);
         if (review == null) throw new KeyNotFoundException("Review not found");
-        
+
         // Auth check? Service layer usually trusts caller or checks ownership.
-        
+
         review.Update(dto.Rating, dto.Comment);
         await _context.SaveChangesAsync();
     }
@@ -123,11 +123,11 @@ public class ReviewService : IReviewService
     {
         var review = await _context.Reviews.FindAsync(id);
         if (review == null) throw new KeyNotFoundException("Review not found");
-        
+
         _context.Reviews.Remove(review);
         await _context.SaveChangesAsync();
     }
-    
+
     private static ReviewDto MapToDto(Review r)
     {
         return new ReviewDto
@@ -226,8 +226,8 @@ public class ReviewService : IReviewService
 
         // Bu ürünü satın almış mı?
         var hasPurchased = await _context.OrderItems
-            .AnyAsync(oi => oi.ProductId == productId && 
-                           oi.Order != null && 
+            .AnyAsync(oi => oi.ProductId == productId &&
+                           oi.Order != null &&
                            oi.Order.CustomerId == customer.Id);
 
         // Bu ürüne daha önce yorum yapmış mı?

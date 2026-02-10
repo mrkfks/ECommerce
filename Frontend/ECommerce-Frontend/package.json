@@ -5,8 +5,11 @@
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.conf.json",
     "build": "ng build",
+    "build:prod": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "clean": "rimraf dist .angular .tsbuildinfo",
+    "clean:node": "rimraf node_modules",
     "serve:ssr:ECommerce-Frontend": "node dist/ECommerce-Frontend/server/server.mjs"
   },
   "prettier": {
@@ -48,6 +51,7 @@
     "@types/node": "^20.19.30",
     "jsdom": "^27.1.0",
     "typescript": "~5.9.2",
-    "vitest": "^4.0.8"
+    "vitest": "^4.0.8",
+    "rimraf": "^5.0.0"
   }
 }

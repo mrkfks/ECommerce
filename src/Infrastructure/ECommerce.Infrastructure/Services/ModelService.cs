@@ -46,7 +46,7 @@ public class ModelService : IModelService
     public async Task<IReadOnlyList<ModelDto>> GetByBrandIdAsync(int brandId)
     {
         Console.WriteLine($"\n[ModelService.GetByBrandIdAsync] Başladı - BrandId: {brandId}");
-        
+
         // Brand'ın company'sini al, böylece doğru tenant context'te model'leri sorguayz
         var brand = await _context.Brands.AsNoTracking().FirstOrDefaultAsync(b => b.Id == brandId);
         if (brand == null)
@@ -69,7 +69,7 @@ public class ModelService : IModelService
             .ToListAsync();
 
         Console.WriteLine($"[ModelService.GetByBrandIdAsync] Sorgu çalıştırıldı - Bulunan model sayısı: {models.Count}");
-        
+
         if (models.Count > 0)
         {
             foreach (var m in models)
@@ -80,7 +80,7 @@ public class ModelService : IModelService
 
         var result = _mapper.Map<IReadOnlyList<ModelDto>>(models);
         Console.WriteLine($"[ModelService.GetByBrandIdAsync] Mapping tamamlandı - DTO sayısı: {result.Count}\n");
-        
+
         return result;
     }
 
@@ -90,14 +90,14 @@ public class ModelService : IModelService
             .Include(m => m.Brand)
             .AsNoTracking()
             .FirstOrDefaultAsync(m => m.Id == id);
-        
+
         return model == null ? null : _mapper.Map<ModelDto>(model);
     }
 
     public async Task<ModelDto> CreateAsync(ModelFormDto dto)
     {
         Console.WriteLine($"[ModelService.CreateAsync] Başladı - Name: {dto.Name}, BrandId: {dto.BrandId}");
-        
+
         var currentCompanyId = _tenantService.GetCompanyId();
         var isSuperAdmin = _tenantService.IsSuperAdmin();
 
@@ -126,13 +126,13 @@ public class ModelService : IModelService
 
         _context.Models.Add(model);
         Console.WriteLine($"[ModelService.CreateAsync] Model context'e eklendi");
-        
+
         await _context.SaveChangesAsync();
         Console.WriteLine($"[ModelService.CreateAsync] SaveChangesAsync tamamlandı - Model.Id: {model.Id}");
 
         var result = _mapper.Map<ModelDto>(model);
         Console.WriteLine($"[ModelService.CreateAsync] Mapping tamamlandı - ModelDto.Id: {result.Id}");
-        
+
         return result;
     }
 
@@ -168,7 +168,7 @@ public class ModelService : IModelService
     public async Task DeleteAsync(int id)
     {
         Console.WriteLine($"[ModelService.DeleteAsync] Başladı - Id: {id}");
-        
+
         var model = await _context.Models
             .Include(m => m.Products)
             .FirstOrDefaultAsync(m => m.Id == id);
@@ -189,7 +189,7 @@ public class ModelService : IModelService
 
         _context.Models.Remove(model);
         Console.WriteLine($"[ModelService.DeleteAsync] Model context'den kaldırıldı");
-        
+
         await _context.SaveChangesAsync();
         Console.WriteLine($"[ModelService.DeleteAsync] SaveChangesAsync tamamlandı\n");
     }

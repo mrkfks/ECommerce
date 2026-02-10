@@ -18,7 +18,7 @@ namespace ECommerce.Infrastructure.Services
             // Create directory if not exists
             var rootPath = _environment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
             var directoryPath = Path.Combine(rootPath, folderPath);
-            
+
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);

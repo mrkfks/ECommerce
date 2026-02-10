@@ -12,12 +12,12 @@ namespace ECommerce.RestApi.Controllers;
 public class CustomerController : ControllerBase
 {
     private readonly ICustomerService _customerService;
-    
+
     public CustomerController(ICustomerService customerService)
     {
         _customerService = customerService;
     }
-    
+
     [HttpPost]
     [Authorize(Roles = "CompanyAdmin,User,SuperAdmin")]
     public async Task<IActionResult> Add(CustomerFormDto dto)

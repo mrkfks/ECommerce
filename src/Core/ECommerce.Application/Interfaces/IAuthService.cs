@@ -24,6 +24,7 @@ namespace ECommerce.Application.Interfaces
 
         Task<UserDto> UpdateProfileAsync(int userId, UserProfileUpdateDto dto);
         Task<bool> ChangePasswordAsync(int userId, ChangePasswordDto dto);
+        Task<bool> ResetUserPasswordAsync(int targetUserId, string newPassword);
     }
 }
 

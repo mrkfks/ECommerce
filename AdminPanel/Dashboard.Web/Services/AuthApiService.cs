@@ -1,3 +1,4 @@
+using System.Text.Json;
 using ECommerce.Application.DTOs;
 using ECommerce.Application.Responses;
 using Microsoft.Extensions.Logging;
@@ -44,23 +45,47 @@ namespace Dashboard.Web.Services
             }
         }
 
-        public async Task<AuthResponseDto?> RegisterAsync(RegisterDto registerDto)
+        public async Task<(bool Success, string? ErrorMessage)> RegisterAsync(RegisterDto registerDto)
         {
             try
             {
-                var response = await _httpClient.PostAsJsonAsync("api/Company/register", registerDto);
+                var response = await _httpClient.PostAsJsonAsync("api/companies/register", registerDto);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    // Kayıt başarılı ama token dönmüyor, sadece success döndür
-                    return new AuthResponseDto(); // Boş response, sadece success kontrolü için
+                    return (true, null);
                 }
 
-                return null;
+                var content = await response.Content.ReadAsStringAsync();
+
+                try
+                {
+                    using var doc = JsonDocument.Parse(content);
+                    if (doc.RootElement.ValueKind == JsonValueKind.Object)
+                    {
+                        if (doc.RootElement.TryGetProperty("message", out var msgProp) && msgProp.ValueKind == JsonValueKind.String)
+                        {
+                            var msg = msgProp.GetString();
+                            if (!string.IsNullOrWhiteSpace(msg))
+                                return (false, msg);
+                        }
+
+                        if (doc.RootElement.TryGetProperty("Message", out var msgProp2) && msgProp2.ValueKind == JsonValueKind.String)
+                        {
+                            var msg = msgProp2.GetString();
+                            if (!string.IsNullOrWhiteSpace(msg))
+                                return (false, msg);
+                        }
+                    }
+                }
+                catch { }
+
+                return (false, content);
             }
-            catch
+            catch (Exception ex)
             {
-                return null;
+                _logger.LogError(ex, "Exception during register");
+                return (false, ex.Message);
             }
         }
 

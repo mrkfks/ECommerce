@@ -288,7 +288,7 @@ namespace ECommerce.RestApi.Controllers
                 // Dosya validasyonu
                 var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".svg" };
                 var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
-                
+
                 _logger.LogInformation("[CompanyController.UploadMyLogo] File extension: {Extension}", fileExtension);
 
                 if (!allowedExtensions.Contains(fileExtension))
@@ -308,7 +308,7 @@ namespace ECommerce.RestApi.Controllers
                 // Dosya yükleme
                 var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "logos");
                 _logger.LogInformation("[CompanyController.UploadMyLogo] Upload path: {Path}", uploadsPath);
-                
+
                 Directory.CreateDirectory(uploadsPath);
 
                 var fileName = $"{companyId}_{Guid.NewGuid()}{fileExtension}";

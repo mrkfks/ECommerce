@@ -17,7 +17,7 @@ namespace ECommerce.Infrastructure.Repositories
             _context = context;
             _tenantService = tenantService;
         }
-        
+
         public async Task<IReadOnlyList<Product>> GetPageAsync(int page, int pageSize, int? categoryId, int? BrandId, string? search)
         {
             var query = _context.Products
@@ -35,12 +35,12 @@ namespace ECommerce.Infrastructure.Repositories
             {
                 query = query.Where(p => p.BrandId == BrandId.Value);
             }
-            
+
             if (!string.IsNullOrEmpty(search))
             {
                 query = query.Where(p => p.Name.Contains(search) || p.Description.Contains(search));
             }
-            
+
             return await query
                 .Where(p => p.IsActive)
                 .OrderByDescending(p => p.CreatedAt)
@@ -48,22 +48,22 @@ namespace ECommerce.Infrastructure.Repositories
                 .Take(pageSize)
                 .ToListAsync();
         }
-        
+
         public async Task<bool> IsStockAvailableAsync(int productId, int quantity)
         {
             var product = await _context.Products.FindAsync(productId);
             return product != null && product.IsActive && product.StockQuantity >= quantity;
         }
-        
+
         public async Task<bool> IsProductNameUniqueAsync(string name, int? excludeId = null)
         {
             var query = _context.Products.Where(p => p.Name == name);
-            
+
             if (excludeId.HasValue)
             {
                 query = query.Where(p => p.Id != excludeId.Value);
             }
-            
+
             return !await query.AnyAsync();
         }
 
@@ -91,25 +91,25 @@ namespace ECommerce.Infrastructure.Repositories
 
         public async Task<IReadOnlyList<Product>> GetAllWithDetailsAsync()
         {
-             // Query filter'ı bypass edip manuel filtreleme
-             var currentCompanyId = _tenantService.GetCompanyId();
-             
-             var query = _context.Products
-                .IgnoreQueryFilters()  // Global filter'ı kapat
-                .Include(p => p.Category)
-                .Include(p => p.Brand)
-                .Include(p => p.Company)
-                .Where(p => !p.IsDeleted && p.IsActive);
+            // Query filter'ı bypass edip manuel filtreleme
+            var currentCompanyId = _tenantService.GetCompanyId();
 
-             // Eğer company context varsa, ona göre filtrele
-             if (currentCompanyId.HasValue)
-             {
-                 query = query.Where(p => p.CompanyId == currentCompanyId.Value);
-             }
-             
-             return await query
-                .OrderByDescending(p => p.CreatedAt)
-                .ToListAsync();
+            var query = _context.Products
+               .IgnoreQueryFilters()  // Global filter'ı kapat
+               .Include(p => p.Category)
+               .Include(p => p.Brand)
+               .Include(p => p.Company)
+               .Where(p => !p.IsDeleted && p.IsActive);
+
+            // Eğer company context varsa, ona göre filtrele
+            if (currentCompanyId.HasValue)
+            {
+                query = query.Where(p => p.CompanyId == currentCompanyId.Value);
+            }
+
+            return await query
+               .OrderByDescending(p => p.CreatedAt)
+               .ToListAsync();
         }
 
         public new async Task<IReadOnlyList<Product>> GetPagedAsync(int pageNumber, int pageSize)

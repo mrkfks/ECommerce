@@ -49,10 +49,10 @@ public static class AppConstants
     {
         public const int MaxFileSizeMB = 5;
         public const long MaxFileSizeBytes = MaxFileSizeMB * 1024 * 1024;
-        
+
         public static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
         public static readonly string[] AllowedDocumentExtensions = { ".pdf", ".doc", ".docx", ".xls", ".xlsx" };
-        
+
         public const string ImageUploadPath = "uploads/images/";
         public const string DocumentUploadPath = "uploads/documents/";
     }

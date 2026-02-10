@@ -588,5 +588,21 @@ namespace ECommerce.Infrastructure.Services
 
             return true;
         }
+
+        public async Task<bool> ResetUserPasswordAsync(int targetUserId, string newPassword)
+        {
+            var user = await _context.Users.FindAsync(targetUserId);
+            if (user == null)
+            {
+                throw new NotFoundException("Kullanıcı bulunamadı.");
+            }
+
+            user.UpdatePassword(BCrypt.Net.BCrypt.HashPassword(newPassword));
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("SuperAdmin tarafından kullanıcı şifresi sıfırlandı. userId={UserId}", targetUserId);
+
+            return true;
+        }
     }
 }

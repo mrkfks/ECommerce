@@ -8,7 +8,7 @@ namespace ECommerce.Application.Interfaces
     {
         Task<List<CustomerMessage>> GetUnreadMessagesAsync(int companyId);
         Task MarkAsReadAsync(int id);
-        
+
         // Yeni metodlar - müşteri tarafı
         Task<List<CustomerMessageDto>> GetMyMessagesAsync(int customerId);
         Task<CustomerMessageDto> CreateMessageAsync(CustomerMessageFormDto dto, int customerId);

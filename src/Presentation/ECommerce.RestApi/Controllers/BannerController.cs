@@ -29,7 +29,7 @@ namespace ECommerce.RestApi.Controllers
             var result = await _bannerService.GetByIdAsync(id);
             if (!result.Success)
                 return NotFound(result);
-            
+
             return Ok(result);
         }
 
@@ -40,7 +40,7 @@ namespace ECommerce.RestApi.Controllers
             var result = await _bannerService.CreateAsync(dto);
             if (!result.Success)
                 return BadRequest(result);
-            
+
             return CreatedAtAction(nameof(GetById), new { id = result.Data?.Id }, result);
         }
 
@@ -51,7 +51,7 @@ namespace ECommerce.RestApi.Controllers
             var result = await _bannerService.UpdateAsync(id, dto);
             if (!result.Success)
                 return BadRequest(result);
-            
+
             return Ok(result);
         }
 
@@ -62,7 +62,7 @@ namespace ECommerce.RestApi.Controllers
             var result = await _bannerService.DeleteAsync(id);
             if (!result.Success)
                 return NotFound(result);
-            
+
             return Ok(result);
         }
     }

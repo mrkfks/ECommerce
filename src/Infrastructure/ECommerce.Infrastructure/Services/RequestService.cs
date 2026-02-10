@@ -46,10 +46,10 @@ public class RequestService : IRequestService
     {
         var request = await _context.Requests.FindAsync(id);
         if (request == null) throw new KeyNotFoundException("Request not found");
-        
+
         request.Approve(string.IsNullOrWhiteSpace(dto?.Feedback) ? null : dto.Feedback!.Trim());
         await _context.SaveChangesAsync();
-        
+
         return MapToDto(request);
     }
 
@@ -57,17 +57,17 @@ public class RequestService : IRequestService
     {
         var request = await _context.Requests.FindAsync(id);
         if (request == null) throw new KeyNotFoundException("Request not found");
-        
+
         request.Reject(string.IsNullOrWhiteSpace(dto?.Feedback) ? null : dto.Feedback!.Trim());
         await _context.SaveChangesAsync();
-        
+
         return MapToDto(request);
     }
-    
+
     // Explicit full path for Request entity if conflict occurs, but here we see if using works.
     // Assuming Request is Domain Entity. If ambiguity with RequestController, use full name.
     // Here we are in Service, so Request should be Entity.
-    
+
     private static RequestDto MapToDto(ECommerce.Domain.Entities.Request r)
     {
         return new RequestDto

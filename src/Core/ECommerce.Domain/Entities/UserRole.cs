@@ -14,10 +14,10 @@ namespace ECommerce.Domain.Entities
         {
             if (userId <= 0)
                 throw new ArgumentException("Kullanıcı ID geçersizdir.", nameof(userId));
-            
+
             if (roleId <= 0)
                 throw new ArgumentException("Rol ID geçersizdir.", nameof(roleId));
-            
+
             if (string.IsNullOrWhiteSpace(roleName))
                 throw new ArgumentException("Rol adı boş olamaz.", nameof(roleName));
 

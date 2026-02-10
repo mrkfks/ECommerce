@@ -65,8 +65,9 @@ namespace Dashboard.Web.Controllers
                     CreatedByUserId = dto.CreatedByUserId,
                     CreatedAt = DateTime.UtcNow
                 };
-                
-                var requestDto = new ECommerce.Application.DTOs.RequestDto {
+
+                var requestDto = new ECommerce.Application.DTOs.RequestDto
+                {
                     CompanyId = createDto.CompanyId,
                     Title = createDto.Title,
                     Description = createDto.Description,
@@ -134,7 +135,7 @@ namespace Dashboard.Web.Controllers
             var response = await _requestService.GetByIdAsync(id);
             if (response == null || response.Data == null)
                 return NotFound();
-            
+
             var request = response.Data;
 
             // SuperAdmin ise tum talepləri gorebilir

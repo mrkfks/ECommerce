@@ -27,7 +27,7 @@ public class CompanyService : ICompanyService
             // Email ve Username kontrolleri
             var existingCompany = await _context.Companies
                 .FirstOrDefaultAsync(c => c.Email == dto.CompanyEmail);
-            
+
             if (existingCompany != null)
             {
                 throw new BusinessException("Bu email adresi ile kayıtlı bir şirket zaten mevcut.");
@@ -36,13 +36,13 @@ public class CompanyService : ICompanyService
             var existingUser = await _context.Users
                 .IgnoreQueryFilters()
                 .FirstOrDefaultAsync(u => u.Email == dto.Email || u.Username == dto.Username);
-            
+
             if (existingUser != null)
             {
                 if (existingUser.Email == dto.Email)
-                     throw new BusinessException("Bu email adresi ile kayıtlı bir kullanıcı zaten mevcut.");
+                    throw new BusinessException("Bu email adresi ile kayıtlı bir kullanıcı zaten mevcut.");
                 else
-                     throw new BusinessException("Bu kullanıcı adı zaten kullanılıyor.");
+                    throw new BusinessException("Bu kullanıcı adı zaten kullanılıyor.");
             }
 
             // Yeni şirket oluştur (IsApproved = false)
@@ -52,9 +52,9 @@ public class CompanyService : ICompanyService
                 dto.CompanyPhoneNumber,
                 dto.CompanyEmail,
                 dto.TaxNumber,
-                $"{dto.FirstName} {dto.LastName}", 
+                $"{dto.FirstName} {dto.LastName}",
                 dto.CompanyPhoneNumber,
-                dto.Email 
+                dto.Email
             );
 
             _context.Companies.Add(company);
@@ -63,7 +63,7 @@ public class CompanyService : ICompanyService
             // Admin kullanıcı oluştur
             // Note: BCrypt dependency needed. Assuming it is available in Infrastructure.
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-            
+
             var adminUser = User.Create(
                 company.Id,
                 dto.Username,
@@ -79,7 +79,7 @@ public class CompanyService : ICompanyService
             // CompanyAdmin rolü ata
             var companyAdminRole = await _context.Roles
                 .FirstOrDefaultAsync(r => r.Name == "CompanyAdmin");
-            
+
             if (companyAdminRole != null)
             {
                 var userRole = UserRole.Create(adminUser.Id, companyAdminRole.Id, companyAdminRole.Name);
@@ -97,10 +97,11 @@ public class CompanyService : ICompanyService
                 Message = "Şirket ve kullanıcı kaydınız alınmıştır. Süper admin onayından sonra giriş yapabileceksiniz."
             };
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            throw;
+            _logger.LogError(ex, "Error during company registration");
+            throw new BusinessException("Kayıt sırasında hata oluştu: " + (ex.InnerException?.Message ?? ex.Message));
         }
     }
 
@@ -173,34 +174,34 @@ public class CompanyService : ICompanyService
 
     public async Task<CompanyDto?> GetByIdAsync(int id)
     {
-         return await _context.Companies
-            .AsNoTracking()
-            .Select(c => new CompanyDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Address = c.Address,
-                PhoneNumber = c.PhoneNumber,
-                Email = c.Email,
-                TaxNumber = c.TaxNumber,
-                ResponsiblePersonName = c.ResponsiblePersonName,
-                ResponsiblePersonPhone = c.ResponsiblePersonPhone,
-                ResponsiblePersonEmail = c.ResponsiblePersonEmail,
-                IsActive = c.IsActive,
-                IsApproved = c.IsApproved,
-                CreatedAt = c.CreatedAt,
-                UpdatedAt = c.UpdatedAt,
-                UserCount = c.Users.Count,
-                CustomerCount = c.Customers.Count
-            })
-            .FirstOrDefaultAsync(c => c.Id == id);
+        return await _context.Companies
+           .AsNoTracking()
+           .Select(c => new CompanyDto
+           {
+               Id = c.Id,
+               Name = c.Name,
+               Address = c.Address,
+               PhoneNumber = c.PhoneNumber,
+               Email = c.Email,
+               TaxNumber = c.TaxNumber,
+               ResponsiblePersonName = c.ResponsiblePersonName,
+               ResponsiblePersonPhone = c.ResponsiblePersonPhone,
+               ResponsiblePersonEmail = c.ResponsiblePersonEmail,
+               IsActive = c.IsActive,
+               IsApproved = c.IsApproved,
+               CreatedAt = c.CreatedAt,
+               UpdatedAt = c.UpdatedAt,
+               UserCount = c.Users.Count,
+               CustomerCount = c.Customers.Count
+           })
+           .FirstOrDefaultAsync(c => c.Id == id);
     }
 
     public async Task UpdateAsync(int id, CompanyFormDto dto)
     {
         var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
         if (company == null) throw new KeyNotFoundException("Şirket bulunamadı");
-        
+
         company.Update(dto.Name, dto.Address, dto.PhoneNumber, dto.Email);
         await _context.SaveChangesAsync();
     }
@@ -209,7 +210,7 @@ public class CompanyService : ICompanyService
     {
         var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
         if (company == null) throw new KeyNotFoundException("Şirket bulunamadı");
-        
+
         company.Approve();
         await _context.SaveChangesAsync();
     }
@@ -218,7 +219,7 @@ public class CompanyService : ICompanyService
     {
         var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
         if (company == null) throw new KeyNotFoundException("Şirket bulunamadı");
-        
+
         company.Reject();
         await _context.SaveChangesAsync();
     }
@@ -227,7 +228,7 @@ public class CompanyService : ICompanyService
     {
         var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
         if (company == null) throw new KeyNotFoundException("Şirket bulunamadı");
-        
+
         company.Activate();
         await _context.SaveChangesAsync();
     }
@@ -236,7 +237,7 @@ public class CompanyService : ICompanyService
     {
         var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
         if (company == null) throw new KeyNotFoundException("Şirket bulunamadı");
-        
+
         company.Deactivate();
         await _context.SaveChangesAsync();
     }
@@ -277,7 +278,7 @@ public class CompanyService : ICompanyService
     {
         var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
         if (company == null) throw new KeyNotFoundException("Şirket bulunamadı");
-        
+
         company.UpdateBranding(dto.Domain, dto.LogoUrl, dto.PrimaryColor, dto.SecondaryColor);
         await _context.SaveChangesAsync();
     }
@@ -286,7 +287,7 @@ public class CompanyService : ICompanyService
     {
         var company = await _context.Companies.FirstOrDefaultAsync(c => c.Id == id);
         if (company == null) throw new KeyNotFoundException("Şirket bulunamadı");
-        
+
         company.UpdateBranding(company.Domain, logoUrl, company.PrimaryColor, company.SecondaryColor);
         await _context.SaveChangesAsync();
     }
@@ -309,7 +310,7 @@ public class CompanyService : ICompanyService
                     .AsNoTracking()
                     .Where(c => c.IsActive && c.IsApproved)
                     .FirstOrDefaultAsync();
-                
+
                 if (company == null)
                 {
                     throw new KeyNotFoundException($"Domain '{domain}' için şirket bulunamadı ve fallback şirketi de yok");

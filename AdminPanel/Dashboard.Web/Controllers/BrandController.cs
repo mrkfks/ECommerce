@@ -7,7 +7,7 @@ namespace Dashboard.Web.Controllers;
 /// <summary>
 /// Marka yönetimi controller'ı
 /// </summary>
-[Authorize(Policy = "AdminOnly")]
+[Authorize(Policy = "SuperAdminOnly")]
 public class BrandController : Controller
 {
     private readonly BrandApiService _brandService;

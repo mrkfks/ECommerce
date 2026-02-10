@@ -41,7 +41,7 @@ namespace ECommerce.Infrastructure.Services
         public async Task<IReadOnlyList<ReturnRequestDto>> GetAllAsync()
         {
             var companyId = _tenantService.GetCompanyId();
-            
+
             var returnRequests = await _context.ReturnRequests
                 .Where(r => r.CompanyId == companyId)
                 .Include(r => r.Product)
@@ -117,8 +117,8 @@ namespace ECommerce.Infrastructure.Services
 
             // Aynı sipariş ve ürün için aktif bir iade talebi olup olmadığını kontrol et
             var existingReturnRequest = await _context.ReturnRequests
-                .FirstOrDefaultAsync(r => r.OrderId == dto.OrderId && 
-                                          r.ProductId == dto.ProductId && 
+                .FirstOrDefaultAsync(r => r.OrderId == dto.OrderId &&
+                                          r.ProductId == dto.ProductId &&
                                           r.Status == ReturnRequestStatus.Pending);
 
             if (existingReturnRequest != null)

@@ -30,7 +30,7 @@ namespace Dashboard.Web.Infrastructure
             var token = context?.Request.Cookies["AuthToken"];
 
             _logger.LogWarning("[AuthTokenHandler] Request: {Method} {Url}", request.Method, request.RequestUri);
-            _logger.LogWarning("[AuthTokenHandler] HttpContext null: {IsNull}, Token present: {HasToken}", 
+            _logger.LogWarning("[AuthTokenHandler] HttpContext null: {IsNull}, Token present: {HasToken}",
                 context == null, !string.IsNullOrWhiteSpace(token));
 
             if (!string.IsNullOrWhiteSpace(token))

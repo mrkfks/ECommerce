@@ -16,8 +16,8 @@ public class CartService : ICartService
     private readonly ITenantService _tenantService;
     private readonly ILogger<CartService> _logger;
 
-    public CartService(AppDbContext context, 
-        IHttpContextAccessor httpContextAccessor, 
+    public CartService(AppDbContext context,
+        IHttpContextAccessor httpContextAccessor,
         ITenantService tenantService,
         ILogger<CartService> logger)
     {
@@ -36,10 +36,10 @@ public class CartService : ICartService
     public async Task AddToCartAsync(AddToCartDto dto, string? sessionId = null)
     {
         var product = await _context.Products.FindAsync(dto.ProductId);
-        
+
         if (product == null)
             throw new Application.Exceptions.NotFoundException("Ürün bulunamadı");
-        
+
         if (!product.IsActive)
             throw new Application.Exceptions.BadRequestException("Bu ürün şu anda satışta değil.");
 
@@ -48,7 +48,7 @@ public class CartService : ICartService
             throw new Application.Exceptions.BadRequestException($"Yetersiz stok. Mevcut stok: {product.StockQuantity}");
 
         var cart = await GetOrCreateCartAsync(sessionId);
-        
+
         // Eğer ürün zaten sepetteyse toplam miktarı da kontrol etmeliyiz
         var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == dto.ProductId);
         if (existingItem != null)
@@ -65,7 +65,7 @@ public class CartService : ICartService
     {
         var cart = await GetOrCreateCartAsync(null);
         var item = cart.Items.FirstOrDefault(i => i.Id == itemId);
-        
+
         if (item != null)
         {
             cart.Items.Remove(item);
@@ -77,7 +77,7 @@ public class CartService : ICartService
     {
         var cart = await GetOrCreateCartAsync(null);
         var item = cart.Items.FirstOrDefault(i => i.Id == itemId);
-        
+
         if (item != null)
         {
             if (quantity <= 0)
@@ -90,10 +90,10 @@ public class CartService : ICartService
                 var product = await _context.Products.FindAsync(item.ProductId);
                 if (product != null && product.StockQuantity < quantity)
                     throw new Application.Exceptions.BadRequestException($"Yetersiz stok. Mevcut stok: {product.StockQuantity}");
-                
+
                 item.UpdateQuantity(quantity);
             }
-                
+
             await _context.SaveChangesAsync();
         }
     }
@@ -137,7 +137,7 @@ public class CartService : ICartService
             currentUserId = uid;
         }
         int? companyId = _tenantService.GetCompanyId();
-        
+
         if (!companyId.HasValue)
         {
             // Eğer hala companyId yoksa, sepet işlemini gerçekleştiremeyiz.
@@ -179,8 +179,8 @@ public class CartService : ICartService
             {
                 sessionId = headerSessionId.ToString();
             }
-            
-            if (string.IsNullOrEmpty(sessionId)) 
+
+            if (string.IsNullOrEmpty(sessionId))
                 throw new Application.Exceptions.BadRequestException("Misafir sepeti için Session ID gereklidir.");
         }
 
