@@ -45,28 +45,6 @@
   </div>
 </section>
 
-<!-- Kategoriler -->
-<section class="categories-section py-5 bg-light">
-  <div class="container">
-    <div class="text-center mb-4">
-      <h2 class="fw-bold">Kategoriler</h2>
-      <p class="text-muted">Aradığınız her şey burada</p>
-    </div>
-    <div class="grid-cols-3">
-      @for (category of categories; track category.id) {
-        <a [routerLink]="['/products', category.id]" class="text-decoration-none">
-          <div class="category-card text-center p-4 bg-white rounded-3 shadow-sm h-100">
-            <div class="category-icon mb-3">
-              <i class="bi {{ category.icon }} fs-1 text-primary"></i>
-            </div>
-            <h6 class="mb-1 text-dark">{{ category.name }}</h6>
-            <small class="text-muted">{{ category.productCount }} ürün</small>
-          </div>
-        </a>
-      }
-    </div>
-  </div>
-</section>
 
 <!-- Öne Çıkan Ürünler -->
 <section class="featured-section py-5">
@@ -118,49 +96,7 @@
   </div>
 </section>
 
-<!-- Özellikler -->
-<section class="features-section py-5 bg-light">
-  <div class="container">
-    <div class="row g-4">
-      <div class="col-md-3">
-        <div class="feature-item text-center">
-          <div class="feature-icon mb-3">
-            <i class="bi bi-truck fs-1 text-primary"></i>
-          </div>
-          <h6 class="fw-bold">Hızlı Teslimat</h6>
-          <p class="text-muted small mb-0">1-3 iş günü içinde kapınızda</p>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="feature-item text-center">
-          <div class="feature-icon mb-3">
-            <i class="bi bi-shield-check fs-1 text-primary"></i>
-          </div>
-          <h6 class="fw-bold">Güvenli Ödeme</h6>
-          <p class="text-muted small mb-0">256-bit SSL sertifikası</p>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="feature-item text-center">
-          <div class="feature-icon mb-3">
-            <i class="bi bi-arrow-counterclockwise fs-1 text-primary"></i>
-          </div>
-          <h6 class="fw-bold">Kolay İade</h6>
-          <p class="text-muted small mb-0">14 gün içinde ücretsiz iade</p>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="feature-item text-center">
-          <div class="feature-icon mb-3">
-            <i class="bi bi-headset fs-1 text-primary"></i>
-          </div>
-          <h6 class="fw-bold">7/24 Destek</h6>
-          <p class="text-muted small mb-0">Her zaman yanınızdayız</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+
 
 <!-- Çok Satanlar -->
 <section class="bestsellers-section py-5">
@@ -176,6 +112,30 @@
     </div>
     <div class="product-grid grid-cols-3">
       @for (product of bestSellers; track product.id) {
+        <app-product-card 
+          [product]="product"
+          (addToCart)="onAddToCart($event)"
+          (addToWishlist)="onAddToWishlist($event)">
+        </app-product-card>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- Tüm Ürünler -->
+<section class="all-products-section py-5 bg-white">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 class="fw-bold mb-1">Tüm Ürünler</h2>
+        <p class="text-muted mb-0">Katalogumuzdaki tüm ürünlere göz atın</p>
+      </div>
+      <a routerLink="/products/all" class="btn btn-outline-primary">
+        Tümünü Gör <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+    <div class="product-grid grid-cols-3">
+      @for (product of allProducts; track product.id) {
         <app-product-card 
           [product]="product"
           (addToCart)="onAddToCart($event)"

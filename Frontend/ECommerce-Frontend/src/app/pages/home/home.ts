@@ -39,6 +39,7 @@ export class Home implements OnInit, OnDestroy {
   featuredProducts: Product[] = [];
   newProducts: Product[] = [];
   bestSellers: Product[] = [];
+  allProducts: Product[] = [];
   currentBannerIndex = 0;
   isLoading = true;
   error: string | null = null;
@@ -52,6 +53,7 @@ export class Home implements OnInit, OnDestroy {
       this.loadBanners();
       this.loadCategories();
       this.loadProducts();
+      this.loadAllProducts();
     }
   }
 
@@ -142,6 +144,31 @@ export class Home implements OnInit, OnDestroy {
         this.error = 'Ürünler yüklenirken bir hata oluştu.';
         this.loadMockProducts();
         this.isLoading = false;
+      }
+    });
+  }
+
+  loadAllProducts(): void {
+    this.productService.getAll(1, 24).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (response) => {
+        const responseData = (response as any).items ? response : (response as any).data;
+        let products: any[] = [];
+        if (responseData && Array.isArray(responseData.items)) {
+          products = responseData.items;
+        } else if (Array.isArray(responseData)) {
+          products = responseData;
+        }
+        if (!Array.isArray(products)) {
+          console.error('All products is not an array:', products);
+          return;
+        }
+        const mapped = products.map(p => this.mapProduct(p)).filter(p => p.isActive);
+        this.allProducts = mapped;
+      },
+      error: (err) => {
+        console.error('Tüm ürünler yüklenemedi:', err);
+        // fallback to bestSellers if available
+        this.allProducts = this.bestSellers.slice();
       }
     });
   }

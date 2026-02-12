@@ -2,7 +2,8 @@ import { Component, OnInit, OnDestroy, inject, PLATFORM_ID } from '@angular/core
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { ProductService, CategoryService, CartService, ImageUrlService, WishlistService } from '../../core/services';
+import { ProductService, CategoryService, CartService, ImageUrlService, WishlistService, BrandService } from '../../core/services';
+import { HttpClient } from '@angular/common/http';
 import { Product, Category } from '../../core/models';
 import { ProductCard } from '../../components/product-card/product-card';
 import { Subject, takeUntil } from 'rxjs';
@@ -34,7 +35,21 @@ export class CategoryProducts implements OnInit, OnDestroy {
   priceRange = { min: 0, max: 10000 };
   searchTerm = '';
 
+  // Yeni filtre alanları
+  categories: Category[] = [];
+  subcategories: Category[] = [];
+  visibleCategories: Category[] = [];
+  brands: any[] = [];
+  attributes: any[] = [];
+
+  selectedCategoryId: number | null = null;
+  selectedSubcategoryId: number | null = null;
+  selectedBrandIds: number[] = [];
+  selectedAttributes: Record<number, number[]> = {};
+
   private destroy$ = new Subject<void>();
+  private http = inject(HttpClient);
+  private brandService = inject(BrandService);
 
   ngOnInit(): void {
     // SSR sırasında API istekleri yapma
@@ -42,10 +57,16 @@ export class CategoryProducts implements OnInit, OnDestroy {
       this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
         const categoryId = params['categoryId'];
         if (categoryId === 'all') {
+          this.selectedCategoryId = null;
           this.loadAllProducts();
+          this.loadFilterData();
         } else {
+          // Set selectedCategoryId from route so filters reflect current category
+          this.selectedCategoryId = +categoryId;
+          this.selectedSubcategoryId = null;
           this.loadCategory(+categoryId);
           this.loadProducts(+categoryId);
+          this.loadFilterData();
         }
       });
     }
@@ -97,6 +118,55 @@ export class CategoryProducts implements OnInit, OnDestroy {
         this.isLoading = false;
       }
     });
+  }
+
+  private loadFilterData(): void {
+    // Kategorileri yükle
+    this.categoryService.getAll().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (cats) => {
+        this.categories = cats;
+        // compute visible categories (only those that contain products or have descendant with products)
+        this.computeVisibleCategories();
+      },
+      error: (err) => console.error('Kategoriler yüklenemedi (filter):', err)
+    });
+
+    // Markaları yükle
+    this.brandService.getAll().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (brands) => this.brands = brands,
+      error: (err) => console.error('Markalar yüklenemedi:', err)
+    });
+
+    // Global attribute'ları yükle (backend /global-attributes endpoint)
+    this.http.get<any[]>('/global-attributes').pipe(takeUntil(this.destroy$)).subscribe({
+      next: (attrs) => this.attributes = attrs,
+      error: (err) => console.warn('Global attributes yüklenemedi:', err)
+    });
+  }
+
+  getSubcategories(): Category[] {
+    if (this.selectedCategoryId == null) return [];
+    // only return subcategories that are visible (have products)
+    return this.visibleCategories.filter(c => c.parentId === this.selectedCategoryId);
+  }
+
+  getRootCategories(): Category[] {
+    // root categories are those without parentId
+    return this.visibleCategories.filter(c => c.parentId == null);
+  }
+
+  private computeVisibleCategories(): void {
+    const hasProducts = (cat: Category): boolean => {
+      if ((cat.productCount ?? 0) > 0) return true;
+      // check descendants
+      const children = this.categories.filter(c => c.parentId === cat.id);
+      for (const ch of children) {
+        if (hasProducts(ch)) return true;
+      }
+      return false;
+    };
+
+    this.visibleCategories = this.categories.filter(c => hasProducts(c));
   }
 
   private mapProduct(apiProduct: any): Product {
@@ -154,6 +224,20 @@ export class CategoryProducts implements OnInit, OnDestroy {
       p.price >= this.priceRange.min && p.price <= this.priceRange.max
     );
 
+    // Kategori filtresi
+    if (this.selectedSubcategoryId) {
+      filtered = filtered.filter(p => p.categoryId === this.selectedSubcategoryId);
+    } else if (this.selectedCategoryId) {
+      // include products whose category.parentId === selectedCategoryId OR categoryId === selectedCategoryId
+      const subIds = this.categories.filter(c => c.parentId === this.selectedCategoryId).map(c => c.id);
+      filtered = filtered.filter(p => p.categoryId === this.selectedCategoryId || subIds.includes(p.categoryId));
+    }
+
+    // Marka filtresi
+    if (this.selectedBrandIds && this.selectedBrandIds.length > 0) {
+      filtered = filtered.filter(p => this.selectedBrandIds.includes(p.brandId));
+    }
+
     // Sıralama
     switch (this.sortBy) {
       case 'price-asc':
@@ -171,6 +255,35 @@ export class CategoryProducts implements OnInit, OnDestroy {
     }
 
     this.filteredProducts = filtered;
+  }
+
+  onBrandToggle(brandId: number, event: Event) {
+    const checked = (event.target as HTMLInputElement).checked;
+    if (checked) {
+      if (!this.selectedBrandIds.includes(brandId)) this.selectedBrandIds.push(brandId);
+    } else {
+      this.selectedBrandIds = this.selectedBrandIds.filter(id => id !== brandId);
+    }
+    this.applyFilters();
+  }
+
+  onAttributeToggle(attributeId: number, valueId: number, event: Event) {
+    const checked = (event.target as HTMLInputElement).checked;
+    if (!this.selectedAttributes[attributeId]) this.selectedAttributes[attributeId] = [];
+    if (checked) {
+      this.selectedAttributes[attributeId].push(valueId);
+    } else {
+      this.selectedAttributes[attributeId] = this.selectedAttributes[attributeId].filter(v => v !== valueId);
+    }
+    // Note: attribute-based filtering requires product attribute data or server-side support.
+    // Currently we attempt client-side filtering if product objects include attribute info (not present by default).
+    this.applyFilters();
+  }
+
+  onCategorySelect(event: Event) {
+    // clear subcategory when main category changes
+    this.selectedSubcategoryId = null;
+    this.applyFilters();
   }
 
   onAddToCart(product: Product): void {
