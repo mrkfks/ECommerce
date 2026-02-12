@@ -55,7 +55,7 @@ public class BrandApiService
             _logger.LogWarning("[BrandApiService.CreateAsync] Auth header: {Auth}", _httpClient.DefaultRequestHeaders.Authorization);
             _logger.LogWarning("[BrandApiService.CreateAsync] Body: Name={Name}, Desc={Desc}, IsActive={IsActive}, CompanyId={CompanyId}",
                 brand.Name, brand.Description, brand.IsActive, brand.CompanyId);
-
+            
             // API BrandFormDto formatında gönder
             var formDto = new
             {
@@ -66,13 +66,13 @@ public class BrandApiService
                 ImageUrl = (string?)null,
                 CategoryId = (int?)null
             };
-
+            
             var json = JsonSerializer.Serialize(formDto);
             _logger.LogWarning("[BrandApiService.CreateAsync] JSON body: {Json}", json);
-
+            
             var response = await _httpClient.PostAsJsonAsync($"api/{_endpoint}", formDto);
             _logger.LogWarning("[BrandApiService.CreateAsync] Response status: {Status}", response.StatusCode);
-
+            
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();

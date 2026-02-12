@@ -19,7 +19,7 @@
         <div class="campaign-card" *ngIf="campaigns[currentIndex] as campaign">
 
             <!-- Banner Image -->
-            <div class="campaign-banner">
+            <div class="campaign-banner campaign-overlay-info">
               <img 
                 *ngIf="campaign.bannerImageUrl" 
                 [src]="campaign.bannerImageUrl" 
@@ -30,46 +30,33 @@
                 {{ campaign.name }}
               </div>
 
-              <!-- Discount Badge -->
-              <div class="discount-badge" [style.backgroundColor]="getDiscountBadgeColor(campaign.discountPercent)">
-                <span class="discount-percent">-%{{ campaign.discountPercent }}</span>
-                <span class="discount-text">İndirim</span>
-              </div>
-
-              <!-- Days Remaining Badge -->
-              <div class="days-badge" *ngIf="campaign.remainingDays > 0">
-                <span>{{ campaign.remainingDays }} gün kaldı</span>
-              </div>
-            </div>
-
-            <!-- Campaign Info -->
-            <div class="campaign-info">
-              <h3 class="campaign-name">{{ campaign.name }}</h3>
-              <p class="campaign-description" *ngIf="campaign.description">
-                {{ campaign.description }}
-              </p>
-
-              <!-- Campaign Details -->
-              <div class="campaign-details">
-                <div class="detail-item">
-                  <span class="label">Başlangıç:</span>
-                  <span class="value">{{ formatDate(campaign.startDate) }}</span>
+              <!-- Overlay Bilgi Alanı -->
+              <div class="campaign-overlay-content">
+                <div class="discount-badge" [style.backgroundColor]="getDiscountBadgeColor(campaign.discountPercent)">
+                  <span class="discount-percent">-%{{ campaign.discountPercent }}</span>
+                  <span class="discount-text">İndirim</span>
                 </div>
-                <div class="detail-item">
-                  <span class="label">Bitiş:</span>
-                  <span class="value">{{ formatDate(campaign.endDate) }}</span>
+                <h3 class="campaign-name">{{ campaign.name }}</h3>
+                <p class="campaign-description" *ngIf="campaign.description">{{ campaign.description }}</p>
+                <div class="campaign-details">
+                  <div class="detail-item">
+                    <span class="label">Başlangıç:</span>
+                    <span class="value">{{ formatDate(campaign.startDate) }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="label">Bitiş:</span>
+                    <span class="value">{{ formatDate(campaign.endDate) }}</span>
+                  </div>
+                  <div class="detail-item" *ngIf="campaign.companyName">
+                    <span class="label">Şirket:</span>
+                    <span class="value">{{ campaign.companyName }}</span>
+                  </div>
                 </div>
-                <div class="detail-item" *ngIf="campaign.companyName">
-                  <span class="label">Şirket:</span>
-                  <span class="value">{{ campaign.companyName }}</span>
+                <button class="cta-button">Kampanya Ürünlerini Gör <i class="fa-solid fa-arrow-right"></i></button>
+                <div class="days-badge-top" *ngIf="campaign.remainingDays > 0">
+                  <span>{{ campaign.remainingDays }} gün kaldı</span>
                 </div>
               </div>
-
-              <!-- Action Button -->
-              <button class="cta-button">
-                Kampanya Ürünlerini Gör
-                <i class="fa-solid fa-arrow-right"></i>
-              </button>
             </div>
         </div>
       </div>

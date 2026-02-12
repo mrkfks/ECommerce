@@ -12,15 +12,15 @@ import { ErrorPage } from './pages/error/error';
   standalone: true,
   imports: [RouterOutlet, Navbar, Footer, LoadingSpinnerComponent, CommonModule, ErrorPage],
   template: `
-    <div *ngIf="errorMessage" class="d-flex flex-column min-vh-100">
+    <div *ngIf="errorMessage" class="app-shell">
       <app-error 
         [title]="'Sayfa Bulunamadı'" 
         [message]="errorMessage">
       </app-error>
     </div>
-    <div *ngIf="!errorMessage" class="d-flex flex-column min-vh-100">
+    <div *ngIf="!errorMessage" class="app-shell">
       <app-navbar></app-navbar>
-      <main class="flex-grow-1">
+      <main class="page-container">
         <router-outlet></router-outlet>
       </main>
       <app-footer></app-footer>

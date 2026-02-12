@@ -1,0 +1,44 @@
+/* App-level layout and spacing */
+:host {
+  display: block;
+}
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--surface-2);
+  color: #0f172a;
+}
+
+main {
+  flex: 1 0 auto;
+}
+
+.page-container {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Simple two-column layout for product listing pages */
+.layout-two-col {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 992px) {
+  .layout-two-col { grid-template-columns: 1fr; }
+}
+
+.section-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+
+.muted { color: var(--muted); }
+
+.card-section { margin-bottom: 1.5rem; }

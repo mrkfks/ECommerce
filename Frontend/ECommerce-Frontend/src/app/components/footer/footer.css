@@ -1,0 +1,11 @@
+footer {
+	background: transparent;
+	border-top: 1px solid #eef2f7;
+	padding: 2rem 0;
+}
+
+.footer-inner { max-width: var(--container-max); margin: 0 auto; padding: 0 1rem; }
+
+.footer-links a { color: #475569; text-decoration: none; }
+.footer-small { color: #94a3b8; font-size: 0.9rem; }
+

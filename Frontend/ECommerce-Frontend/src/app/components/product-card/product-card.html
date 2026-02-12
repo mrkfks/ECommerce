@@ -1,29 +1,64 @@
 <div class="card product-card h-100 border-0 shadow-sm">
-  <a [routerLink]="['/product', product.id]" class="text-decoration-none">
-    <!-- Ürün Resmi -->
-    <div class="position-relative overflow-hidden">
+  <div class="position-relative overflow-hidden">
+    <a [routerLink]="['/product', product.id]" class="text-decoration-none d-block">
       <img 
         [src]="product.imageUrl || 'assets/images/no-image.svg'" 
         [alt]="product.name" 
         class="card-img-top product-image"
         loading="lazy"
         (error)="onImgError($event)">
-      
-      <!-- Badges -->
-      @if (product.isNew) {
-        <span class="badge bg-success position-absolute top-0 start-0 m-2">Yeni</span>
-      }
-      @if (product.discount) {
-        <span class="badge bg-danger position-absolute top-0 end-0 m-2">%{{ product.discount }}</span>
-      }
-      @if (!product.inStock) {
-        <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-50">
-          <span class="badge bg-secondary fs-6">Stokta Yok</span>
-        </div>
-      }
+    </a>
 
-      <!-- Hover Actions -->
-      <div class="product-actions position-absolute bottom-0 start-0 end-0 p-2 d-flex justify-content-center gap-2">
+    <!-- Badges -->
+    @if (product.isNew) {
+      <span class="badge bg-success position-absolute top-0 start-0 m-2">Yeni</span>
+    }
+    @if (product.discount) {
+      <span class="badge bg-danger position-absolute top-0 end-0 m-2">%{{ product.discount }}</span>
+    }
+    @if (!product.inStock) {
+      <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-50">
+        <span class="badge bg-secondary fs-6">Stokta Yok</span>
+      </div>
+    }
+  </div>
+
+  <!-- Ürün Bilgileri -->
+  <div class="card-body">
+    <a [routerLink]="['/product', product.id]" class="text-decoration-none text-dark">
+      <h6 class="card-title mb-1 text-truncate">{{ product.name }}</h6>
+      <p class="card-text text-muted small mb-2 description-truncate">{{ product.description }}</p>
+    </a>
+
+    <!-- Rating -->
+    <div class="d-flex align-items-center mb-2">
+      <div class="text-warning me-1">
+        @for (star of [1,2,3,4,5]; track star) {
+          <i class="bi" [class.bi-star-fill]="star <= product.rating" [class.bi-star]="star > product.rating"></i>
+        }
+      </div>
+      <small class="text-muted">({{ product.reviewCount }})</small>
+    </div>
+
+    <!-- Fiyat ve CTA -->
+    <div class="d-flex align-items-center justify-content-between gap-2">
+      <div>
+        @if (activeCampaign && !loading) {
+          <div>
+            <span class="fw-bold text-danger fs-5">{{ activeCampaign.discountedPrice | currency:'TRY':'symbol-narrow':'1.2-2' }}</span>
+            <small class="text-muted text-decoration-line-through ms-2">{{ activeCampaign.originalPrice | currency:'TRY':'symbol-narrow':'1.2-2' }}</small>
+          </div>
+        } @else {
+          <div>
+            <span class="fw-bold text-primary fs-5">{{ product.price | currency:'TRY':'symbol-narrow':'1.2-2' }}</span>
+            @if (product.originalPrice && product.originalPrice > product.price) {
+              <small class="text-muted text-decoration-line-through ms-2">{{ product.originalPrice | currency:'TRY':'symbol-narrow':'1.2-2' }}</small>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="d-flex align-items-center gap-2">
         <button 
           class="btn btn-light btn-sm rounded-circle shadow-sm"
           title="Favorilere Ekle"
@@ -35,44 +70,9 @@
           title="Sepete Ekle"
           [disabled]="!product.inStock"
           (click)="onAddToCart($event)">
-          <i class="bi bi-cart-plus me-1"></i>Sepete Ekle
+          <i class="bi bi-cart-plus me-1"></i>
         </button>
       </div>
     </div>
-
-    <!-- Ürün Bilgileri -->
-    <div class="card-body">
-      <h6 class="card-title text-dark mb-1 text-truncate">{{ product.name }}</h6>
-      <p class="card-text text-muted small mb-2 description-truncate">{{ product.description }}</p>
-      
-      <!-- Rating -->
-      <div class="d-flex align-items-center mb-2">
-        <div class="text-warning me-1">
-          @for (star of [1,2,3,4,5]; track star) {
-            <i class="bi" [class.bi-star-fill]="star <= product.rating" [class.bi-star]="star > product.rating"></i>
-          }
-        </div>
-        <small class="text-muted">({{ product.reviewCount }})</small>
-      </div>
-
-      <!-- Fiyat -->
-      <div class="d-flex align-items-center gap-2 flex-wrap">
-        <!-- Aktif Kampanya Fiyatı -->
-        @if (activeCampaign && !loading) {
-          <div class="d-flex align-items-center gap-2">
-            <span class="fw-bold text-danger fs-5">{{ activeCampaign.discountedPrice | currency:'TRY':'symbol-narrow':'1.2-2' }}</span>
-            <small class="text-muted text-decoration-line-through">{{ activeCampaign.originalPrice | currency:'TRY':'symbol-narrow':'1.2-2' }}</small>
-            <span class="badge bg-danger">Kampanya</span>
-          </div>
-        }
-        <!-- Normal Fiyat -->
-        @if (!activeCampaign || loading) {
-          <span class="fw-bold text-primary fs-5">{{ product.price | currency:'TRY':'symbol-narrow':'1.2-2' }}</span>
-          @if (product.originalPrice && product.originalPrice > product.price) {
-            <small class="text-muted text-decoration-line-through">{{ product.originalPrice | currency:'TRY':'symbol-narrow':'1.2-2' }}</small>
-          }
-        }
-      </div>
-    </div>
-  </a>
+  </div>
 </div>

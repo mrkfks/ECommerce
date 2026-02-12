@@ -54,12 +54,17 @@
 }
 
 /* Campaign Card */
+/* Kampanya kartı artık tek görsel ve overlay bilgi içeriyor */
 .campaign-card {
-  display: flex;
+  position: relative;
   width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  height: 500px;
+  display: flex;
+  background: #fff;
+  color: #222;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
 }
 
 @media (max-width: 768px) {
@@ -69,11 +74,11 @@
 }
 
 /* Campaign Banner */
+/* Banner ve overlay */
 .campaign-banner {
   position: relative;
-  flex: 0 0 50%;
-  min-height: 500px;
-  background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -161,13 +166,90 @@
 }
 
 /* Campaign Info */
-.campaign-info {
-  flex: 0 0 50%;
-  padding: 40px;
+/* Overlay bilgi alanı */
+.campaign-overlay-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  align-items: flex-start;
+  justify-content: flex-end;
+  background: linear-gradient(0deg, rgba(0,0,0,0.65) 60%, rgba(0,0,0,0.15) 100%);
+  color: #fff;
+  padding: 2.5rem 2.5rem 2rem 2.5rem;
+  z-index: 2;
+}
+.campaign-overlay-content .discount-badge {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  z-index: 3;
+}
+.campaign-overlay-content .campaign-name {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+.campaign-overlay-content .campaign-description {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  opacity: 0.92;
+}
+.campaign-overlay-content .campaign-details {
+  display: flex;
+  gap: 2.5rem;
+  margin-bottom: 1.2rem;
+  font-size: 1rem;
+}
+.campaign-overlay-content .detail-item {
+  display: flex;
+  flex-direction: column;
+}
+.campaign-overlay-content .label {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  font-weight: 600;
+}
+.campaign-overlay-content .value {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+.campaign-overlay-content .cta-button {
+  margin-top: 0.5rem;
+  background: #fff;
+  color: #667eea;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: background 0.2s, color 0.2s;
+}
+.campaign-overlay-content .cta-button:hover {
+  background: #667eea;
+  color: #fff;
+}
+
+/* Kalan gün sağ üstte küçük badge */
+.campaign-overlay-content .days-badge-top {
+  position: absolute;
+  top: 2rem;
+  right: 8.5rem;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  padding: 6px 16px;
+  border-radius: 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  z-index: 4;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  letter-spacing: 0.01em;
 }
 
 @media (max-width: 768px) {

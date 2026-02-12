@@ -3,25 +3,22 @@
   <div class="position-relative">
     @for (banner of banners; track banner.id; let i = $index) {
       <div 
-        class="banner-slide" 
+        class="banner-slide card-minimal" 
         [class.active]="i === currentBannerIndex"
         [style.background-image]="'url(' + banner.imageUrl + ')'">
-        <div class="container">
-          <div class="row">
-            <div class="col-lg-7">
-              <div class="banner-content text-white ps-lg-5">
-                <span class="badge bg-white text-primary mb-3 px-3 py-2 rounded-pill fw-bold text-uppercase tracking-wider small">Yeni Koleksiyon</span>
-                <h1 class="display-3 fw-bolder mb-3" style="font-weight: 800; letter-spacing: -1px;">{{ banner.title }}</h1>
-                <p class="lead fs-4 mb-4 opacity-90">{{ banner.subtitle }}</p>
-                <div class="d-flex gap-3">
-                  <a [routerLink]="banner.buttonLink" class="btn btn-light btn-lg px-5 py-3 rounded-pill fw-bold shadow-lg">
-                    {{ banner.buttonText }}
-                    <i class="bi bi-arrow-right ms-2"></i>
-                  </a>
-                  <button class="btn btn-outline-light btn-lg px-5 py-3 rounded-pill fw-bold backdrop-blur">
-                    Detayları İncele
-                  </button>
-                </div>
+        <div class="page-container">
+          <div class="hero-grid d-flex align-items-center">
+            <div class="hero-content text-white">
+              <span class="badge bg-white text-primary mb-3 px-3 py-2 rounded-pill fw-bold text-uppercase tracking-wider small">Yeni Koleksiyon</span>
+              <h1 class="fw-bolder mb-3 hero-title">{{ banner.title }}</h1>
+              <p class="lead fs-5 mb-4 opacity-90">{{ banner.subtitle }}</p>
+              <div class="d-flex gap-3">
+                <a [routerLink]="banner.buttonLink" class="btn btn-light btn-lg px-4 py-2 rounded-pill fw-bold shadow">
+                  {{ banner.buttonText }}
+                </a>
+                <button class="btn btn-outline-light btn-lg px-4 py-2 rounded-pill fw-bold backdrop-blur">
+                  Detayları İncele
+                </button>
               </div>
             </div>
           </div>
@@ -42,12 +39,8 @@
 </section>
 
 <!-- Kampanya Carousel -->
-<section class="campaign-section py-5">
+<section class="campaign-section" style="margin-top: 0.5rem; margin-bottom: 1rem;">
   <div class="container">
-    <div class="text-center mb-4">
-      <h2 class="fw-bold">Aktif Kampanyalar</h2>
-      <p class="text-muted">Kaçırılmayacak fırsatlar sizleri bekliyor</p>
-    </div>
     <app-campaign-carousel></app-campaign-carousel>
   </div>
 </section>
@@ -59,19 +52,17 @@
       <h2 class="fw-bold">Kategoriler</h2>
       <p class="text-muted">Aradığınız her şey burada</p>
     </div>
-    <div class="row g-3">
+    <div class="grid-cols-3">
       @for (category of categories; track category.id) {
-        <div class="col-6 col-md-4 col-lg-2">
-          <a [routerLink]="['/products', category.id]" class="text-decoration-none">
-            <div class="category-card text-center p-4 bg-white rounded-3 shadow-sm h-100">
-              <div class="category-icon mb-3">
-                <i class="bi {{ category.icon }} fs-1 text-primary"></i>
-              </div>
-              <h6 class="mb-1 text-dark">{{ category.name }}</h6>
-              <small class="text-muted">{{ category.productCount }} ürün</small>
+        <a [routerLink]="['/products', category.id]" class="text-decoration-none">
+          <div class="category-card text-center p-4 bg-white rounded-3 shadow-sm h-100">
+            <div class="category-icon mb-3">
+              <i class="bi {{ category.icon }} fs-1 text-primary"></i>
             </div>
-          </a>
-        </div>
+            <h6 class="mb-1 text-dark">{{ category.name }}</h6>
+            <small class="text-muted">{{ category.productCount }} ürün</small>
+          </div>
+        </a>
       }
     </div>
   </div>
@@ -89,36 +80,19 @@
         Tümünü Gör <i class="bi bi-arrow-right ms-1"></i>
       </a>
     </div>
-    <div class="row g-4">
+    <div class="product-grid grid-cols-3">
       @for (product of featuredProducts; track product.id) {
-        <div class="col-6 col-md-4 col-lg-3">
-          <app-product-card 
-            [product]="product"
-            (addToCart)="onAddToCart($event)"
-            (addToWishlist)="onAddToWishlist($event)">
-          </app-product-card>
-        </div>
+        <app-product-card 
+          [product]="product"
+          (addToCart)="onAddToCart($event)"
+          (addToWishlist)="onAddToWishlist($event)">
+        </app-product-card>
       }
     </div>
   </div>
 </section>
 
-<!-- Promosyon Banner -->
-<section class="promo-section py-5 bg-primary text-white">
-  <div class="container">
-    <div class="row align-items-center">
-      <div class="col-lg-8">
-        <h2 class="fw-bold mb-2">Ücretsiz Kargo Fırsatı!</h2>
-        <p class="mb-0 opacity-75">500 TL ve üzeri alışverişlerinizde kargo bedava. Sınırlı süre için geçerli.</p>
-      </div>
-      <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-        <a routerLink="/products/all" class="btn btn-light btn-lg">
-          Hemen Alışverişe Başla
-        </a>
-      </div>
-    </div>
-  </div>
-</section>
+
 
 <!-- Yeni Ürünler -->
 <section class="new-products-section py-5">
@@ -132,15 +106,13 @@
         Tümünü Gör <i class="bi bi-arrow-right ms-1"></i>
       </a>
     </div>
-    <div class="row g-4">
+    <div class="product-grid grid-cols-3">
       @for (product of newProducts; track product.id) {
-        <div class="col-6 col-md-4 col-lg-3">
-          <app-product-card 
-            [product]="product"
-            (addToCart)="onAddToCart($event)"
-            (addToWishlist)="onAddToWishlist($event)">
-          </app-product-card>
-        </div>
+        <app-product-card 
+          [product]="product"
+          (addToCart)="onAddToCart($event)"
+          (addToWishlist)="onAddToWishlist($event)">
+        </app-product-card>
       }
     </div>
   </div>
@@ -202,15 +174,13 @@
         Tümünü Gör <i class="bi bi-arrow-right ms-1"></i>
       </a>
     </div>
-    <div class="row g-4">
+    <div class="product-grid grid-cols-3">
       @for (product of bestSellers; track product.id) {
-        <div class="col-6 col-md-4 col-lg-3">
-          <app-product-card 
-            [product]="product"
-            (addToCart)="onAddToCart($event)"
-            (addToWishlist)="onAddToWishlist($event)">
-          </app-product-card>
-        </div>
+        <app-product-card 
+          [product]="product"
+          (addToCart)="onAddToCart($event)"
+          (addToWishlist)="onAddToWishlist($event)">
+        </app-product-card>
       }
     </div>
   </div>
