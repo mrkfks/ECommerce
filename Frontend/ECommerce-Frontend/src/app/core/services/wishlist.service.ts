@@ -69,13 +69,9 @@ export class WishlistService {
           });
         }
         localStorage.setItem('wishlist_session_id', sessionId);
-        console.log('New wishlist session ID created:', sessionId);
-      } else {
-        console.log('Existing wishlist session ID:', sessionId);
       }
-      return sessionId;
+      return sessionId!;
     } catch (error) {
-      console.warn('localStorage not available, using temporary session ID', error);
       // Fallback for localStorage being unavailable
       return 'session-' + Math.random().toString(36).substr(2, 9);
     }
@@ -88,36 +84,27 @@ export class WishlistService {
 
   loadWishlist(): void {
     const sessionId = this.getSessionId();
-    console.log('Loading wishlist with sessionId:', sessionId);
     this.http.get<any>(
       `${this.basePath}?sessionId=${sessionId}`,
       { headers: this.getCompanyIdHeader() }
     ).subscribe({
       next: (response) => {
-        console.log('Wishlist response received:', response);
         const wishlist = response.data;
         this.wishlistSubject.next(wishlist);
         this.wishlist.set(wishlist);
       },
-      error: (err) => {
-        console.error('Failed to load wishlist', err);
-        console.error('Error details:', err.error);
-      }
+      error: () => {}
     });
   }
 
   addToWishlist(productId: number): Observable<any> {
     const sessionId = this.getSessionId();
-    console.log('Adding product to wishlist:', { productId, sessionId });
     return this.http.post(
       `${this.basePath}/items?sessionId=${sessionId}`,
       { productId },
       { headers: this.getCompanyIdHeader() }
     ).pipe(
-      tap(() => {
-        console.log('Product added to wishlist, reloading...');
-        this.loadWishlist();
-      })
+      tap(() => this.loadWishlist())
     );
   }
 

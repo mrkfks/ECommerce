@@ -99,21 +99,6 @@ export interface Product {
   updatedAt?: Date;
 }
 
-export interface ProductCreateRequest {
-  name: string;
-  description: string;
-  price: number;
-  categoryId: number;
-  brandId: number;
-  companyId: number;
-  stockQuantity: number;
-  imageUrl?: string;
-}
-
-export interface ProductUpdateRequest extends ProductCreateRequest {
-  id: number;
-}
-
 // Category Models
 export interface Category {
   id: number;
@@ -123,12 +108,6 @@ export interface Category {
   parentId?: number;
   productCount?: number;
   createdAt: Date;
-}
-
-export interface CategoryCreateRequest {
-  name: string;
-  description?: string;
-  parentId?: number;
 }
 
 // Order Models
@@ -200,52 +179,6 @@ export interface Cart {
   items: CartItem[];
   totalItems: number;
   totalPrice: number;
-}
-
-// Brand Model
-export interface Brand {
-  id: number;
-  name: string;
-  description?: string;
-  logoUrl?: string;
-}
-
-// Review Model
-export interface Review {
-  id: number;
-  productId: number;
-  customerId: number;
-  customerName: string;
-  rating: number;
-  comment: string;
-  createdAt: Date;
-}
-
-export interface ReviewCreateRequest {
-  productId: number;
-  rating: number;
-  comment: string;
-}
-
-// Customer Model
-export interface Customer {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone?: string;
-  companyId?: number;
-}
-
-export interface Address {
-  id: number;
-  customerId: number;
-  title: string;
-  addressLine: string;
-  city: string;
-  district: string;
-  postalCode: string;
-  isDefault: boolean;
 }
 
 // API Response Models

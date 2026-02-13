@@ -1,0 +1,91 @@
+# =====================================================
+# Render.com Blueprint — ECommerce Projesi
+# =====================================================
+# Kullanım:
+#   1. GitHub/GitLab reposuna push et
+#   2. Render Dashboard → New → Blueprint → repo seç
+#   3. Render otomatik olarak tüm servisleri oluşturur
+#   4. Deploy sonrası Dashboard ve Frontend servislerinde
+#      API_BASE_URL / API_URL değerlerini güncelle:
+#      → https://<ecommerce-api-adın>.onrender.com/api
+# =====================================================
+
+databases:
+  # PostgreSQL Veritabanı (free tier: 256 MB, 90 gün)
+  - name: ecommerce-db
+    plan: free
+    databaseName: ecommerce
+    user: ecommerce_user
+    region: frankfurt
+
+services:
+  # ===========================================
+  # 1. Backend API (ASP.NET Core)
+  # ===========================================
+  - type: web
+    name: ecommerce-api
+    runtime: docker
+    region: frankfurt
+    plan: free
+    dockerfilePath: src/Presentation/ECommerce.RestApi/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: ecommerce-db
+          property: connectionString
+      - key: JWT_KEY
+        generateValue: true
+      - key: JWT_ISSUER
+        value: ECommerce
+      - key: JWT_AUDIENCE
+        value: ECommerce.Client
+      - key: DOTNET_DATA_PROTECTION_KEY_DIRECTORY
+        value: /tmp/keys
+
+  # ===========================================
+  # 2. Admin Dashboard (ASP.NET Core MVC)
+  # ===========================================
+  - type: web
+    name: ecommerce-dashboard
+    runtime: docker
+    region: frankfurt
+    plan: free
+    dockerfilePath: AdminPanel/Dashboard.Web/Dockerfile
+    dockerContext: .
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      # ⚠️ Deploy sonrası güncelle: https://<api-adın>.onrender.com/api
+      - key: API_BASE_URL
+        value: https://ecommerce-api.onrender.com/api
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: ecommerce-db
+          property: connectionString
+      - key: Jwt__Key
+        sync: false  # API ile aynı JWT_KEY değerini manuel yapıştır
+      - key: Jwt__Issuer
+        value: ECommerce
+      - key: Jwt__Audience
+        value: ECommerce.Client
+
+  # ===========================================
+  # 3. Frontend (Angular SSR)
+  # ===========================================
+  - type: web
+    name: ecommerce-frontend
+    runtime: docker
+    region: frankfurt
+    plan: free
+    dockerfilePath: Frontend/ECommerce-Frontend/Dockerfile
+    dockerContext: Frontend/ECommerce-Frontend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # ⚠️ Deploy sonrası güncelle: https://<api-adın>.onrender.com
+      - key: API_URL
+        value: https://ecommerce-api.onrender.com

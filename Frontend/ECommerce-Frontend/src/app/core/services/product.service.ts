@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
-import { Product, ProductCreateRequest, ProductUpdateRequest, PaginatedResponse, ApiResponse, ProductCampaign } from '../models';
+import { Product, PaginatedResponse, ApiResponse, ProductCampaign } from '../models';
 import { environment } from '../../../environments/environment';
+import { ImageUrlService } from './image-url.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +11,32 @@ import { environment } from '../../../environments/environment';
 export class ProductService {
   private readonly basePath = `${environment.apiUrl}/products`;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private imageUrlService: ImageUrlService) { }
+
+  mapProduct(apiProduct: any): Product {
+    return {
+      id: apiProduct.id,
+      name: apiProduct.name,
+      description: apiProduct.description || '',
+      price: apiProduct.price,
+      originalPrice: apiProduct.originalPrice,
+      imageUrl: this.imageUrlService.normalize(apiProduct.imageUrl),
+      images: this.imageUrlService.normalizeImages(apiProduct.images || []),
+      categoryId: apiProduct.categoryId,
+      categoryName: apiProduct.categoryName,
+      brandId: apiProduct.brandId,
+      brandName: apiProduct.brandName,
+      companyId: apiProduct.companyId,
+      stockQuantity: apiProduct.stockQuantity || 0,
+      rating: apiProduct.rating || 0,
+      reviewCount: apiProduct.reviewCount || 0,
+      isNew: apiProduct.isNew || false,
+      discount: apiProduct.discount,
+      isActive: apiProduct.isActive || false,
+      inStock: (apiProduct.stockQuantity || 0) > 0,
+      createdAt: new Date(apiProduct.createdAt)
+    };
+  }
 
   getAll(pageNumber: number = 1, pageSize: number = 10): Observable<PaginatedResponse<Product>> {
     const params = new HttpParams()
@@ -41,13 +67,13 @@ export class ProductService {
     );
   }
 
-  create(product: ProductCreateRequest): Observable<Product> {
+  create(product: any): Observable<Product> {
     return this.http.post<Product | ApiResponse<Product>>(this.basePath, product).pipe(
       map((response: any) => ('data' in response ? response.data : response))
     );
   }
 
-  update(id: number, product: ProductUpdateRequest): Observable<Product> {
+  update(id: number, product: any): Observable<Product> {
     return this.http.put<Product | ApiResponse<Product>>(`${this.basePath}/${id}`, product).pipe(
       map((response: any) => ('data' in response ? response.data : response))
     );

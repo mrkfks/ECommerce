@@ -63,7 +63,6 @@ export class OrderHistory implements OnInit, OnDestroy {
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('Siparişler yüklenemedi:', err);
         this.orders = [];
         this.isLoading = false;
       }
@@ -80,7 +79,6 @@ export class OrderHistory implements OnInit, OnDestroy {
           }
         },
         error: (err) => {
-          console.error(`Sipariş ${orderId} için iade talepleri yüklenemedi:`, err);
           this.returnRequests.set(orderId, []);
         }
       });
@@ -186,14 +184,10 @@ export class OrderHistory implements OnInit, OnDestroy {
     if (this.returnComments && this.returnComments.trim()) {
       returnRequest.comments = this.returnComments.trim();
     }
-
-    console.log('İade talebi gönderiliyor:', returnRequest);
-
     this.returnRequestService.createReturnRequest(returnRequest)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('İade talebi başarılı:', response);
           alert('İade talebiniz başarıyla oluşturulmuştur');
           // İade taleplerini tekrar yükle
           this.loadReturnRequestsForOrder(this.selectedOrder!.id);
@@ -201,8 +195,6 @@ export class OrderHistory implements OnInit, OnDestroy {
           this.isSubmittingReturn = false;
         },
         error: (err) => {
-          console.error('İade talebi oluşturulamadı:', err);
-          console.error('Error details:', err.error);
           alert('İade talebiniz oluşturulurken bir hata meydana geldi: ' + (err.error?.message || err.message));
           this.isSubmittingReturn = false;
         }

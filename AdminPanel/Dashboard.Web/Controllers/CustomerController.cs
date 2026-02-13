@@ -27,7 +27,6 @@ namespace Dashboard.Web.Controllers
             catch (Exception ex)
             {
                 // Hata loglama
-                Console.WriteLine($"[CustomerController][Index] Hata: {ex.Message}\n{ex.StackTrace}");
                 ViewBag.ErrorMessage = ex.Message;
                 return View(new List<CustomerDto>());
             }

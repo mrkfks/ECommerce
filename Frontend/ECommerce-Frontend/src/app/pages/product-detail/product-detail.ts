@@ -2,7 +2,7 @@ import { Component, OnInit, inject, OnDestroy, PLATFORM_ID } from '@angular/core
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { ProductService, CartService, ImageUrlService, WishlistService, ReviewService, Review, ReviewCreate } from '../../core/services';
+import { ProductService, CartService, WishlistService, ReviewService, Review, ReviewCreate } from '../../core/services';
 import { CompanyContextService } from '../../core/services/company-context.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Product } from '../../core/models';
@@ -17,12 +17,10 @@ import { Subject, takeUntil } from 'rxjs';
 })
 export class ProductDetail implements OnInit, OnDestroy {
     onImgError(event: Event) {
-      console.log('Image load error, showing placeholder');
       (event.target as HTMLImageElement).src = 'assets/images/no-image.svg';
     }
 
     onImageLoad(event: Event): void {
-      console.log('Image loaded successfully:', (event.target as HTMLImageElement).src);
     }
 
   private route = inject(ActivatedRoute);
@@ -32,7 +30,6 @@ export class ProductDetail implements OnInit, OnDestroy {
   private reviewService = inject(ReviewService);
   private authService = inject(AuthService);
   private companyContext = inject(CompanyContextService);
-  private imageUrlService = inject(ImageUrlService);
   private platformId = inject(PLATFORM_ID);
 
   product: Product | null = null;
@@ -76,7 +73,7 @@ export class ProductDetail implements OnInit, OnDestroy {
     this.isLoading = true;
     this.productService.getById(id).pipe(takeUntil(this.destroy$)).subscribe({
       next: (product) => {
-        this.product = this.mapProduct(product);
+        this.product = this.productService.mapProduct(product);
 
         // Don't set company context here - it should be set before navigation
         // to avoid ExpressionChangedAfterItHasBeenCheckedError
@@ -86,89 +83,11 @@ export class ProductDetail implements OnInit, OnDestroy {
         this.loadRelatedProducts();
         this.loadReviews(id);
       },
-      error: (err) => {
-        console.error('Ürün yüklenemedi:', err);
-        this.loadMockProduct(id);
+      error: () => {
+        this.error = 'Ürün bulunamadı.';
         this.isLoading = false;
       }
     });
-  }
-
-  private mapProduct(apiProduct: any): Product {
-    return {
-      id: apiProduct.id,
-      name: apiProduct.name,
-      description: apiProduct.description || '',
-      price: apiProduct.price,
-      originalPrice: apiProduct.originalPrice,
-      imageUrl: this.imageUrlService.normalize(apiProduct.imageUrl),
-      images: this.imageUrlService.normalizeImages(apiProduct.images || []),
-      categoryId: apiProduct.categoryId,
-      categoryName: apiProduct.categoryName,
-      brandId: apiProduct.brandId,
-      brandName: apiProduct.brandName,
-      companyId: apiProduct.companyId,
-      stockQuantity: apiProduct.stockQuantity || 0,
-      rating: apiProduct.rating || 4.5,
-      reviewCount: apiProduct.reviewCount || 0,
-      isNew: apiProduct.isNew || false,
-      discount: apiProduct.discount,
-      isActive: apiProduct.isActive || false,
-      inStock: apiProduct.stockQuantity > 0,
-      createdAt: new Date(apiProduct.createdAt)
-    };
-  }
-
-  private loadMockProduct(id: number): void {
-    this.product = {
-      id: id,
-      name: 'Kablosuz Kulaklık Pro',
-      description: 'Yüksek kaliteli ses deneyimi sunan kablosuz kulaklık. Aktif gürültü engelleme teknolojisi ile dış sesleri bloke eder. 30 saate varan pil ömrü ile uzun süreli kullanım imkanı. Bluetooth 5.0 bağlantısı ile hızlı ve kararlı bağlantı.',
-      price: 1299.99,
-      originalPrice: 1599.99,
-      imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=400&fit=crop',
-      images: [
-        {
-          id: 1,
-          productId: id,
-          imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=400&fit=crop',
-          order: 0,
-          isPrimary: true
-        },
-        {
-          id: 2,
-          productId: id,
-          imageUrl: 'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=600&h=400&fit=crop',
-          order: 1,
-          isPrimary: false
-        },
-        {
-          id: 3,
-          productId: id,
-          imageUrl: 'https://images.unsplash.com/photo-1487215078519-e21cc028cb29?w=600&h=400&fit=crop',
-          order: 2,
-          isPrimary: false
-        }
-      ],
-      categoryId: 1,
-      categoryName: 'Elektronik',
-      brandId: 1,
-      brandName: 'TechBrand',
-      companyId: 1,
-      stockQuantity: 50,
-      rating: 4.5,
-      reviewCount: 128,
-      isNew: true,
-      discount: 20,
-      isActive: true,
-      inStock: true,
-      createdAt: new Date()
-    };
-    
-    // Set company context from mock product
-    if (this.product.companyId && !this.companyContext.getCompanyId()) {
-      this.companyContext.setCompanyId(this.product.companyId);
-    }
   }
 
   private loadRelatedProducts(): void {
@@ -178,7 +97,7 @@ export class ProductDetail implements OnInit, OnDestroy {
           this.relatedProducts = products
             .filter(p => p.id !== this.product?.id && p.isActive)
             .slice(0, 4)
-            .map(p => this.mapProduct(p));
+            .map(p => this.productService.mapProduct(p));
         },
         error: () => {
           // Ignore
@@ -198,15 +117,11 @@ export class ProductDetail implements OnInit, OnDestroy {
 
   addToWishlist(): void {
     if (!this.product) return;
-
-    console.log('Adding product to wishlist:', this.product.id);
     this.wishlistService.addToWishlist(this.product.id).pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
-        console.log('Ürün favorilere eklendi');
         alert(`${this.product!.name} favorilere eklendi!`);
       },
       error: (err) => {
-        console.error('Favorilere ekleme hatası:', err);
         alert('Favorilere eklenirken bir hata oluştu.');
       }
     });
@@ -259,7 +174,6 @@ export class ProductDetail implements OnInit, OnDestroy {
         this.isLoadingReviews = false;
       },
       error: (err) => {
-        console.error('Yorumlar yüklenemedi:', err);
         this.reviews = [];
         this.isLoadingReviews = false;
       }
@@ -292,7 +206,6 @@ export class ProductDetail implements OnInit, OnDestroy {
         this.loadReviews(this.product!.id);
       },
       error: (err) => {
-        console.error('Yorum gönderilemedi:', err);
         alert('Yorum gönderilirken bir hata oluştu. Lütfen tekrar deneyin.');
         this.isSubmittingReview = false;
       }

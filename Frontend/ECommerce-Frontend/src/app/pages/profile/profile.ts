@@ -108,7 +108,6 @@ export class Profile implements OnInit, OnDestroy {
         alert('Profil bilgileriniz güncellendi.');
       },
       error: (err) => {
-        console.error(err);
         this.isSaving = false;
         alert('Güncelleme başarısız: ' + (err.error?.message || 'Bilinmeyen hata'));
       }
@@ -133,7 +132,6 @@ export class Profile implements OnInit, OnDestroy {
         this.passwordForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
       },
       error: (err) => {
-        console.error(err);
         alert('Şifre değiştirme başarısız: ' + (err.error?.message || 'Bilinmeyen hata'));
       }
     });

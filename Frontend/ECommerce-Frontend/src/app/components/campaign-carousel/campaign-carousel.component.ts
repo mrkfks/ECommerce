@@ -49,7 +49,6 @@ export class CampaignCarouselComponent implements OnInit {
           this.isLoading = false;
         },
         error: (err) => {
-          console.error('Kampanyalar yüklenemedi:', err);
           this.isLoading = false;
         }
       });

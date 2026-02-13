@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace ECommerce.Infrastructure.Data
 {
-    public class AppDbContext : DbContext, IApplicationDbContext
+    public class AppDbContext : DbContext
     {
         private readonly ITenantService _tenantService;
 
@@ -122,6 +122,11 @@ namespace ECommerce.Infrastructure.Data
                     method.Invoke(this, new object[] { modelBuilder });
                 }
             }
+
+            // Default value for IsActive in Companies table
+            modelBuilder.Entity<Company>()
+                .Property(c => c.IsActive)
+                .HasDefaultValue(true);
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -226,6 +231,11 @@ namespace ECommerce.Infrastructure.Data
         }
 
         private void SetSoftDeleteQueryFilter<T>(ModelBuilder modelBuilder) where T : class, ISoftDeletable
+        {
+            modelBuilder.Entity<T>().HasQueryFilter(e => !e.IsDeleted);
+        }
+
+        private void SetCategoryGlobalAttributeQueryFilter<T>(ModelBuilder modelBuilder) where T : class, ISoftDeletable
         {
             modelBuilder.Entity<T>().HasQueryFilter(e => !e.IsDeleted);
         }

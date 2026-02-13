@@ -39,15 +39,9 @@ USER angular
 # Environment variables
 ENV NODE_ENV=production
 
-# Health check (Render için önerilir)
-HEALTHCHECK CMD wget --no-verbose --tries=1 --spider http://localhost:4000 || exit 1
-
-# SSR başlatma komutu (Render için)
+# Render dinamik PORT kullanır; yoksa 4000 varsayılan
 ENV PORT=4000
-ENV API_URL=http://localhost:5010/api
-CMD ["node", "dist/ECommerce-Frontend/server/server.mjs"]
 
-EXPOSE 4000
+EXPOSE ${PORT}
 
-# Start SSR server
 CMD ["node", "dist/ECommerce-Frontend/server/server.mjs"]

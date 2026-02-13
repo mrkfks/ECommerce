@@ -84,7 +84,6 @@ export class DesignService {
           this.applyTheme(settings);
         },
         error: (err) => {
-          console.error('Failed to load company settings', err);
           this.isLoading.set(false);
           // Set error message - API bağlantısı başarısız
           this.loadError.set('Mağaza ayarları yüklenemedi. Lütfen daha sonra tekrar deneyin.');

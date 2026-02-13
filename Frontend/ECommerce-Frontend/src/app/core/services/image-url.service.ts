@@ -15,38 +15,28 @@ export class ImageUrlService {
     if (!url || url.trim() === '') return this.defaultImage;
     
     const trimmedUrl = url.trim();
-    console.log('ImageUrlService.normalize() input:', trimmedUrl);
     
     // Zaten göreceli URL ise veya assets ile başlıyorsa aynen döndür
     if (trimmedUrl.startsWith('/') || trimmedUrl.startsWith('assets/')) {
       // Eğer /uploads ile başlıyorsa API base URL'ine ekle
       if (trimmedUrl.startsWith('/uploads')) {
-        const result = `${this.apiBaseUrl}${trimmedUrl}`;
-        console.log('ImageUrlService.normalize() output (relative /uploads):', result);
-        return result;
+        return `${this.apiBaseUrl}${trimmedUrl}`;
       }
-      console.log('ImageUrlService.normalize() output (already relative):', trimmedUrl);
       return trimmedUrl;
     }
     
     // Mutlak URL ise kontrol et
     if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
-      // Zaten tam URL ise aynen döndür
-      console.log('ImageUrlService.normalize() output (absolute URL):', trimmedUrl);
       return trimmedUrl;
     }
     
     // "uploads/" ile başlıyorsa API URL'ine ekle
     if (trimmedUrl.startsWith('uploads/')) {
-      const result = `${this.apiBaseUrl}/${trimmedUrl}`;
-      console.log('ImageUrlService.normalize() output (relative uploads/):', result);
-      return result;
+      return `${this.apiBaseUrl}/${trimmedUrl}`;
     }
     
     // Hiçbir pattern'e uymuyorsa olduğu gibi döndür
-    const result = trimmedUrl;
-    console.log('ImageUrlService.normalize() output:', result);
-    return result;
+    return trimmedUrl;
   }
 
   /**

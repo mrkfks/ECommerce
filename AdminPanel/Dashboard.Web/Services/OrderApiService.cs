@@ -14,17 +14,13 @@ namespace Dashboard.Web.Services
             {
                 var dto = new ECommerce.Application.DTOs.UpdateOrderStatusDto { Status = status };
                 var url = $"api/orders/{id}/status";
-                Console.WriteLine($"[OrderApiService.UpdateStatusAsync] Calling PUT: {url}, Status: {status}");
-
                 var response = await _httpClient.PutAsJsonAsync(url, dto);
                 var content = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"[OrderApiService.UpdateStatusAsync] Response: {response.StatusCode}, Content: {content}");
-
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[OrderApiService.UpdateStatusAsync] Error: {ex.Message}");
+                Console.WriteLine($"Exception caught: {ex.Message}");
                 return false;
             }
         }

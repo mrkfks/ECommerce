@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, inject, PLATFORM_ID } from '@angular/core
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { ProductService, CategoryService, CartService, ImageUrlService, WishlistService, BrandService } from '../../core/services';
+import { ProductService, CategoryService, CartService, WishlistService, BrandService } from '../../core/services';
 import { HttpClient } from '@angular/common/http';
 import { Product, Category } from '../../core/models';
 import { ProductCard } from '../../components/product-card/product-card';
@@ -21,7 +21,6 @@ export class CategoryProducts implements OnInit, OnDestroy {
   private categoryService = inject(CategoryService);
   private cartService = inject(CartService);
   private wishlistService = inject(WishlistService);
-  private imageUrlService = inject(ImageUrlService);
   private platformId = inject(PLATFORM_ID);
 
   category: Category | null = null;
@@ -56,18 +55,46 @@ export class CategoryProducts implements OnInit, OnDestroy {
     if (isPlatformBrowser(this.platformId)) {
       this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
         const categoryId = params['categoryId'];
+
+        // Handle special keyword routes like 'all', 'new', 'bestsellers'
         if (categoryId === 'all') {
           this.selectedCategoryId = null;
           this.loadAllProducts();
           this.loadFilterData();
-        } else {
-          // Set selectedCategoryId from route so filters reflect current category
-          this.selectedCategoryId = +categoryId;
-          this.selectedSubcategoryId = null;
-          this.loadCategory(+categoryId);
-          this.loadProducts(+categoryId);
-          this.loadFilterData();
+          return;
         }
+
+        if (categoryId === 'new') {
+          this.selectedCategoryId = null;
+          this.category = { id: 0, name: 'Yeni Gelenler', createdAt: new Date() };
+          this.loadNewProducts();
+          this.loadFilterData();
+          return;
+        }
+
+        if (categoryId === 'bestsellers') {
+          this.selectedCategoryId = null;
+          this.category = { id: 0, name: 'Çok Satanlar', createdAt: new Date() };
+          this.loadBestSellers();
+          this.loadFilterData();
+          return;
+        }
+
+        // If it's a numeric category id, load that category
+        const numericId = +categoryId;
+        if (!isNaN(numericId) && categoryId !== undefined) {
+          this.selectedCategoryId = numericId;
+          this.selectedSubcategoryId = null;
+          this.loadCategory(numericId);
+          this.loadProducts(numericId);
+          this.loadFilterData();
+          return;
+        }
+
+        // Fallback: load all products
+        this.selectedCategoryId = null;
+        this.loadAllProducts();
+        this.loadFilterData();
       });
     }
   }
@@ -92,13 +119,13 @@ export class CategoryProducts implements OnInit, OnDestroy {
     this.isLoading = true;
     this.productService.getByCategory(categoryId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (products) => {
-        this.products = products.filter(p => p.isActive).map(p => this.mapProduct(p));
+        this.products = products.filter(p => p.isActive).map(p => this.productService.mapProduct(p));
         this.applyFilters();
         this.isLoading = false;
       },
-      error: (err) => {
-        console.error('Ürünler yüklenemedi:', err);
-        this.loadMockProducts();
+      error: () => {
+        this.products = [];
+        this.applyFilters();
         this.isLoading = false;
       }
     });
@@ -109,12 +136,52 @@ export class CategoryProducts implements OnInit, OnDestroy {
     this.isLoading = true;
     this.productService.getAll().subscribe({
       next: (response) => {
-        this.products = response.items.filter(p => p.isActive).map(p => this.mapProduct(p));
+        this.products = response.items.filter(p => p.isActive).map(p => this.productService.mapProduct(p));
         this.applyFilters();
         this.isLoading = false;
       },
       error: () => {
-        this.loadMockProducts();
+        this.products = [];
+        this.applyFilters();
+        this.isLoading = false;
+      }
+    });
+  }
+
+  loadNewProducts(): void {
+    this.isLoading = true;
+    this.productService.getAll().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (response: any) => {
+        const items = response.items ?? response;
+        const productsArray = Array.isArray(items) ? items : [];
+        this.products = productsArray.filter((p: any) => p.isActive && p.isNew).map((p: any) => this.productService.mapProduct(p));
+        this.applyFilters();
+        this.isLoading = false;
+      },
+      error: () => {
+        this.products = [];
+        this.applyFilters();
+        this.isLoading = false;
+      }
+    });
+  }
+
+  loadBestSellers(): void {
+    this.isLoading = true;
+    this.productService.getAll().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (response: any) => {
+        const items = response.items ?? response;
+        const productsArray = Array.isArray(items) ? items : [];
+        // Simple heuristic: sort by reviewCount and rating
+        const mapped = productsArray.filter((p: any) => p.isActive).map((p: any) => this.productService.mapProduct(p));
+        mapped.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0) || b.rating - a.rating);
+        this.products = mapped;
+        this.applyFilters();
+        this.isLoading = false;
+      },
+      error: () => {
+        this.products = [];
+        this.applyFilters();
         this.isLoading = false;
       }
     });
@@ -167,41 +234,6 @@ export class CategoryProducts implements OnInit, OnDestroy {
     };
 
     this.visibleCategories = this.categories.filter(c => hasProducts(c));
-  }
-
-  private mapProduct(apiProduct: any): Product {
-    return {
-      id: apiProduct.id,
-      name: apiProduct.name,
-      description: apiProduct.description || '',
-      price: apiProduct.price,
-      originalPrice: apiProduct.originalPrice,
-      imageUrl: this.imageUrlService.normalize(apiProduct.imageUrl),
-      images: this.imageUrlService.normalizeImages(apiProduct.images || []),
-      categoryId: apiProduct.categoryId,
-      categoryName: apiProduct.categoryName,
-      brandId: apiProduct.brandId,
-      brandName: apiProduct.brandName,
-      companyId: apiProduct.companyId,
-      stockQuantity: apiProduct.stockQuantity || 0,
-      rating: apiProduct.rating || 0,
-      reviewCount: apiProduct.reviewCount || 0,
-      isNew: apiProduct.isNew || false,
-      discount: apiProduct.discount,
-      isActive: apiProduct.isActive || false,
-      inStock: apiProduct.stockQuantity > 0,
-      createdAt: new Date(apiProduct.createdAt)
-    };
-  }
-
-  private loadMockProducts(): void {
-    this.products = [
-      { id: 1, name: 'Kablosuz Kulaklık', description: 'ANC özellikli', price: 1299.99, imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400', categoryId: 1, brandId: 1, companyId: 1, stockQuantity: 50, rating: 4.5, reviewCount: 128, isActive: true, inStock: true, createdAt: new Date() },
-      { id: 2, name: 'Akıllı Saat', description: 'GPS ve sağlık takibi', price: 2499.99, imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400', categoryId: 1, brandId: 1, companyId: 1, stockQuantity: 30, rating: 4.8, reviewCount: 256, isActive: true, inStock: true, createdAt: new Date() },
-      { id: 3, name: 'Spor Ayakkabı', description: 'Hafif ve konforlu', price: 899.99, originalPrice: 1199.99, imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400', categoryId: 2, brandId: 2, companyId: 1, stockQuantity: 100, rating: 4.3, reviewCount: 89, discount: 25, isActive: true, inStock: true, createdAt: new Date() },
-      { id: 4, name: 'Laptop Stand', description: 'Ergonomik tasarım', price: 349.99, imageUrl: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400', categoryId: 1, brandId: 3, companyId: 1, stockQuantity: 75, rating: 4.6, reviewCount: 67, isNew: true, isActive: true, inStock: true, createdAt: new Date() }
-    ];
-    this.applyFilters();
   }
 
   applyFilters(): void {

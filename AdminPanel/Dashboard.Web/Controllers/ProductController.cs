@@ -35,18 +35,13 @@ namespace Dashboard.Web.Controllers
         // Ürün listesi
         public async Task<IActionResult> List()
         {
-            Console.WriteLine("[ProductController.List] Starting...");
             var response = await _productService.GetPagedListAsync(1, 100); // İlk 100 ürünü getir
-            Console.WriteLine($"[ProductController.List] Response: Items count={response?.Items?.Count() ?? 0}");
-
             if (response == null || response.Items == null)
             {
-                Console.WriteLine("[ProductController.List] Response or Items is NULL - returning empty list");
                 return View(new List<ProductViewModel>());
             }
 
             var itemsList = response.Items.ToList();
-            Console.WriteLine($"[ProductController.List] Sending {itemsList.Count} items to view");
             return View(itemsList);
         }
 
@@ -65,14 +60,8 @@ namespace Dashboard.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            Console.WriteLine("[ProductController.Create] Starting...");
-
             var categories = await _categoryService.GetAllAsync();
-            Console.WriteLine($"[ProductController.Create] Categories response: Success={categories?.Success}, Data count={categories?.Data?.Count()}");
-
             var brands = await _brandService.GetAllAsync();
-            Console.WriteLine($"[ProductController.Create] Brands response: Success={brands?.Success}, Data count={brands?.Data?.Count()}");
-
             // API CategoryDto döndürüyor, CategoryViewModel değil
             var categoryDtos = categories?.Data?.Select(c => new ECommerce.Application.DTOs.CategoryDto
             {
@@ -86,22 +75,13 @@ namespace Dashboard.Web.Controllers
 
             var categoryList = categoryDtos.Where(x => x.Id != 0 && !string.IsNullOrEmpty(x.Name)).ToList();
             var brandList = (brands?.Data ?? new List<ECommerce.Application.DTOs.BrandDto>()).Where(x => x.Id != 0 && !string.IsNullOrEmpty(x.Name)).ToList();
-
-            Console.WriteLine($"[ProductController.Create] Filtered Categories count: {categoryList.Count}");
-            Console.WriteLine($"[ProductController.Create] Filtered Brands count: {brandList.Count}");
-
             ViewBag.Categories = categoryList;
             ViewBag.Brands = brandList;
 
             if (User.IsInRole("SuperAdmin"))
             {
-                Console.WriteLine("[ProductController.Create] User is SuperAdmin, fetching companies...");
                 var companies = await _companyService.GetAllAsync();
-                Console.WriteLine($"[ProductController.Create] Companies response: Success={companies?.Success}, Data count={companies?.Data?.Count()}");
-
                 var companyList = (companies?.Data ?? new List<ECommerce.Application.DTOs.CompanyDto>()).Where(x => x.Id != 0 && !string.IsNullOrEmpty(x.Name)).ToList();
-                Console.WriteLine($"[ProductController.Create] Filtered Companies count: {companyList.Count}");
-
                 ViewBag.Companies = companyList;
             }
 
@@ -116,13 +96,11 @@ namespace Dashboard.Web.Controllers
         {
             if (product == null)
             {
-                Console.WriteLine("[ProductController] Product is null.");
                 return BadRequest("Product is null.");
             }
 
             if (string.IsNullOrEmpty(product.Name) || product.CompanyId == 0)
             {
-                Console.WriteLine("[ProductController] Product details are invalid.");
                 return BadRequest("Product details are invalid.");
             }
 
@@ -212,13 +190,9 @@ namespace Dashboard.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            Console.WriteLine($"[ProductController.Edit] Loading product with id: {id}");
             var response = await _productService.GetByIdAsync(id);
-            Console.WriteLine($"[ProductController.Edit] Response: Success={response?.Success}, Data={response?.Data?.Name}");
-
             if (response == null || response.Data == null)
             {
-                Console.WriteLine("[ProductController.Edit] Product not found!");
                 return NotFound();
             }
 
@@ -228,8 +202,6 @@ namespace Dashboard.Web.Controllers
 
             ViewBag.Categories = (categories?.Data ?? new List<ECommerce.Application.DTOs.CategoryDto>()).Where(x => x.Id != 0 && !string.IsNullOrEmpty(x.Name)).ToList();
             ViewBag.Brands = (brands?.Data ?? new List<ECommerce.Application.DTOs.BrandDto>()).Where(x => x.Id != 0 && !string.IsNullOrEmpty(x.Name)).ToList();
-
-            Console.WriteLine($"[ProductController.Edit] Returning view with product: {response.Data.Name}");
             return View(response.Data);
         }
 

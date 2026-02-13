@@ -58,7 +58,6 @@ export class Checkout implements OnInit, OnDestroy {
     // Giriş yapmış kullanıcı bilgilerini API'den güncel olarak al
     this.authService.getCurrentUser().pipe(takeUntil(this.destroy$)).subscribe({
       next: (user) => {
-        console.log('Checkout - User data received:', user);
         if (user) {
           this.shippingInfo.firstName = user.firstName || '';
           this.shippingInfo.lastName = user.lastName || '';
@@ -72,12 +71,9 @@ export class Checkout implements OnInit, OnDestroy {
             this.shippingInfo.district = user.state || '';  // İlçe
             this.shippingInfo.postalCode = user.postalCode || '';
           }
-          
-          console.log('Checkout - ShippingInfo after update:', this.shippingInfo);
         }
       },
       error: (err) => {
-        console.log('Kullanıcı bilgileri alınamadı:', err);
         // Fallback to cached user
         const cachedUser = this.authService.currentUserValue;
         if (cachedUser) {
@@ -207,7 +203,6 @@ export class Checkout implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.isLoading = false;
-        console.error('Sipariş hatası:', err);
         // Hata mesajını daha kullanıcı dostu göster
         const msg = err.error?.message || err.message || 'Bilinmeyen bir hata oluştu';
         alert('Sipariş oluşturulurken bir hata oluştu: ' + msg);

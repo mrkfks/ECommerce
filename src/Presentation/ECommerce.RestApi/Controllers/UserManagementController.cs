@@ -40,17 +40,6 @@ public class UserManagementController : ControllerBase
 
         var users = await userQuery.ToListAsync();
 
-        // Login History feature removed
-        // var todayLogins = await _context.LoginHistories
-        //     .Where(lh => lh.LoginTime.Date == today && lh.IsSuccessful)
-        //     .Select(lh => lh.UserId)
-        //     .Distinct()
-        //     .CountAsync();
-
-        // var suspiciousLogins = await _context.LoginHistories
-        //     .Where(lh => lh.IsSuspicious && lh.LoginTime.Date == today)
-        //     .CountAsync();
-
         var summary = new UserManagementSummaryDto
         {
             TotalUsers = users.Count,
@@ -136,14 +125,6 @@ public class UserManagementController : ControllerBase
             .Take(filter.PageSize)
             .ToListAsync();
 
-        // Son giriş bilgilerini al (Login History feature removed)
-        // var userIds = users.Select(u => u.Id).ToList();
-        // var lastLogins = await _context.LoginHistories
-        //     .Where(lh => userIds.Contains(lh.UserId) && lh.IsSuccessful)
-        //     .GroupBy(lh => lh.UserId)
-        //     .Select(g => new { UserId = g.Key, LastLogin = g.Max(lh => lh.LoginTime), LastIp = g.OrderByDescending(lh => lh.LoginTime).First().IpAddress })
-        //     .ToListAsync();
-
         var result = new PagedUserListDto
         {
             TotalCount = totalCount,
@@ -151,7 +132,6 @@ public class UserManagementController : ControllerBase
             PageSize = filter.PageSize,
             Users = users.Select(u =>
             {
-                // var lastLogin = lastLogins.FirstOrDefault(ll => ll.UserId == u.Id);
                 return new UserWithRoleDto
                 {
                     Id = u.Id,

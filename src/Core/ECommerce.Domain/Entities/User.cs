@@ -2,7 +2,7 @@ namespace ECommerce.Domain.Entities
 {
     public class User : BaseEntity, ITenantEntity
     {
-        private User() { }
+        protected User() { }
 
         public int CompanyId { get; private set; }
         public string Username { get; private set; } = string.Empty;
@@ -38,6 +38,20 @@ namespace ECommerce.Domain.Entities
                 LastName = lastName,
                 PhoneNumber = phoneNumber,
                 IsActive = true
+            };
+        }
+
+        public static User CreateSuperAdmin(string email, string passwordHash, string firstName, string lastName)
+        {
+            return new User
+            {
+                Email = email,
+                PasswordHash = passwordHash,
+                FirstName = firstName,
+                LastName = lastName,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
         }
 

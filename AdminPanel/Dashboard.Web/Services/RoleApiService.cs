@@ -25,7 +25,7 @@ public class RoleApiService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[RoleApiService] Error getting roles: {ex.Message}");
+            Console.WriteLine($"Exception caught: {ex.Message}");
             return null;
         }
     }
@@ -39,9 +39,8 @@ public class RoleApiService
         {
             return await _httpClient.GetFromJsonAsync<RoleViewModel>($"api/role/{id}");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[RoleApiService] Error getting role: {ex.Message}");
             return null;
         }
     }

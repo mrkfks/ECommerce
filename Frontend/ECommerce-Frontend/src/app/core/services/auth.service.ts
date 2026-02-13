@@ -49,11 +49,9 @@ export class AuthService {
   }
 
   register(data: RegisterRequest): Observable<AuthResponse> {
-    console.log('Register request data:', data);
     return this.http.post<ApiResponse<AuthResponse>>('/auth/register', data).pipe(
       map(response => response.data),
       tap(response => {
-        console.log('Register response:', response);
         this.handleAuthResponse(response);
       })
     );
@@ -128,7 +126,6 @@ export class AuthService {
       tap(response => console.log('getCurrentUser raw response:', response)),
       map(response => response.data),
       tap(user => {
-        console.log('getCurrentUser mapped user:', user);
         this.currentUserSubject.next(user);
         if (this.isBrowser) {
           localStorage.setItem(this.USER_KEY, JSON.stringify(user));
@@ -184,7 +181,6 @@ export class AuthService {
         // First/Last name might not be in token, leave empty or infer
       }
     } catch (e) {
-      console.error('Token decode error:', e);
     }
 
     // Update simple fields if available in response (override token if better)

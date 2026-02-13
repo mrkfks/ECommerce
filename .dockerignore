@@ -1,0 +1,41 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/.angular/
+
+# Logs
+**/logs/
+**/Logs/
+*.log
+
+# SQLite DB files (production uses PostgreSQL)
+*.db
+*.db-wal
+*.db-shm
+*.db.bak
+
+# Docker
+docker-compose*.yml
+nginx*.conf
+
+# Temp
+.tmp_sql/
+
+# Frontend (built separately)
+Frontend/

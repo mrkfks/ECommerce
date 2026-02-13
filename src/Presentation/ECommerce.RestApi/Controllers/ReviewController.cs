@@ -24,29 +24,21 @@ public class ReviewController : ControllerBase
     [AllowAnonymous] // Giriş yapmış kullanıcılar yorum yapabilir - yetkilendirme metod içinde yapılıyor
     public async Task<IActionResult> Add([FromBody] ReviewFormDto dto)
     {
-        Console.WriteLine($"[ReviewController.Add] Called with ProductId={dto.ProductId}, Rating={dto.Rating}");
         try
         {
             // Token'dan userId al
             var userIdClaim = User.FindFirst("userId")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            Console.WriteLine($"[ReviewController.Add] UserIdClaim={userIdClaim}");
-
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
             {
-                Console.WriteLine("[ReviewController.Add] Unauthorized - no userId");
                 return Unauthorized(new { message = "Yorum yapabilmek için giriş yapmalısınız" });
             }
 
             // CompanyId'yi token'dan al
             var companyIdClaim = User.FindFirst("CompanyId")?.Value;
             int.TryParse(companyIdClaim, out var companyId);
-            Console.WriteLine($"[ReviewController.Add] UserId={userId}, CompanyId={companyId}");
-
             // UserId'den CustomerId bul veya oluştur
             var customer = await _customerService.GetByUserIdAsync(userId);
             var customerId = customer?.Id ?? 0;
-            Console.WriteLine($"[ReviewController.Add] CustomerId={customerId}");
-
             // DTO'yu güncelle
             var reviewDto = dto with
             {
@@ -56,12 +48,10 @@ public class ReviewController : ControllerBase
             };
 
             var review = await _reviewService.AddAsync(reviewDto);
-            Console.WriteLine($"[ReviewController.Add] Review created with Id={review.Id}");
             return Ok(new { id = review.Id, message = "Yorum eklendi" });
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[ReviewController.Add] Error: {ex.Message}");
             return BadRequest(new { message = ex.Message });
         }
     }

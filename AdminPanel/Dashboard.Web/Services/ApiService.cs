@@ -64,26 +64,19 @@ public class ApiService<T> : IApiService<T> where T : class
     {
         try
         {
-            Console.WriteLine($"[ApiService.GetAllAsync] Calling: api/{_endpoint}");
             var response = await _httpClient.GetAsync($"api/{_endpoint}");
-            Console.WriteLine($"[ApiService.GetAllAsync] Status: {response.StatusCode}");
             var content = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"[ApiService.GetAllAsync] Response length: {content?.Length ?? 0}");
-
             if (!response.IsSuccessStatusCode)
             {
-                Console.WriteLine($"[ApiService.GetAllAsync] ERROR - Status: {response.StatusCode}, Content: {content}");
                 return new ECommerce.Application.Responses.ApiResponse<List<T>> { Success = false, Data = new List<T>(), Message = $"API Error: {response.StatusCode}" };
             }
 
             var apiResponse = JsonSerializer.Deserialize<ECommerce.Application.Responses.ApiResponse<List<T>>>(content ?? "{}", _jsonOptions);
-            Console.WriteLine($"[ApiService.GetAllAsync] Deserialized - Success: {apiResponse?.Success}, Count: {apiResponse?.Data?.Count ?? 0}");
             return apiResponse ?? new ECommerce.Application.Responses.ApiResponse<List<T>> { Success = false, Data = new List<T>(), Message = "GetAll failed" };
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[ApiService.GetAllAsync] EXCEPTION: {ex.Message}");
-            return new ECommerce.Application.Responses.ApiResponse<List<T>> { Success = false, Data = new List<T>(), Message = ex.Message };
+            return new ECommerce.Application.Responses.ApiResponse<List<T>> { Success = false, Data = new List<T>(), Message = "An error occurred." };
         }
     }
 
@@ -93,54 +86,43 @@ public class ApiService<T> : IApiService<T> where T : class
     {
         try
         {
-            Console.WriteLine($"[ApiService.GetPagedListAsync] Calling: api/{_endpoint}?pageNumber={pageNumber}&pageSize={pageSize}");
             var response = await _httpClient.GetAsync($"api/{_endpoint}?pageNumber={pageNumber}&pageSize={pageSize}");
-            Console.WriteLine($"[ApiService.GetPagedListAsync] Status: {response.StatusCode}");
-
             if (!response.IsSuccessStatusCode)
             {
-                Console.WriteLine($"[ApiService.GetPagedListAsync] ERROR - Status: {response.StatusCode}");
                 return new ECommerce.Application.Responses.PagedResult<T>();
             }
 
             var content = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"[ApiService.GetPagedListAsync] Response: {content?.Substring(0, Math.Min(500, content?.Length ?? 0))}");
-
             // Try wrapped ApiResponseDto<PagedResult<T>>
             try
             {
-                Console.WriteLine("[ApiService.GetPagedListAsync] Trying wrapped ApiResponseDto<PagedResult<T>>...");
                 var wrapped = JsonSerializer.Deserialize<ECommerce.Application.DTOs.ApiResponseDto<ECommerce.Application.Responses.PagedResult<T>>>(content ?? "{}", _jsonOptions);
-                Console.WriteLine($"[ApiService.GetPagedListAsync] Wrapped result - Success: {wrapped?.Success}, Data is null: {wrapped?.Data == null}, Items count: {wrapped?.Data?.Items?.Count() ?? 0}");
                 if (wrapped?.Success == true && wrapped.Data != null)
                 {
-                    Console.WriteLine($"[ApiService.GetPagedListAsync] Returning wrapped.Data with {wrapped.Data.Items?.Count() ?? 0} items");
                     return wrapped.Data;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"[ApiService.GetPagedListAsync] Wrapped deserialization failed: {ex.Message}");
+                Console.WriteLine("Exception caught.");
             }
 
             // Try direct PagedResult<T>
             try
             {
-                Console.WriteLine("[ApiService.GetPagedListAsync] Trying direct PagedResult<T>...");
                 var result = JsonSerializer.Deserialize<ECommerce.Application.Responses.PagedResult<T>>(content ?? "{}", _jsonOptions);
-                Console.WriteLine($"[ApiService.GetPagedListAsync] Direct result - Items count: {result?.Items?.Count() ?? 0}");
                 return result ?? new ECommerce.Application.Responses.PagedResult<T>();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"[ApiService.GetPagedListAsync] Direct deserialization failed: {ex.Message}");
+                Console.WriteLine("Exception caught.");
             }
 
             return new ECommerce.Application.Responses.PagedResult<T>();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[ApiService] GetPagedListAsync exception: {ex.Message}");
+            Console.WriteLine("Exception caught.");
             return new ECommerce.Application.Responses.PagedResult<T>();
         }
     }
@@ -149,15 +131,11 @@ public class ApiService<T> : IApiService<T> where T : class
     {
         try
         {
-            Console.WriteLine($"[ApiService.GetByIdAsync] Endpoint: {_endpoint}, ID: {id}");
             var response = await _httpClient.GetAsync($"api/{_endpoint}/{id}");
             var content = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"[ApiService.GetByIdAsync] Response: {content}");
-
             var apiResponse = JsonSerializer.Deserialize<ECommerce.Application.Responses.ApiResponse<T>>(content, _jsonOptions);
             if (apiResponse != null)
             {
-                Console.WriteLine($"[ApiService.GetByIdAsync] Deserialized: Success={apiResponse.Success}, Data type={apiResponse.Data?.GetType().Name}");
                 return new ECommerce.Application.Responses.ApiResponse<T?>
                 {
                     Success = apiResponse.Success,
@@ -167,9 +145,9 @@ public class ApiService<T> : IApiService<T> where T : class
             }
             return new ECommerce.Application.Responses.ApiResponse<T?> { Success = false, Data = null, Message = "Not found" };
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return new ECommerce.Application.Responses.ApiResponse<T?> { Success = false, Data = null, Message = ex.Message };
+            return new ECommerce.Application.Responses.ApiResponse<T?> { Success = false, Data = null, Message = "An error occurred." };
         }
     }
 
@@ -177,26 +155,19 @@ public class ApiService<T> : IApiService<T> where T : class
     {
         try
         {
-            Console.WriteLine($"[ApiService.CreateAsync] Calling POST api/{_endpoint}");
             var response = await _httpClient.PostAsJsonAsync($"api/{_endpoint}", entity);
-            Console.WriteLine($"[ApiService.CreateAsync] Status: {response.StatusCode}");
             var content = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"[ApiService.CreateAsync] Response: {content?.Substring(0, Math.Min(500, content?.Length ?? 0))}");
-
             if (!response.IsSuccessStatusCode)
             {
-                Console.WriteLine($"[ApiService.CreateAsync] ERROR - Status: {response.StatusCode}");
                 return new ECommerce.Application.Responses.ApiResponse<T> { Success = false, Message = $"API Error: {response.StatusCode} - {content}" };
             }
 
             var apiResponse = JsonSerializer.Deserialize<ECommerce.Application.Responses.ApiResponse<T>>(content ?? "{}", _jsonOptions);
-            Console.WriteLine($"[ApiService.CreateAsync] Deserialized - Success: {apiResponse?.Success}");
             return apiResponse ?? new ECommerce.Application.Responses.ApiResponse<T> { Success = false, Message = "Create failed" };
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[ApiService.CreateAsync] EXCEPTION: {ex.Message}");
-            return new ECommerce.Application.Responses.ApiResponse<T> { Success = false, Message = ex.Message };
+            return new ECommerce.Application.Responses.ApiResponse<T> { Success = false, Message = "An error occurred." };
         }
     }
 
@@ -209,9 +180,9 @@ public class ApiService<T> : IApiService<T> where T : class
             var apiResponse = JsonSerializer.Deserialize<ECommerce.Application.Responses.ApiResponse<T>>(content, _jsonOptions);
             return apiResponse ?? new ECommerce.Application.Responses.ApiResponse<T> { Success = false, Message = "Update failed" };
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return new ECommerce.Application.Responses.ApiResponse<T> { Success = false, Message = ex.Message };
+            return new ECommerce.Application.Responses.ApiResponse<T> { Success = false, Message = "An error occurred." };
         }
     }
 
@@ -224,14 +195,15 @@ public class ApiService<T> : IApiService<T> where T : class
             var response = await _httpClient.DeleteAsync($"api/{_endpoint}/{id}");
             var content = await response.Content.ReadAsStringAsync();
             var apiResponse = JsonSerializer.Deserialize<ECommerce.Application.Responses.ApiResponse<bool>>(content, _jsonOptions);
-            return apiResponse ?? new ECommerce.Application.Responses.ApiResponse<bool> { Success = false, Message = "Delete failed" };
+            return apiResponse ?? new ECommerce.Application.Responses.ApiResponse<bool> { Success = false, Message = "An error occurred." };
         }
-        catch (Exception ex)
+
+        catch (Exception)
         {
-            return new ECommerce.Application.Responses.ApiResponse<bool> { Success = false, Message = ex.Message };
+            Console.WriteLine("Exception caught.");
+            return new ECommerce.Application.Responses.ApiResponse<bool> { Success = false, Message = "An error occurred." };
         }
     }
-
 
     public async Task<bool> UpdateAsync<TUpdate>(int id, TUpdate entity)
     {
@@ -246,9 +218,9 @@ public class ApiService<T> : IApiService<T> where T : class
             }
             return false;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[ApiService] UpdateAsync<{typeof(TUpdate).Name}> exception: {ex.Message}");
+            Console.WriteLine("Exception caught.");
             return false;
         }
     }
@@ -261,9 +233,9 @@ public class ApiService<T> : IApiService<T> where T : class
             var response = await _httpClient.PostAsJsonAsync(url, payload);
             return response.IsSuccessStatusCode;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[ApiService] PostActionAsync exception: {ex.Message}");
+            Console.WriteLine("Exception caught.");
             return false;
         }
     }
@@ -276,9 +248,9 @@ public class ApiService<T> : IApiService<T> where T : class
             var response = await _httpClient.PutAsJsonAsync(url, payload);
             return response.IsSuccessStatusCode;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[ApiService] PutActionAsync exception: {ex.Message}");
+            Console.WriteLine("Exception caught.");
             return false;
         }
     }
@@ -297,9 +269,9 @@ public class ApiService<T> : IApiService<T> where T : class
             }
             return default;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[ApiService] GetAsync<{typeof(TResponse).Name}> exception: {ex.Message}");
+            Console.WriteLine("Exception caught.");
             return default;
         }
     }
@@ -318,9 +290,8 @@ public class ApiService<T> : IApiService<T> where T : class
             }
             return new List<T>();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[ApiService] GetListAsync exception: {ex.Message}");
             return new List<T>();
         }
     }

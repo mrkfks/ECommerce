@@ -251,7 +251,6 @@ namespace ECommerce.RestApi.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in GetSettings: {ex.Message} \nStack Trace: {ex.StackTrace}");
                 return BadRequest(new { message = "Ayarlar alınırken hata oluştu: " + ex.Message });
             }
         }

@@ -60,9 +60,9 @@ public class DashboardApiService
                 return viewModel;
             }
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"[DashboardApiService] Error fetching KPI: {ex.Message}");
+            // Hata işleme mantığı eklenebilir
             return null;
         }
     }
@@ -182,9 +182,8 @@ public class DashboardApiService
             var response = await _httpClient.GetFromJsonAsync<ApiResponse<SalesKpiVm>>($"api/dashboard/sales{query}");
             return response?.Data;
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"[DashboardApiService] Error fetching sales KPI: {ex.Message}");
             return null;
         }
     }
@@ -200,9 +199,8 @@ public class DashboardApiService
             var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<LowStockProductVm>>>($"api/dashboard/low-stock{query}");
             return response?.Data;
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"[DashboardApiService] Error fetching low stock products: {ex.Message}");
             return null;
         }
     }
@@ -218,9 +216,8 @@ public class DashboardApiService
             var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<ECommerce.Application.DTOs.RevenueTrendDto>>>($"api/dashboard/revenue-trend{query}");
             return response?.Data;
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"[DashboardApiService] Error fetching revenue trend: {ex.Message}");
             return null;
         }
     }
@@ -240,9 +237,8 @@ public class DashboardApiService
             var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<CategorySalesVm>>>($"api/dashboard/category-sales{query}");
             return response?.Data;
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"[DashboardApiService] Error fetching category sales: {ex.Message}");
             return null;
         }
     }
@@ -262,9 +258,8 @@ public class DashboardApiService
             var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<ECommerce.Application.DTOs.CategoryStockDto>>>($"api/dashboard/category-stock{query}");
             return response?.Data;
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"[DashboardApiService] Error fetching category stock: {ex.Message}");
             return null;
         }
     }
@@ -281,9 +276,8 @@ public class DashboardApiService
             var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<ECommerce.Application.DTOs.GeographicDistributionDto>>>($"api/dashboard/geographic-distribution{query}");
             return response?.Data;
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"[DashboardApiService] Error fetching geographic distribution: {ex.Message}");
             return null;
         }
     }
@@ -303,9 +297,8 @@ public class DashboardApiService
             var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<ECommerce.Application.DTOs.AverageCartTrendDto>>>($"api/dashboard/average-cart-trend{query}");
             return response?.Data;
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"[DashboardApiService] Error fetching average cart trend: {ex.Message}");
             return null;
         }
     }
@@ -325,9 +318,8 @@ public class DashboardApiService
             var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<ECommerce.Application.DTOs.OrderStatusDistributionDto>>>($"api/dashboard/order-status-distribution{query}");
             return response?.Data;
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"[DashboardApiService] Error fetching order status distribution: {ex.Message}");
             return null;
         }
     }
@@ -347,9 +339,8 @@ public class DashboardApiService
             var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<ECommerce.Application.DTOs.TopProductDto>>>($"api/dashboard/top-products{query}");
             return response?.Data;
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"[DashboardApiService] Error fetching top products: {ex.Message}");
             return null;
         }
     }

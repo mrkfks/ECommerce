@@ -32,20 +32,6 @@ public class RequestController : ControllerBase
         if (request == null)
             return NotFound();
 
-        // Company filtering logic could be in service or here.
-        // For simplicity, assuming service handles basic retrieval, and controller or service enforces tenancy.
-        // Current Service has GetCompanyRequestsAsync, but GetRequestById is generic.
-        // In previous implementation, GetRequestById didn't check company entitlement except via Context if TenantService was filtering?
-        // But TenantService filters DB queries. If Service uses TenantService logic, it's safer.
-        // My ReviewService implementation used TenantService. RequestService currently DOES NOT use TenantService in my recent edit.
-        // I might want to update RequestService to use TenantService if Requests are tenant-isolated.
-        // Requests usually are for a Company to SuperAdmin?
-        // Step 360: RequestCreateDto has CompanyId.
-        // So Requests belong to Company.
-        // I should probably ensure users can only see their company requests if they are not SuperAdmin.
-        // But existing controller didn't seem to enforce strictly?
-        // Let's stick to what's here for now.
-
         return Ok(request);
     }
 

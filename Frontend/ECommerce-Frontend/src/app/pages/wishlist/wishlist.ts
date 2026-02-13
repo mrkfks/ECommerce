@@ -40,7 +40,6 @@ export class Wishlist implements OnInit, OnDestroy {
     // Then subscribe to changes
     this.wishlistService.wishlist$.pipe(takeUntil(this.destroy$)).subscribe({
       next: (wishlist) => {
-        console.log('Wishlist page received wishlist:', wishlist);
         if (wishlist && wishlist.items) {
           this.wishlistItems = wishlist.items;
           this.isEmpty = this.wishlistItems.length === 0;
@@ -53,7 +52,6 @@ export class Wishlist implements OnInit, OnDestroy {
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('Error in wishlist subscription:', err);
         this.isEmpty = true;
         this.isLoading = false;
         this.totalValue = 0;
@@ -71,7 +69,6 @@ export class Wishlist implements OnInit, OnDestroy {
         this.loadWishlist();
       },
       error: (err) => {
-        console.error('Favorilerden kaldırma hatası:', err);
       }
     });
   }
@@ -88,10 +85,8 @@ export class Wishlist implements OnInit, OnDestroy {
   addToCart(item: WishlistItem): void {
     this.cartService.addToCart(item.productId, 1).pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
-        console.log('Sepete eklendi:', item.productName);
       },
       error: (err) => {
-        console.error('Sepete ekleme hatası:', err);
       }
     });
   }
@@ -107,7 +102,6 @@ export class Wishlist implements OnInit, OnDestroy {
           this.loadWishlist();
         },
         error: (err) => {
-          console.error('Favorileri temizleme hatası:', err);
         }
       });
     }

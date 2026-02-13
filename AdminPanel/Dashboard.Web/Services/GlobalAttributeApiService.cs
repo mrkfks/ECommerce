@@ -21,9 +21,8 @@ public class GlobalAttributeApiService
         {
             return await _httpClient.GetFromJsonAsync<List<GlobalAttributeViewModel>>($"api/{_endpoint}");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[GlobalAttributeApiService] Error: {ex.Message}");
             return null;
         }
     }

@@ -58,8 +58,6 @@ builder.Host.UseSerilog();
 var dashboardCorsOrigins = (Environment.GetEnvironmentVariable("DASHBOARD_CORS_ALLOWED_ORIGINS")
     ?? "https://your-frontend-onrender.com,http://localhost:3000")
     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-Console.WriteLine($"🔗 API Base URL: {apiBaseUrl}");
 Log.Information($"[Startup] API Base URL: {apiBaseUrl}");
 
 // Add services to the container
@@ -308,9 +306,6 @@ var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER")
 var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE")
     ?? builder.Configuration["Jwt:Audience"]
     ?? "ECommerce.Client";
-
-Console.WriteLine($"🔐 JWT configured - Issuer: {jwtIssuer}, Audience: {jwtAudience}");
-
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -416,10 +411,8 @@ try
 {
     app.Run();
 }
-catch (Exception ex)
+catch (Exception)
 {
-    Console.WriteLine($"Uygulama başlatma hatası: {ex.Message}");
-    Console.WriteLine($"Stack Trace: {ex.StackTrace}");
     throw;
 }
 

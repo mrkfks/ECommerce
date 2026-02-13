@@ -13,16 +13,62 @@ const app = express();
 const angularApp = new AngularNodeAppEngine();
 
 /**
- * Example Express Rest API endpoints can be defined here.
- * Uncomment and define endpoints as necessary.
- *
- * Example:
- * ```ts
- * app.get('/api/{*splat}', (req, res) => {
- *   // Handle API request
- * });
- * ```
+ * Reverse proxy: /api ve /uploads isteklerini backend API'ye yönlendir.
+ * Render.com'da API_URL env olarak ayarlanır (ör. https://ecommerce-api.onrender.com)
  */
+const API_URL = process.env['API_URL'] || 'http://localhost:5010';
+
+app.use('/api', async (req, res) => {
+  const targetUrl = `${API_URL}/api${req.url}`;
+  try {
+    const headers: Record<string, string> = {};
+    for (const [key, value] of Object.entries(req.headers)) {
+      if (value && key !== 'host' && key !== 'connection') {
+        headers[key] = Array.isArray(value) ? value.join(', ') : value;
+      }
+    }
+
+    let body: string | undefined;
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      body = await new Promise<string>((resolve) => {
+        let data = '';
+        req.on('data', (chunk: Buffer) => (data += chunk.toString()));
+        req.on('end', () => resolve(data));
+      });
+    }
+
+    const fetchRes = await fetch(targetUrl, {
+      method: req.method,
+      headers,
+      body: body || undefined,
+    });
+
+    res.status(fetchRes.status);
+    fetchRes.headers.forEach((value, key) => {
+      if (key !== 'transfer-encoding') res.setHeader(key, value);
+    });
+    const responseBody = await fetchRes.arrayBuffer();
+    res.send(Buffer.from(responseBody));
+  } catch (err) {
+    console.error('[proxy] Error forwarding to API:', err);
+    res.status(502).json({ error: 'API proxy error' });
+  }
+});
+
+app.use('/uploads', async (req, res) => {
+  const targetUrl = `${API_URL}/uploads${req.url}`;
+  try {
+    const fetchRes = await fetch(targetUrl);
+    res.status(fetchRes.status);
+    fetchRes.headers.forEach((value, key) => {
+      if (key !== 'transfer-encoding') res.setHeader(key, value);
+    });
+    const data = await fetchRes.arrayBuffer();
+    res.send(Buffer.from(data));
+  } catch {
+    res.status(502).json({ error: 'Upload proxy error' });
+  }
+});
 
 /**
  * Serve static files from /browser
@@ -57,8 +103,6 @@ if (isMainModule(import.meta.url) || process.env['pm_id']) {
     if (error) {
       throw error;
     }
-
-    console.log(`Node Express server listening on http://localhost:${port}`);
   });
 }
 

@@ -74,15 +74,11 @@ export class Register {
 
     this.isLoading = true;
     this.error = null;
-
-    console.log('Submitting form data:', this.formData);
     this.authService.register(this.formData).subscribe({
       next: () => {
-        console.log('Register successful');
         this.router.navigate(['/login']); // Redirect to login after registration
       },
       error: (err) => {
-        console.error('Register error:', err);
         this.isLoading = false;
 
         // Backend returns GlobalExceptionHandlerMiddleware format: { status, title, detail, ... }

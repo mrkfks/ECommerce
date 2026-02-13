@@ -40,10 +40,12 @@ RUN chown -R appuser:appuser /app
 USER appuser
 
 # Ortam değişkenleri
-ENV ASPNETCORE_URLS=http://+:5001
 ENV ASPNETCORE_ENVIRONMENT=Production
 
-# Render üzerinde port eşleşmesi için EXPOSE önemli
-EXPOSE 5001
+# Render dinamik PORT kullanır; yoksa 5001 varsayılan
+ENV PORT=5001
+ENV ASPNETCORE_URLS=http://+:${PORT}
+
+EXPOSE ${PORT}
 
 ENTRYPOINT ["dotnet", "Dashboard.Web.dll"]

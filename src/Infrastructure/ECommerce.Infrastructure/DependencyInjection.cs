@@ -16,15 +16,28 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // DbContext
-        services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlite(
-                configuration.GetConnectionString("DefaultConnection"),
-                b => b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
-            .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning)));
+        // DbContext — connection string'e göre PostgreSQL veya SQLite seç
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
+                               ?? "Data Source=ECommerce.db";
 
-        // IApplicationDbContext for direct query access
-        services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<AppDbContext>());
+        services.AddDbContext<AppDbContext>(options =>
+        {
+            if (connectionString.Contains("Host=", StringComparison.OrdinalIgnoreCase)
+                || connectionString.Contains("postgresql", StringComparison.OrdinalIgnoreCase)
+                || connectionString.Contains("postgres", StringComparison.OrdinalIgnoreCase))
+            {
+                options.UseNpgsql(connectionString,
+                    b => b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName));
+            }
+            else
+            {
+                options.UseSqlite(connectionString,
+                    b => b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName));
+            }
+
+            options.ConfigureWarnings(w =>
+                w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+        });
 
         // Repositories
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -51,7 +64,6 @@ public static class DependencyInjection
         services.AddScoped<IBannerService, BannerService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<ITenantService, TenantService>();
-        services.AddScoped<IImageService, ImageService>();
         services.AddScoped<IFileUploadService, FileUploadService>(provider =>
         {
             var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");

@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { ProductCard } from '../../components/product-card/product-card';
 import { CampaignCarouselComponent } from '../../components/campaign-carousel/campaign-carousel.component';
 import { Category, Product } from '../../core/models';
-import { BannerService, CartService, CategoryService, ProductService, ImageUrlService, WishlistService } from '../../core/services';
+import { BannerService, CartService, CategoryService, ProductService, WishlistService } from '../../core/services';
 import { Subject, takeUntil } from 'rxjs';
 
 interface Banner {
@@ -31,7 +31,6 @@ export class Home implements OnInit, OnDestroy {
   private cartService = inject(CartService);
   private wishlistService = inject(WishlistService);
   private bannerService = inject(BannerService);
-  private imageUrlService = inject(ImageUrlService);
   private platformId = inject(PLATFORM_ID);
 
   banners: Banner[] = [];
@@ -98,7 +97,6 @@ export class Home implements OnInit, OnDestroy {
         }));
       },
       error: (err) => {
-        console.error('Kategoriler yüklenemedi:', err);
         // Fallback to mock data
         this.categories = [
           { id: 1, name: 'Elektronik', icon: 'bi-laptop', productCount: 245, createdAt: new Date() },
@@ -128,21 +126,18 @@ export class Home implements OnInit, OnDestroy {
         }
 
         if (!Array.isArray(products)) {
-          console.error('Products is not an array:', products);
           this.error = 'Ürünler yüklenirken bir hata oluştu.';
           this.isLoading = false;
           return;
         }
-        const mappedProducts = products.map(p => this.mapProduct(p)).filter(p => p.isActive);
+        const mappedProducts = products.map(p => this.productService.mapProduct(p)).filter(p => p.isActive);
         this.featuredProducts = mappedProducts.slice(0, 4);
         this.newProducts = mappedProducts.filter(p => p.isNew).slice(0, 4);
         this.bestSellers = mappedProducts.slice(0, 4);
         this.isLoading = false;
       },
-      error: (err) => {
-        console.error('Ürünler yüklenemedi:', err);
+      error: () => {
         this.error = 'Ürünler yüklenirken bir hata oluştu.';
-        this.loadMockProducts();
         this.isLoading = false;
       }
     });
@@ -159,90 +154,16 @@ export class Home implements OnInit, OnDestroy {
           products = responseData;
         }
         if (!Array.isArray(products)) {
-          console.error('All products is not an array:', products);
           return;
         }
-        const mapped = products.map(p => this.mapProduct(p)).filter(p => p.isActive);
+        const mapped = products.map(p => this.productService.mapProduct(p)).filter(p => p.isActive);
         this.allProducts = mapped;
       },
       error: (err) => {
-        console.error('Tüm ürünler yüklenemedi:', err);
         // fallback to bestSellers if available
         this.allProducts = this.bestSellers.slice();
       }
     });
-  }
-
-  private mapProduct(apiProduct: any): Product {
-    return {
-      id: apiProduct.id,
-      name: apiProduct.name,
-      description: apiProduct.description || '',
-      price: apiProduct.price,
-      originalPrice: apiProduct.originalPrice,
-      imageUrl: this.imageUrlService.normalize(apiProduct.imageUrl),
-      images: this.imageUrlService.normalizeImages(apiProduct.images || []),
-      categoryId: apiProduct.categoryId,
-      categoryName: apiProduct.categoryName,
-      brandId: apiProduct.brandId,
-      brandName: apiProduct.brandName,
-      companyId: apiProduct.companyId,
-      stockQuantity: apiProduct.stockQuantity || 0,
-      rating: apiProduct.rating || 0,
-      reviewCount: apiProduct.reviewCount || 0,
-      isNew: apiProduct.isNew || false,
-      discount: apiProduct.discount,
-      isActive: apiProduct.isActive || false,
-      inStock: (apiProduct.stockQuantity || 0) > 0,
-      createdAt: new Date(apiProduct.createdAt)
-    };
-  }
-
-  private loadMockProducts(): void {
-    const sampleProducts: Product[] = [
-      {
-        id: 1,
-        name: 'Kablosuz Kulaklık Pro',
-        description: 'Aktif gürültü engelleme, 30 saat pil ömrü',
-        price: 1299.99,
-        originalPrice: 1599.99,
-        imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop',
-        categoryId: 1, brandId: 1, companyId: 1, stockQuantity: 50,
-        rating: 4.5, reviewCount: 128, isNew: true, discount: 20, isActive: true, inStock: true, createdAt: new Date()
-      },
-      {
-        id: 2,
-        name: 'Akıllı Saat Ultra',
-        description: 'GPS, kalp atışı sensörü, su geçirmez',
-        price: 2499.99,
-        imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=300&fit=crop',
-        categoryId: 1, brandId: 1, companyId: 1, stockQuantity: 30,
-        rating: 4.8, reviewCount: 256, isActive: true, inStock: true, createdAt: new Date()
-      },
-      {
-        id: 3,
-        name: 'Spor Ayakkabı',
-        description: 'Hafif ve konforlu, koşu için ideal',
-        price: 899.99,
-        originalPrice: 1199.99,
-        imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=300&fit=crop',
-        categoryId: 2, brandId: 2, companyId: 1, stockQuantity: 100,
-        rating: 4.3, reviewCount: 89, discount: 25, isActive: true, inStock: true, createdAt: new Date()
-      },
-      {
-        id: 4,
-        name: 'Laptop Stand',
-        description: 'Ergonomik tasarım, alüminyum gövde',
-        price: 349.99,
-        imageUrl: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400&h=300&fit=crop',
-        categoryId: 1, brandId: 3, companyId: 1, stockQuantity: 75,
-        rating: 4.6, reviewCount: 67, isNew: true, isActive: true, inStock: true, createdAt: new Date()
-      }
-    ];
-
-    this.featuredProducts = sampleProducts;
-    this.newProducts = sampleProducts.filter(p => p.isNew);
-    this.bestSellers = sampleProducts;
   }
 
   private getCategoryIcon(name: string): string {

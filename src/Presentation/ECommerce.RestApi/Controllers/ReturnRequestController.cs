@@ -44,9 +44,6 @@ public class ReturnRequestController : ControllerBase
         catch (Exception ex)
         {
             // Hata mesajını log'la
-            Console.WriteLine($"[Create] Error: {ex.Message}");
-            Console.WriteLine($"[Create] Stack: {ex.StackTrace}");
-
             return BadRequest(new { message = ex.Message });
         }
     }
@@ -90,32 +87,16 @@ public class ReturnRequestController : ControllerBase
     }
 
     [HttpGet]
-    [AllowAnonymous]
+    [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
     public async Task<IActionResult> GetAll()
     {
-        // Admin bypass header kontrolü (dashboard.web istekleri için)
-        var adminBypass = Request.Headers.ContainsKey("X-Admin-Bypass");
-
-        // Bypass header varsa izin ver
-        if (adminBypass)
+        var returnRequests = await _returnRequestService.GetAllAsync();
+        return Ok(new ApiResponseDto<IReadOnlyList<ReturnRequestDto>>
         {
-            var returnRequests = await _returnRequestService.GetAllAsync();
-
-            Console.WriteLine($"[API] GetAll() called. Returning {returnRequests.Count} requests");
-            foreach (var req in returnRequests)
-            {
-                Console.WriteLine($"[API]   - {req.Id}: {req.CustomerName} | Order {req.OrderId} | {req.ProductName}");
-            }
-
-            return Ok(new ApiResponseDto<IReadOnlyList<ReturnRequestDto>>
-            {
-                Success = true,
-                Data = returnRequests,
-                Message = "İade talepleri başarıyla getirildi"
-            });
-        }
-
-        return Unauthorized();
+            Success = true,
+            Data = returnRequests,
+            Message = "İade talepleri başarıyla getirildi"
+        });
     }
 
     [HttpGet("pending")]
@@ -132,7 +113,7 @@ public class ReturnRequestController : ControllerBase
     }
 
     [HttpPut("{id}/status")]
-    [AllowAnonymous]
+    [Authorize(Roles = "CompanyAdmin,SuperAdmin")]
     public async Task<IActionResult> UpdateStatus(int id, UpdateReturnRequestDto dto)
     {
         try
@@ -156,39 +137,4 @@ public class ReturnRequestController : ControllerBase
         }
     }
 
-    // TEST: Hızlı test veri eklemek için (development only - sil production'da!)
-    [HttpPost("test/seed-data")]
-    [AllowAnonymous]
-    public async Task<IActionResult> SeedTestData()
-    {
-        try
-        {
-            var testRequest = new CreateReturnRequestDto
-            {
-                OrderId = 1,
-                OrderItemId = 1,
-                ProductId = 1,
-                Quantity = 1,
-                Reason = "Test: Ürün hasarlı",
-                Comments = "Test veri"
-            };
-
-            var result = await _returnRequestService.CreateAsync(testRequest, 1);
-            return Ok(new ApiResponseDto<ReturnRequestDto>
-            {
-                Success = true,
-                Data = result,
-                Message = "Test datası başarıyla oluşturuldu"
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new ApiResponseDto<object>
-            {
-                Success = false,
-                Data = null,
-                Message = $"Error: {ex.Message} | Inner: {ex.InnerException?.Message}"
-            });
-        }
-    }
 }

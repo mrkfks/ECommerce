@@ -202,8 +202,19 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<AppDbContext>();
-        await context.Database.MigrateAsync();
-        logger.LogInformation("✅ Database migrations completed");
+
+        // PostgreSQL kullanılıyorsa EnsureCreated (migration'lar SQLite'a özgü),
+        // SQLite kullanılıyorsa MigrateAsync
+        if (context.Database.ProviderName?.Contains("Npgsql", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            await context.Database.EnsureCreatedAsync();
+            logger.LogInformation("✅ PostgreSQL database schema created (EnsureCreated)");
+        }
+        else
+        {
+            await context.Database.MigrateAsync();
+            logger.LogInformation("✅ Database migrations completed");
+        }
 
         // ========== SUPER ADMIN SEED ==========
         // Önce Company var mı kontrol et, yoksa oluştur
@@ -359,193 +370,196 @@ using (var scope = app.Services.CreateScope())
         }
         // ========== SUPER ADMIN SEED END ==========
 
-        // ========== TEST DATA SEED ==========
-        logger.LogInformation("🔍 Starting test data seed...");
-        // Test kategorisi ve markası
-        logger.LogInformation("🔍 Checking for Electronics category...");
-        var testCategoryExists = await context.Categories.FirstOrDefaultAsync(c => c.Name == "Electronics");
-        logger.LogInformation("🔍 Category check result: {Result}", testCategoryExists == null ? "Not found" : "Found");
-        var testCategory = testCategoryExists ?? ECommerce.Domain.Entities.Category.Create(
-            name: "Electronics",
-            description: "Electronic products",
-            imageUrl: null,
-            companyId: systemCompany.Id
-        );
-        if (testCategoryExists == null)
+        // ========== TEST DATA SEED (Development Only) ==========
+        if (app.Environment.IsDevelopment())
         {
-            testCategory.Activate();
-            context.Categories.Add(testCategory);
-            await context.SaveChangesAsync();
-            logger.LogInformation("✅ Category 'Electronics' created");
-        }
-
-        logger.LogInformation("🔍 Checking for TechBrand brand...");
-        var testBrandExists = await context.Brands.FirstOrDefaultAsync(b => b.Name == "TechBrand");
-        logger.LogInformation("🔍 Brand check result: {Result}", testBrandExists == null ? "Not found" : "Found");
-        var testBrand = testBrandExists ?? ECommerce.Domain.Entities.Brand.Create(
-            name: "TechBrand",
-            description: "Technology brand",
-            companyId: systemCompany.Id
-        );
-        if (testBrandExists == null)
-        {
-            context.Brands.Add(testBrand);
-            await context.SaveChangesAsync();
-            logger.LogInformation("✅ Brand 'TechBrand' created");
-        }
-
-        // Test ürünleri
-        logger.LogInformation("🔍 Checking for test products...");
-        try
-        {
-            var productsCount = await context.Products.AsNoTracking().CountAsync();
-            logger.LogInformation("🔍 Product count: {Count}", productsCount);
-            if (productsCount == 0)
+            logger.LogInformation("🔍 Starting test data seed...");
+            // Test kategorisi ve markası
+            logger.LogInformation("🔍 Checking for Electronics category...");
+            var testCategoryExists = await context.Categories.FirstOrDefaultAsync(c => c.Name == "Electronics");
+            logger.LogInformation("🔍 Category check result: {Result}", testCategoryExists == null ? "Not found" : "Found");
+            var testCategory = testCategoryExists ?? ECommerce.Domain.Entities.Category.Create(
+                name: "Electronics",
+                description: "Electronic products",
+                imageUrl: null,
+                companyId: systemCompany.Id
+            );
+            if (testCategoryExists == null)
             {
-                var testProducts = new[]
+                testCategory.Activate();
+                context.Categories.Add(testCategory);
+                await context.SaveChangesAsync();
+                logger.LogInformation("✅ Category 'Electronics' created");
+            }
+
+            logger.LogInformation("🔍 Checking for TechBrand brand...");
+            var testBrandExists = await context.Brands.FirstOrDefaultAsync(b => b.Name == "TechBrand");
+            logger.LogInformation("🔍 Brand check result: {Result}", testBrandExists == null ? "Not found" : "Found");
+            var testBrand = testBrandExists ?? ECommerce.Domain.Entities.Brand.Create(
+                name: "TechBrand",
+                description: "Technology brand",
+                companyId: systemCompany.Id
+            );
+            if (testBrandExists == null)
+            {
+                context.Brands.Add(testBrand);
+                await context.SaveChangesAsync();
+                logger.LogInformation("✅ Brand 'TechBrand' created");
+            }
+
+            // Test ürünleri
+            logger.LogInformation("🔍 Checking for test products...");
+            try
+            {
+                var productsCount = await context.Products.AsNoTracking().CountAsync();
+                logger.LogInformation("🔍 Product count: {Count}", productsCount);
+                if (productsCount == 0)
                 {
+                    var testProducts = new[]
+                    {
                     ECommerce.Domain.Entities.Product.Create("Laptop", "High-performance laptop", 5000m, testCategory.Id, testBrand.Id, systemCompany.Id, 10),
                     ECommerce.Domain.Entities.Product.Create("Mouse", "Wireless mouse", 150m, testCategory.Id, testBrand.Id, systemCompany.Id, 50),
                     ECommerce.Domain.Entities.Product.Create("Keyboard", "Mechanical keyboard", 300m, testCategory.Id, testBrand.Id, systemCompany.Id, 30),
                     ECommerce.Domain.Entities.Product.Create("Monitor", "4K Monitor", 2000m, testCategory.Id, testBrand.Id, systemCompany.Id, 20),
                     ECommerce.Domain.Entities.Product.Create("Headphones", "Bluetooth headphones", 500m, testCategory.Id, testBrand.Id, systemCompany.Id, 60)
                 };
-                context.Products.AddRange(testProducts);
-                await context.SaveChangesAsync();
-                logger.LogInformation("✅ Test products created");
-            }
-        }
-        catch (Exception pex)
-        {
-            logger.LogError(pex, "❌ Error during product seed: {Message}", pex.Message);
-        }
-
-        // Test müşteriler ve adresler
-        logger.LogInformation("🔍 Checking for test customers...");
-        var customersCount = await context.Users.Where(u => u.UserRoles.Any(ur => ur.Role != null && ur.Role.Name == "Customer")).CountAsync();
-        logger.LogInformation("🔍 Customers count: {Count}", customersCount);
-        if (customersCount == 0)
-        {
-            for (int i = 1; i <= 5; i++)
-            {
-                var customerEmail = $"customer{i}@test.com";
-                var customerExists = await context.Users.FirstOrDefaultAsync(u => u.Email == customerEmail);
-
-                if (customerExists == null)
-                {
-                    var passwordHash = BCrypt.Net.BCrypt.HashPassword("Test123!");
-                    var customer = ECommerce.Domain.Entities.User.Create(
-                        companyId: systemCompany.Id,
-                        username: $"customer{i}",
-                        email: customerEmail,
-                        passwordHash: passwordHash,
-                        firstName: $"Test",
-                        lastName: $"Customer{i}"
-                    );
-                    context.Users.Add(customer);
+                    context.Products.AddRange(testProducts);
                     await context.SaveChangesAsync();
-
-                    var customerRoleEntry = ECommerce.Domain.Entities.UserRole.Create(customer.Id, customerRole.Id, "Customer");
-                    context.UserRoles.Add(customerRoleEntry);
-                    await context.SaveChangesAsync();
-
-                    // Müşteri (Customer) kaydı oluştur
-                    var dbCustomer = ECommerce.Domain.Entities.Customer.Create(
-                        companyId: systemCompany.Id,
-                        firstName: $"Test",
-                        lastName: $"Customer{i}",
-                        email: customerEmail,
-                        phoneNumber: $"05550000{i:D3}",
-                        dateOfBirth: DateTime.UtcNow.AddYears(-30),
-                        userId: customer.Id
-                    );
-                    context.Customers.Add(dbCustomer);
-                    await context.SaveChangesAsync();
-
-                    // Address oluştur
-                    var address = ECommerce.Domain.Entities.Address.Create(
-                        customerId: dbCustomer.Id,
-                        street: $"Test Street {i}",
-                        city: "Istanbul",
-                        state: "Istanbul",
-                        zipCode: $"3400{i}",
-                        country: "Turkey"
-                    );
-                    context.Addresses.Add(address);
-                    await context.SaveChangesAsync();
+                    logger.LogInformation("✅ Test products created");
                 }
             }
-            logger.LogInformation("✅ Test customers created");
-        }
-
-        // Test siparişleri
-        logger.LogInformation("🔍 Checking for test orders...");
-        var ordersCount = await context.Orders.CountAsync();
-        logger.LogInformation("🔍 Orders count: {Count}", ordersCount);
-        if (ordersCount == 0)
-        {
-            var customers = await context.Customers
-                .Include(c => c.Addresses)
-                .Take(3)
-                .ToListAsync();
-            var products = await context.Products.Take(3).ToListAsync();
-
-            foreach (var customer in customers)
+            catch (Exception pex)
             {
-                if (products.Count > 0 && customer.Addresses != null && customer.Addresses.Count > 0)
-                {
-                    var address = customer.Addresses.First();
-                    var order = ECommerce.Domain.Entities.Order.Create(
-                        customerId: customer.Id,
-                        addressId: address.Id,
-                        companyId: systemCompany.Id
-                    );
-                    context.Orders.Add(order);
-                    await context.SaveChangesAsync();
+                logger.LogError(pex, "❌ Error during product seed: {Message}", pex.Message);
+            }
 
-                    // Order items ekle
-                    decimal totalAmount = 0;
-                    foreach (var product in products)
+            // Test müşteriler ve adresler
+            logger.LogInformation("🔍 Checking for test customers...");
+            var customersCount = await context.Users.Where(u => u.UserRoles.Any(ur => ur.Role != null && ur.Role.Name == "Customer")).CountAsync();
+            logger.LogInformation("🔍 Customers count: {Count}", customersCount);
+            if (customersCount == 0)
+            {
+                for (int i = 1; i <= 5; i++)
+                {
+                    var customerEmail = $"customer{i}@test.com";
+                    var customerExists = await context.Users.FirstOrDefaultAsync(u => u.Email == customerEmail);
+
+                    if (customerExists == null)
                     {
-                        var orderItem = ECommerce.Domain.Entities.OrderItem.Create(
-                            productId: product.Id,
-                            quantity: 2,
-                            unitPrice: product.Price
+                        var passwordHash = BCrypt.Net.BCrypt.HashPassword("Test123!");
+                        var customer = ECommerce.Domain.Entities.User.Create(
+                            companyId: systemCompany.Id,
+                            username: $"customer{i}",
+                            email: customerEmail,
+                            passwordHash: passwordHash,
+                            firstName: $"Test",
+                            lastName: $"Customer{i}"
                         );
-                        order.Items.Add(orderItem);
-                        totalAmount += product.Price * 2;
+                        context.Users.Add(customer);
+                        await context.SaveChangesAsync();
+
+                        var customerRoleEntry = ECommerce.Domain.Entities.UserRole.Create(customer.Id, customerRole.Id, "Customer");
+                        context.UserRoles.Add(customerRoleEntry);
+                        await context.SaveChangesAsync();
+
+                        // Müşteri (Customer) kaydı oluştur
+                        var dbCustomer = ECommerce.Domain.Entities.Customer.Create(
+                            companyId: systemCompany.Id,
+                            firstName: $"Test",
+                            lastName: $"Customer{i}",
+                            email: customerEmail,
+                            phoneNumber: $"05550000{i:D3}",
+                            dateOfBirth: DateTime.UtcNow.AddYears(-30),
+                            userId: customer.Id
+                        );
+                        context.Customers.Add(dbCustomer);
+                        await context.SaveChangesAsync();
+
+                        // Address oluştur
+                        var address = ECommerce.Domain.Entities.Address.Create(
+                            customerId: dbCustomer.Id,
+                            street: $"Test Street {i}",
+                            city: "Istanbul",
+                            state: "Istanbul",
+                            zipCode: $"3400{i}",
+                            country: "Turkey"
+                        );
+                        context.Addresses.Add(address);
+                        await context.SaveChangesAsync();
                     }
-
-                    // OrderItem'ler eklendikten sonra UpdateTotalAmount metodu çağır
-                    order.GetType().GetProperty("TotalAmount",
-                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                        ?.SetValue(order, totalAmount);
-
-                    await context.SaveChangesAsync();
                 }
+                logger.LogInformation("✅ Test customers created");
             }
-            logger.LogInformation("✅ Test orders created");
-        }
 
-        // Test kampanyaları
-        logger.LogInformation("🔍 Checking for test campaigns...");
-        var campaignsCount = await context.Campaigns.CountAsync();
-        logger.LogInformation("🔍 Campaigns count: {Count}", campaignsCount);
-        if (campaignsCount == 0)
-        {
-            var campaign = ECommerce.Domain.Entities.Campaign.Create(
-                name: "Yılbaşı Kampanyası",
-                discountPercent: 25,
-                startDate: DateTime.UtcNow.AddDays(-5),
-                endDate: DateTime.UtcNow.AddDays(25),
-                companyId: systemCompany.Id,
-                description: "Tüm ürünlerde %25 indirim"
-            );
-            context.Campaigns.Add(campaign);
-            await context.SaveChangesAsync();
-            logger.LogInformation("✅ Test campaign created");
-        }
-        // ========== TEST DATA SEED END ==========
+            // Test siparişleri
+            logger.LogInformation("🔍 Checking for test orders...");
+            var ordersCount = await context.Orders.CountAsync();
+            logger.LogInformation("🔍 Orders count: {Count}", ordersCount);
+            if (ordersCount == 0)
+            {
+                var customers = await context.Customers
+                    .Include(c => c.Addresses)
+                    .Take(3)
+                    .ToListAsync();
+                var products = await context.Products.Take(3).ToListAsync();
+
+                foreach (var customer in customers)
+                {
+                    if (products.Count > 0 && customer.Addresses != null && customer.Addresses.Count > 0)
+                    {
+                        var address = customer.Addresses.First();
+                        var order = ECommerce.Domain.Entities.Order.Create(
+                            customerId: customer.Id,
+                            addressId: address.Id,
+                            companyId: systemCompany.Id
+                        );
+                        context.Orders.Add(order);
+                        await context.SaveChangesAsync();
+
+                        // Order items ekle
+                        decimal totalAmount = 0;
+                        foreach (var product in products)
+                        {
+                            var orderItem = ECommerce.Domain.Entities.OrderItem.Create(
+                                productId: product.Id,
+                                quantity: 2,
+                                unitPrice: product.Price
+                            );
+                            order.Items.Add(orderItem);
+                            totalAmount += product.Price * 2;
+                        }
+
+                        // OrderItem'ler eklendikten sonra UpdateTotalAmount metodu çağır
+                        order.GetType().GetProperty("TotalAmount",
+                            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                            ?.SetValue(order, totalAmount);
+
+                        await context.SaveChangesAsync();
+                    }
+                }
+                logger.LogInformation("✅ Test orders created");
+            }
+
+            // Test kampanyaları
+            logger.LogInformation("🔍 Checking for test campaigns...");
+            var campaignsCount = await context.Campaigns.CountAsync();
+            logger.LogInformation("🔍 Campaigns count: {Count}", campaignsCount);
+            if (campaignsCount == 0)
+            {
+                var campaign = ECommerce.Domain.Entities.Campaign.Create(
+                    name: "Yılbaşı Kampanyası",
+                    discountPercent: 25,
+                    startDate: DateTime.UtcNow.AddDays(-5),
+                    endDate: DateTime.UtcNow.AddDays(25),
+                    companyId: systemCompany.Id,
+                    description: "Tüm ürünlerde %25 indirim"
+                );
+                context.Campaigns.Add(campaign);
+                await context.SaveChangesAsync();
+                logger.LogInformation("✅ Test campaign created");
+            }
+            // ========== TEST DATA SEED END ==========
+        } // end IsDevelopment check
     }
     catch (Exception ex)
     {

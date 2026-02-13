@@ -27,9 +27,8 @@ public class BrandApiService
             var response = await _httpClient.GetFromJsonAsync<ApiResponseDto<List<BrandViewModel>>>($"api/{_endpoint}");
             return response?.Data;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[BrandApiService] Error: {ex.Message}");
             return null;
         }
     }
@@ -55,7 +54,7 @@ public class BrandApiService
             _logger.LogWarning("[BrandApiService.CreateAsync] Auth header: {Auth}", _httpClient.DefaultRequestHeaders.Authorization);
             _logger.LogWarning("[BrandApiService.CreateAsync] Body: Name={Name}, Desc={Desc}, IsActive={IsActive}, CompanyId={CompanyId}",
                 brand.Name, brand.Description, brand.IsActive, brand.CompanyId);
-            
+
             // API BrandFormDto formatında gönder
             var formDto = new
             {
@@ -66,13 +65,13 @@ public class BrandApiService
                 ImageUrl = (string?)null,
                 CategoryId = (int?)null
             };
-            
+
             var json = JsonSerializer.Serialize(formDto);
             _logger.LogWarning("[BrandApiService.CreateAsync] JSON body: {Json}", json);
-            
+
             var response = await _httpClient.PostAsJsonAsync($"api/{_endpoint}", formDto);
             _logger.LogWarning("[BrandApiService.CreateAsync] Response status: {Status}", response.StatusCode);
-            
+
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
@@ -95,18 +94,16 @@ public class BrandApiService
     {
         try
         {
-            Console.WriteLine($"[BrandApiService.UpdateAsync] Sending request to api/{_endpoint}/{brand.Id}");
             var response = await _httpClient.PutAsJsonAsync($"api/{_endpoint}/{brand.Id}", brand);
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"[BrandApiService.UpdateAsync] Error {response.StatusCode}: {errorContent}");
             }
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[BrandApiService.UpdateAsync] Exception: {ex.Message}\n{ex.StackTrace}");
+            Console.WriteLine($"Exception caught: {ex.Message}");
             return false;
         }
     }
@@ -118,8 +115,9 @@ public class BrandApiService
             var response = await _httpClient.DeleteAsync($"api/{_endpoint}/{id}");
             return response.IsSuccessStatusCode;
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"Exception caught: {ex.Message}");
             return false;
         }
     }

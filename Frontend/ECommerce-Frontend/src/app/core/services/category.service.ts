@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map, shareReplay } from 'rxjs';
-import { Category, CategoryCreateRequest, ApiResponse } from '../models';
+import { Category, ApiResponse } from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -33,7 +33,7 @@ export class CategoryService {
     );
   }
 
-  create(category: CategoryCreateRequest): Observable<Category> {
+  create(category: any): Observable<Category> {
     return this.http.post<Category | ApiResponse<Category>>(this.basePath, category).pipe(
       map((response: any) => ('data' in response ? response.data : response))
     );

@@ -65,3 +65,14 @@ node_modules/
 **/build_log_*.txt
 logs/archived_build_logs/
 *.binlog
+
+# Temp & debug files
+**/tmp_*.html
+**/build_output.txt
+**/api_response*.json
+
+# Data Protection keys
+**/keys/*.xml
+
+# Serilog logs (json)
+**/logs/*.json

@@ -27,9 +27,8 @@ public class NotificationApiService
             var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<NotificationDto>>>("api/notifications");
             return response?.Data;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[NotificationApiService] GetAllAsync Error: {ex.Message}");
             return null;
         }
     }
@@ -56,9 +55,8 @@ public class NotificationApiService
             }
             return null;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[NotificationApiService] GetSummaryAsync Error: {ex.Message}");
             return null;
         }
     }
@@ -73,9 +71,8 @@ public class NotificationApiService
             var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<NotificationDto>>>("api/notifications/unread");
             return response?.Data;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[NotificationApiService] GetUnreadAsync Error: {ex.Message}");
             return null;
         }
     }
@@ -90,9 +87,8 @@ public class NotificationApiService
             var response = await _httpClient.GetFromJsonAsync<ApiResponse<NotificationDto>>($"api/notifications/{id}");
             return response?.Data;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[NotificationApiService] GetByIdAsync Error: {ex.Message}");
             return null;
         }
     }
@@ -107,9 +103,8 @@ public class NotificationApiService
             var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<NotificationDto>>>($"api/notifications/by-type/{type}");
             return response?.Data;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[NotificationApiService] GetByTypeAsync Error: {ex.Message}");
             return null;
         }
     }
@@ -134,9 +129,8 @@ public class NotificationApiService
             }
             return null;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[NotificationApiService] GetLowStockProductsAsync Error: {ex.Message}");
             return null;
         }
     }
@@ -161,9 +155,8 @@ public class NotificationApiService
             }
             return null;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[NotificationApiService] GetRecentOrdersAsync Error: {ex.Message}");
             return null;
         }
     }
@@ -178,9 +171,8 @@ public class NotificationApiService
             var response = await _httpClient.PutAsync($"api/notifications/{id}/read", null);
             return response.IsSuccessStatusCode;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[NotificationApiService] MarkAsReadAsync Error: {ex.Message}");
             return false;
         }
     }
@@ -195,9 +187,8 @@ public class NotificationApiService
             var response = await _httpClient.PutAsync("api/notifications/read-all", null);
             return response.IsSuccessStatusCode;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[NotificationApiService] MarkAllAsReadAsync Error: {ex.Message}");
             return false;
         }
     }
@@ -212,9 +203,8 @@ public class NotificationApiService
             var response = await _httpClient.DeleteAsync($"api/notifications/{id}");
             return response.IsSuccessStatusCode;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[NotificationApiService] DeleteAsync Error: {ex.Message}");
             return false;
         }
     }
@@ -229,9 +219,8 @@ public class NotificationApiService
             var response = await _httpClient.PostAsync($"api/notifications/check-low-stock?threshold={threshold}", null);
             return response.IsSuccessStatusCode;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[NotificationApiService] CheckLowStockAsync Error: {ex.Message}");
             return false;
         }
     }

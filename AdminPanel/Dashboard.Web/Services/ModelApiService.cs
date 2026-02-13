@@ -21,9 +21,8 @@ public class ModelApiService
         {
             return await _httpClient.GetFromJsonAsync<List<ModelViewModel>>($"api/{_endpoint}");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[ModelApiService] Error: {ex.Message}");
             return null;
         }
     }
@@ -49,9 +48,8 @@ public class ModelApiService
         {
             return await _httpClient.GetFromJsonAsync<List<ModelViewModel>>($"api/{_endpoint}/brand/{brandId}");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"[ModelApiService] Error getting models by brand: {ex.Message}");
             return null;
         }
     }
