@@ -730,15 +730,6 @@ Projeye ait tüm ekran görüntüleri `ScreenShots/` klasöründe bulunmaktadır
 
 ---
 
-## 🤝 Katkıda Bulunma
-
-1. Projeyi fork edin
-2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
-3. Değişikliklerinizi commit edin (`git commit -m 'Add amazing feature'`)
-4. Branch'i push edin (`git push origin feature/amazing-feature`)
-5. Pull Request açın
-
----
 
 ## 📄 Lisans
 
