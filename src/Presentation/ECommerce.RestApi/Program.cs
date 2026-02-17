@@ -374,6 +374,24 @@ using (var scope = app.Services.CreateScope())
         if (app.Environment.IsDevelopment())
         {
             logger.LogInformation("🔍 Starting test data seed...");
+            // Ayrıca DataSeeder ile kapsamlı örnek veriyi doldur
+            try
+            {
+                var dataSeeder = services.GetService<DataSeeder>();
+                if (dataSeeder != null)
+                {
+                    await dataSeeder.SeedAsync();
+                    logger.LogInformation("✅ DataSeeder completed");
+                }
+                else
+                {
+                    logger.LogWarning("⚠️ DataSeeder servisi bulunamadı (Dependency Injection'a kayıtlı mı?).");
+                }
+            }
+            catch (Exception dex)
+            {
+                logger.LogError(dex, "❌ DataSeeder hatası: {Message}", dex.Message);
+            }
             // Test kategorisi ve markası
             logger.LogInformation("🔍 Checking for Electronics category...");
             var testCategoryExists = await context.Categories.FirstOrDefaultAsync(c => c.Name == "Electronics");
