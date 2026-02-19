@@ -56,6 +56,8 @@ services:
     plan: free
     dockerfilePath: AdminPanel/Dashboard.Web/Dockerfile
     dockerContext: .
+    # Basit healthcheck: dashboard ana sayfası genelde 200 döner
+    healthCheckPath: /
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
@@ -67,7 +69,7 @@ services:
           name: ecommerce-db
           property: connectionString
       - key: Jwt__Key
-        sync: false  # API ile aynı JWT_KEY değerini manuel yapıştır
+        sync: false  # API ile aynı JWT_KEY değerini manuel yapıştır (Deploy sonrası `ecommerce-api` servisindeki JWT_KEY değerini kopyalayın)
       - key: Jwt__Issuer
         value: ECommerce
       - key: Jwt__Audience
@@ -83,6 +85,8 @@ services:
     plan: free
     dockerfilePath: Frontend/ECommerce-Frontend/Dockerfile
     dockerContext: Frontend/ECommerce-Frontend
+    # Frontend sunucusunun kök yolunun 200 döndüğünü kontrol etmek deploy sağlığı için yeterli
+    healthCheckPath: /
     envVars:
       - key: NODE_ENV
         value: production

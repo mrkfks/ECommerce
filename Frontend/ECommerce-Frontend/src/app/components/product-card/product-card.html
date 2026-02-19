@@ -5,7 +5,7 @@
         [src]="product.imageUrl || 'assets/images/no-image.svg'" 
         [alt]="product.name" 
         class="card-img-top product-image"
-        loading="lazy"
+        loading="eager"
         (error)="onImgError($event)">
     </a>
 

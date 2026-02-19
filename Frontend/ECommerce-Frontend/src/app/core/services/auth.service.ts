@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, map, Observable, tap } from 'rxjs';
+import { LoggerService } from './logger.service';
 import {
     ApiResponse,
     AuthResponse,
@@ -33,7 +34,8 @@ export class AuthService {
 
   constructor(
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private logger: LoggerService
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
     if (this.isBrowser) {
@@ -123,7 +125,7 @@ export class AuthService {
 
   getCurrentUser(): Observable<User> {
     return this.http.get<ApiResponse<User>>('/auth/me').pipe(
-      tap(response => console.log('getCurrentUser raw response:', response)),
+      tap(response => this.logger.debug('getCurrentUser raw response:', response)),
       map(response => response.data),
       tap(user => {
         this.currentUserSubject.next(user);

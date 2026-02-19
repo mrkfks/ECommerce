@@ -131,9 +131,9 @@ export class Home implements OnInit, OnDestroy {
           return;
         }
         const mappedProducts = products.map(p => this.productService.mapProduct(p)).filter(p => p.isActive);
-        this.featuredProducts = mappedProducts.slice(0, 4);
-        this.newProducts = mappedProducts.filter(p => p.isNew).slice(0, 4);
-        this.bestSellers = mappedProducts.slice(0, 4);
+        this.featuredProducts = mappedProducts.slice(0, 3);
+        this.newProducts = mappedProducts.filter(p => p.isNew).slice(0, 3);
+        this.bestSellers = mappedProducts.slice(0, 3);
         this.isLoading = false;
       },
       error: () => {
@@ -157,11 +157,11 @@ export class Home implements OnInit, OnDestroy {
           return;
         }
         const mapped = products.map(p => this.productService.mapProduct(p)).filter(p => p.isActive);
-        this.allProducts = mapped;
+        this.allProducts = mapped.slice(0, 3); // Sadece ilk 3 ürünü al
       },
       error: (err) => {
         // fallback to bestSellers if available
-        this.allProducts = this.bestSellers.slice();
+        this.allProducts = this.bestSellers.slice(0, 3); // Sadece ilk 3 ürünü al
       }
     });
   }

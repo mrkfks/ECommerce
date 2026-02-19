@@ -34,7 +34,8 @@
       <!-- Search Bar -->
       <div class="d-flex mx-3 flex-grow-1" style="max-width: 400px;">
         <div class="input-group">
-            <input type="text" class="form-control" placeholder="Ürün Ara..." #searchInput (keyup.enter)="onSearch(searchInput.value)">
+            <label for="navbarSearch" class="visually-hidden">Ürün Ara</label>
+            <input id="navbarSearch" name="search" type="search" class="form-control" placeholder="Ürün Ara..." #searchInput (keyup.enter)="onSearch(searchInput.value)" autocomplete="off">
             <button class="btn btn-outline-primary" type="button" (click)="onSearch(searchInput.value)">
                 <i class="bi bi-search"></i>
             </button>

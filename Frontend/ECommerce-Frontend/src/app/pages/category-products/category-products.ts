@@ -53,6 +53,20 @@ export class CategoryProducts implements OnInit, OnDestroy {
   ngOnInit(): void {
     // SSR sırasında API istekleri yapma
     if (isPlatformBrowser(this.platformId)) {
+      // listen query params for global search (e.g. /products/all?search=term)
+      this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(q => {
+        const qSearch = q['search'] || q['q'] || '';
+        this.searchTerm = qSearch;
+        if (this.searchTerm && this.searchTerm.trim().length > 0) {
+          this.performSearch(this.searchTerm);
+        } else {
+          // if search cleared and we're on 'all', reload full list
+          const currentCategory = this.route.snapshot.params['categoryId'];
+          if (!currentCategory || currentCategory === 'all') {
+            this.loadAllProducts();
+          }
+        }
+      });
       this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
         const categoryId = params['categoryId'];
 
@@ -134,13 +148,40 @@ export class CategoryProducts implements OnInit, OnDestroy {
   loadAllProducts(): void {
     this.category = { id: 0, name: 'Tüm Ürünler', createdAt: new Date() };
     this.isLoading = true;
-    this.productService.getAll().subscribe({
-      next: (response) => {
-        this.products = response.items.filter(p => p.isActive).map(p => this.productService.mapProduct(p));
+    // if a search term exists, use backend search instead of paginated getAll
+    if (this.searchTerm && this.searchTerm.trim().length > 0) {
+      this.performSearch(this.searchTerm);
+      return;
+    }
+
+    this.productService.getAll().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (response: any) => {
+        const items = response.items ?? response;
+        const productsArray = Array.isArray(items) ? items : [];
+        this.products = productsArray.filter((p: any) => p.isActive).map((p: any) => this.productService.mapProduct(p));
         this.applyFilters();
         this.isLoading = false;
       },
       error: () => {
+        this.products = [];
+        this.applyFilters();
+        this.isLoading = false;
+      }
+    });
+  }
+
+  performSearch(term: string): void {
+    this.isLoading = true;
+    this.productService.search(term).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (response: any) => {
+        const items = Array.isArray(response) ? response : (response?.items ?? response);
+        const productsArray = Array.isArray(items) ? items : [];
+        this.products = productsArray.filter((p: any) => p.isActive).map((p: any) => this.productService.mapProduct(p));
+        this.applyFilters();
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Search API error:', err);
         this.products = [];
         this.applyFilters();
         this.isLoading = false;

@@ -47,11 +47,25 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         }
       }
 
+      // Suppress noisy 404 logs for product active-campaign endpoint
+      if (error.status === 404 && error.url && error.url.includes('/active-campaign')) {
+        return throwError(() => new Error(errorMessage));
+      }
+
       console.error('HTTP Error:', {
         status: error.status,
         message: errorMessage,
         url: error.url,
         error: error.error
+      });
+
+      console.error('HTTP Error Details:', {
+        status: error.status,
+        message: errorMessage,
+        url: error.url,
+        error: error.error,
+        headers: error.headers,
+        body: error.message
       });
 
       return throwError(() => new Error(errorMessage));

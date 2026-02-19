@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { Category } from '../../core/models';
 import { AuthService, CartService, CategoryService, DesignService } from '../../core/services';
+import { LoggerService } from '../../core/services/logger.service';
 
 @Component({
   selector: 'app-navbar',
@@ -18,6 +19,7 @@ export class Navbar implements OnInit {
   private router = inject(Router);
   public designService = inject(DesignService);
   private platformId = inject(PLATFORM_ID);
+  private logger = inject(LoggerService);
 
   cartItemCount = this.cartService.totalItems;
   isAuthenticated = this.authService.isAuthenticated;
@@ -36,13 +38,17 @@ export class Navbar implements OnInit {
   loadCategories() {
     this.categoryService.getAll().subscribe({
       next: (cats) => this.categories = cats,
-      error: (err) => console.error('Navbar categories load error', err)
+      error: (err) => this.logger.error('Navbar categories load error', err)
     });
   }
 
   onSearch(term: string) {
     if (term && term.trim().length > 0) {
-      this.router.navigate(['/products'], { queryParams: { search: term } });
+      this.logger.debug('Arama terimi:', term);
+      // yönlendirmeyi products/all üzerine yapıyoruz, böylece CategoryProducts bileşeni yüklenir
+      this.router.navigate(['/products', 'all'], { queryParams: { search: term } });
+    } else {
+      this.logger.warn('Arama terimi boş veya geçersiz.');
     }
   }
 

@@ -13,6 +13,7 @@ import { ProductService } from '../../core/services/product.service';
 })
 export class ProductCard implements OnInit {
   @Input() product!: Product;
+  @Input() showCampaign: boolean = false;
   @Output() addToCart = new EventEmitter<Product>();
   @Output() addToWishlist = new EventEmitter<Product>();
 
@@ -22,7 +23,9 @@ export class ProductCard implements OnInit {
   constructor(private productService: ProductService) {}
 
   ngOnInit(): void {
-    this.loadActiveCampaign();
+    if (this.showCampaign) {
+      this.loadActiveCampaign();
+    }
   }
 
   loadActiveCampaign(): void {

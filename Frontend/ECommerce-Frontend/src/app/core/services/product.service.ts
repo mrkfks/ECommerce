@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, map, catchError, of } from 'rxjs';
 import { Product, PaginatedResponse, ApiResponse, ProductCampaign } from '../models';
 import { environment } from '../../../environments/environment';
 import { ImageUrlService } from './image-url.service';
+import { LoggerService } from './logger.service';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +12,7 @@ import { ImageUrlService } from './image-url.service';
 export class ProductService {
   private readonly basePath = `${environment.apiUrl}/products`;
 
-  constructor(private http: HttpClient, private imageUrlService: ImageUrlService) { }
+  constructor(private http: HttpClient, private imageUrlService: ImageUrlService, private logger: LoggerService) { }
 
   mapProduct(apiProduct: any): Product {
     return {
@@ -61,9 +62,22 @@ export class ProductService {
   }
 
   search(searchTerm: string): Observable<Product[]> {
+    this.logger.debug('Arama API çağrısı yapılıyor, arama terimi:', searchTerm);
     const params = new HttpParams().set('searchTerm', searchTerm);
     return this.http.get<Product[] | ApiResponse<Product[]>>(`${this.basePath}/search`, { params }).pipe(
-      map((response: any) => (Array.isArray(response) ? response : (response?.data || [])))
+      map((response: any) => {
+        this.logger.debug('Arama API yanıtı:', response);
+        // Backend may wrap payload as { Data: { Data: [...] } } or { Data: [...] }
+        // Normalize common shapes to return the actual items array.
+        if (Array.isArray(response)) return response;
+        const firstLevel = response?.data ?? response?.Data ?? response;
+        if (Array.isArray(firstLevel)) return firstLevel;
+        // Handle nested shape: { data: { data: [...] } }
+        const secondLevel = firstLevel?.data ?? firstLevel?.Data;
+        if (Array.isArray(secondLevel)) return secondLevel;
+        // Fallback: empty array
+        return [] as Product[];
+      })
     );
   }
 
@@ -101,9 +115,17 @@ export class ProductService {
     );
   }
 
-  getActiveCampaign(productId: number): Observable<ProductCampaign> {
+  getActiveCampaign(productId: number): Observable<ProductCampaign | null> {
     return this.http.get<ApiResponse<ProductCampaign>>(`${this.basePath}/${productId}/active-campaign`).pipe(
-      map((response: any) => ('data' in response ? response.data : response))
+      map((response: any) => ('data' in response ? response.data : response)),
+      catchError((err: any) => {
+        // If backend returns 404 meaning "no active campaign", return null silently
+        if (err && err.status === 404) {
+          return of(null);
+        }
+        // rethrow other errors
+        throw err;
+      })
     );
   }
 }

@@ -136,12 +136,15 @@
                   <i class="bi bi-dash-lg"></i>
                 </button>
                 <input 
+                  id="quantityInput"
+                  name="quantity"
                   type="number" 
                   class="form-control text-center fw-bold" 
                   [value]="quantity"
                   min="1"
                   [max]="product.stockQuantity"
                   readonly
+                  aria-label="Ürün miktarı"
                   style="font-size: 1.1rem;">
                 <button 
                   class="btn btn-outline-primary fw-bold" 
@@ -249,8 +252,10 @@
 
               <!-- Yorum Metni -->
               <div class="mb-3">
-                <label class="form-label">Yorumunuz:</label>
+                <label for="reviewComment" class="form-label">Yorumunuz:</label>
                 <textarea 
+                  id="reviewComment"
+                  name="reviewComment"
                   class="form-control" 
                   rows="4" 
                   [(ngModel)]="reviewForm.comment"

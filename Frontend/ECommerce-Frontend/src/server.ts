@@ -50,7 +50,8 @@ app.use('/api', async (req, res) => {
     const responseBody = await fetchRes.arrayBuffer();
     res.send(Buffer.from(responseBody));
   } catch (err) {
-    console.error('[proxy] Error forwarding to API:', err);
+    // Downgrade proxy forwarding errors to warnings to avoid noisy error logs in dev
+    console.warn('[proxy] Error forwarding to API:', err);
     res.status(502).json({ error: 'API proxy error' });
   }
 });

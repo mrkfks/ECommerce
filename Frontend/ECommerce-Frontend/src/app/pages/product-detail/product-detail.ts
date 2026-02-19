@@ -96,7 +96,7 @@ export class ProductDetail implements OnInit, OnDestroy {
         next: (products) => {
           this.relatedProducts = products
             .filter(p => p.id !== this.product?.id && p.isActive)
-            .slice(0, 4)
+            .slice(0, 3)
             .map(p => this.productService.mapProduct(p));
         },
         error: () => {

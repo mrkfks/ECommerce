@@ -238,16 +238,16 @@
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label fw-bold">Ürün</label>
-            <input type="text" class="form-control" [value]="selectedOrderItem.productName" disabled>
+            <label for="returnProductName" class="form-label fw-bold">Ürün</label>
+            <input id="returnProductName" name="returnProductName" type="text" class="form-control" [value]="selectedOrderItem.productName" disabled>
           </div>
           <div class="mb-3">
-            <label class="form-label fw-bold">Sipariş Edilen Miktar</label>
-            <input type="text" class="form-control" [value]="selectedOrderItem.quantity + ' adet'" disabled>
+            <label for="returnProductQuantity" class="form-label fw-bold">Sipariş Edilen Miktar</label>
+            <input id="returnProductQuantity" name="returnProductQuantity" type="text" class="form-control" [value]="selectedOrderItem.quantity + ' adet'" disabled>
           </div>
           <div class="mb-3">
-            <label class="form-label fw-bold">İade Sebebi <span class="text-danger">*</span></label>
-            <select class="form-select" [(ngModel)]="returnReason">
+            <label for="returnReasonSelect" class="form-label fw-bold">İade Sebebi <span class="text-danger">*</span></label>
+            <select id="returnReasonSelect" name="returnReason" class="form-select" [(ngModel)]="returnReason">
               <option value="">Sebep Seçiniz...</option>
               <option value="Hatalı Ürün">Hatalı Ürün</option>
               <option value="Ürün Hasarlı">Ürün Hasarlı</option>
@@ -257,8 +257,8 @@
             </select>
           </div>
           <div class="mb-3">
-            <label class="form-label fw-bold">Ek Açıklama (Opsiyonel)</label>
-            <textarea class="form-control" rows="3" [(ngModel)]="returnComments" placeholder="Detaylı açıklama yazınız..."></textarea>
+            <label for="returnComments" class="form-label fw-bold">Ek Açıklama (Opsiyonel)</label>
+            <textarea id="returnComments" name="returnComments" class="form-control" rows="3" [(ngModel)]="returnComments" placeholder="Detaylı açıklama yazınız..."></textarea>
           </div>
         </div>
         <div class="modal-footer">

@@ -38,40 +38,40 @@
             <div class="card-body">
               <div class="row g-3">
                 <div class="col-md-6">
-                  <label class="form-label">Ad *</label>
-                  <input type="text" class="form-control" [(ngModel)]="shippingInfo.firstName" id="firstName" name="firstName" required>
+                  <label for="firstName" class="form-label">Ad *</label>
+                  <input id="firstName" name="firstName" type="text" class="form-control" [(ngModel)]="shippingInfo.firstName" required>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">Soyad *</label>
-                  <input type="text" class="form-control" [(ngModel)]="shippingInfo.lastName" id="lastName" name="lastName" required>
+                  <label for="lastName" class="form-label">Soyad *</label>
+                  <input id="lastName" name="lastName" type="text" class="form-control" [(ngModel)]="shippingInfo.lastName" required>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">E-posta *</label>
-                  <input type="email" class="form-control" [(ngModel)]="shippingInfo.email" id="email" name="email" required>
+                  <label for="email" class="form-label">E-posta *</label>
+                  <input id="email" name="email" type="email" class="form-control" [(ngModel)]="shippingInfo.email" required>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">Telefon *</label>
-                  <input type="tel" class="form-control" [(ngModel)]="shippingInfo.phone" id="phone" name="phone" required>
+                  <label for="phone" class="form-label">Telefon *</label>
+                  <input id="phone" name="phone" type="tel" class="form-control" [(ngModel)]="shippingInfo.phone" required>
                 </div>
                 <div class="col-12">
-                  <label class="form-label">Adres *</label>
-                  <textarea class="form-control" rows="2" [(ngModel)]="shippingInfo.address" required></textarea>
+                  <label for="shippingAddress" class="form-label">Adres *</label>
+                  <textarea id="shippingAddress" name="shippingAddress" class="form-control" rows="2" [(ngModel)]="shippingInfo.address" required></textarea>
                 </div>
                 <div class="col-md-4">
-                  <label class="form-label">İl *</label>
-                  <input type="text" class="form-control" [(ngModel)]="shippingInfo.city" id="city" name="city" required>
+                  <label for="city" class="form-label">İl *</label>
+                  <input id="city" name="city" type="text" class="form-control" [(ngModel)]="shippingInfo.city" required>
                 </div>
                 <div class="col-md-4">
-                  <label class="form-label">İlçe</label>
-                  <input type="text" class="form-control" [(ngModel)]="shippingInfo.district" id="district" name="district">
+                  <label for="district" class="form-label">İlçe</label>
+                  <input id="district" name="district" type="text" class="form-control" [(ngModel)]="shippingInfo.district">
                 </div>
                 <div class="col-md-4">
-                  <label class="form-label">Posta Kodu *</label>
-                  <input type="text" class="form-control" [(ngModel)]="shippingInfo.postalCode" id="postalCode" name="postalCode" required>
+                  <label for="postalCode" class="form-label">Posta Kodu *</label>
+                  <input id="postalCode" name="postalCode" type="text" class="form-control" [(ngModel)]="shippingInfo.postalCode" required>
                 </div>
                 <div class="col-12">
-                  <label class="form-label">Sipariş Notu</label>
-                  <textarea class="form-control" rows="2" [(ngModel)]="shippingInfo.notes"></textarea>
+                  <label for="shippingNotes" class="form-label">Sipariş Notu</label>
+                  <textarea id="shippingNotes" name="shippingNotes" class="form-control" rows="2" [(ngModel)]="shippingInfo.notes"></textarea>
                 </div>
               </div>
             </div>
@@ -113,23 +113,23 @@
               @if (paymentInfo.method === 'credit-card') {
                 <div class="row g-3">
                   <div class="col-12">
-                    <label class="form-label">Kart Numarası *</label>
-                    <input type="text" class="form-control" placeholder="1234 5678 9012 3456" 
-                           [(ngModel)]="paymentInfo.cardNumber" maxlength="19">
+                    <label for="cardNumber" class="form-label">Kart Numarası *</label>
+                    <input id="cardNumber" name="cardNumber" type="text" class="form-control" placeholder="1234 5678 9012 3456" 
+                           [(ngModel)]="paymentInfo.cardNumber" maxlength="19" autocomplete="cc-number">
                   </div>
                   <div class="col-12">
-                    <label class="form-label">Kart Üzerindeki İsim *</label>
-                    <input type="text" class="form-control" [(ngModel)]="paymentInfo.cardName">
+                    <label for="cardName" class="form-label">Kart Üzerindeki İsim *</label>
+                    <input id="cardName" name="cardName" type="text" class="form-control" [(ngModel)]="paymentInfo.cardName" autocomplete="cc-name">
                   </div>
                   <div class="col-md-6">
-                    <label class="form-label">Son Kullanma *</label>
-                    <input type="text" class="form-control" placeholder="AA/YY" 
-                           [(ngModel)]="paymentInfo.expiryDate" maxlength="5">
+                    <label for="cardExpiry" class="form-label">Son Kullanma *</label>
+                    <input id="cardExpiry" name="cardExpiry" type="text" class="form-control" placeholder="AA/YY" 
+                           [(ngModel)]="paymentInfo.expiryDate" maxlength="5" autocomplete="cc-exp">
                   </div>
                   <div class="col-md-6">
-                    <label class="form-label">CVV *</label>
-                    <input type="password" class="form-control" placeholder="***" 
-                           [(ngModel)]="paymentInfo.cvv" maxlength="3">
+                    <label for="cardCvv" class="form-label">CVV *</label>
+                    <input id="cardCvv" name="cardCvv" type="password" class="form-control" placeholder="***" 
+                           [(ngModel)]="paymentInfo.cvv" maxlength="3" autocomplete="cc-csc">
                   </div>
                 </div>
               }
